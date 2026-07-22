@@ -1,0 +1,77 @@
+<div
+    id="video-placeholder"
+    class="video-placeholder">
+
+    📷 Kein Live-Stream verfügbar.
+
+</div>
+
+<div
+    id="video-container"
+    class="video-container"
+    style="display:none;">
+
+    <!-- =======================================================
+         Overlay oben
+         ======================================================= -->
+
+    <div class="video-overlay">
+
+        <div class="video-overlay-left">
+
+            <div
+                id="video-live"
+                class="overlay-pill overlay-live">
+
+                🔴 LIVE
+
+            </div>
+
+            <div
+                id="video-rec"
+                class="overlay-pill overlay-recording"
+                style="display:none;">
+
+                ⏺ REC
+
+            </div>
+
+            <div
+                id="video-duration"
+                class="overlay-pill"
+                style="display:none;">
+
+                00:00:00
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =======================================================
+         Overlay unten
+         ======================================================= -->
+
+    <div class="video-footer-overlay">
+
+        <div class="video-footer-left"></div>
+
+        <div class="video-watermark">
+
+            Open BOS Stream
+
+        </div>
+
+    </div>
+
+    <!-- =======================================================
+         Livebild
+         ======================================================= -->
+
+    <iframe
+        id="live-video"
+        allowfullscreen>
+    </iframe>
+
+</div>

@@ -1,0 +1,228 @@
+/* ==========================================================
+   Responsive Design
+   ========================================================== */
+
+/* ==========================================================
+   Large Tablets
+   ========================================================== */
+
+@media (max-width: 1400px) {
+
+    .container {
+
+        max-width: 100%;
+
+        padding: 20px;
+
+    }
+
+}
+
+/* ==========================================================
+   Tablets
+   ========================================================== */
+
+@media (max-width: 1100px) {
+
+    .dashboard-grid {
+
+        flex-direction: column;
+
+        overflow: auto;
+
+    }
+
+    .sidebar {
+
+        width: 100%;
+
+        min-width: 0;
+
+        max-width: none;
+
+    }
+
+    .content {
+
+    }
+
+    .dashboard-bottom {
+
+        grid-template-columns: 1fr;
+
+    }
+
+    .video-titlebar {
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 10px;
+
+    }
+
+    .video-toolbar {
+
+        flex-wrap: wrap;
+
+        width: 100%;
+
+    }
+
+    .video-toolbar-spacer {
+
+        display: none;
+
+    }
+
+    .video-container iframe {
+
+        height: auto;
+
+    }
+
+    .media-layout {
+
+        grid-template-columns: 1fr;
+
+    }
+
+    .media-sidebar {
+
+        order: 2;
+
+    }
+
+    .media-content {
+
+        order: 1;
+
+    }
+
+    .library-row {
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+    }
+
+    .library-actions {
+
+        width: 100%;
+
+        justify-content: flex-end;
+
+    }
+
+}
+
+/* ==========================================================
+   Smartphones
+   ========================================================== */
+
+@media (max-width: 768px) {
+
+    .container {
+
+        padding: 12px;
+
+    }
+
+    .bos-header {
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 12px;
+
+    }
+
+    .header-left,
+    .header-right {
+
+        width: 100%;
+
+        justify-content: space-between;
+
+    }
+
+    .system-health {
+
+        flex-wrap: wrap;
+
+        gap: 8px;
+
+    }
+
+    .video-toolbar {
+
+        gap: 8px;
+
+    }
+
+    .video-toolbar .bos-button {
+
+        flex: 1 1 180px;
+
+    }
+
+    #snapshot-button,
+    #fullscreen-button {
+
+        flex: 0 0 40px;
+
+    }
+
+    .bos-nav-item {
+
+        padding: 14px;
+
+    }
+
+}
+
+/* ==========================================================
+   Small Smartphones
+   ========================================================== */
+
+@media (max-width: 480px) {
+
+    .container {
+
+        padding: 10px;
+
+    }
+
+    .video-titlebar h2 {
+
+        font-size: 1.2rem;
+
+    }
+
+    .video-toolbar .bos-button {
+
+        flex: 1 1 100%;
+
+    }
+
+    #snapshot-button,
+    #fullscreen-button {
+
+        flex: 1 1 calc(50% - 4px);
+
+        height: 40px;
+
+    }
+
+    .library-actions {
+
+        width: 100%;
+
+        justify-content: space-between;
+
+    }
+
+}

@@ -1,0 +1,334 @@
+// ==========================================================
+// Recording Helper
+// ==========================================================
+let lastRecordingState = null;
+
+function formatDuration(seconds) {
+
+    const h =
+        Math.floor(seconds / 3600);
+
+    const m =
+        Math.floor(
+            (seconds % 3600) / 60
+        );
+
+    const s =
+        seconds % 60;
+
+    return (
+
+        String(h).padStart(2, "0") +
+
+        ":" +
+
+        String(m).padStart(2, "0") +
+
+        ":" +
+
+        String(s).padStart(2, "0")
+
+    );
+
+}
+
+// ==========================================================
+// Recording Refresh
+// ==========================================================
+
+
+// ==========================================================
+// Recording UI
+// ==========================================================
+
+function updateRecordingUI(
+    recording
+) {
+
+    if (!recording) {
+        return;
+    }
+
+    // -----------------------------------------------------
+// Event Log
+// -----------------------------------------------------
+
+if (lastRecordingState !== null) {
+
+    if (
+        !lastRecordingState &&
+        recording.active
+    ) {
+
+        addEvent(
+            "success",
+            "⏺ Aufnahme gestartet"
+        );
+
+    }
+
+    if (
+        lastRecordingState &&
+        !recording.active
+    ) {
+
+        addEvent(
+            "warning",
+            "⏹ Aufnahme beendet"
+        );
+
+    }
+
+}
+
+lastRecordingState =
+    recording.active;
+
+    const active =
+        recording.active;
+
+    const duration =
+        formatDuration(
+            recording.duration ?? 0
+        );
+
+    // -----------------------------------------------------
+    // Dashboard synchron halten
+    // -----------------------------------------------------
+
+    if (window.dashboard) {
+
+        window.dashboard.recording = {
+
+            active: active,
+
+            duration:
+                recording.duration ?? 0,
+
+            filename:
+                recording.filename,
+
+            pid:
+                recording.pid,
+
+        };
+
+    }
+
+    // -----------------------------------------------------
+    // Sidebar
+    // -----------------------------------------------------
+
+    updateValue(
+
+        "recording-status",
+
+        active
+            ? "🟢 Aktiv"
+            : "⚪ Nicht aktiv"
+
+    );
+
+    updateValue(
+
+        "recording-duration",
+
+        duration
+
+    );
+
+    updateValue(
+
+        "recording-file",
+
+        recording.filename ?? "—"
+
+    );
+
+    // -----------------------------------------------------
+    // Dashboard
+    // -----------------------------------------------------
+
+    updateValue(
+
+        "status-recording",
+
+        active
+            ? "🟢 Aktiv"
+            : "⚪ Nicht aktiv"
+
+    );
+
+    // -----------------------------------------------------
+    // Video Overlay
+    // -----------------------------------------------------
+
+    const rec =
+        document.getElementById(
+            "video-rec"
+        );
+
+    if (rec) {
+
+        rec.style.display =
+            active
+                ? ""
+                : "none";
+
+    }
+
+    const overlayDuration =
+        document.getElementById(
+            "video-duration"
+        );
+
+    if (overlayDuration) {
+
+        overlayDuration.style.display =
+            active
+                ? ""
+                : "none";
+
+        overlayDuration.textContent =
+            duration;
+
+    }
+
+    // -----------------------------------------------------
+    // Buttons
+    // -----------------------------------------------------
+
+    const toggle =
+        document.getElementById(
+            "recording-toggle"
+        );
+
+    if (toggle) {
+
+        toggle.textContent =
+            active
+                ? "⏹ Aufnahme stoppen"
+                : "⏺ Aufnahme starten";
+
+        toggle.classList.toggle(
+            "bos-button-red",
+            active
+        );
+
+        toggle.classList.toggle(
+            "bos-button",
+            !active
+        );
+
+    }
+
+    const startButton =
+        document.getElementById(
+            "sidebar-recording-start"
+        );
+
+    const stopButton =
+        document.getElementById(
+            "sidebar-recording-stop"
+        );
+
+    if (startButton) {
+
+        startButton.style.display =
+            active
+                ? "none"
+                : "";
+
+    }
+
+    if (stopButton) {
+
+        stopButton.style.display =
+            active
+                ? ""
+                : "none";
+
+    }
+
+}
+
+// ==========================================================
+// Toggle
+// ==========================================================
+
+async function toggleRecording() {
+
+    const active =
+        window.dashboard
+            ?.recording
+            ?.active;
+
+    if (active) {
+
+        await stopRecording();
+
+    } else {
+
+        await startRecording();
+
+    }
+
+}
+
+// ==========================================================
+// Start
+// ==========================================================
+
+async function startRecording() {
+
+    const result =
+        await api.startRecording();
+
+    if (!result.success) {
+
+        alert(
+
+            result.error ??
+
+            "Aufnahme konnte nicht gestartet werden."
+
+        );
+
+        return;
+
+    }
+
+    await refreshDashboard();
+
+    await refreshRecordingLibrary();
+
+}
+
+// ==========================================================
+// Stop
+// ==========================================================
+
+async function stopRecording() {
+
+    const result =
+        await api.stopRecording();
+
+    if (!result.success) {
+
+        alert(
+
+            result.error ??
+
+            "Aufnahme konnte nicht beendet werden."
+
+        );
+
+        return;
+
+    }
+
+    await refreshDashboard();
+
+    await refreshRecordingLibrary();
+
+}

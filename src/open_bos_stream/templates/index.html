@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html lang="de">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1">
+
+<title>Open BOS Stream</title>
+
+<link
+    rel="stylesheet"
+    href="/static/css/obds.css?v={{ version }}">
+
+<link
+    rel="stylesheet"
+    href="/static/css/layout.css?v={{ version }}">
+
+<link
+    rel="stylesheet"
+    href="/static/css/header.css?v={{ version }}">
+
+<link
+    rel="stylesheet"
+    href="/static/css/sidebar.css?v={{ version }}">
+
+<link
+    rel="stylesheet"
+    href="/static/css/dashboard.css?v={{ version }}">
+
+<link
+    rel="stylesheet"
+    href="/static/css/video.css?v={{ version }}">
+
+<link
+    rel="stylesheet"
+    href="/static/css/media.css?v={{ version }}">
+
+<link
+    rel="stylesheet"
+    href="/static/css/responsive.css?v={{ version }}">
+
+<link
+    rel="stylesheet"
+    href="/static/css/stream_outputs.css?v={{ version }}">
+
+<link
+    rel="stylesheet"
+    href="/static/vendor/maplibre/maplibre-gl.css?v={{ version }}">
+
+<link
+    rel="stylesheet"
+    href="/static/css/map.css?v={{ version }}"
+>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="dashboard-header">
+
+        {% include "components/header.html" %}
+
+    </div>
+
+    <div
+        id="dashboard-grid"
+        class="dashboard-grid">
+
+        {% include "components/sidebar.html" %}
+
+        <div class="content">
+
+            <div
+                id="page-dashboard"
+                class="page active">
+
+                {% include "components/video_panel.html" %}
+
+                <div class="dashboard-bottom">
+
+    <div class="dashboard-left">
+
+        {% include "components/event_log.html" %}
+
+    </div>
+
+    <div class="dashboard-right">
+
+        {% include "components/status_card.html" %}
+
+        {% include "components/stream_card.html" %}
+
+        {% include "components/stream_outputs_card.html" %}
+
+    </div>
+
+</div>
+
+            </div>
+
+            <div
+                id="page-media"
+                class="page">
+
+                {% include "components/media_page.html" %}
+
+            </div>
+
+			<div
+			    id="page-map"
+			    class="page">
+
+			    {% include "components/map.html" %}
+
+			</div>
+
+            <div
+                id="page-settings"
+                class="page">
+
+                {% include "components/settings_card.html" %}
+
+            </div>
+
+            <div
+                id="page-system"
+                class="page">
+
+                {% include "components/system_card.html" %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="/static/js/api.js?v={{ version }}"></script>
+
+<script src="/static/js/ui.js?v={{ version }}"></script>
+
+<script src="/static/js/recording.js?v={{ version }}"></script>
+
+<script src="/static/js/stream.js?v={{ version }}"></script>
+
+<script src="/static/js/snapshot.js?v={{ version }}"></script>
+
+<script src="/static/js/health.js?v={{ version }}"></script>
+
+<script src="/static/js/config_input.js?v={{ version }}"></script>
+
+<script src="/static/js/config_encoder.js?v={{ version }}"></script>
+
+<script src="/static/js/config_stream.js?v={{ version }}"></script>
+
+<script src="/static/js/config_stream_outputs.js?v={{ version }}"></script>
+
+<script src="/static/js/config.js?v={{ version }}"></script>
+
+<script src="/static/js/media.js?v={{ version }}"></script>
+
+<script src="/static/js/library.js?v={{ version }}"></script>
+
+<script src="/static/js/snapshot_library.js?v={{ version }}"></script>
+
+<script src="/static/js/media_library.js?v={{ version }}"></script>
+
+<script src="/static/js/navigation.js?v={{ version }}"></script>
+
+<script src="/static/js/stream_outputs.js?v={{ version }}"></script>
+
+<script src="/static/js/dashboard_helpers.js?v={{ version }}"></script>
+
+<script src="/static/js/dashboard_state.js?v={{ version }}"></script>
+
+<script src="/static/js/dashboard_health.js?v={{ version }}"></script>
+
+<script src="/static/js/stream_helpers.js?v={{ version }}"></script>
+
+<script src="/static/js/dashboard_stream.js?v={{ version }}"></script>
+
+<script src="/static/js/dashboard_events.js?v={{ version }}"></script>
+
+<script src="/static/js/dashboard.js?v={{ version }}"></script>
+
+<script src="/static/js/app.js?v={{ version }}"></script>
+
+<script
+    src="/static/vendor/maplibre/maplibre-gl.js?v={{ version }}">
+</script>
+
+<script src="/static/js/map-controls.js?v={{ version }}"></script>
+
+<script src="/static/js/map-overlays.js?v={{ version }}"></script>
+
+<script src="/static/js/map.js?v={{ version }}"></script>
+</body>
+
+</html>

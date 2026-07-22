@@ -1,0 +1,192 @@
+.map-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.map-wrapper {
+    position: relative;
+    flex: 1;
+    min-height: 500px;
+}
+
+#map-container {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+}
+
+.map-layer-control {
+    position: absolute;
+
+    top: 1rem;
+    left: 1rem;
+
+    z-index: 1000;
+
+    min-width: 220px;
+
+    padding: 0.75rem 1rem;
+
+    background-color: rgba(255, 255, 255, 0.95);
+
+    border: 1px solid #d0d7de;
+    border-radius: 0.5rem;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.map-layer-control summary {
+    font-size: 1rem;
+    font-weight: 600;
+
+    cursor: pointer;
+    user-select: none;
+
+    list-style: none;
+}
+
+.map-layer-control summary::-webkit-details-marker {
+    display: none;
+}
+
+.map-layer-control summary::before {
+    content: "▾";
+    display: inline-block;
+
+    width: 1rem;
+    margin-right: 0.25rem;
+}
+
+.map-layer-control:not([open]) summary::before {
+    content: "▸";
+}
+
+.map-layer-control label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    margin-top: 0.75rem;
+
+    cursor: pointer;
+    user-select: none;
+}
+
+.map-layer-control input[type="checkbox"] {
+    margin: 0;
+}
+
+.map-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+}
+
+.map-container #map {
+    width: 100%;
+    height: 100%;
+}
+
+.map-toolbar {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    z-index: 20;
+}
+
+.map-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 48px;
+    height: 48px;
+    padding: 0;
+
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+
+    background: rgba(255, 255, 255, 0.94);
+    color: #222;
+
+    font-size: 24px;
+    line-height: 1;
+
+    cursor: pointer;
+    touch-action: manipulation;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+}
+
+.map-button:hover {
+    background: #ffffff;
+}
+
+.map-button:focus-visible {
+    outline: 3px solid rgba(40, 110, 200, 0.55);
+    outline-offset: 2px;
+}
+
+.map-container:fullscreen,
+.map-container:-webkit-full-screen {
+    width: 100vw;
+    height: 100vh;
+    min-height: 100vh;
+    background: #101215;
+}
+
+.map-container:fullscreen #map,
+.map-container:-webkit-full-screen #map {
+    width: 100%;
+    height: 100%;
+}
+
+html.map-fullscreen-active,
+body.map-fullscreen-active {
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+.map-container.map-mobile-fullscreen {
+    position: fixed !important;
+    inset: 0 !important;
+
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+
+    max-width: none !important;
+    max-height: none !important;
+
+    margin: 0 !important;
+    border-radius: 0 !important;
+
+    z-index: 2147483647;
+
+    background: #000;
+}
+
+.map-container.map-mobile-fullscreen #map {
+    width: 100%;
+    height: 100%;
+}
+
+.map-container.map-mobile-fullscreen .map-toolbar {
+
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+
+}
+
+.map-container.map-mobile-fullscreen .map-layer-control {
+
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+
+}

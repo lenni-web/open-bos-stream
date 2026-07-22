@@ -1,0 +1,55 @@
+<div id="settings-drawer" class="settings-drawer">
+
+    <div class="settings-header">
+
+        <h2>⚙ Einstellungen</h2>
+
+        <button
+            class="bos-button"
+            onclick="closeSettings()">
+
+            ✕
+        </button>
+
+    </div>
+
+    <div class="settings-content">
+
+        <h3>Capture</h3>
+
+        <label>Gerät</label>
+        <input id="cfg-device" type="text">
+
+        <label>Breite</label>
+        <input id="cfg-width" type="number">
+
+        <label>Höhe</label>
+        <input id="cfg-height" type="number">
+
+        <label>FPS</label>
+        <input id="cfg-fps" type="number">
+
+        <h3>Encoder</h3>
+
+        <label>Codec</label>
+        <input id="cfg-codec" type="text">
+
+        <label>Bitrate</label>
+        <input id="cfg-bitrate" type="text">
+
+        <h3>Streaming</h3>
+
+        <label>RTSP URL</label>
+        <input id="cfg-rtsp" type="text">
+
+        <button
+            class="bos-button bos-button-green"
+            onclick="saveSettings()">
+
+            💾 Speichern
+
+        </button>
+
+    </div>
+
+</div>

@@ -1,0 +1,416 @@
+/* ==========================================================
+   Media Library
+   ========================================================== */
+
+.library-row {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 16px;
+
+    min-height: 52px;
+
+}
+
+.library-meta {
+
+    flex: 1;
+
+    min-width: 0;
+
+}
+
+.library-title {
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+}
+
+.library-info {
+
+    margin-top: 2px;
+
+    font-size: 12px;
+
+    color: #6b7280;
+
+}
+
+/* ==========================================================
+   Library Actions
+   ========================================================== */
+
+.library-actions {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+}
+
+.library-button {
+
+    display: inline-flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    width: 30px;
+
+    height: 30px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: transparent;
+
+    cursor: pointer;
+
+    font-size: 16px;
+
+    transition:
+        background .15s ease,
+        transform .15s ease;
+
+}
+
+.library-button:hover {
+
+    background: #f3f3f3;
+
+    transform: scale(1.05);
+
+}
+
+.library-actions .bos-button {
+
+    width: 34px;
+
+    min-width: 34px;
+
+    height: 34px;
+
+    padding: 0;
+
+    font-size: 16px;
+
+}
+
+/* ==========================================================
+   Event Log
+   ========================================================== */
+
+/* ==========================================================
+   Library Entries
+   ========================================================== */
+
+.library-entry {
+
+    padding: 6px 10px;
+
+    border-bottom: 1px solid #ececec;
+	
+    font-size: 14px;
+
+    line-height: 1.5;
+	
+    transition:
+
+        background-color .15s ease,
+
+		border-color .15s ease,
+
+        box-shadow .15s ease;
+
+}
+
+.library-entry:last-child {
+
+    border-bottom: none;
+
+}
+
+.library-entry:hover {
+
+    background: #f7f9fc;
+
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+    cursor: pointer;
+
+}
+
+.library-entry-active:hover {
+
+    background-color: #eef5ff;
+
+}
+
+.library-group {
+
+    margin: 16px 0 8px;
+
+    padding-bottom: 4px;
+
+    border-bottom: 1px solid #ececec;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    color: #666;
+
+    text-transform: uppercase;
+
+    letter-spacing: .04em;
+
+}
+
+.library-entry-active {
+
+    background: #eef5ff;
+
+    border-left: 4px solid #2f80ed;
+
+}
+
+/* ==========================================================
+   Media Activity Log
+   ========================================================== */
+
+.media-event-log {
+
+    height: 300px;
+
+    overflow-y: auto;
+
+    border-top: 1px solid #ececec;
+
+}
+
+.media-event-entry {
+
+    padding: 10px 12px;
+
+    border-bottom: 1px solid #ececec;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+
+}
+
+.media-event-entry:last-child {
+
+    border-bottom: none;
+
+}
+
+/* ==========================================================
+   Media Preview
+   ========================================================== */
+
+#media-player,
+#media-video {
+
+    display: none;
+
+    width: 100%;
+
+    border-radius: 10px;
+
+    background: #000;
+
+}
+
+#media-image {
+
+    display: none;
+
+    width: 100%;
+
+    border-radius: 10px;
+
+    background: #000;
+
+}
+
+#media-placeholder {
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    min-height: 260px;
+
+    color: #888;
+
+    text-align: center;
+
+    border: 2px dashed #d9d9d9;
+
+    border-radius: 10px;
+
+}
+
+/* ==========================================================
+   Media Title
+   ========================================================== */
+
+#media-title {
+
+    margin-bottom: 15px;
+
+}
+
+/* ==========================================================
+   Collapsible Cards
+   ========================================================== */
+
+.card-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    cursor: pointer;
+
+    user-select: none;
+
+}
+
+.card-header h3 {
+
+    margin: 0;
+
+}
+
+.card-arrow {
+
+    font-size: 18px;
+
+    font-weight: bold;
+
+    transition: transform .2s ease;
+
+}
+
+.card-content {
+
+    margin-top: 15px;
+
+}
+
+.card-content.hidden {
+
+    display: none;
+
+}
+
+/* ==========================================================
+   Media Lists
+   ========================================================== */
+
+#recording-library,
+#snapshot-library {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+}
+
+.media-recording {
+
+    color: #1d70b8;
+
+    font-weight: 600;
+
+}
+
+.media-snapshot {
+
+    color: #2d8f57;
+
+    font-weight: 600;
+
+}
+
+/* ==========================================================
+   Responsive
+   ========================================================== */
+
+@media (max-width: 1100px) {
+
+    .library-row {
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+    }
+
+    .library-actions {
+
+        width: 100%;
+
+        justify-content: flex-end;
+
+    }
+
+}
+
+/* ==========================================================
+   Media Page Layout
+   ========================================================== */
+
+.media-layout {
+
+    display: grid;
+
+    grid-template-columns: 460px minmax(0, 1fr);
+
+    gap: 20px;
+
+    align-items: start;
+
+}
+
+.media-sidebar {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 20px;
+
+}
+
+.media-content {
+
+    min-width: 0;
+
+}
+

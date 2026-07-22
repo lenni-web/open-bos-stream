@@ -1,0 +1,392 @@
+/* ==========================================================
+   Video Panel
+   ========================================================== */
+
+.video-panel {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 16px;
+
+}
+
+/* ==========================================================
+   Titlebar
+   ========================================================== */
+
+.video-titlebar {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 16px;
+
+}
+
+.video-titlebar h2 {
+
+    margin: 0;
+
+    font-size: 1.4rem;
+
+    font-weight: 700;
+
+}
+
+.video-stream-state {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 6px 14px;
+
+    border-radius: 999px;
+
+    background: #eef8ef;
+
+    color: var(--bos-green);
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+}
+
+.video-stream-info {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+}
+
+#video-viewers {
+
+    color: #666;
+
+}
+
+/* ==========================================================
+   Toolbar
+   ========================================================== */
+
+.video-toolbar {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+}
+
+.video-toolbar-spacer {
+
+    flex: 1;
+
+}
+
+.video-toolbar .bos-button {
+
+    width: auto;
+
+    height: 40px;
+
+    margin: 0;
+
+    padding: 0 16px;
+
+}
+
+#snapshot-button,
+#fullscreen-button {
+
+    width: auto;
+
+    min-width: 44px;
+
+    padding: 0 16px;
+
+}
+
+/* ==========================================================
+   Video Container
+   ========================================================== */
+
+.video-container {
+
+    position: relative;
+
+    overflow: hidden;
+
+    width: 100%;
+
+    background: #000;
+
+    border-radius: 14px;
+
+    border: 1px solid #d9d9d9;
+
+    box-shadow: 0 8px 24px rgba(0,0,0,.10);
+
+}
+
+.video-container iframe {
+
+    display: block;
+
+    width: 100%;
+
+    aspect-ratio: 16 / 9;
+
+    border: none;
+
+    background: #000;
+
+}
+
+/* ==========================================================
+   Overlay oben
+   ========================================================== */
+
+.video-overlay {
+
+    position: absolute;
+
+    top: 16px;
+
+    left: 16px;
+
+    right: 16px;
+
+    display: flex;
+
+    justify-content: flex-start;
+
+    z-index: 10;
+
+    pointer-events: none;
+
+}
+
+.video-overlay-left {
+
+    display: flex;
+
+    gap: 10px;
+
+}
+
+/* ==========================================================
+   Overlay unten
+   ========================================================== */
+
+.video-footer-overlay {
+
+    position: absolute;
+
+    left: 16px;
+
+    right: 16px;
+
+    bottom: 16px;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    z-index: 10;
+
+    pointer-events: none;
+
+}
+
+.video-footer-left {
+
+    display: flex;
+
+    gap: 10px;
+
+}
+
+/* ==========================================================
+   Badges
+   ========================================================== */
+
+.overlay-pill {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    padding: 6px 12px;
+
+    border-radius: 999px;
+
+    background: rgba(0,0,0,.65);
+
+    color: white;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    backdrop-filter: blur(8px);
+
+}
+
+.overlay-live {
+
+    background: rgba(210,0,0,.92);
+
+    animation: pulse-live 1.5s infinite;
+
+}
+
+.overlay-recording {
+
+    background: rgba(150,0,0,.92);
+
+}
+
+.video-watermark {
+
+    padding: 6px 12px;
+
+    border-radius: 999px;
+
+    background: rgba(0,0,0,.45);
+
+    color: rgba(255,255,255,.85);
+
+    font-size: 12px;
+
+}
+
+/* ==========================================================
+   Animation
+   ========================================================== */
+
+@keyframes pulse-live {
+
+    0% {
+
+        opacity: 1;
+
+    }
+
+    50% {
+
+        opacity: .45;
+
+    }
+
+    100% {
+
+        opacity: 1;
+
+    }
+
+}
+
+/* ==========================================================
+   Fullscreen
+   ========================================================== */
+
+#video-container:fullscreen {
+
+    width: 100vw;
+
+    height: 100vh;
+
+    border: none;
+
+    border-radius: 0;
+
+}
+
+#video-container:fullscreen iframe {
+
+    width: 100%;
+
+    height: 100%;
+
+    aspect-ratio: auto;
+
+}
+
+/* ==========================================================
+   Responsive
+   ========================================================== */
+
+@media (max-width: 900px) {
+
+    .video-titlebar {
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+    }
+
+    .video-stream-info {
+
+        width: 100%;
+
+        justify-content: space-between;
+
+        gap: 12px;
+
+        flex-wrap: wrap;
+
+    }
+
+    .video-toolbar {
+
+        flex-wrap: wrap;
+
+    }
+
+    .video-toolbar-spacer {
+
+        display: none;
+
+    }
+
+}
+
+.video-placeholder {
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    aspect-ratio: 16 / 9;
+
+    color: #777;
+
+    font-size: 1.2rem;
+
+    background: #f5f5f5;
+
+}

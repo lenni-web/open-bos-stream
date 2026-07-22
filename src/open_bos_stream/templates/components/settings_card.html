@@ -1,0 +1,94 @@
+<div class="bos-card">
+
+    <div
+        class="card-header"
+        onclick="toggleCard('settings')">
+
+        <h3>⚙ Einstellungen</h3>
+
+        <span
+            id="settings-arrow"
+            class="card-arrow">
+
+            ▼
+
+        </span>
+
+    </div>
+
+    <div
+        id="settings-content"
+        class="card-content">
+
+		<h4>📥 Input</h4>
+
+		<label>Quelle</label>
+
+		<select
+		    id="cfg-input-type"
+		    class="bos-input">
+		</select>
+
+		<div id="cfg-input-fields">
+		</div>
+
+        <hr>
+
+        <h4>🎥 Encoder</h4>
+
+		<label>Codec</label>
+
+		<select
+		    id="cfg-encoder-codec"
+		    class="bos-input">
+		</select>
+
+	   <div id="encoder-options">
+
+	   </div>
+
+        <hr>
+
+        <h4>📡 Streaming</h4>
+
+        <label>Streamname</label>
+        <input
+            id="cfg-stream-name"
+            class="bos-input"
+            type="text">
+
+        <label>RTSP URL</label>
+        <input
+            id="cfg-rtsp-url"
+            class="bos-input"
+            type="text">
+
+        <hr>
+
+<h4>📺 Streaming Outputs</h4>
+
+<div id="stream-output-settings">
+
+</div>
+
+<button
+    class="bos-button bos-button-green"
+    onclick="addStreamOutput()">
+
+    ➕ Output hinzufügen
+
+</button>
+
+<hr>
+
+        <button
+            class="bos-button bos-button-green"
+            onclick="saveConfig()">
+
+            💾 Speichern
+
+        </button>
+
+    </div>
+
+</div>
