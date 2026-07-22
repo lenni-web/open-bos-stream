@@ -1,159 +1,165 @@
 # Open BOS Stream
 
-> Moderne Open-Source-Streaminglösung für Behörden und Organisationen
-> mit Sicherheitsaufgaben (BOS).
-
-Open BOS Stream ist eine webbasierte Streamingplattform für den
-Einsatzbetrieb. Sie ermöglicht Live-Streaming, Aufzeichnungen,
-Snapshots, Medienverwaltung und Systemüberwachung auf kompakter
-Hardware wie dem Raspberry Pi.
+Open BOS Stream ist eine webbasierte Streaming- und Kartenplattform für BOS-Anwendungen (Behörden und Organisationen mit Sicherheitsaufgaben). Sie kombiniert Live-Video, Kartenansicht und einsatzrelevante Overlays in einer leichtgewichtigen Anwendung für Raspberry Pi und Linux.
 
 ---
 
-## Highlights
+## Features
 
-- 🎥 Live-Streaming
-- ⏺ Videoaufzeichnung
-- 📸 Snapshot-Funktion
-- 📁 Medienbibliothek
-- 📊 Dashboard mit Systemstatus
-- 📱 Responsive Weboberfläche
-- ⚙️ Einfache Konfiguration
-- 🍓 Optimiert für Raspberry Pi
-- 🔓 100 % Open Source
-
----
-
-## Screenshots
-
-> Screenshots folgen mit Version 0.4.
+- Live-Streaming über FastAPI
+- Kartenansicht mit Leaflet
+- Dynamisches Overlay-System
+- Mobile Fullscreen-Unterstützung
+- Wasserentnahmestellen als Karten-Overlay
+- Produktionsbetrieb über systemd
+- Automatischer Installer
+- Update-Mechanismus
+- Automatische Installationsprüfung
 
 ---
 
-## Funktionen
+## Voraussetzungen
 
-### Streaming
+- Raspberry Pi OS (Bookworm empfohlen)
+- Python 3.13 oder neuer
+- Git
+- Internetzugang während der Installation
 
-- Livebild
-- Stream starten und stoppen
-- Video-Overlay
-- Vollbildmodus
-
-### Aufnahme
-
-- Aufnahme starten und stoppen
-- Laufzeitanzeige
-- Aufnahmebibliothek
-
-### Snapshots
-
-- Snapshot erstellen
-- Vorschau
-- Snapshotbibliothek
-
-### Dashboard
-
-- CPU-Auslastung
-- RAM-Auslastung
-- Temperatur
-- Streamstatus
-- Ereignisprotokoll
-
-### System
-
-- FFmpeg-Status
-- MediaMTX-Status
-- Capture-Status
+Die benötigten Systempakete werden automatisch installiert.
 
 ---
 
-## Projektstruktur
+# Installation
 
-```
-src/open_bos_stream
-
-├── api/
-├── core/
-├── dashboard/
-├── mediamtx/
-├── recording/
-├── snapshot/
-├── static/
-├── stream/
-├── system/
-└── templates/
-```
-
----
-
-## Installation
+Repository klonen:
 
 ```bash
-git clone https://github.com/<user>/open-bos-stream.git
-
+git clone <repository-url>
 cd open-bos-stream
+```
 
-python -m venv .venv
+Installer starten:
 
+```bash
+./scripts/install.sh
+```
+
+Der Installer übernimmt automatisch:
+
+- Installation der Systemabhängigkeiten
+- Deployment nach `/opt/open-bos-stream`
+- Einrichtung der Produktionsumgebung
+- Erstellung der Python-Virtualenv
+- Installation des systemd-Dienstes
+- Funktionsprüfung
+
+---
+
+# Update
+
+Ein bestehendes System wird aktualisiert mit:
+
+```bash
+./scripts/update.sh
+```
+
+Dabei bleiben erhalten:
+
+- `config/`
+- `mapdata/`
+- `recordings/`
+- `snapshots/`
+
+---
+
+# Projektstruktur
+
+```
+config/             Konfiguration
+mapdata/            Kartenmaterial
+recordings/         Aufzeichnungen
+scripts/            Installations- und Wartungsskripte
+src/                Anwendung
+snapshots/          Screenshots
+```
+
+Nach der Installation befindet sich die produktive Installation unter:
+
+```
+/opt/open-bos-stream
+```
+
+---
+
+# Wichtige Installationsskripte
+
+| Skript | Beschreibung |
+|---------|--------------|
+| `install.sh` | Vollständige Neuinstallation |
+| `update.sh` | Aktualisierung einer bestehenden Installation |
+| `verify-installation.sh` | Installationsprüfung |
+| `install-service.sh` | Installation des systemd-Dienstes |
+
+---
+
+# Systemdienst
+
+Status prüfen:
+
+```bash
+systemctl status open-bos-stream.service
+```
+
+Dienst neu starten:
+
+```bash
+sudo systemctl restart open-bos-stream.service
+```
+
+Logs anzeigen:
+
+```bash
+journalctl -u open-bos-stream.service -f
+```
+
+---
+
+# Deployment-Information
+
+Die installierte Version wird gespeichert in:
+
+```
+/opt/open-bos-stream/.deployment
+```
+
+Beispiel:
+
+```
+Version=0.4.10
+Commit=abc1234
+Installed=2026-07-22 18:42:11
+```
+
+---
+
+# Entwicklung
+
+Lokale Python-Umgebung erstellen:
+
+```bash
+python3 -m venv .venv
 source .venv/bin/activate
-
 pip install -r requirements.txt
 ```
 
----
-
-## Starten
+Entwicklungsserver starten:
 
 ```bash
-python -m open_bos_stream.main
-```
-
-Danach ist das Dashboard erreichbar unter
-
-```
-http://localhost:8000
+uvicorn open_bos_stream.main:app --reload
 ```
 
 ---
 
-## Roadmap
-
-Siehe:
-
-```
-ROADMAP.md
-```
-
----
-
-## Changelog
-
-Siehe:
-
-```
-CHANGELOG.md
-```
-
----
-
-## Lizenz
+# Lizenz
 
 Dieses Projekt steht unter der MIT-Lizenz.
-
----
-
-## Mitwirken
-
-Pull Requests, Fehlerberichte und Verbesserungsvorschläge sind jederzeit willkommen.
-
----
-
-## Projektstatus
-
-**Aktuelle Version**
-
-```
-v0.3.6-alpha
-```
-
-Die Software befindet sich derzeit in aktiver Entwicklung.
