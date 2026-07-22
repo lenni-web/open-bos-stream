@@ -165,7 +165,10 @@ async function createMap() {
         center: center.slice(0, 2),
         zoom: center[2] ?? 7,
         minZoom: Number(config.metadata.min_zoom),
-        maxZoom: Number(config.metadata.max_zoom),
+		maxZoom: Math.max(
+		    18,
+		    Number(config.metadata.max_zoom)
+		),
         attributionControl: false
     });
 	

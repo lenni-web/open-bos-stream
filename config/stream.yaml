@@ -50,4 +50,4 @@ stream_outputs:
 map:
   source: mbtiles
   path: /home/streampi/open-bos-stream/mapdata
-  default: niedersachsen
+  default: stade

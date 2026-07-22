@@ -6,6 +6,17 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 "Keep a Changelog" und verwendet Semantic Versioning für Releases.
 
 ---
+## v0.4.11
+
+### Karten
+
+- Dynamische Overlay-Infrastruktur für GeoJSON-Layer eingeführt.
+- Unterstützung für Hydranten, Brunnen, Saugstellen sowie weitere Wasserentnahmestellen.
+- Zoomabhängige Ein-/Ausblendung der Kartenebenen.
+- Generische Popups für GeoJSON-Objekte.
+- Standardkarte auf Stade umgestellt.
+- Test-Layer `water_sources` entfernt.
+
 ## [0.4.10] - 2026-07-22
 
 ### Added
