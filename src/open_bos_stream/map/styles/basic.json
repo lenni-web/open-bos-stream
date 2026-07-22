@@ -1,0 +1,666 @@
+{
+    "version": 8,
+    "name": "Open BOS Stream Basic",
+    "glyphs": "/api/map/glyphs/{fontstack}/{range}.pbf",
+    "sources": {},
+    "layers": [
+        {
+            "id": "background",
+            "type": "background",
+            "paint": {
+                "background-color": "#e9e5dc"
+            }
+        },
+        {
+            "id": "landcover",
+            "type": "fill",
+            "source": "openbos",
+            "source-layer": "landcover",
+            "paint": {
+                "fill-color": "#dce8cf",
+                "fill-opacity": 0.65
+            }
+        },
+        {
+            "id": "landuse",
+            "type": "fill",
+            "source": "openbos",
+            "source-layer": "landuse",
+            "paint": {
+                "fill-color": "#e4dfd2",
+                "fill-opacity": 0.55
+            }
+        },
+		{
+		    "id": "park",
+		    "type": "fill",
+		    "source": "openbos",
+		    "source-layer": "landuse",
+		    "filter": [
+		        "match",
+		        ["get", "class"],
+		        ["park", "garden"],
+		        true,
+		        false
+		    ],
+		    "paint": {
+		        "fill-color": "#cfe6b8",
+		        "fill-opacity": 0.65
+		    }
+		},
+		{
+		    "id": "forest",
+		    "type": "fill",
+		    "source": "openbos",
+		    "source-layer": "landcover",
+		    "filter": [
+		        "match",
+		        ["get", "class"],
+		        ["forest", "wood"],
+		        true,
+		        false
+		    ],
+		    "paint": {
+		        "fill-color": "#b6d49f",
+		        "fill-opacity": 0.70
+		    }
+		},
+		{
+		    "id": "grass",
+		    "type": "fill",
+		    "source": "openbos",
+		    "source-layer": "landcover",
+		    "filter": [
+		        "match",
+		        ["get", "class"],
+		        ["grass"],
+		        true,
+		        false
+		    ],
+		    "paint": {
+		        "fill-color": "#d9e9c7",
+		        "fill-opacity": 0.55
+		    }
+		},
+		{
+		    "id": "cemetery",
+		    "type": "fill",
+		    "source": "openbos",
+		    "source-layer": "landuse",
+		    "filter": [
+		        "==",
+		        ["get", "class"],
+		        "cemetery"
+		    ],
+		    "paint": {
+		        "fill-color": "#d7e2c9",
+		        "fill-opacity": 0.55
+		    }
+		},
+		{
+		    "id": "pitch",
+		    "type": "fill",
+		    "source": "openbos",
+		    "source-layer": "landuse",
+		    "filter": [
+		        "==",
+		        ["get", "class"],
+		        "pitch"
+		    ],
+		    "paint": {
+		        "fill-color": "#bddb8b",
+		        "fill-opacity": 0.55
+		    }
+		},
+        {
+            "id": "water",
+            "type": "fill",
+            "source": "openbos",
+            "source-layer": "water",
+            "paint": {
+                "fill-color": "#a7c8df"
+            }
+        },
+        {
+            "id": "waterway",
+            "type": "line",
+            "source": "openbos",
+            "source-layer": "waterway",
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round"
+            },
+            "paint": {
+                "line-color": "#8ab6d2",
+                "line-width": 1.2
+            }
+        },
+        {
+            "id": "buildings",
+            "type": "fill",
+            "source": "openbos",
+            "source-layer": "building",
+            "minzoom": 12,
+            "paint": {
+                "fill-color": "#d1c6b8",
+                "fill-outline-color": "#b5aa9d"
+            }
+        },
+        {
+            "id": "road-tunnel-casing",
+            "type": "line",
+            "source": "openbos",
+            "source-layer": "transportation",
+            "filter": [
+                "all",
+                [
+                    "match",
+                    ["get", "class"],
+                    [
+                        "motorway",
+                        "trunk",
+                        "primary",
+                        "secondary",
+                        "tertiary",
+                        "minor",
+                        "service",
+                        "track",
+                        "path"
+                    ],
+                    true,
+                    false
+                ],
+                ["==", ["get", "brunnel"], "tunnel"]
+            ],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round"
+            },
+            "paint": {
+                "line-color": "#b8b1a7",
+                "line-opacity": 0.45,
+                "line-dasharray": [2, 2],
+                "line-width": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    5,
+                    0.4,
+                    10,
+                    1.5,
+                    14,
+                    5
+                ]
+            }
+        },
+        {
+            "id": "road-tunnel",
+            "type": "line",
+            "source": "openbos",
+            "source-layer": "transportation",
+            "filter": [
+                "all",
+                [
+                    "match",
+                    ["get", "class"],
+                    [
+                        "motorway",
+                        "trunk",
+                        "primary",
+                        "secondary",
+                        "tertiary",
+                        "minor",
+                        "service",
+                        "track",
+                        "path"
+                    ],
+                    true,
+                    false
+                ],
+                ["==", ["get", "brunnel"], "tunnel"]
+            ],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round"
+            },
+            "paint": {
+                "line-color": "#ffffff",
+                "line-opacity": 0.55,
+                "line-dasharray": [2, 2],
+                "line-width": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    5,
+                    0.2,
+                    10,
+                    1,
+                    14,
+                    3.5
+                ]
+            }
+        },
+        {
+            "id": "roads-casing",
+            "type": "line",
+            "source": "openbos",
+            "source-layer": "transportation",
+            "filter": [
+                "all",
+                [
+                    "match",
+                    ["get", "class"],
+                    [
+                        "motorway",
+                        "trunk",
+                        "primary",
+                        "secondary",
+                        "tertiary",
+                        "minor",
+                        "service",
+                        "track",
+                        "path"
+                    ],
+                    true,
+                    false
+                ],
+                ["!=", ["get", "brunnel"], "bridge"],
+                ["!=", ["get", "brunnel"], "tunnel"]
+            ],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round"
+            },
+            "paint": {
+                "line-color": "#b8b1a7",
+                "line-width": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    5,
+                    0.4,
+                    10,
+                    1.5,
+                    14,
+                    5
+                ]
+            }
+        },
+        {
+            "id": "roads",
+            "type": "line",
+            "source": "openbos",
+            "source-layer": "transportation",
+            "filter": [
+                "all",
+                [
+                    "match",
+                    ["get", "class"],
+                    [
+                        "motorway",
+                        "trunk",
+                        "primary",
+                        "secondary",
+                        "tertiary",
+                        "minor",
+                        "service",
+                        "track",
+                        "path"
+                    ],
+                    true,
+                    false
+                ],
+                ["!=", ["get", "brunnel"], "bridge"],
+                ["!=", ["get", "brunnel"], "tunnel"]
+            ],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round"
+            },
+            "paint": {
+                "line-color": "#ffffff",
+                "line-width": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    5,
+                    0.2,
+                    10,
+                    1,
+                    14,
+                    3.5
+                ]
+            }
+        },
+        {
+            "id": "railway-tunnel",
+            "type": "line",
+            "source": "openbos",
+            "source-layer": "transportation",
+            "filter": [
+                "all",
+                ["==", ["get", "class"], "rail"],
+                ["==", ["get", "brunnel"], "tunnel"]
+            ],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round"
+            },
+            "paint": {
+                "line-color": "#888888",
+                "line-opacity": 0.45,
+                "line-dasharray": [2, 2],
+                "line-width": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    8,
+                    0.3,
+                    12,
+                    0.8,
+                    14,
+                    1.1,
+                    16,
+                    1.6
+                ]
+            }
+        },
+        {
+            "id": "railway",
+            "type": "line",
+            "source": "openbos",
+            "source-layer": "transportation",
+            "filter": [
+                "all",
+                ["==", ["get", "class"], "rail"],
+                ["!=", ["get", "brunnel"], "bridge"],
+                ["!=", ["get", "brunnel"], "tunnel"]
+            ],
+            "layout": {
+                "line-cap": "round",
+                "line-join": "round"
+            },
+            "paint": {
+                "line-color": "#777777",
+                "line-opacity": 0.75,
+                "line-width": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    8,
+                    0.3,
+                    12,
+                    0.8,
+                    14,
+                    1.2,
+                    16,
+                    1.8
+                ]
+            }
+        },
+        {
+            "id": "road-bridge-casing",
+            "type": "line",
+            "source": "openbos",
+            "source-layer": "transportation",
+            "filter": [
+                "all",
+                [
+                    "match",
+                    ["get", "class"],
+                    [
+                        "motorway",
+                        "trunk",
+                        "primary",
+                        "secondary",
+                        "tertiary",
+                        "minor",
+                        "service",
+                        "track",
+                        "path"
+                    ],
+                    true,
+                    false
+                ],
+                ["==", ["get", "brunnel"], "bridge"]
+            ],
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "round"
+            },
+            "paint": {
+                "line-color": "#8f8a82",
+                "line-width": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    5,
+                    0.6,
+                    10,
+                    2,
+                    14,
+                    6
+                ]
+            }
+        },
+        {
+            "id": "road-bridge",
+            "type": "line",
+            "source": "openbos",
+            "source-layer": "transportation",
+            "filter": [
+                "all",
+                [
+                    "match",
+                    ["get", "class"],
+                    [
+                        "motorway",
+                        "trunk",
+                        "primary",
+                        "secondary",
+                        "tertiary",
+                        "minor",
+                        "service",
+                        "track",
+                        "path"
+                    ],
+                    true,
+                    false
+                ],
+                ["==", ["get", "brunnel"], "bridge"]
+            ],
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "round"
+            },
+            "paint": {
+                "line-color": "#ffffff",
+                "line-width": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    5,
+                    0.3,
+                    10,
+                    1.2,
+                    14,
+                    4.2
+                ]
+            }
+        },
+        {
+            "id": "railway-bridge-casing",
+            "type": "line",
+            "source": "openbos",
+            "source-layer": "transportation",
+            "filter": [
+                "all",
+                ["==", ["get", "class"], "rail"],
+                ["==", ["get", "brunnel"], "bridge"]
+            ],
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "round"
+            },
+            "paint": {
+                "line-color": "#aaa49b",
+                "line-opacity": 0.8,
+                "line-width": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    8,
+                    0.8,
+                    12,
+                    1.5,
+                    14,
+                    2,
+                    16,
+                    2.8
+                ]
+            }
+        },
+        {
+            "id": "railway-bridge",
+            "type": "line",
+            "source": "openbos",
+            "source-layer": "transportation",
+            "filter": [
+                "all",
+                ["==", ["get", "class"], "rail"],
+                ["==", ["get", "brunnel"], "bridge"]
+            ],
+            "layout": {
+                "line-cap": "butt",
+                "line-join": "round"
+            },
+            "paint": {
+                "line-color": "#555555",
+                "line-opacity": 0.8,
+                "line-width": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    8,
+                    0.4,
+                    12,
+                    0.9,
+                    14,
+                    1.3,
+                    16,
+                    1.9
+                ]
+            }
+        },
+        {
+            "id": "road-labels",
+            "type": "symbol",
+            "source": "openbos",
+            "source-layer": "transportation_name",
+            "layout": {
+                "symbol-placement": "line",
+                "text-field": [
+                    "coalesce",
+                    ["get", "name:de"],
+                    ["get", "name"]
+                ],
+                "text-font": [
+                    "open-sans-regular"
+                ],
+                "text-size": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    10,
+                    10,
+                    14,
+                    14
+                ]
+            },
+            "paint": {
+                "text-color": "#555555",
+                "text-halo-color": "#ffffff",
+                "text-halo-width": 1.5
+            }
+        },
+		{
+		    "id": "water-labels",
+		    "type": "symbol",
+		    "source": "openbos",
+		    "source-layer": "water_name",
+		    "layout": {
+		        "symbol-placement": "point",
+		        "text-field": [
+		            "coalesce",
+		            ["get", "name:de"],
+		            ["get", "name"]
+		        ],
+		        "text-font": [
+		            "open-sans-regular"
+		        ],
+		        "text-size": [
+		            "interpolate",
+		            ["linear"],
+		            ["zoom"],
+		            6, 10,
+		            12, 14
+		        ]
+		    },
+		    "paint": {
+		        "text-color": "#4d84bf",
+		        "text-halo-color": "#f7f6f2",
+		        "text-halo-width": 1
+		    }
+		},
+		{
+		    "id": "marine-labels",
+		    "type": "symbol",
+		    "source": "openbos",
+		    "source-layer": "marine_name",
+		    "layout": {
+		        "text-field": [
+		            "coalesce",
+		            ["get", "name:de"],
+		            ["get", "name"]
+		        ],
+		        "text-font": [
+		            "open-sans-regular"
+		        ],
+		        "text-size": [
+		            "interpolate",
+		            ["linear"],
+		            ["zoom"],
+		            3, 12,
+		            7, 18
+		        ]
+		    },
+		    "paint": {
+		        "text-color": "#6b97c9",
+		        "text-halo-color": "#f7f6f2",
+		        "text-halo-width": 1
+		    }
+		},
+        {
+            "id": "place-labels",
+            "type": "symbol",
+            "source": "openbos",
+            "source-layer": "place",
+            "layout": {
+                "text-field": [
+                    "coalesce",
+                    ["get", "name:de"],
+                    ["get", "name"]
+                ],
+                "text-font": [
+                    "open-sans-regular"
+                ],
+                "text-size": 14
+            },
+            "paint": {
+                "text-color": "#222222",
+                "text-halo-color": "#ffffff",
+                "text-halo-width": 1.5
+            }
+        }
+    ]
+}

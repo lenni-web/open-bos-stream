@@ -1,0 +1,194 @@
+/* ==========================================================
+   Global Layout
+   ========================================================== */
+
+*,
+*::before,
+*::after {
+
+    box-sizing: border-box;
+
+}
+
+html,
+body {
+
+    margin: 0;
+
+    padding: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+}
+
+/* ==========================================================
+   Root Container
+   ========================================================== */
+
+.container {
+
+    display: flex;
+
+    flex-direction: column;
+
+    height: 100vh;
+
+    padding: 20px;
+
+    overflow: hidden;
+
+}
+
+/* ==========================================================
+   Header
+   ========================================================== */
+
+.dashboard-header {
+
+    flex: 0 0 auto;
+
+    margin-bottom: 20px;
+
+}
+
+/* ==========================================================
+   Main Layout
+   ========================================================== */
+
+.dashboard-grid {
+
+    flex: 1;
+
+    display: flex;
+
+    gap: 24px;
+
+    min-height: 0;
+
+    align-items: stretch;
+
+}
+
+/* ==========================================================
+   Sidebar
+   ========================================================== */
+
+.sidebar {
+
+    flex: 0 0 280px;
+
+    width: 280px;
+
+    min-width: 280px;
+
+    max-width: 280px;
+
+    min-height: 0;
+
+    overflow-y: auto;
+
+}
+
+/* ==========================================================
+   Main Content
+   ========================================================== */
+
+.content {
+
+    flex: 1;
+
+    min-width: 0;
+
+    min-height: 0;
+
+    overflow-y: auto;
+
+    overflow-x: hidden;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 20px;
+
+}
+
+/* ==========================================================
+   Pages
+   ========================================================== */
+
+.page {
+
+    display: none;
+
+    width: 100%;
+
+}
+
+.page.active {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 20px;
+
+    width: 100%;
+
+}
+
+/* ==========================================================
+   Cards
+   ========================================================== */
+
+.bos-card {
+
+    width: 100%;
+
+}
+
+/* ==========================================================
+   Responsive Layout
+   ========================================================== */
+
+@media (max-width: 1100px) {
+
+    .container {
+
+        height: auto;
+
+        min-height: 100vh;
+
+        overflow: visible;
+
+    }
+
+    .dashboard-grid {
+
+        flex-direction: column;
+
+        gap: 20px;
+
+    }
+
+    .sidebar {
+
+        width: 100%;
+
+        min-width: 0;
+
+        max-width: none;
+
+        flex: none;
+
+    }
+
+    .content {
+
+        overflow: visible;
+
+    }
+
+}

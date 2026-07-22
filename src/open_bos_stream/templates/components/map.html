@@ -1,0 +1,51 @@
+<section class="map-page">
+    <header class="page-header">
+        <h1>Karte</h1>
+    </header>
+
+    <div class="map-wrapper">
+
+        <div
+            id="map-container"
+            class="map-container"
+            role="application"
+            aria-label="Kartenansicht"
+        >
+
+            <!-- MapLibre -->
+            <div id="map"></div>
+
+            <!-- Werkzeugleiste -->
+            <div class="map-toolbar">
+
+                <button
+                    id="map-fullscreen-btn"
+                    class="map-button"
+                    type="button"
+                    title="Karte im Vollbild anzeigen"
+                    aria-label="Karte im Vollbild anzeigen"
+                    aria-pressed="false"
+                >
+                    ⛶
+                </button>
+
+            </div>
+
+            <!-- Layersteuerung -->
+            <details
+                id="map-layer-control"
+                class="map-layer-control"
+                open
+            >
+
+                <summary>Kartenebenen</summary>
+
+                <div id="map-layer-list"></div>
+
+            </details>
+
+        </div>
+
+    </div>
+
+</section>

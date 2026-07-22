@@ -1,0 +1,53 @@
+capture:
+  device: /dev/video0
+  width: 1280
+  height: 720
+  fps: 30
+  format: mjpeg
+input:
+  type: v4l2
+  mode: transcode
+  device: /dev/video0
+  url: rtmp://localhost/live/drohne
+  width: 1280
+  height: 720
+  fps: 30
+  format: mjpeg
+sources: []
+encoder:
+  codec: h264_v4l2m2m
+  bitrate: 8M
+  pixel_format: yuv420p
+  gop: 30
+  preset: ultrafast
+  tune: zerolatency
+stream:
+  name: drohne
+  rtsp_url: rtsp://127.0.0.1:8554/drohne
+  audio:
+    source: alsa
+    device: plughw:CARD=Video,DEV=0
+  overlay:
+    source: renderer
+    font: /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
+    size: 24
+    color: white
+    x: w-tw-20
+    y: '20'
+stream_outputs:
+- type: rtmp
+  name: Owncast
+  enabled: true
+  url: rtmp://stream.mg-stade.de:1935/live/NNsNPHwcB6nHreCyIMviD9MrTDxhzf
+  audio:
+    source: silence
+- type: srt
+  name: Ground Station
+  enabled: false
+  url: srt://192.168.1.50:9000
+  audio:
+    source: none
+map:
+  source: mbtiles
+  path: /home/streampi/open-bos-stream/mapdata
+  default: niedersachsen

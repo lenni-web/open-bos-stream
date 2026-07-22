@@ -1,0 +1,24 @@
+[Unit]
+Description=Open BOS Stream
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+
+User=streampi
+Group=video
+
+WorkingDirectory=/opt/open-bos-stream
+
+ExecStart=/opt/open-bos-stream/.venv/bin/python \
+    -m uvicorn \
+    open_bos_stream.main:app \
+    --host 0.0.0.0 \
+    --port 8000
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

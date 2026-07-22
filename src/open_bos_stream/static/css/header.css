@@ -1,0 +1,136 @@
+.bos-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: flex-start;
+
+    gap: 16px;
+
+    padding: 12px 22px;
+
+    margin-bottom: 12px;
+
+}
+
+.header-left {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+
+}
+
+.header-brand {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+}
+
+.header-logo {
+
+    font-size: 34px;
+
+}
+
+.header-title {
+
+    font-size: 1.8rem;
+
+    font-weight: 700;
+
+    color: #222;
+
+}
+
+.header-version {
+
+    margin-left: 8px;
+
+    font-size: 0.72rem;
+
+    color: #888;
+
+    font-weight: 500;
+
+    vertical-align: super;
+}
+
+.header-status {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+}
+
+.status-pill {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    background: #1f1f1f;
+
+    color: white;
+
+    border-radius: 14px;
+
+    padding: 6px 12px;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+}
+
+.header-right {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 22px;
+
+}
+
+.header-ready {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    background: #dff3df;
+
+    color: #2b7d32;
+
+    padding: 8px 18px;
+
+    border-radius: 18px;
+
+    font-weight: 600;
+
+}
+
+.header-clock {
+
+    font-size: 1.7rem;
+
+    font-weight: 700;
+
+    color: #222;
+
+}

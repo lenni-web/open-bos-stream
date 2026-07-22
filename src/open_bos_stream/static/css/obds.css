@@ -1,0 +1,231 @@
+/*
+==========================================================
+ Open BOS Design System (OBDS)
+==========================================================
+*/
+
+/* ==========================================================
+   Farben
+   ========================================================== */
+
+:root {
+
+    --bos-red: #B00020;
+    --bos-green: #2E7D32;
+    --bos-yellow: #F9A825;
+    --bos-blue: #1565C0;
+
+    --bos-dark: #202124;
+    --bos-light: #F5F5F5;
+    --bos-white: #FFFFFF;
+    --bos-gray: #DADCE0;
+
+}
+
+/* ==========================================================
+   Grundlayout
+   ========================================================== */
+
+body {
+
+    background: var(--bos-light);
+
+    color: var(--bos-dark);
+
+    font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+}
+
+/* ==========================================================
+   Titel
+   ========================================================== */
+
+.bos-title {
+
+    font-size: 2rem;
+
+    font-weight: 700;
+
+}
+
+/* ==========================================================
+   Karten
+   ========================================================== */
+
+.bos-card {
+
+    background: var(--bos-white);
+
+    border: 1px solid var(--bos-gray);
+
+    border-radius: 14px;
+
+    padding: 20px;
+
+    box-shadow:
+        0 3px 10px rgba(0,0,0,.08);
+
+    transition:
+        box-shadow .15s ease,
+        transform .15s ease;
+
+}
+
+.bos-card h3 {
+
+    margin-top: 0;
+
+    margin-bottom: 18px;
+
+    font-size: 1.1rem;
+
+}
+
+/* ==========================================================
+   Buttons
+   ========================================================== */
+
+.bos-button {
+
+    display: inline-flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    gap: 8px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    padding: 0 18px;
+
+    height: 42px;
+
+    cursor: pointer;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    transition:
+        background .15s ease,
+        filter .15s ease;
+
+}
+
+.bos-button:hover {
+
+    filter: brightness(1.05);
+
+}
+
+.bos-button-green {
+
+    background: var(--bos-green);
+
+    color: white;
+
+}
+
+.bos-button-red {
+
+    background: var(--bos-red);
+
+    color: white;
+
+}
+
+/* ==========================================================
+   Statuspunkte
+   ========================================================== */
+
+.status-dot {
+
+    display: inline-block;
+
+    width: 12px;
+
+    height: 12px;
+
+    margin-right: 8px;
+
+    border-radius: 50%;
+
+}
+
+.status-green {
+
+    background: var(--bos-green);
+
+}
+
+.status-red {
+
+    background: var(--bos-red);
+
+}
+
+.status-yellow {
+
+    background: var(--bos-yellow);
+
+}
+
+/* ==========================================================
+   Statusfarben
+   ========================================================== */
+
+.status-running {
+
+    color: var(--bos-green);
+
+    font-weight: 700;
+
+}
+
+.status-stopped {
+
+    color: var(--bos-red);
+
+    font-weight: 700;
+
+}
+
+.status-warning {
+
+    color: var(--bos-yellow);
+
+    font-weight: 700;
+
+}
+
+/* ==========================================================
+   Infozeilen
+   ========================================================== */
+
+.info-row {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 10px 0;
+
+    border-bottom: 1px solid #ececec;
+
+}
+
+.info-row:last-child {
+
+    border-bottom: none;
+
+}
