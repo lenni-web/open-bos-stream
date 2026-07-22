@@ -28,6 +28,20 @@ Open BOS Stream verfolgt folgende Grundsätze:
 - Geringe Hardwareanforderungen
 
 ---
+OUTDATED!!!
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # v0.3.x – Dashboard & Stabilisierung
 
