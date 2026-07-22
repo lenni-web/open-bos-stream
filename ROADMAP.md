@@ -1,156 +1,164 @@
-# Open BOS Stream – Roadmap
+# Open BOS Stream Roadmap
 
-## Vision
-
-**Open BOS Stream** soll eine moderne, schlanke und vollständig
-Open-Source-basierte Streaminglösung für Behörden und Organisationen
-mit Sicherheitsaufgaben (BOS) werden.
-
-Das Projekt richtet sich insbesondere an Feuerwehren, Rettungsdienste,
-Katastrophenschutz, THW und andere BOS-Einheiten, die eine einfache,
-zuverlässige und datenschutzfreundliche Lösung für Video-Streaming und
-Medienverwaltung benötigen.
+Die Roadmap beschreibt die geplante Weiterentwicklung von **Open BOS Stream**. Sie dient als Orientierung für zukünftige Funktionen und Entwicklungsziele.
 
 ---
 
-# Projektprinzipien
+# Version 0.4.x
 
-Open BOS Stream verfolgt folgende Grundsätze:
+## Ziel
 
-- Open Source
-- Einfache Installation
-- Raspberry Pi als Referenzplattform
-- Datenschutzfreundlich
-- Offlinefähig
-- Modulare Architektur
-- Keine Cloud-Abhängigkeit
-- Moderne und intuitive Benutzeroberfläche
-- Geringe Hardwareanforderungen
+Stabile Basis für den produktiven Betrieb.
 
----
-OUTDATED!!!
+### Status
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# v0.3.x – Dashboard & Stabilisierung
-
-## Ziele
-
-- [x] Modernes Dashboard
-- [x] Livebild
-- [x] Streamsteuerung
-- [x] Aufnahmefunktion
-- [x] Snapshotfunktion
-- [x] Medienbibliothek
-- [x] Responsive Benutzeroberfläche
-- [x] Systemmonitoring
-- [x] Video-Overlay
-- [x] Modernisiertes UI
-- [x] Projektstruktur bereinigt
+- [x] FastAPI-Grundgerüst
+- [x] Streaming-Backend
+- [x] Leaflet-Kartenintegration
+- [x] Dynamisches Overlay-System
+- [x] Wasserentnahmestellen
+- [x] Mobile Fullscreen-Unterstützung
+- [x] Produktionsbetrieb über systemd
+- [x] Modularer Installer
+- [x] Automatisches Deployment
+- [x] Installationsprüfung
 
 ---
 
-# v0.4.x – Streaming
+# Version 0.5.x
 
-## Ziele
+## Ziel
+
+Ausbau der Anwendung für den täglichen Einsatz.
 
 ### Streaming
 
-- [ ] WebRTC-Unterstützung
-- [ ] HLS-Unterstützung
-- [ ] Dynamischer Streamingstatus
-- [ ] Viewer direkt aus MediaMTX
-- [ ] Streaminformationen
-- [ ] Streaming zu externen Zielen (Owncast, YouTube, RTMP, SRT ...)
+- [ ] Streamstatus
+- [ ] FPS-Anzeige
+- [ ] Bitratenanzeige
+- [ ] Verbindungsstatus
+- [ ] Stream-Neustart über WebUI
 
-### Benutzeroberfläche
+### Recorder
 
-- [ ] Responsive Optimierung für Smartphones und Tablets
-- [ ] Verbesserte Einstellungsseite
-- [ ] Konfigurationsassistent
-- [ ] Statusanzeige weiter optimieren
+- [ ] Aufnahmesteuerung
+- [ ] Segmentierte Aufzeichnungen
+- [ ] Speicherverwaltung
+- [ ] Automatische Bereinigung
+- [ ] Download über WebUI
+
+### Karten
+
+- [ ] Weitere Overlay-Typen
+- [ ] Eigene Marker
+- [ ] GPS-Position
+- [ ] Messwerkzeuge
+- [ ] Kartenverwaltung
+
+### Weboberfläche
+
+- [ ] Dashboard
+- [ ] Statusanzeige
+- [ ] Responsive Optimierungen
+- [ ] Einstellungsdialog
+- [ ] Dunkles Design
 
 ---
 
-# v0.5.x – Einsatzbetrieb
+# Version 0.6.x
 
-## Ziele
+## Ziel
 
-### Kamera
+Konfiguration vollständig über die Weboberfläche.
 
-- [ ] Kameraprofile
+### Konfiguration
+
+- [ ] YAML-Editor ersetzen
+- [ ] Webbasierte Konfiguration
+- [ ] Konfigurationsprüfung
+- [ ] Backup & Restore
+
+### Geräte
+
+- [ ] Kameraverwaltung
 - [ ] Mehrere Kameras
-- [ ] Audiopegel
-- [ ] Kamerastandorte
+- [ ] RTSP
+- [ ] USB-Kameras
+- [ ] CSI-Kameras
 
-### Einsatz
+### Monitoring
 
-- [ ] GPS-Unterstützung
-- [ ] Kartenansicht
-- [ ] Einsatzinformationen
-- [ ] Einsatzprotokoll
-- [ ] Fahrzeugprofile
-
----
-
-# v0.6.x – Administration
-
-## Ziele
-
-### Benutzer
-
-- [ ] Benutzerverwaltung
-- [ ] Rollen
-- [ ] Authentifizierung
-
-### Schnittstellen
-
-- [ ] REST API
-- [ ] WebSocket API
-- [ ] Plugin-System
-
-### Betrieb
-
-- [ ] Backup- und Restorefunktion
-- [ ] Updateprüfung
-- [ ] Erweiterte Systemdiagnose
+- [ ] CPU-Auslastung
+- [ ] RAM-Auslastung
+- [ ] Temperatur
+- [ ] Netzwerk
+- [ ] Speicherplatz
 
 ---
 
-# v1.0 – Erste stabile Version
+# Version 0.7.x
 
-## Ziele
+## Ziel
 
-- [ ] Produktionsreife
-- [ ] Vollständige Dokumentation
-- [ ] Installationsassistent
-- [ ] Docker-Unterstützung
-- [ ] Mehrsprachigkeit
-- [ ] Langzeitunterstützung (LTS)
-- [ ] Umfassende Tests
-- [ ] Stabile öffentliche API
+Erweiterbarkeit durch Plugins.
+
+### Plugin-System
+
+- [ ] Overlay-Plugins
+- [ ] Datenquellen
+- [ ] Ereignisse
+- [ ] Webhooks
+- [ ] Benachrichtigungen
+
+### BOS-Erweiterungen
+
+- [ ] Hydranten
+- [ ] Sirenen
+- [ ] Pegelstände
+- [ ] Wetterdaten
+- [ ] Einsatzmittel
 
 ---
 
-# Langfristige Ideen
+# Langfristige Ziele
 
-Diese Funktionen sind interessant, besitzen aktuell jedoch keine Priorität.
+## Stabilität
 
-- [ ] PTZ-Unterstützung
-- [ ] KI-gestützte Objekterkennung
-- [ ] Kennzeichenerkennung
-- [ ] Gesichtsanonymisierung
-- [ ] Cloud-Synchronisation
-- [ ] Mobile Begleit-App
-- [ ] Benachrichtigungen (Push, E-Mail, Messenger)
+- Reproduzierbare Installation
+- Automatisierte Tests
+- Continuous Integration
+- Dokumentation
+
+## Plattformen
+
+- Raspberry Pi
+- Debian
+- Ubuntu
+
+## Bedienung
+
+- Vollständige Bedienung über die Weboberfläche
+- Mobile Optimierung
+- Touch-Bedienung
+
+## Architektur
+
+- Klare Modulstruktur
+- Erweiterbares Overlay-System
+- Plugin-Schnittstellen
+- Saubere Trennung zwischen Anwendung und Laufzeitdaten
+
+---
+
+# Projektvision
+
+Open BOS Stream soll eine leichtgewichtige, einfach installierbare und modular erweiterbare Streaming- und Kartenplattform für Behörden und Organisationen mit Sicherheitsaufgaben (BOS) werden.
+
+Der Fokus liegt auf:
+
+- einfacher Installation
+- robuster Betrieb auf Raspberry Pi
+- modularer Architektur
+- schneller Bedienung
+- einfacher Erweiterbarkeit
+- langfristiger Wartbarkeit
