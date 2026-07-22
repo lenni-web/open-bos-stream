@@ -97,39 +97,275 @@ window.OpenBosStream =
 
 window.OpenBosStream.mapOverlays = [
 
-	{
-	    id: "water_sources",
-
-	    title:
-	        "Löschwasserquellen",
-
-	    category:
-	        "infrastructure",
-
-	    type:
-	        "circle",
-
-	    icon:
-	        "💧",
-
-	    endpoint:
-	        "/api/map/layers/water_sources",
-
-	    defaultVisible:
-	        true,
-
-	    paint:
 	    {
-	        "circle-radius": 6,
-	        "circle-color": "#0066ff",
-	        "circle-stroke-width": 2,
-	        "circle-stroke-color": "#ffffff"
-	    }
-	}
+	        id: "hydranten",
 
+	        title: "Hydranten",
+
+	        category: "infrastructure",
+
+	        type: "circle",
+
+	        icon: "🚒",
+
+	        endpoint: "/api/map/layers/hydranten",
+
+	        defaultVisible: true,
+
+	        minzoom: 14,
+
+	        paint: {
+	            "circle-radius": 5,
+	            "circle-color": "#d32f2f",
+	            "circle-stroke-width": 1.5,
+	            "circle-stroke-color": "#ffffff"
+	        }
+	    },
+
+		{
+		    id: "brunnen",
+
+		    title: "Brunnen",
+
+		    category: "infrastructure",
+
+		    type: "circle",
+
+		    icon: "🪣",
+
+		    endpoint: "/api/map/layers/brunnen",
+
+		    defaultVisible: true,
+
+		    minzoom: 13,
+
+		    paint: {
+		        "circle-radius": [
+		            "interpolate",
+		            ["linear"],
+		            ["zoom"],
+		            13, 2,
+		            16, 4,
+		            18, 7
+		        ],
+		        "circle-color": "#8d6e63",
+		        "circle-stroke-width": 1.5,
+		        "circle-stroke-color": "#ffffff"
+		    }
+		},
+
+		{
+		    id: "saugstellen",
+
+		    title: "Saugstellen",
+
+		    category: "infrastructure",
+
+		    type: "circle",
+
+		    icon: "🌊",
+
+		    endpoint: "/api/map/layers/saugstellen",
+
+		    defaultVisible: true,
+
+		    minzoom: 13,
+
+		    paint: {
+		        "circle-radius": [
+		            "interpolate",
+		            ["linear"],
+		            ["zoom"],
+		            13, 2,
+		            16, 4,
+		            18, 7
+		        ],
+		        "circle-color": "#009688",
+		        "circle-stroke-width": 1.5,
+		        "circle-stroke-color": "#ffffff"
+		    }
+		},
+		
+		{
+		    id: "offene_wasserentnahmestellen",
+
+		    title: "Offene Wasserentnahmestellen",
+
+		    category: "infrastructure",
+
+		    type: "circle",
+
+		    icon: "🏞",
+
+		    endpoint: "/api/map/layers/offene_wasserentnahmestellen",
+
+		    defaultVisible: true,
+
+		    minzoom: 12,
+
+		    paint: {
+		        "circle-radius": [
+		            "interpolate",
+		            ["linear"],
+		            ["zoom"],
+		            12, 3,
+		            16, 5,
+		            18, 8
+		        ],
+		        "circle-color": "#2196f3",
+		        "circle-stroke-width": 1.5,
+		        "circle-stroke-color": "#ffffff"
+		    }
+		},
+		
+		{
+		    id: "loeschwasserbehaelter_teiche",
+
+		    title: "Behälter / Teiche",
+
+		    category: "infrastructure",
+
+		    type: "circle",
+
+		    icon: "🏞",
+
+		    endpoint: "/api/map/layers/loeschwasserbehaelter_teiche",
+
+		    defaultVisible: true,
+
+		    minzoom: 12,
+
+		    paint: {
+		        "circle-radius": [
+		            "interpolate",
+		            ["linear"],
+		            ["zoom"],
+		            12, 3,
+		            16, 5,
+		            18, 8
+		        ],
+		        "circle-color": "#3f51b5",
+		        "circle-stroke-width": 1.5,
+		        "circle-stroke-color": "#ffffff"
+		    }
+		},
+		
+		{
+		    id: "sonstige_wasserstellen",
+
+		    title: "Sonstige Wasserstellen",
+
+		    category: "infrastructure",
+
+		    type: "circle",
+
+		    icon: "💦",
+
+		    endpoint: "/api/map/layers/sonstige_wasserstellen",
+
+		    defaultVisible: true,
+
+		    minzoom: 13,
+
+		    paint: {
+		        "circle-radius": [
+		            "interpolate",
+		            ["linear"],
+		            ["zoom"],
+		            13, 2,
+		            16, 4,
+		            18, 7
+		        ],
+		        "circle-color": "#9c27b0",
+		        "circle-stroke-width": 1.5,
+		        "circle-stroke-color": "#ffffff"
+		    }
+		},
+		
 ];
 
+function formatPopupLabel(key) {
 
+    const labels = {
+
+        type: "Typ",
+        type_de: "Typ",
+
+        ref: "Bezeichnung",
+
+        operator: "Betreiber",
+
+        fire_hydrant_diameter: "Nennweite",
+
+        fire_hydrant_position: "Kennzeichnung",
+
+        fire_hydrant_type: "Hydrantentyp",
+
+        access: "Zugang",
+
+        note: "Hinweis"
+
+    };
+
+    return labels[key] ?? key;
+}
+
+function formatPopupValue(key, value) {
+
+    if (value === null || value === undefined) {
+        return "";
+    }
+
+    switch (key) {
+
+        case "fire_hydrant_diameter":
+            return `DN ${value}`;
+
+        case "fire_hydrant_position":
+
+            return ({
+                green: "Grün",
+                blue: "Blau",
+                yellow: "Gelb",
+                red: "Rot"
+            })[value] ?? value;
+
+        case "fire_hydrant_type":
+
+            return ({
+                pillar: "Überflurhydrant",
+                underground: "Unterflurhydrant",
+                wall: "Wandhydrant"
+            })[value] ?? value;
+
+        case "access":
+
+            return ({
+                yes: "Ja",
+                no: "Nein",
+                private: "Privat",
+                permissive: "Eingeschränkt"
+            })[value] ?? value;
+
+		case "diameter":
+		    return `DN ${value}`;
+
+		case "capacity": {
+
+		    const number =
+		        Number(value);
+
+		    if (Number.isFinite(number)) {
+		        return `${number.toLocaleString("de-DE")} l`;
+		    }
+
+		    return value;
+		}
+
+        default:
+            return value;
+    }
+}
 
 async function addOverlayLayer(
     mapInstance,
@@ -221,64 +457,100 @@ async function addOverlayLayer(
 
 	}
 
-
 	mapInstance.addLayer(
 	    layerDefinition
 	);
 
-}
+    mapInstance.on("mouseenter", overlay.id, () => {
+        mapInstance.getCanvas().style.cursor = "pointer";
+    });
 
+    mapInstance.on("mouseleave", overlay.id, () => {
+        mapInstance.getCanvas().style.cursor = "";
+    });
 
+    mapInstance.on("click", overlay.id, event => {
 
-function createOverlayControls(
-    overlays
-) {
+        const feature = event.features?.[0];
 
-    const container =
-        document.getElementById(
-            "map-layer-control"
-        );
+        if (!feature) {
+            return;
+        }
 
+    const p = feature.properties;
+	
+	const labels = {
 
-    if (!container) {
+	    type: "Typ",
+	    type_de: "Typ",
 
-        console.warn(
-            "Layer-Control nicht gefunden."
-        );
+	    ref: "Bezeichnung",
 
-        return;
+	    operator: "Betreiber",
 
-    }
+	    diameter: "Durchmesser",
 
+	    fire_hydrant_diameter: "Nennweite",
 
-    for (const overlay of overlays) {
+	    fire_hydrant_position: "Kennzeichnung",
 
+	    fire_hydrant_type: "Hydrantentyp",
 
-        const label =
-            document.createElement(
-                "label"
-            );
+	    access: "Zugang",
 
+        diameter: "Durchmesser",
 
-        label.innerHTML = `
+        capacity: "Volumen",
 
-            <input
-                type="checkbox"
-                id="layer-toggle-${overlay.id}"
-                ${overlay.defaultVisible ? "checked" : ""}
-            >
+	    access_status: "Zugänglichkeit",
 
-            ${overlay.title}
+	    water_source: "Wasserquelle",
 
-        `;
+	    capacity: "Volumen",
 
+	    note: "Hinweis"
 
-        container.appendChild(
-            label
-        );
+	};
 
-    }
+	const ignored = new Set([
+	    "all_tags",
+	    "lat",
+	    "lon",
+	    "osm_id",
+	    "osm_type"
+	]);
 
+	let html = `<strong>${overlay.title}</strong><table>`;
+
+	for (const [key, value] of Object.entries(p)) {
+
+	    if (ignored.has(key)) {
+	        continue;
+	    }
+
+	    if (value === null || value === "") {
+	        continue;
+	    }
+
+	const displayValue =
+	    formatPopupValue(key, value);
+
+	html += `
+	    <tr>
+	        <td><strong>${formatPopupLabel(key)}</strong></td>
+	        <td>${displayValue}</td>
+	    </tr>
+	`;
+	}
+
+	html += "</table>";
+
+    new maplibregl.Popup()
+        .setLngLat(event.lngLat)
+        .setHTML(html)
+        .addTo(mapInstance);
+
+    });
 }
 
 function bindOverlayToggle(
