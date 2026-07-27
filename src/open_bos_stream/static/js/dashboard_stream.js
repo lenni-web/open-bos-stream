@@ -75,7 +75,7 @@ if (recordingElement) {
         stream
     );
 
-const iframe =
+const video =
     document.getElementById(
         "live-video"
     );
@@ -91,49 +91,42 @@ const videoContainer =
     );
 
 if (
-    iframe &&
+    video &&
     placeholder &&
     videoContainer
 ) {
 
-    const src =
-        streamViewerUrl(stream);
+	if (
+	    stream.running &&
+	    stream.ready
+	) {
 
-    if (
-        stream.running &&
-        stream.ready
-    ) {
+	    const viewerProtocol =
+	        currentConfig?.stream?.viewer?.protocol ??
+	        "hls";
 
-        if (iframe.src !== src) {
+    	window.livePlayer.play(
+	        stream.name,
+	        viewerProtocol
+	    );
 
-            iframe.src = src;
+	    videoContainer.style.display =
+	        "block";
 
-        }
+	    placeholder.style.display =
+	        "none";
 
-        videoContainer.style.display =
-            "block";
+	} else {
 
-        placeholder.style.display =
-            "none";
+	    window.livePlayer.stop();
 
-    } else {
+	    videoContainer.style.display =
+	        "none";
 
-        if (iframe.src !== "about:blank") {
-
-            iframe.src =
-                "about:blank";
-
-        }
-
-        videoContainer.style.display =
-            "none";
-
-        placeholder.style.display =
-            "flex";
-
-    }
-
-}
+	    placeholder.style.display =
+	        "flex";
+		}
+	}
 }
 
 function updateStreamButton(

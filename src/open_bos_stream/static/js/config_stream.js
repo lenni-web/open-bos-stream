@@ -10,6 +10,10 @@ function loadStreamConfig() {
     ).value =
         currentConfig.stream.rtsp_url;
 
+    document.getElementById(
+        "cfg-viewer-protocol"
+    ).value =
+        currentConfig.stream.viewer.protocol;
 }
 
 function saveStreamConfig() {
@@ -24,4 +28,8 @@ function saveStreamConfig() {
             "cfg-rtsp-url"
         ).value;
 
+    currentConfig.stream.viewer.protocol =
+        document.getElementById(
+            "cfg-viewer-protocol"
+        ).value;
 }

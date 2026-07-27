@@ -139,23 +139,47 @@
 
     border-radius: 14px;
 
+	aspect-ratio: 16 / 9;
+
     border: 1px solid #d9d9d9;
 
     box-shadow: 0 8px 24px rgba(0,0,0,.10);
 
 }
 
-.video-container iframe {
+.live-video {
 
     display: block;
 
     width: 100%;
 
-    aspect-ratio: 16 / 9;
+    height: 100%;
 
-    border: none;
+    object-fit: contain;
 
-    background: #000;
+}
+
+.video-container video {
+
+    display: block;
+
+    width: 100%;
+
+    height: auto;
+
+    max-width: 100%;
+
+}
+
+#video-container:fullscreen video {
+
+    width: 100%;
+
+    height: 100%;
+
+    aspect-ratio: auto;
+
+    object-fit: contain;
 
 }
 
@@ -320,16 +344,6 @@
     border: none;
 
     border-radius: 0;
-
-}
-
-#video-container:fullscreen iframe {
-
-    width: 100%;
-
-    height: 100%;
-
-    aspect-ratio: auto;
 
 }
 

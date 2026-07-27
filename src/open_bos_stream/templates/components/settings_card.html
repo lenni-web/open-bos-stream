@@ -63,6 +63,35 @@
             class="bos-input"
             type="text">
 
+		<label>Live-Viewer</label>
+
+		<select
+		    id="cfg-viewer-protocol"
+		    class="bos-input">
+
+		    <option value="webrtc">
+		        WebRTC (geringe Latenz)
+		    </option>
+
+		    <option value="hls">
+		        HLS (mit Audio)
+		    </option>
+
+		</select>
+
+		<p
+		    style="
+		        margin-top:8px;
+		        font-size:0.9em;
+		        color:#777;
+		    ">
+
+		    WebRTC bietet die geringste Latenz, überträgt in der aktuellen
+		    Konfiguration jedoch keine Audiospur.
+		    HLS besitzt eine höhere Latenz, unterstützt dafür Bild und Ton.
+
+		</p>
+
         <hr>
 
 <h4>📺 Streaming Outputs</h4>

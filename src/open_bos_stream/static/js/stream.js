@@ -99,17 +99,47 @@ async function toggleFullscreen() {
             "video-container"
         );
 
-    if (!container) {
+    const video =
+        document.getElementById(
+            "live-video"
+        );
+
+    if (!container || !video) {
         return;
     }
 
-    if (!document.fullscreenElement) {
+    //
+    // iPhone / iPad Safari
+    //
+    if (typeof video.webkitEnterFullscreen === "function") {
 
-        await container.requestFullscreen();
+        video.webkitEnterFullscreen();
+        return;
 
-    } else {
+    }
+
+    //
+    // Bereits im Fullscreen?
+    //
+    if (document.fullscreenElement) {
 
         await document.exitFullscreen();
+        return;
+
+    }
+
+    //
+    // Normale Fullscreen-API
+    //
+    if (typeof video.requestFullscreen === "function") {
+
+        await video.requestFullscreen();
+
+    } else if (
+        typeof container.requestFullscreen === "function"
+    ) {
+
+        await container.requestFullscreen();
 
     }
 
