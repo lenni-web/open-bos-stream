@@ -8,7 +8,7 @@ input:
   type: v4l2
   mode: transcode
   device: /dev/video0
-  url: rtmp://localhost/live/drohne
+  url: rtmp://127.0.0.1:1935/live/drohne
   width: 1280
   height: 720
   fps: 30
@@ -24,30 +24,32 @@ encoder:
 stream:
   name: drohne
   rtsp_url: rtsp://127.0.0.1:8554/drohne
+  viewer:
+    protocol: webrtc
   audio:
     source: alsa
     device: plughw:CARD=Video,DEV=0
   overlay:
-    source: renderer
+    source: none
     font: /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
     size: 24
     color: white
     x: w-tw-20
     y: '20'
+map:
+  source: mbtiles
+  path: /home/streampi/open-bos-stream/mapdata
+  default: stade
 stream_outputs:
 - type: rtmp
   name: Owncast
   enabled: true
   url: rtmp://stream.mg-stade.de:1935/live/NNsNPHwcB6nHreCyIMviD9MrTDxhzf
   audio:
-    source: silence
+    source: input
 - type: srt
-  name: Ground Station
-  enabled: false
-  url: srt://192.168.1.50:9000
+  name: SRT Stream
+  enabled: true
+  url: srt://server.nordwestbund.de:8890
   audio:
-    source: none
-map:
-  source: mbtiles
-  path: /home/streampi/open-bos-stream/mapdata
-  default: stade
+    source: input

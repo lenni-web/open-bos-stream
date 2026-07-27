@@ -87,12 +87,25 @@ class StreamAudioConfig(BaseModel):
     source: str = "none"
     device: str | None = None
 
+class ViewerConfig(BaseModel):
+
+    protocol: Literal[
+        "webrtc",
+        "hls",
+    ] = "webrtc"
+
 class StreamConfig(BaseModel):
     name: str
     rtsp_url: str
+
+    viewer: ViewerConfig = Field(
+        default_factory=ViewerConfig,
+    )
+
     audio: StreamAudioConfig = Field(
         default_factory=StreamAudioConfig,
     )
+
     overlay: OverlayConfig = Field(
         default_factory=OverlayConfig,
     )

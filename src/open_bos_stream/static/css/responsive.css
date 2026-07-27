@@ -76,11 +76,11 @@
 
     }
 
-    .video-container iframe {
+	.video-container video {
 
-        height: auto;
+	    height: auto;
 
-    }
+	}
 
     .media-layout {
 

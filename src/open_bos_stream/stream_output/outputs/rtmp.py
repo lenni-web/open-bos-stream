@@ -65,10 +65,6 @@ class RTMPOutput(BaseOutput):
 
         command.extend(audio_command.options)
 
-        command.extend(
-            audio_command.options,
-        )
-
         command.extend([
 
             "-f",

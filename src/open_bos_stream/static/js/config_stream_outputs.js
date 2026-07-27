@@ -77,6 +77,12 @@ function renderStreamOutputs() {
                             Stilles Audio
                         </option>
 
+                        <option
+                            value="input"
+                            ${output.audio.source === "input" ? "selected" : ""}>
+                            Eingangston
+                        </option>
+
                     </select>
 
                     <label>

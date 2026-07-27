@@ -3,7 +3,9 @@ from open_bos_stream.core.models import (
     AppConfig,
     StreamOutputConfig,
 )
-
+from open_bos_stream.stream_output.audio.factory import (
+    AudioFactory,
+)
 from .base import BaseOutput
 
 
@@ -30,7 +32,23 @@ class SRTOutput(BaseOutput):
         output: StreamOutputConfig,
     ) -> list[str]:
 
-        return [
+        separator = "&" if "?" in output.url else "?"
+
+        srt_url = (
+            f"{output.url}{separator}"
+            "mode=caller"
+            "&transtype=live"
+            "&streamid=publish:live"
+            "&pkt_size=1316"
+        )
+
+        audio = AudioFactory.create(
+            output.audio,
+        )
+
+        audio_command = audio.build()
+
+        command = [
             "ffmpeg",
 
             "-rtsp_transport",
@@ -39,11 +57,20 @@ class SRTOutput(BaseOutput):
             "-i",
             config.stream.rtsp_url,
 
-            "-c",
+            command.extend(audio_command.inputs),
+            command.extend(audio_command.mapping),
+        
+            "-c:v",
             "copy",
+
+            command.extend(audio_command.options),
 
             "-f",
             "mpegts",
 
-            output.url,
+            srt_url,
         ]
+
+        
+
+        return command
