@@ -51,6 +51,28 @@ class DashboardService:
 
         recording = self._recording.status
 
+        stream_running = self._stream.running
+
+        if not self._stream.managed and not mediamtx.ready:
+            stream_state = "waiting_for_publisher"
+            stream_message = (
+                "Warte auf RTMP-Publisher an "
+                f"'{self._config.stream.name}'."
+            )
+            stream_error = None
+        elif stream_running and mediamtx.ready:
+            stream_state = "online"
+            stream_message = "Stream online."
+            stream_error = None
+        elif stream_running:
+            stream_state = "starting"
+            stream_message = "Streamer gestartet; MediaMTX wartet."
+            stream_error = None
+        else:
+            stream_error = self._stream.last_error()
+            stream_state = "error" if stream_error else "stopped"
+            stream_message = stream_error or "Stream gestoppt."
+
         return {
 
             # -------------------------------------------------
@@ -96,7 +118,7 @@ class DashboardService:
 
             "stream": {
 
-                "running": self._stream.running,
+                "running": stream_running,
 
                 "pid": self._stream.pid,
 
@@ -137,6 +159,12 @@ class DashboardService:
                 "bytes_sent": mediamtx.bytes_sent,
 
                 "online_time": mediamtx.online_time,
+
+                "state": stream_state,
+
+                "message": stream_message,
+
+                "error": stream_error,
 
             },
 

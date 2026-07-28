@@ -142,6 +142,12 @@ class StreamOutputConfig(BaseModel):
 
 class AppConfig(BaseModel):
 
+    source_profile: Literal[
+        "capture_card",
+        "rtmp_passthrough",
+        "custom",
+    ] | None = None
+
     capture: CaptureConfig
 
     input: InputConfig = Field(
@@ -170,9 +176,27 @@ class AppConfig(BaseModel):
 
     @model_validator(mode="after")
     def normalize_capture_card_mode(self) -> "AppConfig":
-        """Capture-Karten benötigen den verwalteten FFmpeg-Streamer."""
+        """Bekannte Quellenprofile konsistent halten."""
 
-        if self.input.type == "v4l2":
+        if self.source_profile is None:
+            if self.input.type == "v4l2":
+                self.source_profile = "capture_card"
+            elif (
+                self.input.type == "rtmp"
+                and self.stream.passthrough
+            ):
+                self.source_profile = "rtmp_passthrough"
+            else:
+                self.source_profile = "custom"
+
+        if (
+            self.source_profile == "capture_card"
+            or (
+                self.source_profile == "custom"
+                and self.input.type == "v4l2"
+            )
+        ):
+            self.input.type = "v4l2"
             self.input.mode = "transcode"
             self.stream.passthrough = False
 
@@ -184,6 +208,24 @@ class AppConfig(BaseModel):
                 or "drohne"
             )
             self.stream.name = stream_name
+            self.stream.rtsp_url = (
+                f"rtsp://127.0.0.1:8554/{stream_name}"
+            )
+
+        elif self.source_profile == "rtmp_passthrough":
+            self.input.type = "rtmp"
+            self.input.mode = "copy"
+            self.encoder.codec = "copy"
+            self.stream.passthrough = True
+
+            stream_name = self.stream.name.strip("/") or "live/drohne"
+            if "/" not in stream_name:
+                stream_name = f"live/{stream_name}"
+
+            self.stream.name = stream_name
+            self.input.url = (
+                f"rtmp://127.0.0.1:1935/{stream_name}"
+            )
             self.stream.rtsp_url = (
                 f"rtsp://127.0.0.1:8554/{stream_name}"
             )

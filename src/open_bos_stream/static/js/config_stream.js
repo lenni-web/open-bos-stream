@@ -19,6 +19,16 @@ function loadStreamConfig() {
         "cfg-stream-passthrough"
     ).checked =
         currentConfig.stream.passthrough ?? false;
+
+    const fixedProfile =
+        currentConfig.source_profile ===
+            "capture_card" ||
+        currentConfig.source_profile ===
+            "rtmp_passthrough";
+
+    document.getElementById(
+        "cfg-stream-passthrough"
+    ).disabled = fixedProfile;
 }
 
 function saveStreamConfig() {
@@ -43,8 +53,13 @@ function saveStreamConfig() {
             "cfg-stream-passthrough"
         ).checked;
 
-    currentConfig.stream.passthrough =
-        passthrough;
+    if (
+        currentConfig.source_profile ===
+        "custom"
+    ) {
+        currentConfig.stream.passthrough =
+            passthrough;
+    }
 
     if (passthrough) {
 

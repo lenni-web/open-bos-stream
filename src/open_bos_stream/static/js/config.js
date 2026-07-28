@@ -76,7 +76,7 @@ async function saveConfig() {
             )
         );
 
-        await api.saveConfig(
+        const result = await api.saveConfig(
             currentConfig
         );
 
@@ -84,7 +84,7 @@ async function saveConfig() {
 
         addEvent(
             "success",
-            "⚙️ Konfiguration gespeichert"
+            "⚙️ " + result.message
         );
 
     }
@@ -98,7 +98,7 @@ async function saveConfig() {
 
         addEvent(
             "error",
-            "⚙️ Konfiguration konnte nicht gespeichert werden"
+            "⚙️ " + err.message
         );
 
     }

@@ -5,6 +5,7 @@ Erzeugt alle Singleton-Services der Anwendung.
 """
 
 from open_bos_stream.core.config import ConfigLoader
+from open_bos_stream.core.config_apply import ConfigApplyService
 
 from open_bos_stream.dashboard.service import DashboardService
 from open_bos_stream.mediamtx.client import MediaMTXClient
@@ -57,6 +58,13 @@ stream_service = StreamService(
 
 stream_output_manager = StreamOutputManager(
     config
+)
+
+config_apply_service = ConfigApplyService(
+    loader=ConfigLoader(),
+    runtime_config=config,
+    stream=stream_service,
+    outputs=stream_output_manager,
 )
 
 stream_output_service = StreamOutputService(

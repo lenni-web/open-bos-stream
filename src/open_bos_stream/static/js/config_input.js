@@ -236,6 +236,17 @@ async function loadInputConfig() {
             "cfg-input-type"
         );
 
+    const profileSelect =
+        document.getElementById(
+            "cfg-source-profile"
+        );
+
+    if (profileSelect) {
+        profileSelect.value =
+            currentConfig.source_profile ??
+            "custom";
+    }
+
     if (
 
         currentConfig.input &&
@@ -254,6 +265,15 @@ async function loadInputConfig() {
 
 function saveInputConfig() {
 
+    const profileSelect =
+        document.getElementById(
+            "cfg-source-profile"
+        );
+
+    currentConfig.source_profile =
+        profileSelect?.value ??
+        "custom";
+
     currentConfig.input.type =
 
         document.getElementById(
@@ -261,9 +281,12 @@ function saveInputConfig() {
         ).value;
 
     if (
-        currentConfig.input.type ===
-        "v4l2"
+        currentConfig.source_profile ===
+        "capture_card"
     ) {
+
+        currentConfig.input.type =
+            "v4l2";
 
         const streamName =
             currentConfig.stream.name
@@ -277,6 +300,14 @@ function saveInputConfig() {
 
         currentConfig.stream.passthrough =
             false;
+
+        if (
+            currentConfig.encoder.codec ===
+            "copy"
+        ) {
+            currentConfig.encoder.codec =
+                "h264_v4l2m2m";
+        }
 
         currentConfig.stream.name =
             streamName;
@@ -293,6 +324,30 @@ function saveInputConfig() {
             passthroughCheckbox.checked =
                 false;
         }
+
+    } else if (
+        currentConfig.source_profile ===
+        "rtmp_passthrough"
+    ) {
+
+        currentConfig.input.type = "rtmp";
+        currentConfig.input.mode = "copy";
+        currentConfig.encoder.codec = "copy";
+        currentConfig.stream.passthrough = true;
+        currentConfig.stream.audio.source = "none";
+        currentConfig.stream.audio.device = null;
+        currentConfig.stream.overlay.source = "none";
+
+        const streamName =
+            currentConfig.stream.name.includes("/")
+                ? currentConfig.stream.name
+                : `live/${currentConfig.stream.name}`;
+
+        currentConfig.stream.name = streamName;
+        currentConfig.input.url =
+            `rtmp://127.0.0.1:1935/${streamName}`;
+        currentConfig.stream.rtsp_url =
+            `rtsp://127.0.0.1:8554/${streamName}`;
 
     }
 
@@ -420,9 +475,50 @@ document.addEventListener(
         if (
 
             target.id ===
+            "cfg-source-profile"
+
+        ) {
+
+            const inputSelect =
+                document.getElementById(
+                    "cfg-input-type"
+                );
+
+            if (target.value === "capture_card") {
+                inputSelect.value = "v4l2";
+            } else if (
+                target.value === "rtmp_passthrough"
+            ) {
+                inputSelect.value = "rtmp";
+            }
+
+            saveInputConfig();
+            renderInputFields();
+            await refreshAvailableEncoders();
+            loadStreamConfig();
+
+            return;
+
+        }
+
+        if (
+
+            target.id ===
             "cfg-input-type"
 
         ) {
+
+            const profileSelect =
+                document.getElementById(
+                    "cfg-source-profile"
+                );
+
+            if (profileSelect) {
+                profileSelect.value = "custom";
+            }
+
+            currentConfig.source_profile =
+                "custom";
 
             renderInputFields();
 

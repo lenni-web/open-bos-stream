@@ -67,7 +67,13 @@ class OBSApi {
 
         if (!response.ok) {
             throw new Error(
-                json.detail ??
+                json.detail?.message ??
+                json.detail?.[0]?.msg ??
+                (
+                    typeof json.detail === "string"
+                        ? json.detail
+                        : null
+                ) ??
                 "Request failed",
             );
         }
