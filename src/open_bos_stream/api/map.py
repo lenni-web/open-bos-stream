@@ -96,15 +96,13 @@ def map_style(
             detail=f"Map style not found: {style}",
         )
 
-    tile_url = str(
-        request.url_for(
-            "map_tile",
-            name=default,
-            z="{z}",
-            x="{x}",
-            y="{y}",
-        )
-    )
+    tile_url = request.url_for(
+        "map_tile",
+        name=default,
+        z="{z}",
+        x="{x}",
+        y="{y}",
+    ).path
 
     try:
         return service.style(
