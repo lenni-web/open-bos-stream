@@ -15,11 +15,6 @@ function updateDashboardStream(
 
         streamLabel(stream);
 
-    updateVisible(
-        "video-live",
-        stream.running
-    );
-
 updateValue(
     "video-stream-state",
     streamState
@@ -530,3 +525,79 @@ function formatRecordingDuration(
     );
 
 }
+
+// ==========================================================
+// LivePlayer Status
+// ==========================================================
+
+window.livePlayer.onStateChanged((event) => {
+
+    const playerState =
+        typeof event === "string"
+            ? event
+            : event.state;
+
+    const live =
+        document.getElementById(
+            "video-live"
+        );
+
+    const status =
+        document.getElementById(
+            "video-status"
+        );
+
+    if (!live || !status) {
+        return;
+    }
+
+    switch (playerState) {
+
+        case "connecting":
+
+            status.style.display =
+                "inline";
+
+            status.textContent =
+                "🔄 Verbinde...";
+
+            live.style.display =
+                "none";
+
+            break;
+
+        case "playing":
+
+            status.style.display =
+                "none";
+
+            live.style.display =
+                "inline";
+
+            break;
+
+        case "error":
+
+            status.style.display =
+                "inline";
+
+            status.textContent =
+                "⚠ Offline";
+
+            live.style.display =
+                "none";
+
+            break;
+
+        case "idle":
+        default:
+
+            status.style.display =
+                "none";
+
+            live.style.display =
+                "none";
+
+    }
+
+});

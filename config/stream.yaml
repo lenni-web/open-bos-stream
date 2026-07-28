@@ -5,7 +5,7 @@ capture:
   fps: 30
   format: mjpeg
 input:
-  type: v4l2
+  type: rtmp
   mode: transcode
   device: /dev/video0
   url: rtmp://127.0.0.1:1935/live/drohne
@@ -15,7 +15,7 @@ input:
   format: mjpeg
 sources: []
 encoder:
-  codec: h264_v4l2m2m
+  codec: copy
   bitrate: 8M
   pixel_format: yuv420p
   gop: 30
