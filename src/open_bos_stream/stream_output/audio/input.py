@@ -14,16 +14,10 @@ class InputAudio(BaseAudio):
                 "-map",
                 "0:v:0",
                 "-map",
-                "0:a:0",
+                "0:a:0?",
             ],
             options=[
                 "-c:a",
-                "aac",
-                "-b:a",
-                "128k",
-                "-ar",
-                "48000",
-                "-ac",
-                "2",
+                "copy",
             ],
         )

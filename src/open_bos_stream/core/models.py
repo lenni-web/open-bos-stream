@@ -97,6 +97,7 @@ class ViewerConfig(BaseModel):
 class StreamConfig(BaseModel):
     name: str
     rtsp_url: str
+    passthrough: bool = False
 
     viewer: ViewerConfig = Field(
         default_factory=ViewerConfig,

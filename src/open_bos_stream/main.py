@@ -37,31 +37,34 @@ from open_bos_stream.api.stream_output import (
     router as stream_output_router,
 )
 from open_bos_stream.logging.logger import setup_logging
+import logging
 
 setup_logging()
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialisiert die Anwendung."""
 
-    try:
-
-        if not stream_service.running:
-            stream_service.start()
-
-    except Exception:
-
-        # Anwendung trotzdem starten.
-        # Der Stream kann später über die Oberfläche gestartet werden.
-        pass
+    if stream_service.managed:
+        try:
+            if not stream_service.running:
+                stream_service.start()
+        except Exception:
+            logger.exception(
+                "Der interne Streamer konnte nicht gestartet werden."
+            )
 
     yield
 
-    try:
-        stream_service.stop()
-    except Exception:
-        pass
+    if stream_service.managed:
+        try:
+            stream_service.stop()
+        except Exception:
+            logger.exception(
+                "Der interne Streamer konnte nicht gestoppt werden."
+            )
 
 
 app = FastAPI(

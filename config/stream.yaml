@@ -6,7 +6,7 @@ capture:
   format: mjpeg
 input:
   type: rtmp
-  mode: transcode
+  mode: copy
   device: /dev/video0
   url: rtmp://127.0.0.1:1935/live/drohne
   width: 1280
@@ -22,13 +22,14 @@ encoder:
   preset: ultrafast
   tune: zerolatency
 stream:
-  name: drohne
-  rtsp_url: rtsp://127.0.0.1:8554/drohne
+  name: live/drohne
+  rtsp_url: rtsp://127.0.0.1:8554/live/drohne
+  passthrough: true
   viewer:
     protocol: webrtc
   audio:
-    source: alsa
-    device: plughw:CARD=Video,DEV=0
+    source: none
+    device: null
   overlay:
     source: none
     font: /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf

@@ -13,6 +13,8 @@ async def status():
     return {
         "running": stream_service.running,
         "pid": stream_service.pid,
+        "passthrough": not stream_service.managed,
+        "controllable": stream_service.managed,
     }
 
 
@@ -35,9 +37,17 @@ async def start():
 
 @router.post("/stop")
 async def stop():
-    stream_service.stop()
+    try:
+        stopped = stream_service.stop()
 
-    return {
-        "success": True,
-        "running": stream_service.running,
-    }
+        return {
+            "success": stopped,
+            "running": stream_service.running,
+        }
+
+    except RuntimeError as exc:
+        return {
+            "success": False,
+            "running": stream_service.running,
+            "error": str(exc),
+        }

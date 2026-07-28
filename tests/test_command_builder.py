@@ -14,8 +14,19 @@ def test_build_command():
 
     assert "-f" in command
 
-    assert "v4l2" in command
+    assert config.input.url in command
 
-    assert config.capture.device in command
+    assert ["-c:v", "copy"] == command[
+        command.index("-c:v"):command.index("-c:v") + 2
+    ]
 
     assert config.stream.rtsp_url in command
+
+    output_index = command.index(config.stream.rtsp_url)
+
+    assert command[output_index - 4:output_index] == [
+        "-rtsp_transport",
+        "tcp",
+        "-f",
+        "rtsp",
+    ]

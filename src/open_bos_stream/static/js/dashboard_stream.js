@@ -138,18 +138,31 @@ function updateStreamButton(
     }
 
     button.textContent =
-        stream.running
-            ? "■ Stream stoppen"
-            : "▶ Stream starten";
+        stream.controllable === false
+            ? (
+                stream.running
+                    ? "↔ Passthrough aktiv"
+                    : "… Warte auf Eingang"
+            )
+            : (
+                stream.running
+                    ? "■ Stream stoppen"
+                    : "▶ Stream starten"
+            );
+
+    button.disabled =
+        stream.controllable === false;
 
     button.classList.toggle(
         "bos-button-red",
         stream.running
+        && stream.controllable !== false
     );
 
     button.classList.toggle(
         "bos-button-green",
         !stream.running
+        && stream.controllable !== false
     );
 
 }

@@ -41,12 +41,19 @@ config = ConfigLoader().load()
 
 mediamtx_client = MediaMTXClient()
 
+mediamtx_service = MediaMTXService(
+    mediamtx_client
+)
+
 
 # ---------------------------------------------------------
 # Services
 # ---------------------------------------------------------
 
-stream_service = StreamService()
+stream_service = StreamService(
+    config=config,
+    mediamtx_service=mediamtx_service,
+)
 
 stream_output_manager = StreamOutputManager(
     config
@@ -56,10 +63,6 @@ stream_output_service = StreamOutputService(
     config=config,
     mediamtx=mediamtx_client,
     manager=stream_output_manager,
-)
-
-mediamtx_service = MediaMTXService(
-    mediamtx_client
 )
 
 health_service = HealthService(
