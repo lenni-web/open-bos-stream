@@ -1,6 +1,7 @@
 from pydantic import (
     BaseModel,
     Field,
+    model_validator,
 )
 from typing import Literal
 # ---------------------------------------------------------
@@ -166,6 +167,28 @@ class AppConfig(BaseModel):
     ] = Field(
         default_factory=list,
     )
+
+    @model_validator(mode="after")
+    def normalize_capture_card_mode(self) -> "AppConfig":
+        """Capture-Karten benötigen den verwalteten FFmpeg-Streamer."""
+
+        if self.input.type == "v4l2":
+            self.input.mode = "transcode"
+            self.stream.passthrough = False
+
+            if self.encoder.codec == "copy":
+                self.encoder.codec = "h264_v4l2m2m"
+
+            stream_name = (
+                self.stream.name.rstrip("/").split("/")[-1]
+                or "drohne"
+            )
+            self.stream.name = stream_name
+            self.stream.rtsp_url = (
+                f"rtsp://127.0.0.1:8554/{stream_name}"
+            )
+
+        return self
 
     @property
     def passthrough_active(self) -> bool:

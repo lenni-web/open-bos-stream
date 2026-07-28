@@ -25,6 +25,11 @@ class StreamService:
         self._config = config
         self._mediamtx = mediamtx_service
 
+    def reload(self, config: AppConfig) -> None:
+        """Übernimmt eine bereits persistierte Konfiguration."""
+
+        self._config = config
+
     @property
     def managed(self) -> bool:
         """True, wenn der interne FFmpeg-Dienst benötigt wird."""
