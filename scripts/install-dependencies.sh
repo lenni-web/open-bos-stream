@@ -18,7 +18,6 @@ PACKAGES=(
     ffmpeg
     curl
     git
-    chromium
 )
 
 MISSING_PACKAGES=()
@@ -34,6 +33,19 @@ for package in "${PACKAGES[@]}"; do
         MISSING_PACKAGES+=("${package}")
     fi
 done
+
+if command -v chromium >/dev/null 2>&1 ||
+    command -v chromium-browser >/dev/null 2>&1
+then
+    echo "Chromium ist bereits installiert."
+elif apt-cache show chromium >/dev/null 2>&1; then
+    MISSING_PACKAGES+=("chromium")
+elif apt-cache show chromium-browser >/dev/null 2>&1; then
+    MISSING_PACKAGES+=("chromium-browser")
+else
+    echo "FEHLER: Kein Chromium-Paket in den Paketquellen gefunden."
+    exit 1
+fi
 
 if [ "${#MISSING_PACKAGES[@]}" -eq 0 ]; then
     echo "Alle benötigten Systempakete sind bereits installiert."

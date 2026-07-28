@@ -117,10 +117,19 @@ else
     check_failure "Display-Service fehlt"
 fi
 
-if systemctl is-enabled open-bos-display.service >/dev/null 2>&1; then
+DISPLAY_ENABLEMENT="$(
+    systemctl is-enabled \
+        open-bos-display.service \
+        2>/dev/null || true
+)"
+
+if [ "${DISPLAY_ENABLEMENT}" = "enabled" ] ||
+    [ "${DISPLAY_ENABLEMENT}" = "enabled-runtime" ]
+then
     check_failure "Display-Service darf nicht beim Boot aktiviert sein"
 else
-    check_success "Display-Service startet nicht automatisch beim Boot"
+    check_success \
+        "Display-Service startet nicht automatisch beim Boot (${DISPLAY_ENABLEMENT:-disabled})"
 fi
 
 if command -v chromium >/dev/null 2>&1 ||
