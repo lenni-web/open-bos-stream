@@ -53,6 +53,21 @@ def test_passthrough_waits_for_external_publisher() -> None:
         raise AssertionError("start() must wait for the external publisher")
 
 
+def test_capture_card_always_uses_managed_streamer() -> None:
+    config = ConfigLoader().load()
+    config.input.type = "v4l2"
+    config.encoder.codec = "h264_v4l2m2m"
+    config.stream.passthrough = True
+
+    service = StreamService(
+        config=config,
+        mediamtx_service=FakeMediaMTXService(ready=False),
+    )
+
+    assert config.passthrough_active is False
+    assert service.managed is True
+
+
 def test_transcoding_rtsp_output_uses_tcp() -> None:
     config = ConfigLoader().load()
     config.stream.passthrough = False

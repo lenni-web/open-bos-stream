@@ -81,7 +81,18 @@ with open(sys.argv[1], encoding="utf-8") as config_file:
 
 print(
     "yes"
-    if config.get("stream", {}).get("passthrough", False)
+    if (
+        config.get("stream", {}).get("passthrough", False)
+        and config.get("encoder", {}).get("codec") == "copy"
+        and config.get("input", {}).get("type") in {
+            "rtmp",
+            "rtsp",
+            "srt",
+            "udp",
+            "http",
+            "hls",
+        }
+    )
     else "no"
 )
 ' \
