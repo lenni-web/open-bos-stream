@@ -26,5 +26,22 @@ version = {attr = "open_bos_stream.version.VERSION"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+open_bos_stream = [
+    "map/styles/*.json",
+    "map/layers/*.geojson",
+    "map/glyphs/*/*.pbf",
+    "static/css/*.css",
+    "static/js/*.js",
+    "static/vendor/*.js",
+    "static/vendor/*.css",
+    "static/vendor/mediamtx/*.js",
+    "static/vendor/maplibre/*.js",
+    "static/vendor/maplibre/*.css",
+    "templates/*.html",
+    "templates/components/*.html",
+    "templates/components/video/*.html",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
