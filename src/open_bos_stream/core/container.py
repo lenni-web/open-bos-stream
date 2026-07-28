@@ -8,6 +8,7 @@ from open_bos_stream.core.config import ConfigLoader
 from open_bos_stream.core.config_apply import ConfigApplyService
 
 from open_bos_stream.dashboard.service import DashboardService
+from open_bos_stream.display.manager import DisplayManager
 from open_bos_stream.mediamtx.client import MediaMTXClient
 from open_bos_stream.mediamtx.service import MediaMTXService
 from open_bos_stream.recording.library import RecordingLibrary
@@ -65,6 +66,10 @@ config_apply_service = ConfigApplyService(
     runtime_config=config,
     stream=stream_service,
     outputs=stream_output_manager,
+)
+
+display_manager = DisplayManager(
+    config.display
 )
 
 stream_output_service = StreamOutputService(

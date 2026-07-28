@@ -23,3 +23,15 @@ async def dashboard(request: Request):
             "version": VERSION,
         },
     )
+
+
+@router.get("/display/stream", response_class=HTMLResponse)
+async def display_stream(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="display_stream.html",
+        context={
+            "request": request,
+            "version": VERSION,
+        },
+    )
