@@ -3,9 +3,11 @@ class LivePlayer {
     constructor() {
 
         this.mode = null;
+		this.resetting = false;
 		this.currentStream = null;
 		this.webrtc = null;
-		
+		this.state = "idle";
+		this.stateListeners = [];
 		this.video =
             document.getElementById(
                 "live-video"
@@ -13,7 +15,13 @@ class LivePlayer {
 			
 		this.video.addEventListener(
 		    "playing",
-		    () => console.log("▶ playing")
+		    () => {
+
+		        console.log("▶ playing");
+
+		        this.setState("playing");
+
+		    }
 		);
 
 		this.video.addEventListener(
@@ -40,11 +48,72 @@ class LivePlayer {
 		            this.video.currentSrc
 		        );
 
+		        this.setState("error");
+
 		    }
 		);
 
     }
 
+	setState(state) {
+
+	    if (this.state === state) {
+	        return;
+	    }
+
+	    const previousState =
+	        this.state;
+
+	    this.state = state;
+
+	    console.debug(
+	        `[LivePlayer] ${previousState} → ${state}`
+	    );
+
+	    for (const listener of this.stateListeners) {
+
+	        try {
+
+	            listener({
+	                state: this.state,
+	                previousState: previousState,
+	                protocol: this.mode,
+	                stream: this.currentStream
+	            });
+
+	        } catch (err) {
+
+	            console.error(err);
+
+	        }
+
+	    }
+
+	}
+	
+	onStateChanged(listener) {
+
+	    this.stateListeners.push(listener);
+
+	}
+	
+	getStreamUrl(streamName, protocol) {
+
+	    const host = window.location.hostname;
+
+	    switch (protocol) {
+
+	        case "webrtc":
+	            return `http://${host}:8889/${streamName}/whep`;
+
+	        case "hls":
+	        default:
+	            return `http://${host}:8888/${streamName}/index.m3u8`;
+
+	    }
+
+	}
+	
 	play(streamName, protocol = "hls") {
 
 		if (
@@ -54,8 +123,8 @@ class LivePlayer {
 		    return;
 		}
 
-		this.stop();
-
+		this.reset();
+        this.setState("connecting");
 		this.mode = protocol;
 		this.currentStream = streamName;
 		
@@ -83,13 +152,11 @@ class LivePlayer {
 	        return;
 	    }
 
-	    const url =
-	        window.location.protocol +
-	        "//" +
-	        window.location.hostname +
-	        ":8888/" +
-	        streamName +
-	        "/index.m3u8";
+	const url =
+	    this.getStreamUrl(
+	        streamName,
+	        "hls"
+	    );
 
 	    //
 	    // Stream läuft bereits
@@ -97,11 +164,6 @@ class LivePlayer {
 	    if (this.video.src === url) {
 	        return;
 	    }
-
-	    //
-	    // alten Stream stoppen
-	    //
-	    this.stop();
 
 	    console.log(
 	        "Start HLS:",
@@ -118,8 +180,11 @@ class LivePlayer {
 
 	playWebRTC(streamName) {
 
-	    const url =
-	        `http://${window.location.hostname}:8889/${streamName}/whep`;
+	const url =
+	    this.getStreamUrl(
+	        streamName,
+	        "webrtc"
+	    );
 
 	    console.log("Verbinde WebRTC:", url);
 
@@ -127,9 +192,16 @@ class LivePlayer {
 
 	        url: url,
 
-	        onError: (err) => {
-	            console.error("WebRTC:", err);
-	        },
+			onError: (err) => {
+
+			    console.error(
+			        "WebRTC:",
+			        err
+			    );
+
+			    this.setState("error");
+
+			},
 
 	        onTrack: (evt) => {
 
@@ -145,31 +217,36 @@ class LivePlayer {
 
 	}
 
-	stop() {
+	reset() {
 
-	    if (!this.video) {
-	        return;
+		this.resetting = true;
+	    if (this.hls) {
+	        this.hls.destroy();
+	        this.hls = null;
+	    }
+
+	    if (this.webrtc) {
+	        this.webrtc.close();
+	        this.webrtc = null;
 	    }
 
 	    this.video.pause();
 
-	    this.video.removeAttribute(
-	        "src"
-	    );
+	    this.video.removeAttribute("src");
+	    this.video.srcObject = null;
 
-	    this.video.load();
-		this.mode = null;
-		this.currentStream = null;
+	    // this.video.load();
+        this.resetting = false;
+	}
+	
+	stop() {
 
-		if (this.webrtc) {
-		    this.webrtc.close();
-		    this.webrtc = null;
-		}
-		
-		if (this.hls) {
-		    this.hls.destroy();
-		    this.hls = null;
-		}
+	    this.reset();
+
+	    this.mode = null;
+	    this.currentStream = null;
+
+	    this.setState("idle");
 
 	}
 }

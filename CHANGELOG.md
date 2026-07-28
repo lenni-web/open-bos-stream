@@ -6,6 +6,30 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 "Keep a Changelog" und verwendet Semantic Versioning für Releases.
 
 ---
+
+## [0.4.12]
+
+### Added
+
+- Added a unified playback state model (`idle`, `connecting`, `playing`, `error`).
+- Added state change notifications for the live player.
+- Added protocol-independent stream URL generation.
+- Added centralized player reset handling.
+
+### Changed
+
+- Refactored the HTML5 live player architecture.
+- Unified HLS and WebRTC playback lifecycle.
+- Improved separation between playback logic and user interface.
+- Moved playback state transitions to browser video events.
+- Simplified player cleanup and stream switching.
+
+### Fixed
+
+- Fixed duplicate playback state transitions.
+- Fixed duplicate resource cleanup during stream changes.
+- Improved stream switching between HLS and WebRTC.
+
 ## v0.4.11
 
 ### Karten
