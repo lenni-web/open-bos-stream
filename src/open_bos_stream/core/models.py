@@ -166,6 +166,30 @@ class AppConfig(BaseModel):
     ] = Field(
         default_factory=list,
     )
+
+    @property
+    def passthrough_active(self) -> bool:
+        """True, wenn MediaMTX ohne internen FFmpeg-Relay genutzt wird."""
+
+        source_type = self.input.type
+
+        for source in self.sources:
+            if source.enabled:
+                source_type = source.type
+                break
+
+        return (
+            self.stream.passthrough
+            and self.encoder.codec == "copy"
+            and source_type in {
+                "rtmp",
+                "rtsp",
+                "srt",
+                "udp",
+                "http",
+                "hls",
+            }
+        )
 # ---------------------------------------------------------
 # Statusmodelle
 # ---------------------------------------------------------

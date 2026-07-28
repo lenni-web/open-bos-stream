@@ -260,6 +260,42 @@ function saveInputConfig() {
             "cfg-input-type"
         ).value;
 
+    if (
+        currentConfig.input.type ===
+        "v4l2"
+    ) {
+
+        const streamName =
+            currentConfig.stream.name
+                .split("/")
+                .filter(Boolean)
+                .pop() ??
+            "drohne";
+
+        currentConfig.input.mode =
+            "transcode";
+
+        currentConfig.stream.passthrough =
+            false;
+
+        currentConfig.stream.name =
+            streamName;
+
+        currentConfig.stream.rtsp_url =
+            `rtsp://127.0.0.1:8554/${streamName}`;
+
+        const passthroughCheckbox =
+            document.getElementById(
+                "cfg-stream-passthrough"
+            );
+
+        if (passthroughCheckbox) {
+            passthroughCheckbox.checked =
+                false;
+        }
+
+    }
+
     const input =
 
         inputTypes.find(
@@ -459,4 +495,3 @@ document.addEventListener(
     }
 
 );
-

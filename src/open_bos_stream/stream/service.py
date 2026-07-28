@@ -29,7 +29,7 @@ class StreamService:
     def managed(self) -> bool:
         """True, wenn der interne FFmpeg-Dienst benötigt wird."""
 
-        return not self._config.stream.passthrough
+        return not self._config.passthrough_active
 
     @property
     def running(self) -> bool:
