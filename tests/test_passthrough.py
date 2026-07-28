@@ -1,5 +1,5 @@
 from open_bos_stream.core.config import ConfigLoader
-from open_bos_stream.core.models import MediaMTXStatus
+from open_bos_stream.core.models import AppConfig, MediaMTXStatus
 from open_bos_stream.stream.command import FFmpegCommandBuilder
 from open_bos_stream.stream.service import StreamService
 from open_bos_stream.stream_output.command import (
@@ -66,6 +66,28 @@ def test_capture_card_always_uses_managed_streamer() -> None:
 
     assert config.passthrough_active is False
     assert service.managed is True
+
+
+def test_capture_card_config_is_normalized() -> None:
+    data = ConfigLoader().load().model_dump()
+    data["input"]["type"] = "v4l2"
+    data["input"]["mode"] = "copy"
+    data["encoder"]["codec"] = "copy"
+    data["stream"]["passthrough"] = True
+    data["stream"]["name"] = "live/drohne"
+    data["stream"]["rtsp_url"] = (
+        "rtsp://127.0.0.1:8554/live/drohne"
+    )
+
+    config = AppConfig(**data)
+
+    assert config.input.mode == "transcode"
+    assert config.encoder.codec == "h264_v4l2m2m"
+    assert config.stream.passthrough is False
+    assert config.stream.name == "drohne"
+    assert config.stream.rtsp_url == (
+        "rtsp://127.0.0.1:8554/drohne"
+    )
 
 
 def test_transcoding_rtsp_output_uses_tcp() -> None:

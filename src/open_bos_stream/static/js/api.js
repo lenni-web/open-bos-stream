@@ -63,7 +63,16 @@ class OBSApi {
 
         });
 
-        return await response.json();
+        const json = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                json.detail ??
+                "Request failed",
+            );
+        }
+
+        return json;
 
     }
 
