@@ -53,6 +53,12 @@ sudo -u "${SERVICE_USER}" \
     -m pip install \
     --requirement "${TARGET_DIR}/requirements.txt"
 
+sudo -u "${SERVICE_USER}" \
+    "${VENV_DIR}/bin/python" \
+    -m pip install \
+    --no-deps \
+    "${TARGET_DIR}"
+
 echo
 echo "Installiere systemd-Service ..."
 
@@ -62,6 +68,35 @@ sudo install \
     "${TARGET_SERVICE_FILE}"
 
 sudo systemctl daemon-reload
+
+PASSTHROUGH_ENABLED="$(
+    sudo -u "${SERVICE_USER}" \
+        "${VENV_DIR}/bin/python" \
+        -c '
+import sys
+import yaml
+
+with open(sys.argv[1], encoding="utf-8") as config_file:
+    config = yaml.safe_load(config_file) or {}
+
+print(
+    "yes"
+    if config.get("stream", {}).get("passthrough", False)
+    else "no"
+)
+' \
+        "${TARGET_DIR}/config/stream.yaml"
+)"
+
+if [ "${PASSTHROUGH_ENABLED}" = "yes" ]; then
+    echo "Passthrough aktiv: internen FFmpeg-Streamer deaktivieren ..."
+
+    sudo systemctl disable \
+        --now \
+        open-bos-streamer.service \
+        >/dev/null 2>&1 || true
+fi
+
 sudo systemctl enable open-bos-stream.service
 sudo systemctl restart open-bos-stream.service
 

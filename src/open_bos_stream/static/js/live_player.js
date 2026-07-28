@@ -5,6 +5,7 @@ class LivePlayer {
         this.mode = null;
 		this.resetting = false;
 		this.currentStream = null;
+		this.hls = null;
 		this.webrtc = null;
 		this.state = "idle";
 		this.stateListeners = [];
@@ -158,23 +159,69 @@ class LivePlayer {
 	        "hls"
 	    );
 
-	    //
-	    // Stream läuft bereits
-	    //
-	    if (this.video.src === url) {
-	        return;
-	    }
-
 	    console.log(
 	        "Start HLS:",
 	        url
 	    );
 
-	    this.video.src = url;
+	    //
+	    // Safari unterstützt HLS direkt.
+	    //
+	    if (
+	        this.video.canPlayType(
+	            "application/vnd.apple.mpegurl"
+	        )
+	    ) {
+	        this.video.src = url;
+	        this.video.play().catch(
+	            console.error
+	        );
+	        return;
+	    }
 
-	    this.video.play().catch(
-	        console.error
+	    //
+	    // Chromium und Firefox verwenden hls.js.
+	    //
+	    if (
+	        typeof Hls !== "undefined" &&
+	        Hls.isSupported()
+	    ) {
+	        this.hls = new Hls({
+	            lowLatencyMode: true,
+	        });
+
+	        this.hls.on(
+	            Hls.Events.MANIFEST_PARSED,
+	            () => {
+	                this.video.play().catch(
+	                    console.error
+	                );
+	            }
+	        );
+
+	        this.hls.on(
+	            Hls.Events.ERROR,
+	            (_event, data) => {
+	                console.error(
+	                    "HLS:",
+	                    data
+	                );
+
+	                if (data.fatal) {
+	                    this.setState("error");
+	                }
+	            }
+	        );
+
+	        this.hls.loadSource(url);
+	        this.hls.attachMedia(this.video);
+	        return;
+	    }
+
+	    console.error(
+	        "HLS wird von diesem Browser nicht unterstützt."
 	    );
+	    this.setState("error");
 
 	}
 
@@ -234,8 +281,7 @@ class LivePlayer {
 
 	    this.video.removeAttribute("src");
 	    this.video.srcObject = null;
-
-	    // this.video.load();
+	    this.video.load();
         this.resetting = false;
 	}
 	

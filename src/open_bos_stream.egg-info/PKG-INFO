@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: open-bos-stream
-Version: 0.1.0
+Version: 0.4.12
 Summary: Open Source BOS Video Streaming Server
 Requires-Python: >=3.13
 Requires-Dist: fastapi

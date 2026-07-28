@@ -102,10 +102,18 @@ class DashboardService:
 
                 "name": self._config.stream.name,
 
+                "passthrough": not self._stream.managed,
+
+                "controllable": self._stream.managed,
+
                 "online": mediamtx.publisher,
 
                 "protocol": (
-                    "rtsp"
+                    (
+                        self._config.input.type
+                        if not self._stream.managed
+                        else "rtsp"
+                    )
                     if mediamtx.publisher
                     else "offline"
                 ),

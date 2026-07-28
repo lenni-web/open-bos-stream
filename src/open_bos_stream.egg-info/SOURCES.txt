@@ -28,6 +28,9 @@ src/open_bos_stream/core/file_library.py
 src/open_bos_stream/core/logging.py
 src/open_bos_stream/core/models.py
 src/open_bos_stream/dashboard/service.py
+src/open_bos_stream/display/__init__.py
+src/open_bos_stream/display/config.py
+src/open_bos_stream/display/manager.py
 src/open_bos_stream/logging/logger.py
 src/open_bos_stream/map/__init__.py
 src/open_bos_stream/map/mbtiles.py
@@ -118,3 +121,4 @@ src/open_bos_stream/stream_output/outputs/srt.py
 src/open_bos_stream/system/health.py
 src/open_bos_stream/system/info.py
 tests/test_command_builder.py
+tests/test_passthrough.py

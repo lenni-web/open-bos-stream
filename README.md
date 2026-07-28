@@ -158,6 +158,31 @@ Entwicklungsserver starten:
 uvicorn open_bos_stream.main:app --reload
 ```
 
+## Passthrough
+
+Bereits kodierte Netzwerkstreams können ohne zusätzlichen FFmpeg-Relay
+direkt über MediaMTX wiedergegeben werden:
+
+```yaml
+input:
+  type: rtmp
+  mode: copy
+  url: rtmp://127.0.0.1:1935/live/drohne
+
+encoder:
+  codec: copy
+
+stream:
+  name: live/drohne
+  rtsp_url: rtsp://127.0.0.1:8554/live/drohne
+  passthrough: true
+```
+
+Im Passthrough-Modus wird der Stream vom externen Publisher gesteuert.
+Open BOS Stream startet dafür keinen internen FFmpeg-Streamer. Overlays,
+lokales Audio und Video-Konvertierung benötigen weiterhin den normalen
+Transcoding-Modus.
+
 ---
 
 # Lizenz

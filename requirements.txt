@@ -10,8 +10,6 @@ idna==3.18
 iniconfig==2.3.0
 Jinja2==3.1.6
 MarkupSafe==3.0.3
-# Editable Git install with no remote (open-bos-stream==0.1.0)
--e /home/streampi/open-bos-stream
 packaging==26.2
 pluggy==1.6.0
 psutil==7.2.2

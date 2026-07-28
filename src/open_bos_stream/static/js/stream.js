@@ -3,9 +3,19 @@
 // ==========================================================
 
 async function toggleStream() {
-	
-    const status =
-        await api.status();
+
+	    const status =
+	        await api.status();
+
+	    if (status.controllable === false) {
+	        addEvent(
+	            "info",
+	            status.running
+	                ? "Passthrough-Stream wird vom externen Sender gesteuert."
+	                : "Warte auf den externen Passthrough-Stream."
+	        );
+	        return;
+	    }
 
     if (status.running) {
 

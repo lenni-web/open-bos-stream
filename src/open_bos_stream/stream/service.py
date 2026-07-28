@@ -8,17 +8,36 @@ Steuert den Stream über den systemd-Service
 from __future__ import annotations
 
 import subprocess
-import subprocess
 import time
 
-from open_bos_stream.core.models import StreamStatus
+from open_bos_stream.core.models import AppConfig, StreamStatus
+from open_bos_stream.mediamtx.service import MediaMTXService
 
 class StreamService:
 
     SERVICE = "open-bos-streamer.service"
 
+    def __init__(
+        self,
+        config: AppConfig,
+        mediamtx_service: MediaMTXService,
+    ) -> None:
+        self._config = config
+        self._mediamtx = mediamtx_service
+
+    @property
+    def managed(self) -> bool:
+        """True, wenn der interne FFmpeg-Dienst benötigt wird."""
+
+        return not self._config.stream.passthrough
+
     @property
     def running(self) -> bool:
+
+        if not self.managed:
+            return self._mediamtx.status(
+                self._config.stream.name
+            ).ready
 
         result = subprocess.run(
             [
@@ -33,6 +52,9 @@ class StreamService:
 
     @property
     def pid(self) -> int | None:
+
+        if not self.managed:
+            return None
 
         result = subprocess.run(
             [
@@ -54,6 +76,16 @@ class StreamService:
         return int(pid)
 
     def start(self) -> bool:
+
+        if not self.managed:
+            if self.running:
+                return True
+
+            raise RuntimeError(
+                "Passthrough ist aktiv. Warte auf einen "
+                f"Publisher am MediaMTX-Pfad "
+                f"'{self._config.stream.name}'."
+            )
 
         subprocess.run(
             [
@@ -79,6 +111,9 @@ class StreamService:
         return True
 
     def last_error(self) -> str | None:
+
+        if not self.managed:
+            return None
 
         result = subprocess.run(
             [
@@ -119,6 +154,13 @@ class StreamService:
 
     def stop(self) -> bool:
 
+        if not self.managed:
+            raise RuntimeError(
+                "Ein Passthrough-Stream wird vom externen "
+                "Publisher gesteuert und kann hier nicht "
+                "gestoppt werden."
+            )
+
         subprocess.run(
             [
                 "sudo",
@@ -132,6 +174,13 @@ class StreamService:
         return not self.running
 
     def restart(self) -> bool:
+
+        if not self.managed:
+            raise RuntimeError(
+                "Ein Passthrough-Stream wird vom externen "
+                "Publisher gesteuert und kann hier nicht "
+                "neu gestartet werden."
+            )
 
         subprocess.run(
             [

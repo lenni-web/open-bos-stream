@@ -175,6 +175,8 @@ class FFmpegCommandBuilder:
         #
         command.extend(
             [
+                "-rtsp_transport",
+                "tcp",
                 "-f",
                 "rtsp",
                 self._config.stream.rtsp_url,

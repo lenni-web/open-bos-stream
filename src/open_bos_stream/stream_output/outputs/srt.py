@@ -56,21 +56,23 @@ class SRTOutput(BaseOutput):
 
             "-i",
             config.stream.rtsp_url,
+        ]
 
-            command.extend(audio_command.inputs),
-            command.extend(audio_command.mapping),
-        
+        command.extend(audio_command.inputs)
+        command.extend(audio_command.mapping)
+
+        command.extend([
             "-c:v",
             "copy",
+        ])
 
-            command.extend(audio_command.options),
+        command.extend(audio_command.options)
 
+        command.extend([
             "-f",
             "mpegts",
 
             srt_url,
-        ]
-
-        
+        ])
 
         return command
