@@ -57,9 +57,7 @@ if (recordingElement) {
 
     updateValue(
         "status-stream",
-        stream.running
-            ? "🟢 Aktiv"
-            : "⚪ Gestoppt"
+        streamLabel(stream)
     );
 
     updateStreamButton(
@@ -284,28 +282,20 @@ function streamLabel(
     stream
 ) {
 
-    if (!stream.running) {
-
-        return "🔴 Offline";
-
-    }
-
-    switch (
-        stream.protocol
-    ) {
-
-        case "rtsp":
-            return "🟢 RTSP";
-
-        case "webrtc":
-            return "🟣 WebRTC";
-
-        case "hls":
-            return "🟠 HLS";
-
+    switch (stream.state) {
+        case "online":
+            return "🟢 Stream online";
+        case "waiting_for_publisher":
+            return "🟡 Warte auf RTMP-Publisher";
+        case "starting":
+            return "🟡 Stream wird gestartet";
+        case "error":
+            return "🔴 " + (
+                stream.error ??
+                "Streamfehler"
+            );
         default:
-            return "⚪ Unbekannt";
-
+            return "⚪ Stream gestoppt";
     }
 
 }

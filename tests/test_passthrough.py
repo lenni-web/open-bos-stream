@@ -70,6 +70,7 @@ def test_capture_card_always_uses_managed_streamer() -> None:
 
 def test_capture_card_config_is_normalized() -> None:
     data = ConfigLoader().load().model_dump()
+    data["source_profile"] = "capture_card"
     data["input"]["type"] = "v4l2"
     data["input"]["mode"] = "copy"
     data["encoder"]["codec"] = "copy"
@@ -88,6 +89,41 @@ def test_capture_card_config_is_normalized() -> None:
     assert config.stream.rtsp_url == (
         "rtsp://127.0.0.1:8554/drohne"
     )
+
+
+def test_rtmp_passthrough_profile_is_normalized() -> None:
+    data = ConfigLoader().load().model_dump()
+    data["source_profile"] = "rtmp_passthrough"
+    data["input"]["type"] = "v4l2"
+    data["encoder"]["codec"] = "h264_v4l2m2m"
+    data["stream"]["name"] = "drohne"
+    data["stream"]["passthrough"] = False
+
+    config = AppConfig(**data)
+
+    assert config.input.type == "rtmp"
+    assert config.input.mode == "copy"
+    assert config.encoder.codec == "copy"
+    assert config.stream.passthrough is True
+    assert config.stream.name == "live/drohne"
+    assert config.input.url == (
+        "rtmp://127.0.0.1:1935/live/drohne"
+    )
+
+
+def test_custom_v4l2_cannot_enable_passthrough() -> None:
+    data = ConfigLoader().load().model_dump()
+    data["source_profile"] = "custom"
+    data["input"]["type"] = "v4l2"
+    data["encoder"]["codec"] = "copy"
+    data["stream"]["passthrough"] = True
+
+    config = AppConfig(**data)
+
+    assert config.source_profile == "custom"
+    assert config.input.mode == "transcode"
+    assert config.encoder.codec == "h264_v4l2m2m"
+    assert config.stream.passthrough is False
 
 
 def test_transcoding_rtsp_output_uses_tcp() -> None:

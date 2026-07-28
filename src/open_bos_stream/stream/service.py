@@ -126,8 +126,10 @@ class StreamService:
                 "-u",
                 self.SERVICE,
                 "-n",
-                "20",
+                "40",
                 "--no-pager",
+                "-o",
+                "cat",
             ],
             capture_output=True,
             text=True,
@@ -137,14 +139,39 @@ class StreamService:
             result.stdout.splitlines()
         ):
 
-            if "Configuration error:" in line:
-
-                return line.split(
-                    "Configuration error:",
-                    1,
-                )[1].strip()
+            for marker in (
+                "Configuration error:",
+                "Error opening input file ",
+                "Error opening input:",
+                "Permission denied",
+                "Device or resource busy",
+                "No such file or directory",
+            ):
+                if marker in line:
+                    return line.strip()
 
         return None
+
+    def wait_until_ready(
+        self,
+        timeout: float = 8.0,
+    ) -> bool:
+        """Wartet, bis MediaMTX den konfigurierten Pfad empfängt."""
+
+        deadline = time.monotonic() + timeout
+
+        while time.monotonic() < deadline:
+            if (
+                self.running
+                and self._mediamtx.status(
+                    self._config.stream.name
+                ).ready
+            ):
+                return True
+
+            time.sleep(0.25)
+
+        return False
 
     def start_with_error(
         self,
@@ -196,6 +223,8 @@ class StreamService:
             ],
             check=True,
         )
+
+        time.sleep(1)
 
         return self.running
 
