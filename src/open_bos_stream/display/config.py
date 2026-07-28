@@ -1,17 +1,16 @@
-from dataclasses import dataclass
+"""Konfiguration des lokal angeschlossenen Displays."""
+
+from typing import Literal
+
+from pydantic import BaseModel
 
 
-@dataclass(slots=True)
-class DisplayConfig:
-
+class DisplayConfig(BaseModel):
     enabled: bool = False
-
-    mode: str = "kiosk"
-
-    browser: str = "chromium"
-
-    url: str = "http://127.0.0.1:8080"
-
+    mode: Literal["kiosk", "normal", "stream"] = "kiosk"
+    browser: Literal["chromium"] = "chromium"
+    dashboard_url: str = "http://127.0.0.1:8000"
+    stream_url: str = "http://127.0.0.1:8000/display/stream"
     fullscreen: bool = True
-
-    cursor: bool = False
+    hide_cursor: bool = True
+    disable_power_saving: bool = True

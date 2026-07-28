@@ -261,7 +261,7 @@ class OBSApi {
 
     }
 
-	async encoders(source) {
+    async encoders(source) {
 
 	    return await this.post(
 	        "/encoder/",
@@ -269,6 +269,25 @@ class OBSApi {
 	    );
 
 	}
+
+    async displayConfig() {
+        return await this.get(
+            "/display/config"
+        );
+    }
+
+    async displayStatus() {
+        return await this.get(
+            "/display/status"
+        );
+    }
+
+    async saveDisplayConfig(config) {
+        return await this.put(
+            "/display/config",
+            config
+        );
+    }
 }
 
 async function apiStartStreamOutput(name) {

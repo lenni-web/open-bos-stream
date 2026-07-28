@@ -10,6 +10,7 @@ Open BOS Stream ist eine webbasierte Streaming- und Kartenplattform für BOS-Anw
 - Kartenansicht mit Leaflet
 - Dynamisches Overlay-System
 - Mobile Fullscreen-Unterstützung
+- Lokales Wayland/labwc-Display mit Chromium
 - Wasserentnahmestellen als Karten-Overlay
 - Produktionsbetrieb über systemd
 - Automatischer Installer
@@ -121,6 +122,30 @@ Logs anzeigen:
 ```bash
 journalctl -u open-bos-stream.service -f
 ```
+
+## Lokales Display
+
+Auf Raspberry Pi OS wird eine laufende labwc/Wayland-Desktopsitzung
+benötigt. Das Display kann in den Einstellungen manuell in drei Modi
+gestartet werden:
+
+- `kiosk`: Dashboard ohne Chromium-Browserrahmen
+- `normal`: normales Chromium-Fenster mit Bedienoberfläche
+- `stream`: reduzierte Vollbildanzeige des Live-Streams
+
+Der Dienst wird bewusst nicht beim Boot aktiviert. Nach einem manuellen
+Start startet systemd Chromium bei einem Absturz erneut.
+
+Status und Logs:
+
+```bash
+systemctl status open-bos-display.service
+journalctl -u open-bos-display.service -f
+```
+
+Bei aktivierter Option verhindert der Dienst für seine Laufzeit
+Idle- und Sleep-Energiesparzustände. Beim Stoppen wird dieses Inhibit
+automatisch aufgehoben.
 
 ---
 

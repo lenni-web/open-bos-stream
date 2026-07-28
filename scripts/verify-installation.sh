@@ -109,6 +109,29 @@ else
 fi
 
 echo
+echo "Prüfe optionalen Display-Dienst ..."
+
+if [ -f "/etc/systemd/system/open-bos-display.service" ]; then
+    check_success "Display-Service installiert"
+else
+    check_failure "Display-Service fehlt"
+fi
+
+if systemctl is-enabled open-bos-display.service >/dev/null 2>&1; then
+    check_failure "Display-Service darf nicht beim Boot aktiviert sein"
+else
+    check_success "Display-Service startet nicht automatisch beim Boot"
+fi
+
+if command -v chromium >/dev/null 2>&1 ||
+    command -v chromium-browser >/dev/null 2>&1
+then
+    check_success "Chromium vorhanden"
+else
+    check_failure "Chromium fehlt"
+fi
+
+echo
 
 if [ "${FAILED}" -ne 0 ]; then
     echo "========================================"

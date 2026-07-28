@@ -21,11 +21,11 @@ echo
 
 if [ "${SKIP_GIT}" = true ]; then
 
-    echo "[1/6] Git-Aktualisierung übersprungen."
+    echo "[1/7] Git-Aktualisierung übersprungen."
 
 elif git -C "${PROJECT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 
-    echo "[1/6] Aktualisiere Git-Repository ..."
+    echo "[1/7] Aktualisiere Git-Repository ..."
 
     if [ "$(id -u)" -eq 0 ]; then
         PROJECT_OWNER="$(
@@ -53,23 +53,27 @@ else
 fi
 
 echo
-echo "[2/6] Deployment ..."
+echo "[2/7] Systemabhängigkeiten ..."
+"${SCRIPT_DIR}/install-dependencies.sh"
+
+echo
+echo "[3/7] Deployment ..."
 "${SCRIPT_DIR}/deploy.sh"
 
 echo
-echo "[3/6] Deployment-Information ..."
+echo "[4/7] Deployment-Information ..."
 "${SCRIPT_DIR}/write-deployment-info.sh"
 
 echo
-echo "[4/6] Laufzeitumgebung ..."
+echo "[5/7] Laufzeitumgebung ..."
 "${SCRIPT_DIR}/initialize-runtime.sh"
 
 echo
-echo "[5/6] Service aktualisieren ..."
+echo "[6/7] Service aktualisieren ..."
 "${SCRIPT_DIR}/install-service.sh"
 
 echo
-echo "[6/6] Installation prüfen ..."
+echo "[7/7] Installation prüfen ..."
 "${SCRIPT_DIR}/verify-installation.sh"
 
 echo

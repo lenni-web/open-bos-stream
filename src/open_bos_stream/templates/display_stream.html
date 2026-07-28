@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1">
+    <title>Open BOS Stream – Display</title>
+    <link
+        rel="stylesheet"
+        href="/static/css/display.css?v={{ version }}">
+</head>
+<body>
+    <main class="display-stage">
+        <video
+            id="live-video"
+            autoplay
+            muted
+            playsinline>
+        </video>
+        <div id="display-message" class="display-message">
+            <div class="display-brand">Open BOS Stream</div>
+            <div id="display-state">Warte auf Stream …</div>
+        </div>
+    </main>
+
+    <script src="/static/vendor/hls.min.js?v={{ version }}"></script>
+    <script src="/static/vendor/mediamtx/reader.js?v={{ version }}"></script>
+    <script src="/static/js/live_player.js?v={{ version }}"></script>
+    <script src="/static/js/display_stream.js?v={{ version }}"></script>
+</body>
+</html>

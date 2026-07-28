@@ -146,6 +146,68 @@
 
         </button>
 
+        <hr>
+
+        <h4>🖥 Lokales Display</h4>
+
+        <label>Startmodus</label>
+        <select
+            id="cfg-display-mode"
+            class="bos-input">
+            <option value="kiosk">
+                Kiosk – Dashboard ohne Browserrahmen
+            </option>
+            <option value="normal">
+                Normal – Chromium mit Bedienoberfläche
+            </option>
+            <option value="stream">
+                Vollbild – nur Live-Stream
+            </option>
+        </select>
+
+        <label>Dashboard-URL</label>
+        <input
+            id="cfg-display-dashboard-url"
+            class="bos-input"
+            type="url">
+
+        <label>Streamanzeige-URL</label>
+        <input
+            id="cfg-display-stream-url"
+            class="bos-input"
+            type="url">
+
+        <label class="display-option">
+            <input
+                id="cfg-display-hide-cursor"
+                type="checkbox">
+            Mauszeiger im Kiosk ausblenden
+        </label>
+
+        <label class="display-option">
+            <input
+                id="cfg-display-power"
+                type="checkbox">
+            Bildschirmabschaltung und Energiesparen verhindern
+        </label>
+
+        <label class="display-option">
+            <input
+                id="cfg-display-enabled"
+                type="checkbox">
+            Display-Dienst einschalten
+        </label>
+
+        <p id="display-service-status">
+            Display-Status wird geladen …
+        </p>
+
+        <button
+            class="bos-button bos-button-green"
+            onclick="saveDisplayConfig()">
+            🖥 Display-Einstellung übernehmen
+        </button>
+
     </div>
 
 </div>

@@ -1,0 +1,23 @@
+[Unit]
+Description=Open BOS Local Display
+After=graphical.target open-bos-stream.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+
+User=streampi
+Group=video
+
+WorkingDirectory=/opt/open-bos-stream
+RuntimeDirectory=open-bos-display
+RuntimeDirectoryMode=0750
+
+ExecStart=/opt/open-bos-stream/.venv/bin/python \
+    -m open_bos_stream.display.runner
+
+Restart=on-failure
+RestartSec=3
+
+StandardOutput=journal
+StandardError=journal

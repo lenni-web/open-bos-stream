@@ -43,6 +43,8 @@ window.addEventListener("load", async () => {
 
 	await refreshConfig();
 
+    await loadDisplayConfig();
+
 	await loadEncoders();
 	
 	loadEncoderConfig();
@@ -67,5 +69,10 @@ window.addEventListener("load", async () => {
 	    refreshMediaLibrary,
 	    2000
 	);
+
+    setInterval(
+        refreshDisplayStatus,
+        3000
+    );
 
 });

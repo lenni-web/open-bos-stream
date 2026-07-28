@@ -4,6 +4,7 @@ from pydantic import (
     model_validator,
 )
 from typing import Literal
+from open_bos_stream.display.config import DisplayConfig
 # ---------------------------------------------------------
 # Konfiguration
 # ---------------------------------------------------------
@@ -147,6 +148,10 @@ class AppConfig(BaseModel):
         "rtmp_passthrough",
         "custom",
     ] | None = None
+
+    display: DisplayConfig = Field(
+        default_factory=DisplayConfig,
+    )
 
     capture: CaptureConfig
 

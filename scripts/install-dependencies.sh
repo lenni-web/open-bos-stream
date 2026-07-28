@@ -18,6 +18,7 @@ PACKAGES=(
     ffmpeg
     curl
     git
+    chromium
 )
 
 MISSING_PACKAGES=()

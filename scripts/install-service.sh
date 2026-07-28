@@ -6,6 +6,10 @@ source "$(cd "$(dirname "$0")" && pwd)/common.sh"
 
 SOURCE_SERVICE_FILE="${SCRIPT_DIR}/open-bos-stream.service"
 TARGET_SERVICE_FILE="/etc/systemd/system/open-bos-stream.service"
+SOURCE_DISPLAY_SERVICE_FILE="${SCRIPT_DIR}/open-bos-display.service"
+TARGET_DISPLAY_SERVICE_FILE="/etc/systemd/system/open-bos-display.service"
+SOURCE_SUDOERS_FILE="${SCRIPT_DIR}/open-bos-stream-sudoers"
+TARGET_SUDOERS_FILE="/etc/sudoers.d/open-bos-stream"
 
 if [ -z "${SERVICE_USER}" ] || [ -z "${SERVICE_GROUP}" ]; then
     echo "FEHLER: User oder Group konnte nicht aus der Service-Datei gelesen werden."
@@ -67,7 +71,26 @@ sudo install \
     "${SOURCE_SERVICE_FILE}" \
     "${TARGET_SERVICE_FILE}"
 
+sudo install \
+    --mode=0644 \
+    "${SOURCE_DISPLAY_SERVICE_FILE}" \
+    "${TARGET_DISPLAY_SERVICE_FILE}"
+
+sudo install \
+    --mode=0440 \
+    "${SOURCE_SUDOERS_FILE}" \
+    "${TARGET_SUDOERS_FILE}"
+
+sudo visudo \
+    --check \
+    --file="${TARGET_SUDOERS_FILE}"
+
 sudo systemctl daemon-reload
+
+# Der Display-Dienst wird bewusst niemals für den Boot aktiviert.
+sudo systemctl disable \
+    open-bos-display.service \
+    >/dev/null 2>&1 || true
 
 PASSTHROUGH_ENABLED="$(
     sudo -u "${SERVICE_USER}" \
