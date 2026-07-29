@@ -387,7 +387,8 @@ body {
     padding: 22px;
 }
 
-.settings-section-display {
+.settings-section-display,
+.settings-section-web {
     grid-column: 1 / -1;
 }
 
@@ -621,6 +622,10 @@ body {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
+}
+
+.system-services {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .system-metrics {
@@ -885,7 +890,8 @@ body {
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .settings-section-display {
+    .settings-section-display,
+    .settings-section-web {
         grid-column: auto;
     }
 }

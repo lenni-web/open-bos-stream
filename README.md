@@ -147,6 +147,17 @@ Bei aktivierter Option verhindert der Dienst für seine Laufzeit
 Idle- und Sleep-Energiesparzustände. Beim Stoppen wird dieses Inhibit
 automatisch aufgehoben.
 
+## Webzugriff über Port 80
+
+Die Oberfläche bleibt immer unter `http://<geraet>:8000` erreichbar.
+In den Einstellungen kann zusätzlich der HTTP-Standardport aktiviert
+werden, sodass `http://<geraet>` ohne Portangabe genügt.
+
+Ein eigener systemd-Socket leitet Port 80 intern an Port 8000 weiter.
+Ist Port 80 bereits belegt, bleibt die Anwendung auf Port 8000
+verfügbar und zeigt den Konflikt in den Einstellungen und auf der
+Systemseite an.
+
 ---
 
 # Deployment-Information

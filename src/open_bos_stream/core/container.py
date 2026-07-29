@@ -11,6 +11,7 @@ from open_bos_stream.core.process import ProcessRunner
 
 from open_bos_stream.dashboard.service import DashboardService
 from open_bos_stream.display.manager import DisplayManager
+from open_bos_stream.web_access.manager import WebAccessManager
 from open_bos_stream.mediamtx.client import MediaMTXClient
 from open_bos_stream.mediamtx.service import MediaMTXService
 from open_bos_stream.recording.library import RecordingLibrary
@@ -83,6 +84,11 @@ config_apply_service = ConfigApplyService(
 
 display_manager = DisplayManager(
     config.display,
+    process_runner,
+)
+
+web_access_manager = WebAccessManager(
+    config.web_access,
     process_runner,
 )
 

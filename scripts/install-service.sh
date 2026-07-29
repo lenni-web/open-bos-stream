@@ -10,6 +10,10 @@ SOURCE_DISPLAY_SERVICE_FILE="${SCRIPT_DIR}/open-bos-display.service"
 TARGET_DISPLAY_SERVICE_FILE="/etc/systemd/system/open-bos-display.service"
 SOURCE_STREAMER_SERVICE_FILE="${SCRIPT_DIR}/open-bos-streamer.service"
 TARGET_STREAMER_SERVICE_FILE="/etc/systemd/system/open-bos-streamer.service"
+SOURCE_WEB_PROXY_SOCKET_FILE="${SCRIPT_DIR}/open-bos-web-proxy.socket"
+TARGET_WEB_PROXY_SOCKET_FILE="/etc/systemd/system/open-bos-web-proxy.socket"
+SOURCE_WEB_PROXY_SERVICE_FILE="${SCRIPT_DIR}/open-bos-web-proxy.service"
+TARGET_WEB_PROXY_SERVICE_FILE="/etc/systemd/system/open-bos-web-proxy.service"
 SOURCE_SUDOERS_FILE="${SCRIPT_DIR}/open-bos-stream-sudoers"
 TARGET_SUDOERS_FILE="/etc/sudoers.d/open-bos-stream"
 
@@ -84,6 +88,16 @@ sudo install \
     "${TARGET_STREAMER_SERVICE_FILE}"
 
 sudo install \
+    --mode=0644 \
+    "${SOURCE_WEB_PROXY_SOCKET_FILE}" \
+    "${TARGET_WEB_PROXY_SOCKET_FILE}"
+
+sudo install \
+    --mode=0644 \
+    "${SOURCE_WEB_PROXY_SERVICE_FILE}" \
+    "${TARGET_WEB_PROXY_SERVICE_FILE}"
+
+sudo install \
     --mode=0440 \
     "${SOURCE_SUDOERS_FILE}" \
     "${TARGET_SUDOERS_FILE}"
@@ -98,6 +112,38 @@ sudo systemctl daemon-reload
 sudo systemctl disable \
     open-bos-display.service \
     >/dev/null 2>&1 || true
+
+WEB_ACCESS_ENABLED="$(
+    sudo -u "${SERVICE_USER}" \
+        "${VENV_DIR}/bin/python" \
+        -c '
+import sys
+import yaml
+
+with open(sys.argv[1], encoding="utf-8") as config_file:
+    config = yaml.safe_load(config_file) or {}
+
+print("yes" if config.get("web_access", {}).get("enabled", False) else "no")
+' \
+        "${TARGET_DIR}/config/stream.yaml"
+)"
+
+if [ "${WEB_ACCESS_ENABLED}" = "yes" ]; then
+    echo "Standard-Webzugriff aktivieren ..."
+    sudo systemctl enable open-bos-web-proxy.socket
+    if ! sudo systemctl restart open-bos-web-proxy.socket; then
+        echo "WARNUNG: Port 80 konnte nicht aktiviert werden."
+        echo "Die Oberfläche bleibt über Port 8000 erreichbar."
+    fi
+else
+    sudo systemctl disable \
+        --now \
+        open-bos-web-proxy.socket \
+        >/dev/null 2>&1 || true
+    sudo systemctl stop \
+        open-bos-web-proxy.service \
+        >/dev/null 2>&1 || true
+fi
 
 PASSTHROUGH_ENABLED="$(
     sudo -u "${SERVICE_USER}" \

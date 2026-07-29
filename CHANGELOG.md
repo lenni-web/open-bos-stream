@@ -7,6 +7,19 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.8.5] - 2026-07-29
+
+### Added
+
+- Optionaler Standard-Webzugriff über Port 80 mit unverändertem
+  Rückfallzugang über Port 8000.
+- Konfiguration und Laufzeitstatus des Webzugriffs in den Einstellungen
+  sowie auf der Systemseite.
+- Erkennung und verständliche Anzeige, wenn Port 80 bereits durch einen
+  anderen Dienst belegt ist.
+- Eigene systemd-Socket-Proxy-Units, Installationsprüfung und eng
+  begrenzte sudo-Regeln für die Laufzeitsteuerung.
+
 ## [0.8.4] - 2026-07-29
 
 ### Fixed

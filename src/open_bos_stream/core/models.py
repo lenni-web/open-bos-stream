@@ -5,6 +5,7 @@ from pydantic import (
 )
 from typing import Literal
 from open_bos_stream.display.config import DisplayConfig
+from open_bos_stream.web_access.config import WebAccessConfig
 # ---------------------------------------------------------
 # Konfiguration
 # ---------------------------------------------------------
@@ -151,6 +152,10 @@ class AppConfig(BaseModel):
 
     display: DisplayConfig = Field(
         default_factory=DisplayConfig,
+    )
+
+    web_access: WebAccessConfig = Field(
+        default_factory=WebAccessConfig,
     )
 
     capture: CaptureConfig

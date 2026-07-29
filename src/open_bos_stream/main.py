@@ -23,6 +23,9 @@ from open_bos_stream.api.video_devices import (
 from open_bos_stream.api.display import (
     router as display_router,
 )
+from open_bos_stream.api.web_access import (
+    router as web_access_router,
+)
 from open_bos_stream.api.map import (
     router as map_router,
 )
@@ -103,4 +106,5 @@ app.include_router(stream_output_router)
 app.include_router(encoder_router)
 app.include_router(video_devices_router)
 app.include_router(display_router)
+app.include_router(web_access_router)
 app.include_router(map_router)

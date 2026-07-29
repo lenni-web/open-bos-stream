@@ -123,6 +123,20 @@ else
     check_failure "Display-Service fehlt"
 fi
 
+if [ -f "/etc/systemd/system/open-bos-web-proxy.socket" ] &&
+    [ -f "/etc/systemd/system/open-bos-web-proxy.service" ]
+then
+    check_success "Optionaler Standard-Webzugriff installiert"
+else
+    check_failure "Units für den Standard-Webzugriff fehlen"
+fi
+
+WEB_PROXY_STATE="$(
+    systemctl is-active open-bos-web-proxy.socket 2>/dev/null || true
+)"
+check_success \
+    "Standard-Webzugriff: ${WEB_PROXY_STATE:-inaktiv}; Port 8000 bleibt verfügbar"
+
 DISPLAY_ENABLEMENT="$(
     systemctl is-enabled \
         open-bos-display.service \
