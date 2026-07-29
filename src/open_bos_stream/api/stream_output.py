@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from open_bos_stream.core.container import (
     stream_output_service,
@@ -17,13 +17,31 @@ async def status():
 
 @router.post("/{name}/start")
 async def start(name: str):
-    stream_output_service.start(name)
+    try:
+        stream_output_service.start(name)
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "stream_output_start_failed",
+                "message": str(exc),
+            },
+        ) from exc
     return {"success": True}
 
 
 @router.post("/{name}/stop")
 async def stop(name: str):
-    stream_output_service.stop(name)
+    try:
+        stream_output_service.stop(name)
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "stream_output_stop_failed",
+                "message": str(exc),
+            },
+        ) from exc
     return {"success": True}
 
 

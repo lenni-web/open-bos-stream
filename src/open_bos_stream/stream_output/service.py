@@ -68,9 +68,40 @@ class StreamOutputService:
                 "Stream ist nicht bereit."
             )
 
-        self._manager.start(
-            name
-        )
+        try:
+            self._manager.start(name)
+        except RuntimeError as exc:
+            detail = str(exc).strip()
+            lowered = detail.lower()
+
+            if "connection refused" in lowered:
+                advice = (
+                    "Der SRT-Zielserver lehnt die Verbindung ab. "
+                    "Host, Port und Listener prüfen."
+                )
+            elif (
+                "timed out" in lowered
+                or "connection timeout" in lowered
+            ):
+                advice = (
+                    "Zeitüberschreitung beim SRT-Verbindungsaufbau. "
+                    "Netzwerk, Firewall und Zielport prüfen."
+                )
+            elif "no route to host" in lowered:
+                advice = (
+                    "Der SRT-Zielserver ist über das Netzwerk "
+                    "nicht erreichbar."
+                )
+            elif "invalid argument" in lowered:
+                advice = (
+                    "SRT-Adresse oder Verbindungsparameter sind ungültig."
+                )
+            else:
+                advice = "FFmpeg konnte den Ausgang nicht starten."
+
+            raise RuntimeError(
+                f"{advice}\n{detail}"
+            ) from exc
 
     def stop(
         self,
@@ -113,6 +144,10 @@ class StreamOutputService:
                     ),
 
                     pid=self._manager.pid(
+                        output.name
+                    ),
+
+                    error=self._manager.last_error(
                         output.name
                     ),
 

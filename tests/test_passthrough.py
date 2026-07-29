@@ -172,3 +172,25 @@ def test_srt_output_command_is_flat_and_uses_direct_stream() -> None:
     assert ["-c:a", "copy"] == command[
         command.index("-c:a"):command.index("-c:a") + 2
     ]
+    assert "streamid=" not in command[-1]
+
+
+def test_srt_output_preserves_custom_connection_parameters() -> None:
+    config = ConfigLoader().load()
+    output = next(
+        item
+        for item in config.stream_outputs
+        if item.type == "srt"
+    ).model_copy(deep=True)
+    output.url = (
+        "srt://example.test:8890"
+        "?streamid=publish:custom&latency=200"
+    )
+
+    command = StreamOutputCommandBuilder(config).build(output)
+    target = command[-1]
+
+    assert target.count("streamid=") == 1
+    assert "streamid=publish%3Acustom" in target
+    assert "latency=200" in target
+    assert "mode=caller" in target

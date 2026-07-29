@@ -17,3 +17,5 @@ class StreamOutputStatus(BaseModel):
     running: bool = False
 
     pid: int | None = None
+
+    error: str | None = None

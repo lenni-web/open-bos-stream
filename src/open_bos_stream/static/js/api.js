@@ -300,47 +300,15 @@ class OBSApi {
 }
 
 async function apiStartStreamOutput(name) {
-
-    const response = await fetch(
-
+    return await api.post(
         `/stream-output/${encodeURIComponent(name)}/start`,
-
-        {
-            method: "POST",
-        },
-
     );
-
-    if (!response.ok) {
-
-        throw new Error(
-            "Streaming Output konnte nicht gestartet werden."
-        );
-
-    }
-
 }
 
 async function apiStopStreamOutput(name) {
-
-    const response = await fetch(
-
+    return await api.post(
         `/stream-output/${encodeURIComponent(name)}/stop`,
-
-        {
-            method: "POST",
-        },
-
     );
-
-    if (!response.ok) {
-
-        throw new Error(
-            "Streaming Output konnte nicht gestoppt werden."
-        );
-
-    }
-
 }
 
 
