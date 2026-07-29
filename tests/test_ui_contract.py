@@ -78,3 +78,14 @@ def test_system_diagnostics_controls_remain_available() -> None:
         "system-storage-media",
         "system-alerts",
     } <= ids
+
+
+def test_compact_header_keeps_responsive_system_summary() -> None:
+    ids = template_ids("header.html")
+    index = (
+        ROOT / "templates" / "index.html"
+    ).read_text(encoding="utf-8")
+
+    assert "header-system-summary" in ids
+    assert "<h1>Übersicht</h1>" in index
+    assert "<h1>Livebetrieb</h1>" not in index
