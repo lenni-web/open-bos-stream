@@ -605,6 +605,10 @@ body {
     gap: 14px;
 }
 
+.system-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .service-card {
     display: flex;
     align-items: flex-start;
@@ -660,6 +664,92 @@ body {
 .metric-panel strong {
     font-size: 1.45rem;
     letter-spacing: -0.03em;
+}
+
+.stream-diagnostics,
+.storage-panel {
+    padding: 20px;
+}
+
+.diagnostic-state {
+    color: var(--bos-green);
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+.diagnostic-state.is-error {
+    color: var(--bos-red);
+}
+
+.diagnostic-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    overflow: hidden;
+    margin: 0;
+    border: 1px solid var(--bos-gray-soft);
+    border-radius: 10px;
+    background: var(--bos-gray-soft);
+}
+
+.diagnostic-grid > div {
+    min-width: 0;
+    padding: 12px;
+    background: var(--bos-white);
+}
+
+.diagnostic-grid dt {
+    margin-bottom: 4px;
+    color: var(--bos-muted);
+    font-size: 0.7rem;
+}
+
+.diagnostic-grid dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    font-size: 0.78rem;
+    font-weight: 750;
+}
+
+.diagnostic-error {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border: 1px solid #efc7cb;
+    border-radius: 9px;
+    background: #fff3f4;
+    color: var(--bos-red-dark);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.74rem;
+    overflow-wrap: anywhere;
+}
+
+.storage-bar {
+    height: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--bos-gray-soft);
+}
+
+.storage-bar span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--bos-green);
+    transition: width 180ms ease;
+}
+
+.storage-bar span.is-warning {
+    background: var(--bos-yellow);
+}
+
+.storage-summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 9px;
+    color: var(--bos-muted);
+    font-size: 0.74rem;
 }
 
 .system-details {
@@ -751,7 +841,8 @@ body {
     }
 
     .settings-grid,
-    .system-details {
+    .system-details,
+    .diagnostic-grid {
         grid-template-columns: minmax(0, 1fr);
     }
 
@@ -853,6 +944,12 @@ body {
     .switch-list,
     .form-grid {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .storage-summary {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 3px;
     }
 
     .form-field-wide,

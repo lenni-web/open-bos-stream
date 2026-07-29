@@ -26,6 +26,15 @@ class FakeReloadable:
         self.config = config
 
 
+class FakePreflight:
+    def __init__(self) -> None:
+        self.validated: list[AppConfig] = []
+
+    def validate(self, config: AppConfig) -> list[str]:
+        self.validated.append(config)
+        return ["Testprüfung"]
+
+
 class FakeStream(FakeReloadable):
     def __init__(self, config: AppConfig) -> None:
         super().__init__()
@@ -82,6 +91,7 @@ def test_capture_profile_is_activated_atomically(
         runtime,
         stream,
         outputs,
+        FakePreflight(),
     )
 
     message = service.apply(candidate)
@@ -113,6 +123,7 @@ def test_failed_capture_activation_rolls_back(
         runtime,
         stream,
         outputs,
+        FakePreflight(),
     )
 
     with pytest.raises(ConfigApplyError):

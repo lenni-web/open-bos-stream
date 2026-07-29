@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from open_bos_stream.core.models import AppConfig
 from open_bos_stream.mediamtx.service import MediaMTXService
+from open_bos_stream.media.storage import MediaStorageService
 from open_bos_stream.recording.service import RecordingService
 from open_bos_stream.stream.service import StreamService
 from open_bos_stream.system.health import HealthService
@@ -28,6 +29,7 @@ class DashboardService:
         recording_service: RecordingService,
         stream_output_service: StreamOutputService,
         system_info_service: SystemInfoService,
+        media_storage_service: MediaStorageService,
     ) -> None:
 
         self._config = config
@@ -37,6 +39,7 @@ class DashboardService:
         self._recording = recording_service
         self._stream_output = stream_output_service
         self._system_info = system_info_service
+        self._media_storage = media_storage_service
 
     def status(self) -> dict:
         """Aktuellen Dashboard-Status zurückgeben."""
@@ -112,6 +115,8 @@ class DashboardService:
 
             "system_info": system_info.model_dump(),
 
+            "media_storage": self._media_storage.status(),
+
             # -------------------------------------------------
             # Stream
             # -------------------------------------------------
@@ -165,6 +170,8 @@ class DashboardService:
                 "message": stream_message,
 
                 "error": stream_error,
+
+                "diagnostics": self._stream.diagnostics(),
 
             },
 

@@ -58,6 +58,54 @@
                 <span>Temperatur</span>
                 <strong id="system-temp">—</strong>
             </article>
+            <article class="metric-panel bos-card">
+                <span>Freier Medienspeicher</span>
+                <strong id="system-storage-free">—</strong>
+            </article>
+        </section>
+
+        <section class="bos-card stream-diagnostics">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">Streaming</span>
+                    <h2>Laufzeitdiagnose</h2>
+                </div>
+                <span id="stream-diagnostic-state" class="diagnostic-state">
+                    Wird geladen …
+                </span>
+            </div>
+            <dl class="diagnostic-grid">
+                <div><dt>Modus</dt><dd id="stream-diagnostic-mode">—</dd></div>
+                <div><dt>Eingang</dt><dd id="stream-diagnostic-input">—</dd></div>
+                <div><dt>Signal</dt><dd id="stream-diagnostic-signal">—</dd></div>
+                <div><dt>Encoder</dt><dd id="stream-diagnostic-encoder">—</dd></div>
+                <div><dt>Ausgabe</dt><dd id="stream-diagnostic-output">—</dd></div>
+                <div><dt>Neustarts</dt><dd id="stream-diagnostic-restarts">—</dd></div>
+                <div><dt>Exit-Status</dt><dd id="stream-diagnostic-exit">—</dd></div>
+                <div><dt>MediaMTX</dt><dd id="stream-diagnostic-mediamtx">—</dd></div>
+            </dl>
+            <div
+                id="stream-diagnostic-error"
+                class="diagnostic-error"
+                hidden>
+            </div>
+        </section>
+
+        <section class="bos-card storage-panel">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">Mediathek</span>
+                    <h2>Lokaler Speicher</h2>
+                </div>
+                <strong id="system-storage-percent">—</strong>
+            </div>
+            <div class="storage-bar" aria-hidden="true">
+                <span id="system-storage-bar"></span>
+            </div>
+            <div class="storage-summary">
+                <span id="system-storage-usage">—</span>
+                <span id="system-storage-media">—</span>
+            </div>
         </section>
 
         <section class="system-details">
