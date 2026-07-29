@@ -57,6 +57,10 @@
     href="/static/css/map.css?v={{ version }}"
 >
 
+<link
+    rel="stylesheet"
+    href="/static/css/modern.css?v={{ version }}">
+
 </head>
 
 <body>
@@ -80,6 +84,14 @@
             <div
                 id="page-dashboard"
                 class="page active">
+
+                <header class="page-header">
+                    <div>
+                        <span class="page-eyebrow">Einsatzübersicht</span>
+                        <h1>Livebetrieb</h1>
+                    </div>
+                    <p>Stream, Aufnahme und Systemzustand auf einen Blick.</p>
+                </header>
 
                 {% include "components/video_panel.html" %}
 

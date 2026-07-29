@@ -1,40 +1,28 @@
 <div class="bos-card">
 
-    <h3 id="media-title">
-
-        Medienvorschau
-
-    </h3>
+    <div class="section-heading">
+        <div>
+            <span class="section-kicker">Vorschau</span>
+            <h3 id="media-title">Medium auswählen</h3>
+        </div>
+    </div>
 
     <video
         id="media-video"
         controls
-        style="
-            width:100%;
-            display:none;
-            background:black;
-            border-radius:8px;
-        ">
+        preload="metadata">
 
     </video>
 
     <img
         id="media-image"
-        style="
-            width:100%;
-            display:none;
-            border-radius:8px;
-        ">
+        alt="">
 
     <div
         id="media-placeholder"
-        style="
-            padding:50px;
-            text-align:center;
-            color:#777;
-        ">
-
-        Keine Datei ausgewählt.
+        <span class="empty-state-icon" aria-hidden="true">▧</span>
+        <strong>Keine Vorschau geöffnet</strong>
+        <span>Wähle links eine Aufnahme oder einen Snapshot aus.</span>
 
     </div>
 

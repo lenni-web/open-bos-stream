@@ -1,5 +1,14 @@
 window.addEventListener("load", async () => {
 
+    // Die Uhr darf nicht von Netzwerk-, Stream- oder Hardwareabfragen
+    // abhängen. Sie startet deshalb vor allen asynchronen Initialisierungen.
+    updateClock();
+
+    setInterval(
+        updateClock,
+        1000
+    );
+
     // ------------------------------------------------------
     // UI-Zustand wiederherstellen
     // ------------------------------------------------------
@@ -49,8 +58,6 @@ window.addEventListener("load", async () => {
 	
 	loadEncoderConfig();
 
-    updateClock();
-
     // ------------------------------------------------------
     // Regelmäßige Aktualisierung
     // ------------------------------------------------------
@@ -60,13 +67,16 @@ window.addEventListener("load", async () => {
         1000
     );
 
-    setInterval(
-        updateClock,
-        1000
-    );
-
 	setInterval(
-	    refreshMediaLibrary,
+	    () => {
+	        if (
+	            document
+	                .getElementById("page-media")
+	                ?.classList.contains("active")
+	        ) {
+	            refreshMediaLibrary();
+	        }
+	    },
 	    2000
 	);
 
