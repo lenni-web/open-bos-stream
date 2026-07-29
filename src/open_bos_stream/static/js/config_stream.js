@@ -24,7 +24,9 @@ function loadStreamConfig() {
         currentConfig.source_profile ===
             "capture_card" ||
         currentConfig.source_profile ===
-            "rtmp_passthrough";
+            "rtmp_passthrough" ||
+        currentConfig.source_profile ===
+            "rtmp_repair";
 
     document.getElementById(
         "cfg-stream-passthrough"

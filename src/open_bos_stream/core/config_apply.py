@@ -62,11 +62,14 @@ class ConfigApplyService:
             )
 
         if (
-            config.source_profile == "rtmp_passthrough"
+            config.source_profile in {
+                "rtmp_passthrough",
+                "rtmp_repair",
+            }
             and not config.input.url
         ):
             raise ConfigApplyError(
-                "Für RTMP-Passthrough fehlt die Eingangs-URL."
+                "Für das RTMP-Profil fehlt die Eingangs-URL."
             )
 
     def _replace_runtime(self, config: AppConfig) -> None:
@@ -118,7 +121,8 @@ class ConfigApplyService:
             self._loader.save_last_known_good(candidate)
             return (
                 f"Vorabprüfung erfolgreich ({len(checks)} Prüfungen). "
-                "Capture-Card-Profil aktiviert und Streamer neu gestartet."
+                f"Profil '{candidate.source_profile}' aktiviert und "
+                "Streamer neu gestartet."
             )
 
         except Exception as exc:

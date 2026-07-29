@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from urllib.parse import urlparse, urlunparse
+
 from open_bos_stream.core.models import SourceConfig
 from open_bos_stream.stream.video_formats import (
     VideoFormat,
@@ -9,6 +11,32 @@ from open_bos_stream.stream.exceptions import (
 )
 from .base import InputBuilder
 from .registry import registry
+
+
+def repair_input_url(url: str) -> tuple[str, bool]:
+    """Lokalen MediaMTX-RTMP-Pfad über seinen RTSP-Spiegel lesen."""
+
+    parsed = urlparse(url)
+    if (
+        parsed.scheme == "rtmp"
+        and parsed.hostname in {"127.0.0.1", "localhost", "::1"}
+        and (parsed.port or 1935) == 1935
+    ):
+        host = parsed.hostname or "127.0.0.1"
+        if ":" in host and not host.startswith("["):
+            host = f"[{host}]"
+        return (
+            urlunparse((
+                "rtsp",
+                f"{host}:8554",
+                parsed.path,
+                "",
+                "",
+                "",
+            )),
+            True,
+        )
+    return url, False
 
 
 class RTMPInputBuilder(InputBuilder):
@@ -32,12 +60,34 @@ class RTMPInputBuilder(InputBuilder):
         source: SourceConfig,
     ) -> list[str]:
 
-        return [
+        command = []
+
+        if getattr(source, "mode", None) == "copy_repair":
+            input_url, use_rtsp = repair_input_url(source.url)
+            command.extend([
+                "-thread_queue_size",
+                "1024",
+                "-fflags",
+                "+genpts+discardcorrupt",
+                "-use_wallclock_as_timestamps",
+                "1",
+            ])
+            if use_rtsp:
+                command.extend([
+                    "-rtsp_transport",
+                    "tcp",
+                ])
+        else:
+            input_url = source.url
+
+        command.extend([
 
             "-i",
-            source.url,
+            input_url,
 
-        ]
+        ])
+
+        return command
 
     def output_formats(
         self,

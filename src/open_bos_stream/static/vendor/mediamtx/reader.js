@@ -23,6 +23,7 @@
  * @property {string} pass - password.
  * @property {string} token - token.
  * @property {OnError} onError - called when there's an error.
+ * @property {function(string): void} onState - called when connection state changes.
  * @property {OnTrack} onTrack - called when there's a track available.
  * @property {OnDataChannel} onDataChannel - called when there's a data channel available.
  */
@@ -62,6 +63,45 @@ class MediaMTXWebRTCReader {
     if (this.#restartTimeout !== null) {
       clearTimeout(this.#restartTimeout);
     }
+  }
+
+  /**
+   * Return compact inbound WebRTC statistics for diagnostics.
+   */
+  async stats() {
+    const result = {
+      connectionState: this.#pc?.connectionState ?? "closed",
+      packetsReceived: 0,
+      packetsLost: 0,
+      jitterMs: 0,
+      bytesReceived: 0,
+      framesDecoded: 0,
+      framesDropped: 0,
+    };
+
+    if (this.#pc === null) {
+      return result;
+    }
+
+    const reports = await this.#pc.getStats();
+    reports.forEach((report) => {
+      if (
+        report.type !== "inbound-rtp" ||
+        (report.kind ?? report.mediaType) !== "video"
+      ) {
+        return;
+      }
+      result.packetsReceived += report.packetsReceived ?? 0;
+      result.packetsLost += report.packetsLost ?? 0;
+      result.jitterMs = Math.max(
+        result.jitterMs,
+        (report.jitter ?? 0) * 1000,
+      );
+      result.bytesReceived += report.bytesReceived ?? 0;
+      result.framesDecoded += report.framesDecoded ?? 0;
+      result.framesDropped += report.framesDropped ?? 0;
+    });
+    return result;
   }
 
   static #supportsNonAdvertisedCodec(codec, fmtp) {
@@ -644,6 +684,10 @@ class MediaMTXWebRTCReader {
   }
 
   #onConnectionState() {
+    if (this.#conf.onState !== undefined && this.#pc !== null) {
+      this.#conf.onState(this.#pc.connectionState);
+    }
+
     if (this.#state !== "running") {
       return;
     }

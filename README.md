@@ -158,6 +158,27 @@ Ist Port 80 bereits belegt, bleibt die Anwendung auf Port 8000
 verfügbar und zeigt den Konflikt in den Einstellungen und auf der
 Systemseite an.
 
+## RTMP Copy mit Zeitstempel-Reparatur
+
+Für RTMP-Quellen mit rückwärtslaufenden DTS, fehlenden Zeitstempeln
+oder stark schwankenden Paketabständen steht das Quellenprofil
+`RTMP Copy mit Zeitstempel-Reparatur` zur Verfügung. Das Video wird
+nicht neu kodiert. FFmpeg kopiert den Originalcodec und normalisiert
+den Zeitverlauf zwischen zwei getrennten MediaMTX-Pfaden. Lokale
+RTMP-Eingänge werden intern über den RTSP/TCP-Spiegel gelesen, damit
+MediaMTX den lokalen Leser bei stark fehlerhafter Frame-Reihenfolge
+nicht schon vor der Reparatur beendet.
+
+Beispiel:
+
+```text
+RTMP-Eingang:       rtmp://127.0.0.1:1935/live/drohne
+Stabilisierte Ausgabe: rtsp://127.0.0.1:8554/drohne
+```
+
+Die Systemseite zeigt zusätzlich die gemessene Eingangsbitrate,
+Paketabstände sowie lokale WebRTC-Statistiken des aktuellen Browsers.
+
 ---
 
 # Deployment-Information

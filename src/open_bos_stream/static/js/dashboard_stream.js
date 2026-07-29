@@ -287,6 +287,8 @@ function streamLabel(
             return "🟢 Stream online";
         case "unstable":
             return "🟠 Stream instabil";
+        case "repairing":
+            return "🟡 Zeitstempel-Reparatur aktiv";
         case "waiting_for_source":
         case "waiting_for_publisher":
             return "🟡 Warte auf Quelle";

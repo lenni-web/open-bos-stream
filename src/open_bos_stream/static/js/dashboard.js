@@ -74,6 +74,8 @@ function updateDashboard(data) {
         data.media_storage
     );
 
+    updateViewerDiagnostics();
+
 	checkServiceEvents(
 	    data.services
 	);
@@ -107,9 +109,13 @@ function updateStreamDiagnostics(stream, storage) {
     if (diagnostics) {
         updateValue(
             "stream-diagnostic-mode",
-            diagnostics.mode === "managed_ffmpeg"
-                ? "Interner FFmpeg-Dienst"
-                : "MediaMTX direkt"
+            diagnostics.mode === "rtmp_copy_repair"
+                ? "RTMP Copy mit Zeitstempel-Reparatur"
+                : (
+                    diagnostics.mode === "managed_ffmpeg"
+                        ? "Interner FFmpeg-Dienst"
+                        : "MediaMTX direkt"
+                )
         );
         updateValue(
             "stream-diagnostic-input",
@@ -176,6 +182,22 @@ function updateStreamDiagnostics(stream, storage) {
                     probe.backwards_dts > 0
                         ? `${probe.backwards_dts} rückwärts`
                         : `${probe.packets_checked} Pakete geprüft`
+                )
+                : "—"
+        );
+        updateValue(
+            "stream-probe-bitrate",
+            probe?.available
+                ? formatBitsPerSecond(probe.bitrate_bps)
+                : "—"
+        );
+        updateValue(
+            "stream-probe-packet-timing",
+            probe?.available
+                ? (
+                    `${probe.packet_gaps} Lücken · ` +
+                    `${probe.timing_jitter_ms.toFixed(1)} ms Jitter · ` +
+                    `max. ${probe.max_gap_ms.toFixed(0)} ms`
                 )
                 : "—"
         );
@@ -270,12 +292,63 @@ function updateStreamDiagnostics(stream, storage) {
     ) {
         alerts.push(warning.message);
     }
+    const timestampProblem =
+        (diagnostics?.probe?.warnings || []).some(
+            warning => [
+                "non_monotonic_dts",
+                "missing_dts",
+                "implausible_frame_rate",
+                "irregular_packet_timing",
+            ].includes(warning.code)
+        );
+    if (
+        timestampProblem &&
+        diagnostics?.mode !== "rtmp_copy_repair"
+    ) {
+        alerts.push(
+            "Empfehlung: Quellenprofil „RTMP Copy mit " +
+            "Zeitstempel-Reparatur“ aktivieren."
+        );
+    }
 
     const alertBox = document.getElementById("system-alerts");
     if (alertBox) {
         alertBox.hidden = alerts.length === 0;
         alertBox.textContent = alerts.join(" ");
     }
+}
+
+function updateViewerDiagnostics() {
+    const diagnostics =
+        window.livePlayer?.diagnostics?.();
+
+    if (!diagnostics) {
+        return;
+    }
+
+    updateValue(
+        "viewer-connection-state",
+        diagnostics.protocol
+            ? `${diagnostics.protocol.toUpperCase()} · ` +
+                diagnostics.connection_state
+            : "Kein Player aktiv"
+    );
+    updateValue(
+        "viewer-network",
+        diagnostics.protocol === "webrtc"
+            ? (
+                `${diagnostics.packets_lost} verloren / ` +
+                `${diagnostics.packets_received} empfangen · ` +
+                `${diagnostics.jitter_ms.toFixed(1)} ms · ` +
+                formatBitsPerSecond(diagnostics.bitrate_bps)
+            )
+            : "Nur für WebRTC verfügbar"
+    );
+    updateValue(
+        "viewer-dropped-frames",
+        `${diagnostics.frames_dropped} von ` +
+        `${diagnostics.frames_decoded}`
+    );
 }
 
 function updateDashboardSystemInfo(info) {

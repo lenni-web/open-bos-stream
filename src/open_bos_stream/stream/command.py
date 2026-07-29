@@ -152,6 +152,23 @@ class FFmpegCommandBuilder:
             encoder_builder.build_args(),
         )
 
+        if (
+            self._config.input.type == "rtmp"
+            and self._config.input.mode == "copy_repair"
+        ):
+            command.extend([
+                "-map",
+                "0:v:0",
+                "-map",
+                "0:a:0?",
+                "-c:a",
+                "copy",
+                "-fps_mode",
+                "passthrough",
+                "-avoid_negative_ts",
+                "make_zero",
+            ])
+
         #
         # Video filters and overlay
         #

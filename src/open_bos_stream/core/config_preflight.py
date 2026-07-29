@@ -82,6 +82,20 @@ class ConfigPreflightValidator:
                 )
             checks.append(f"Capture-Gerät zugreifbar ({device})")
 
+        if config.source_profile == "rtmp_repair":
+            if not self._valid_url(config.input.url, {"rtmp", "rtmps"}):
+                raise ConfigPreflightError(
+                    "Die RTMP-Eingangs-URL ist ungültig."
+                )
+            input_path = urlparse(config.input.url or "").path.strip("/")
+            output_path = urlparse(config.stream.rtsp_url).path.strip("/")
+            if input_path == output_path:
+                raise ConfigPreflightError(
+                    "RTMP-Eingang und reparierte Ausgabe dürfen nicht "
+                    "denselben MediaMTX-Pfad verwenden."
+                )
+            checks.append("Getrennte RTMP-Eingangs- und Ausgabepfade")
+
         ffmpeg = shutil.which("ffmpeg")
         if not ffmpeg:
             raise ConfigPreflightError(

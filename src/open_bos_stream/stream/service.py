@@ -284,9 +284,13 @@ class StreamService:
 
         return {
             "mode": (
-                "managed_ffmpeg"
-                if self.managed
-                else "mediamtx_passthrough"
+                "rtmp_copy_repair"
+                if self._config.input.mode == "copy_repair"
+                else (
+                    "managed_ffmpeg"
+                    if self.managed
+                    else "mediamtx_passthrough"
+                )
             ),
             "input_type": self._config.input.type,
             "input": (

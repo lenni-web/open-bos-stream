@@ -26,6 +26,9 @@
                         <option value="rtmp_passthrough">
                             Externer RTMP-Stream (direkt)
                         </option>
+                        <option value="rtmp_repair">
+                            Externer RTMP-Stream (Copy mit Zeitstempel-Reparatur)
+                        </option>
                         <option value="custom">Benutzerdefiniert</option>
                     </select>
                 </div>
@@ -36,6 +39,13 @@
                 </div>
 
                 <div id="cfg-input-fields" class="dynamic-fields"></div>
+            </div>
+
+            <div class="info-note">
+                Bei fehlerhaften RTMP-Zeitstempeln verwendet „Copy mit
+                Zeitstempel-Reparatur“ weiterhin den Originalcodec, führt
+                den Stream aber über einen stabilisierten separaten
+                MediaMTX-Ausgabepfad.
             </div>
         </section>
 

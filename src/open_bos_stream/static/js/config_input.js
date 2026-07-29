@@ -327,7 +327,7 @@ function saveInputConfig() {
 
     } else if (
         currentConfig.source_profile ===
-        "rtmp_passthrough"
+            "rtmp_passthrough"
     ) {
 
         currentConfig.input.type = "rtmp";
@@ -348,6 +348,39 @@ function saveInputConfig() {
             `rtmp://127.0.0.1:1935/${streamName}`;
         currentConfig.stream.rtsp_url =
             `rtsp://127.0.0.1:8554/${streamName}`;
+
+    } else if (
+        currentConfig.source_profile ===
+            "rtmp_repair"
+    ) {
+
+        currentConfig.input.type = "rtmp";
+        currentConfig.input.mode = "copy_repair";
+        currentConfig.encoder.codec = "copy";
+        currentConfig.stream.passthrough = false;
+        currentConfig.stream.audio.source = "none";
+        currentConfig.stream.audio.device = null;
+        currentConfig.stream.overlay.source = "none";
+
+        const outputName =
+            currentConfig.stream.name
+                .split("/")
+                .filter(Boolean)
+                .pop() ??
+            "drohne";
+
+        currentConfig.stream.name = outputName;
+        currentConfig.stream.rtsp_url =
+            `rtsp://127.0.0.1:8554/${outputName}`;
+
+        const passthroughCheckbox =
+            document.getElementById(
+                "cfg-stream-passthrough"
+            );
+
+        if (passthroughCheckbox) {
+            passthroughCheckbox.checked = false;
+        }
 
     }
 
@@ -487,7 +520,8 @@ document.addEventListener(
             if (target.value === "capture_card") {
                 inputSelect.value = "v4l2";
             } else if (
-                target.value === "rtmp_passthrough"
+                target.value === "rtmp_passthrough" ||
+                target.value === "rtmp_repair"
             ) {
                 inputSelect.value = "rtmp";
             }

@@ -101,6 +101,23 @@ function formatBitrate(
 
 }
 
+function formatBitsPerSecond(bitsPerSecond) {
+    if (!Number.isFinite(bitsPerSecond) || bitsPerSecond <= 0) {
+        return "—";
+    }
+
+    const units = ["bit/s", "kbit/s", "Mbit/s", "Gbit/s"];
+    let value = bitsPerSecond;
+    let unit = 0;
+
+    while (value >= 1000 && unit < units.length - 1) {
+        value /= 1000;
+        unit++;
+    }
+
+    return `${value.toFixed(value >= 100 ? 0 : 1)} ${units[unit]}`;
+}
+
 function formatUptime(
 
     onlineTime
@@ -206,4 +223,3 @@ function streamLabel(
     return "🟢 Stream aktiv";
 
 }
-

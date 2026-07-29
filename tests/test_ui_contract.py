@@ -80,6 +80,11 @@ def test_system_diagnostics_controls_remain_available() -> None:
         "stream-probe-fps",
         "stream-probe-timebase",
         "stream-probe-timestamps",
+        "stream-probe-bitrate",
+        "stream-probe-packet-timing",
+        "viewer-connection-state",
+        "viewer-network",
+        "viewer-dropped-frames",
         "stream-stable-for",
     } <= ids
 
