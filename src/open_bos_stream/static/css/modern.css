@@ -32,7 +32,7 @@ body {
 }
 
 .dashboard-header {
-    margin-bottom: 16px;
+    margin-bottom: 10px;
 }
 
 .dashboard-grid {
@@ -54,24 +54,27 @@ body {
 
 .page-header {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
-    gap: 24px;
-    padding: 2px 2px 6px;
+    gap: 16px;
+    min-height: 42px;
+    padding: 0 2px 4px;
 }
 
 .page-header h1 {
-    margin: 2px 0 0;
+    margin: 0;
     color: var(--bos-dark);
-    font-size: clamp(1.55rem, 2vw, 2.1rem);
-    letter-spacing: -0.035em;
+    font-size: clamp(1.25rem, 1.6vw, 1.55rem);
+    line-height: 1.08;
+    letter-spacing: -0.025em;
 }
 
 .page-header p {
-    max-width: 34rem;
+    max-width: 30rem;
     margin: 0;
     color: var(--bos-muted);
-    font-size: 0.92rem;
+    font-size: 0.82rem;
+    line-height: 1.35;
     text-align: right;
 }
 
@@ -82,6 +85,12 @@ body {
     font-weight: 800;
     letter-spacing: 0.12em;
     text-transform: uppercase;
+}
+
+.page-header .page-eyebrow {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 0.62rem;
 }
 
 .section-heading {
@@ -128,26 +137,68 @@ body {
 }
 
 .bos-header {
-    padding: 8px 2px;
+    align-items: center;
+    gap: 12px;
+    min-height: 42px;
+    padding: 3px 2px;
+    margin-bottom: 0;
+}
+
+.header-left {
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+}
+
+.header-brand {
+    flex: 0 0 auto;
+    gap: 7px;
+}
+
+.header-logo {
+    font-size: 24px;
 }
 
 .header-title {
     color: var(--bos-dark);
-    font-size: 1.45rem;
+    font-size: 1.15rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.header-status {
+    flex-wrap: nowrap;
+    gap: 6px;
 }
 
 .status-pill {
+    gap: 6px;
+    padding: 4px 8px;
     border-radius: 999px;
     background: #25303d;
+    font-size: 0.72rem;
 }
 
 .header-ready {
+    gap: 6px;
+    padding: 5px 10px;
     background: #e4f5ed;
     color: #126a48;
+    font-size: 0.76rem;
+    white-space: nowrap;
 }
 
 .header-clock {
     color: var(--bos-dark);
+    font-size: 1.15rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.header-right {
+    gap: 12px;
 }
 
 .sidebar .bos-card {
@@ -304,7 +355,7 @@ body {
 .system-page {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 14px;
 }
 
 .settings-grid {
@@ -668,6 +719,10 @@ body {
 }
 
 @media (max-width: 1100px) {
+    .header-status {
+        flex-wrap: wrap;
+    }
+
     .sidebar {
         width: 100%;
         min-width: 0;
@@ -711,7 +766,7 @@ body {
     }
 
     .dashboard-header {
-        margin-bottom: 10px;
+        margin-bottom: 6px;
     }
 
     .header-status {
@@ -762,12 +817,15 @@ body {
     }
 
     .page-header {
-        display: block;
+        display: flex;
+        min-height: 38px;
+        gap: 10px;
     }
 
     .page-header p {
-        margin-top: 5px;
-        text-align: left;
+        max-width: 18rem;
+        font-size: 0.75rem;
+        text-align: right;
     }
 
     .media-layout {
@@ -825,11 +883,19 @@ body {
     }
 
     .header-title {
-        font-size: 1.12rem;
+        font-size: 1rem;
     }
 
     .header-right {
         gap: 8px;
+    }
+
+    .header-ready {
+        padding: 5px 8px;
+    }
+
+    .page-header p {
+        display: none;
     }
 
     .nav-label {
