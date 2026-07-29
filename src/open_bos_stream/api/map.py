@@ -96,13 +96,20 @@ def map_style(
             detail=f"Map style not found: {style}",
         )
 
-    tile_url = request.url_for(
-        "map_tile",
-        name=default,
-        z="{z}",
-        x="{x}",
-        y="{y}",
-    ).path
+    # Keep the URL absolute. Some mobile MapLibre versions do not
+    # request vector tiles when a style object contains a relative
+    # tile template. url_for() uses the Host header of the current
+    # browser request, so remote clients receive the Pi address while
+    # local clients receive 127.0.0.1.
+    tile_url = str(
+        request.url_for(
+            "map_tile",
+            name=default,
+            z="{z}",
+            x="{x}",
+            y="{y}",
+        )
+    )
 
     try:
         return service.style(

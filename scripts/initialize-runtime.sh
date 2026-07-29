@@ -43,6 +43,25 @@ if [ -d "${PROJECT_DIR}/mapdata" ]; then
         "${TARGET_DIR}/mapdata/"
 fi
 
+#
+# Medien aus älteren Installationen verlustfrei übernehmen.
+# Die Quelldateien bleiben als Sicherung erhalten und bereits
+# vorhandene Zieldateien werden nicht überschrieben.
+#
+for media_dir in recordings snapshots; do
+
+    if [ -d "${PROJECT_DIR}/${media_dir}" ]; then
+
+        echo "Übernehme vorhandene ${media_dir} ..."
+
+        sudo rsync \
+            --archive \
+            --ignore-existing \
+            "${PROJECT_DIR}/${media_dir}/" \
+            "${TARGET_DIR}/${media_dir}/"
+    fi
+done
+
 echo
 echo
 echo "Setze Besitzer und Gruppen ..."

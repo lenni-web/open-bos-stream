@@ -12,7 +12,7 @@ class _Metadata:
     center = None
 
 
-def test_style_keeps_tile_url_relative() -> None:
+def test_style_keeps_absolute_tile_url() -> None:
     service = object.__new__(MapService)
     service.metadata = lambda _name: _Metadata()
 
@@ -28,10 +28,16 @@ def test_style_keeps_tile_url_relative() -> None:
     # isolation from an actual MBTiles database for this regression test.
     assert style_path.is_file()
     style = service.style(
-        tile_url="/api/map/niedersachsen/tiles/{z}/{x}/{y}",
+        tile_url=(
+            "http://192.168.1.10:8000/"
+            "api/map/niedersachsen/tiles/{z}/{x}/{y}"
+        ),
         name="niedersachsen",
     )
 
     assert style["sources"]["openbos"]["tiles"] == [
-        "/api/map/niedersachsen/tiles/{z}/{x}/{y}",
+        (
+            "http://192.168.1.10:8000/"
+            "api/map/niedersachsen/tiles/{z}/{x}/{y}"
+        ),
     ]
