@@ -723,6 +723,17 @@ body {
     overflow-wrap: anywhere;
 }
 
+.system-alerts {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border: 1px solid #efd39b;
+    border-radius: 9px;
+    background: #fff8e8;
+    color: #80570b;
+    font-size: 0.76rem;
+    font-weight: 750;
+}
+
 .storage-bar {
     height: 8px;
     overflow: hidden;

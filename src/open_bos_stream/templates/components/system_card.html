@@ -9,6 +9,12 @@
             <button
                 class="bos-button"
                 type="button"
+                onclick="downloadSystemDiagnostics()">
+                Diagnose herunterladen
+            </button>
+            <button
+                class="bos-button"
+                type="button"
                 onclick="copySystemDiagnostics()">
                 Diagnose kopieren
             </button>
@@ -89,6 +95,7 @@
                 class="diagnostic-error"
                 hidden>
             </div>
+            <div id="system-alerts" class="system-alerts" hidden></div>
         </section>
 
         <section class="bos-card storage-panel">

@@ -83,6 +83,19 @@ class OBSApi {
         });
     }
 
+    async testConfig(config) {
+        return await this.post(
+            "/config/test",
+            config
+        );
+    }
+
+    async restoreConfig() {
+        return await this.post(
+            "/config/restore"
+        );
+    }
+
     async delete(url) {
 
         return await this.request(url, {

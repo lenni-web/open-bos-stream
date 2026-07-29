@@ -1,4 +1,6 @@
 from pathlib import Path
+import os
+import tempfile
 
 import yaml
 
@@ -80,22 +82,55 @@ class ConfigLoader:
         self,
         config: AppConfig,
     ) -> None:
+        self._save_to(self.config_file, config)
 
-        self.config_file.parent.mkdir(
+    @staticmethod
+    def _save_to(path: Path, config: AppConfig) -> None:
+
+        path.parent.mkdir(
             parents=True,
             exist_ok=True,
         )
 
         data = config.model_dump()
 
-        with self.config_file.open(
-            "w",
-            encoding="utf-8",
-        ) as file:
+        descriptor, temporary = tempfile.mkstemp(
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            dir=path.parent,
+            text=True,
+        )
+        temporary_path = Path(temporary)
 
-            yaml.safe_dump(
-                data,
-                file,
-                allow_unicode=True,
-                sort_keys=False,
-            )
+        try:
+            with os.fdopen(
+                descriptor,
+                "w",
+                encoding="utf-8",
+            ) as file:
+                yaml.safe_dump(
+                    data,
+                    file,
+                    allow_unicode=True,
+                    sort_keys=False,
+                )
+                file.flush()
+                os.fsync(file.fileno())
+
+            os.replace(temporary_path, path)
+        finally:
+            temporary_path.unlink(missing_ok=True)
+
+    @property
+    def last_known_good_file(self) -> Path:
+        return self.config_file.with_name(
+            f"{self.config_file.stem}.last-known-good"
+            f"{self.config_file.suffix}"
+        )
+
+    def save_last_known_good(self, config: AppConfig) -> None:
+        self._save_to(self.last_known_good_file, config)
+
+    def load_last_known_good(self) -> AppConfig:
+        loader = ConfigLoader(str(self.last_known_good_file))
+        return loader.load()

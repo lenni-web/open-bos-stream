@@ -5,7 +5,6 @@ System Information Service
 from __future__ import annotations
 
 import socket
-import subprocess
 from pathlib import Path
 import platform
 import fcntl
@@ -14,6 +13,7 @@ from open_bos_stream.version import (
     APP_NAME,
     VERSION,
 )
+from open_bos_stream.core.process import ProcessRunner
 from open_bos_stream.core.models import (
     ApplicationInfo,
     HardwareInfo,
@@ -24,15 +24,17 @@ from open_bos_stream.core.models import (
 )
 
 class SystemInfoService:
+    def __init__(self, runner: ProcessRunner | None = None) -> None:
+        self._runner = runner or ProcessRunner()
 
     def _distribution(self) -> str:
 
         try:
             return (
-                subprocess.check_output(
+                self._runner.run(
                     ["lsb_release", "-ds"],
-                    text=True,
-                )
+                    timeout=3,
+                ).stdout
                 .strip()
                 .strip('"')
             )
@@ -56,10 +58,10 @@ class SystemInfoService:
     def _ffmpeg_version(self) -> str:
 
         try:
-            output = subprocess.check_output(
+            output = self._runner.run(
                 ["ffmpeg", "-version"],
-                text=True,
-            )
+                timeout=3,
+            ).stdout
 
             return output.splitlines()[0].replace(
                 "ffmpeg version ",

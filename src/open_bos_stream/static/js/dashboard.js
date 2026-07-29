@@ -169,9 +169,11 @@ function updateStreamDiagnostics(stream, storage) {
                 "stream-diagnostic-error"
             );
         if (error) {
-            error.hidden = !diagnostics.last_error;
-            error.textContent = diagnostics.last_error
-                ? `Letzter FFmpeg-Fehler: ${diagnostics.last_error}`
+            const details = diagnostics.last_error_details;
+            error.hidden = !details;
+            error.textContent = details
+                ? `${details.timestamp} · ${details.category}: ` +
+                    `${details.message} — ${details.advice}`
                 : "";
         }
     }
@@ -209,6 +211,25 @@ function updateStreamDiagnostics(stream, storage) {
                 storage.used_percent >= 85
             );
         }
+    }
+
+    const alerts = [];
+    if ((diagnostics?.restart_count || 0) >= 5) {
+        alerts.push(
+            `${diagnostics.restart_count} Dienstneustarts erkannt.`
+        );
+    }
+    if ((window.dashboard?.system?.temperature || 0) >= 75) {
+        alerts.push("Systemtemperatur ist kritisch hoch.");
+    }
+    if ((storage?.used_percent || 0) >= 85) {
+        alerts.push("Weniger als 15 % Speicherplatz verfügbar.");
+    }
+
+    const alertBox = document.getElementById("system-alerts");
+    if (alertBox) {
+        alertBox.hidden = alerts.length === 0;
+        alertBox.textContent = alerts.join(" ");
     }
 }
 

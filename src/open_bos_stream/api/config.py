@@ -39,3 +39,42 @@ async def save_config(config: AppConfig):
         "success": True,
         "message": message,
     }
+
+
+@router.post("/test")
+async def test_config(config: AppConfig):
+    try:
+        checks = config_apply_service.test(config)
+    except ConfigApplyError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "configuration_test_failed",
+                "message": str(exc),
+            },
+        ) from exc
+
+    return {
+        "success": True,
+        "message": (
+            f"Konfiguration ist aktivierbar "
+            f"({len(checks)} Prüfungen)."
+        ),
+        "checks": checks,
+    }
+
+
+@router.post("/restore")
+async def restore_config():
+    try:
+        message = config_apply_service.restore_last_known_good()
+    except ConfigApplyError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "configuration_restore_failed",
+                "message": str(exc),
+            },
+        ) from exc
+
+    return {"success": True, "message": message}
