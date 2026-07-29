@@ -9,6 +9,17 @@ class LivePlayer {
 		this.webrtc = null;
 		this.state = "idle";
 		this.stateListeners = [];
+        this.transportDiagnostics = {
+            protocol: null,
+            connection_state: "idle",
+            packets_received: 0,
+            packets_lost: 0,
+            jitter_ms: 0,
+            bitrate_bps: 0,
+            frames_decoded: 0,
+            frames_dropped: 0,
+        };
+        this.previousTransportSample = null;
 		this.video =
             document.getElementById(
                 "live-video"
@@ -21,9 +32,18 @@ class LivePlayer {
 		        console.log("▶ playing");
 
 		        this.setState("playing");
+                if (this.mode === "hls") {
+                    this.transportDiagnostics.connection_state =
+                        "playing";
+                }
 
 		    }
 		);
+
+        window.setInterval(
+            () => this.refreshTransportDiagnostics(),
+            2000
+        );
 
 		this.video.addEventListener(
 		    "pause",
@@ -128,6 +148,16 @@ class LivePlayer {
         this.setState("connecting");
 		this.mode = protocol;
 		this.currentStream = streamName;
+        this.transportDiagnostics = {
+            protocol: protocol,
+            connection_state: "connecting",
+            packets_received: 0,
+            packets_lost: 0,
+            jitter_ms: 0,
+            bitrate_bps: 0,
+            frames_decoded: 0,
+            frames_dropped: 0,
+        };
 		
 		switch (protocol) {
 
@@ -247,8 +277,23 @@ class LivePlayer {
 			    );
 
 			    this.setState("error");
+                this.transportDiagnostics.connection_state =
+                    "reconnecting";
 
 			},
+
+            onState: state => {
+                this.transportDiagnostics.connection_state =
+                    state;
+                if (state === "connected") {
+                    this.setState("playing");
+                } else if (
+                    state === "connecting" ||
+                    state === "new"
+                ) {
+                    this.setState("connecting");
+                }
+            },
 
 	        onTrack: (evt) => {
 
@@ -264,6 +309,69 @@ class LivePlayer {
 
 	}
 
+    async refreshTransportDiagnostics() {
+        const quality =
+            this.video?.getVideoPlaybackQuality?.();
+
+        if (quality) {
+            this.transportDiagnostics.frames_decoded =
+                quality.totalVideoFrames ?? 0;
+            this.transportDiagnostics.frames_dropped =
+                quality.droppedVideoFrames ?? 0;
+        }
+
+        if (!this.webrtc) {
+            return;
+        }
+
+        try {
+            const sample = await this.webrtc.stats();
+            const now = Date.now();
+            let bitrate = 0;
+
+            if (
+                this.previousTransportSample &&
+                sample.bytesReceived >=
+                    this.previousTransportSample.bytes
+            ) {
+                const seconds =
+                    (now - this.previousTransportSample.time) /
+                    1000;
+                if (seconds > 0) {
+                    bitrate =
+                        (
+                            sample.bytesReceived -
+                            this.previousTransportSample.bytes
+                        ) * 8 / seconds;
+                }
+            }
+
+            this.previousTransportSample = {
+                bytes: sample.bytesReceived,
+                time: now,
+            };
+            this.transportDiagnostics = {
+                protocol: "webrtc",
+                connection_state: sample.connectionState,
+                packets_received: sample.packetsReceived,
+                packets_lost: sample.packetsLost,
+                jitter_ms: sample.jitterMs,
+                bitrate_bps: bitrate,
+                frames_decoded: sample.framesDecoded,
+                frames_dropped: sample.framesDropped,
+            };
+        } catch (error) {
+            console.debug(
+                "WebRTC-Diagnose nicht verfügbar:",
+                error
+            );
+        }
+    }
+
+    diagnostics() {
+        return {...this.transportDiagnostics};
+    }
+
 	reset() {
 
 		this.resetting = true;
@@ -276,6 +384,7 @@ class LivePlayer {
 	        this.webrtc.close();
 	        this.webrtc = null;
 	    }
+        this.previousTransportSample = null;
 
 	    this.video.pause();
 
@@ -293,6 +402,8 @@ class LivePlayer {
 	    this.currentStream = null;
 
 	    this.setState("idle");
+        this.transportDiagnostics.protocol = null;
+        this.transportDiagnostics.connection_state = "idle";
 
 	}
 }

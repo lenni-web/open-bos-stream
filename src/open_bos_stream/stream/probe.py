@@ -9,6 +9,7 @@ from fractions import Fraction
 
 from open_bos_stream.core.models import AppConfig
 from open_bos_stream.core.process import ProcessRunner
+from open_bos_stream.stream.inputs.rtmp import repair_input_url
 
 
 class StreamProbeService:
@@ -53,8 +54,14 @@ class StreamProbeService:
             return 0.0
 
     def _target(self) -> str:
-        if self._config.passthrough_active:
-            return self._config.input.url or ""
+        if (
+            self._config.passthrough_active
+            or self._config.input.mode == "copy_repair"
+        ):
+            target = self._config.input.url or ""
+            if self._config.input.mode == "copy_repair":
+                target, _ = repair_input_url(target)
+            return target
         return self._config.stream.rtsp_url
 
     def _probe(self) -> dict:
@@ -84,7 +91,7 @@ class StreamProbeService:
             (
                 "stream=codec_name,codec_type,width,height,"
                 "r_frame_rate,avg_frame_rate,time_base,has_b_frames:"
-                "packet=pts_time,dts_time"
+                "packet=pts_time,dts_time,size"
             ),
             "-of",
             "json",
@@ -135,9 +142,15 @@ class StreamProbeService:
             })
 
         previous_dts: float | None = None
+        valid_dts: list[float] = []
         backwards = 0
         missing = 0
+        sample_bytes = 0
         for packet in packets:
+            try:
+                sample_bytes += int(packet.get("size", 0) or 0)
+            except (TypeError, ValueError):
+                pass
             raw_dts = packet.get("dts_time")
             if raw_dts in (None, "N/A"):
                 missing += 1
@@ -149,7 +162,52 @@ class StreamProbeService:
                 continue
             if previous_dts is not None and dts < previous_dts:
                 backwards += 1
+            valid_dts.append(dts)
             previous_dts = dts
+
+        positive_deltas = [
+            current - previous
+            for previous, current in zip(valid_dts, valid_dts[1:])
+            if current > previous
+        ]
+        sample_seconds = (
+            max(valid_dts) - min(valid_dts)
+            if len(valid_dts) > 1
+            else 0.0
+        )
+        bitrate_bps = (
+            sample_bytes * 8 / sample_seconds
+            if sample_seconds > 0
+            else 0.0
+        )
+        expected_delta = (
+            1 / average_fps
+            if average_fps > 0
+            else 0.0
+        )
+        packet_gaps = (
+            sum(
+                delta > expected_delta * 1.75
+                for delta in positive_deltas
+            )
+            if expected_delta > 0
+            else 0
+        )
+        max_gap_ms = (
+            max(positive_deltas) * 1000
+            if positive_deltas
+            else 0.0
+        )
+        timing_jitter_ms = (
+            sum(
+                abs(delta - expected_delta)
+                for delta in positive_deltas
+            )
+            / len(positive_deltas)
+            * 1000
+            if positive_deltas and expected_delta > 0
+            else 0.0
+        )
 
         if backwards:
             warnings.append({
@@ -164,6 +222,18 @@ class StreamProbeService:
                 "code": "missing_dts",
                 "message": "Die Quelle liefert keine auswertbaren DTS.",
             })
+        if (
+            expected_delta > 0
+            and packet_gaps >= 2
+            and max_gap_ms > expected_delta * 3000
+        ):
+            warnings.append({
+                "code": "irregular_packet_timing",
+                "message": (
+                    f"{packet_gaps} auffällige Bildabstände "
+                    f"(maximal {max_gap_ms:.0f} ms) erkannt."
+                ),
+            })
 
         return {
             "available": True,
@@ -177,6 +247,12 @@ class StreamProbeService:
             "has_b_frames": stream.get("has_b_frames", 0),
             "packets_checked": len(packets),
             "backwards_dts": backwards,
+            "sample_bytes": sample_bytes,
+            "sample_seconds": sample_seconds,
+            "bitrate_bps": bitrate_bps,
+            "packet_gaps": packet_gaps,
+            "max_gap_ms": max_gap_ms,
+            "timing_jitter_ms": timing_jitter_ms,
             "warnings": warnings,
             "error": None,
         }

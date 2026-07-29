@@ -59,7 +59,7 @@ class DashboardService:
             self._stream_state = state
             self._state_since = now
 
-        if state == "online":
+        if state in {"online", "repairing"}:
             if self._stable_since is None:
                 self._stable_since = now
             stable_for = now - self._stable_since
@@ -100,6 +100,7 @@ class DashboardService:
                 "non_monotonic_dts",
                 "missing_dts",
                 "implausible_frame_rate",
+                "irregular_packet_timing",
             }
             for warning in probe.get("warnings", [])
         )
@@ -109,6 +110,18 @@ class DashboardService:
             stream_message = (
                 "Warte auf RTMP-Publisher an "
                 f"'{self._config.stream.name}'."
+            )
+            stream_error = None
+        elif (
+            stream_running
+            and mediamtx.ready
+            and timestamp_warning
+            and self._config.input.mode == "copy_repair"
+        ):
+            stream_state = "repairing"
+            stream_message = (
+                "Stream online; Zeitstempel-Reparatur für die "
+                "instabile RTMP-Quelle ist aktiv."
             )
             stream_error = None
         elif stream_running and mediamtx.ready and timestamp_warning:

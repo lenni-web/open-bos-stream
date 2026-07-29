@@ -147,6 +147,7 @@ class AppConfig(BaseModel):
     source_profile: Literal[
         "capture_card",
         "rtmp_passthrough",
+        "rtmp_repair",
         "custom",
     ] | None = None
 
@@ -196,6 +197,11 @@ class AppConfig(BaseModel):
                 and self.stream.passthrough
             ):
                 self.source_profile = "rtmp_passthrough"
+            elif (
+                self.input.type == "rtmp"
+                and self.input.mode == "copy_repair"
+            ):
+                self.source_profile = "rtmp_repair"
             else:
                 self.source_profile = "custom"
 
@@ -238,6 +244,24 @@ class AppConfig(BaseModel):
             )
             self.stream.rtsp_url = (
                 f"rtsp://127.0.0.1:8554/{stream_name}"
+            )
+
+        elif self.source_profile == "rtmp_repair":
+            self.input.type = "rtmp"
+            self.input.mode = "copy_repair"
+            self.encoder.codec = "copy"
+            self.stream.passthrough = False
+            self.stream.audio.source = "none"
+            self.stream.audio.device = None
+            self.stream.overlay.source = "none"
+
+            output_name = (
+                self.stream.name.rstrip("/").split("/")[-1]
+                or "drohne"
+            )
+            self.stream.name = output_name
+            self.stream.rtsp_url = (
+                f"rtsp://127.0.0.1:8554/{output_name}"
             )
 
         return self

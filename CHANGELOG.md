@@ -7,6 +7,31 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.8.7] - 2026-07-29
+
+### Added
+
+- Neues Quellenprofil „RTMP Copy mit Zeitstempel-Reparatur“ ohne
+  Videoneukodierung.
+- Getrennte MediaMTX-Pfade für den ursprünglichen RTMP-Eingang und die
+  stabilisierte RTSP-Ausgabe.
+- Lokale MediaMTX-RTMP-Eingänge werden für die Reparatur über den
+  RTSP/TCP-Spiegel gelesen, damit fehlerhafte Frame-Reihenfolgen nicht
+  bereits den lokalen RTMP-Leser beenden.
+- Adaptive FFmpeg-Behandlung für fehlende Zeitstempel, beschädigte
+  Pakete und negative Startzeiten.
+- Diagnose von Eingangsbitrate, auffälligen Paketabständen,
+  Zeitstempel-Jitter und maximalen Bildlücken.
+- Browserseitige WebRTC-Diagnose mit Verbindungsstatus, Paketverlust,
+  Jitter, Empfangsbitrate und verworfenen Frames.
+
+### Changed
+
+- Die Statusanzeige unterscheidet einen instabilen Direktstream von
+  einer aktiv stabilisierten RTMP-Quelle.
+- Die Vorabprüfung verhindert identische MediaMTX-Ein- und
+  Ausgabepfade im Reparaturmodus.
+
 ## [0.8.6] - 2026-07-29
 
 ### Fixed
