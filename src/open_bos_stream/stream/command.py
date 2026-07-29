@@ -17,6 +17,7 @@ from open_bos_stream.stream.source_manager import (
     SourceManager,
 )
 from open_bos_stream.overlay.factory import OverlayFactory
+from open_bos_stream.overlay.command import OverlayCommand
 from open_bos_stream.stream.audio.factory import AudioFactory
 
 from open_bos_stream.stream.input_factory import (
@@ -93,11 +94,13 @@ class FFmpegCommandBuilder:
 
         audio_command = audio.build()
 
-        overlay = OverlayFactory.create(
-            self._config.stream.overlay,
-        )
-
-        overlay_command = overlay.build()
+        if encoder.codec == "copy":
+            overlay_command = OverlayCommand()
+        else:
+            overlay = OverlayFactory.create(
+                self._config.stream.overlay,
+            )
+            overlay_command = overlay.build()
         overlay_video_stream: str | None = None
         audio_stream: str | None = None
 
@@ -154,14 +157,15 @@ class FFmpegCommandBuilder:
         #
         graph_builder = FilterGraphBuilder()
 
-        command.extend(
-            graph_builder.build(
-                encoder_filters=encoder_builder.build_filters(),
-                overlay_command=overlay_command,
-                overlay_video_stream=overlay_video_stream,
-                audio_stream=audio_stream,
+        if encoder.codec != "copy":
+            command.extend(
+                graph_builder.build(
+                    encoder_filters=encoder_builder.build_filters(),
+                    overlay_command=overlay_command,
+                    overlay_video_stream=overlay_video_stream,
+                    audio_stream=audio_stream,
+                )
             )
-        )
 
         #
         # Audio options

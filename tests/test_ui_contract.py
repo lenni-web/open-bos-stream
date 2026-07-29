@@ -77,6 +77,10 @@ def test_system_diagnostics_controls_remain_available() -> None:
         "system-storage-bar",
         "system-storage-media",
         "system-alerts",
+        "stream-probe-fps",
+        "stream-probe-timebase",
+        "stream-probe-timestamps",
+        "stream-stable-for",
     } <= ids
 
 

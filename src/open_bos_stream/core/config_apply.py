@@ -41,12 +41,14 @@ class ConfigApplyService:
         stream: StreamController,
         outputs: Reloadable,
         preflight: ConfigPreflightValidator | None = None,
+        probe: Reloadable | None = None,
     ) -> None:
         self._loader = loader
         self._runtime = runtime_config
         self._stream = stream
         self._outputs = outputs
         self._preflight = preflight or ConfigPreflightValidator()
+        self._probe = probe
 
     @staticmethod
     def _validate(config: AppConfig) -> None:
@@ -77,6 +79,8 @@ class ConfigApplyService:
 
         self._stream.reload(self._runtime)
         self._outputs.reload(self._runtime)
+        if self._probe is not None:
+            self._probe.reload(self._runtime)
 
     def apply(self, candidate: AppConfig) -> str:
         checks = self.test(candidate)
