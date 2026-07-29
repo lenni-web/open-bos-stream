@@ -66,6 +66,17 @@ function updateDashboardHeader(
         " °C"
     );
 
+    updateValue(
+        "header-system-summary",
+        "System · CPU " +
+        system.cpu.toFixed(1) +
+        " % · RAM " +
+        system.ram.toFixed(1) +
+        " % · " +
+        system.temperature.toFixed(1) +
+        " °C"
+    );
+
 }
 
 // ==========================================================

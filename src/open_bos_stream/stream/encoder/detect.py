@@ -23,15 +23,17 @@ class EncoderDetector:
         self,
     ) -> set[str]:
 
-        result = self._runner.run(
-            [
-                "ffmpeg",
-                "-hide_banner",
-                "-encoders",
-            ],
-
-            timeout=5,
-        )
+        try:
+            result = self._runner.run(
+                [
+                    "ffmpeg",
+                    "-hide_banner",
+                    "-encoders",
+                ],
+                timeout=5,
+            )
+        except (RuntimeError, TimeoutError):
+            return {"copy"}
 
         encoders: set[str] = set()
 
