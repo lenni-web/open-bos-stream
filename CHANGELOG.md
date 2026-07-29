@@ -7,6 +7,176 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.8.2] - 2026-07-29
+
+### Changed
+
+- Globale Statusleiste und seitenspezifische Überschriften visuell getrennt.
+- Doppelte Produktbezeichnung auf breiten Desktopansichten entfernt.
+- Dashboard-Seite von „Livebetrieb“ in „Übersicht“ umbenannt.
+- CPU, RAM und Temperatur werden bei mittleren Breiten kompakt
+  zusammengefasst.
+- Header bleibt auf Smartphone und Tablet vollständig bedienbar.
+
+### Fixed
+
+- Encoderabfrage bleibt auch bei fehlendem FFmpeg erreichbar.
+
+## [0.8.1] - 2026-07-29
+
+### Added
+
+- Separater, zustandsloser Konfigurationstest vor dem Speichern.
+- Sicherung und Wiederherstellung der letzten funktionierenden
+  Konfiguration.
+- Klassifizierte Streamfehler mit Zeitstempel und Handlungsempfehlung.
+- Herunterladbarer System- und Streaming-Diagnosebericht.
+- Warnungen für Restart-Schleifen, hohe Temperatur und knappen Speicher.
+- Zentraler Prozess-Runner mit Timeout, Exit-Code, Laufzeit und Logging.
+
+### Changed
+
+- systemd besitzt eindeutig den Lebenszyklus von Stream- und
+  Display-Dienst; FastAPI steuert und überwacht diese Dienste.
+- Kurzlebige Systemaufrufe für FFmpeg, systemd, Journal, V4L2,
+  Snapshots und Systeminformationen zentralisiert.
+- Sensible Streamziele werden im Prozess-Logging maskiert.
+- Konfigurationsdateien werden atomisch geschrieben.
+
+## [0.8.0] - 2026-07-29
+
+### Added
+
+- Streaming-Diagnose mit Eingangsparametern, Encoder, Ausgabe,
+  Dienstzustand, Neustartzähler und Exit-Status.
+- Anzeige des letzten erkannten FFmpeg-Fehlers.
+- Anzeige von freiem Speicher sowie Anzahl und Größe lokaler Medien.
+- Vorabprüfung von Geräten, Berechtigungen, FFmpeg, Encodern,
+  Stream-URLs und erzeugtem FFmpeg-Befehl.
+
+### Changed
+
+- Fehlerhafte Konfigurationen werden vor dem Speichern und Neustarten
+  abgewiesen.
+
+## [0.7.3] - 2026-07-29
+
+### Changed
+
+- Seitenköpfe und globale Titelzeile kompakter gestaltet.
+- Abstände und Typografie für Desktop und Smartphone verdichtet.
+
+## [0.7.2] - 2026-07-29
+
+### Added
+
+- Suche und Typfilter für Aufnahmen und Snapshots.
+- Sichtbare Dateinamen und stabiler Auswahlzustand in der Mediathek.
+
+### Fixed
+
+- Medienwiedergabe wird beim Seitenwechsel sauber beendet.
+- Vorschau und Mediathek werden nach Löschaktionen konsistent
+  aktualisiert.
+
+## [0.7.1] - 2026-07-29
+
+### Changed
+
+- Einstellungs- und Systemseite vollständig modernisiert.
+- Konfiguration in klar getrennte Bereiche für Quelle, Encoder,
+  Stream, Ausgänge und Display gegliedert.
+- Systemdienste, Metriken und Diagnoseinformationen übersichtlicher
+  dargestellt.
+
+### Fixed
+
+- Fehler bei der Encodererkennung unterbrechen die Statusaktualisierung
+  nicht mehr.
+
+## [0.7.0] - 2026-07-29
+
+### Changed
+
+- Dashboard, Navigation, Seitenköpfe und Mediathek visuell modernisiert.
+- Desktop-Seitenleiste und mobile Bottom-Navigation eingeführt.
+- Lade-, Leer- und Fehlerzustände vereinheitlicht.
+
+### Fixed
+
+- Uhrzeitaktualisierung und Medienvorschau robuster umgesetzt.
+
+## [0.6.4] - 2026-07-29
+
+### Fixed
+
+- Mobile Kartenansicht und browserrelative Kartenkacheln korrigiert.
+- Vorhandene Aufnahmen und Snapshots werden bei Updates aus älteren
+  Laufzeitverzeichnissen übernommen.
+- Medien-API verwendet konsistent das produktive Laufzeitverzeichnis.
+- Fehlende Aufnahmen liefern einen korrekten HTTP-404-Fehler.
+
+## [0.6.3] - 2026-07-28
+
+### Fixed
+
+- Kartenstile verwenden browserrelative Kachel-URLs und funktionieren
+  dadurch auch auf entfernten Clients.
+
+## [0.6.2] - 2026-07-28
+
+### Fixed
+
+- Kartenstile und Layer werden vollständig als Paketdaten installiert.
+
+## [0.6.1] - 2026-07-28
+
+### Fixed
+
+- Chromium wird als Display-Abhängigkeit installiert und vom
+  Installationsprüfer korrekt erkannt.
+- Ein statischer, bewusst nicht beim Boot aktivierter Display-Dienst
+  wird als gültig akzeptiert.
+
+## [0.6.0] - 2026-07-28
+
+### Added
+
+- Verwalteter lokaler Displaybetrieb mit Wayland und labwc.
+- Drei Chromium-Modi: Kiosk, normaler Browser und Vollbild-Stream.
+- Start, Stopp und Status des Display-Dienstes über die Weboberfläche.
+- Laufzeit-Inhibit gegen Bildschirmabschaltung und Energiesparen.
+
+### Changed
+
+- Display startet nur auf ausdrückliche Konfiguration und nicht
+  automatisch beim Boot.
+- Chromium wird nach einem Absturz durch systemd neu gestartet.
+
+## [0.5.0] - 2026-07-28
+
+### Added
+
+- Atomare Quellenprofile für Capture Card und direkten
+  MediaMTX-Passthrough.
+- Rollback auf die vorherige Konfiguration bei fehlgeschlagener
+  Aktivierung.
+
+### Changed
+
+- RTMP-Passthrough übernimmt kompatible Streams ohne erneute
+  Videocodierung.
+- Capture-Card-Änderungen werden zuverlässig in die laufenden Services
+  übernommen.
+
+## [0.4.13] - 2026-07-28
+
+### Fixed
+
+- Capture-Card-Konfiguration wird nach einem Profilwechsel zur Laufzeit
+  korrekt angewendet.
+- Streamstart nach vorherigem RTMP-Passthrough wiederhergestellt.
+
 ## [0.4.12]
 
 ### Added
