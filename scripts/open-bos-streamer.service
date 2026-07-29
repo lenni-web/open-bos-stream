@@ -1,0 +1,23 @@
+[Unit]
+Description=Open BOS Streamer
+After=network-online.target mediamtx.service
+Wants=network-online.target
+StartLimitIntervalSec=120
+StartLimitBurst=8
+
+[Service]
+Type=simple
+User=streampi
+Group=video
+WorkingDirectory=/opt/open-bos-stream
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/open-bos-stream/.venv/bin/python -m open_bos_stream.stream.runner
+Restart=on-failure
+RestartSec=3s
+RestartSteps=6
+RestartMaxDelaySec=60s
+TimeoutStopSec=10s
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target

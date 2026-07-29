@@ -142,6 +142,18 @@ def test_transcoding_rtsp_output_uses_tcp() -> None:
     ]
 
 
+def test_copy_mode_never_builds_video_filters_or_overlay() -> None:
+    config = ConfigLoader().load()
+    config.encoder.codec = "copy"
+    config.stream.overlay.source = "clock"
+
+    command = FFmpegCommandBuilder(config).build()
+
+    assert "-vf" not in command
+    assert "-filter_complex" not in command
+    assert config.stream.overlay.font not in " ".join(command)
+
+
 def test_srt_output_command_is_flat_and_uses_direct_stream() -> None:
     config = ConfigLoader().load()
     output = next(

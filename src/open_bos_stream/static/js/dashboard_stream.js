@@ -285,10 +285,14 @@ function streamLabel(
     switch (stream.state) {
         case "online":
             return "🟢 Stream online";
+        case "unstable":
+            return "🟠 Stream instabil";
+        case "waiting_for_source":
         case "waiting_for_publisher":
-            return "🟡 Warte auf RTMP-Publisher";
+            return "🟡 Warte auf Quelle";
+        case "connecting":
         case "starting":
-            return "🟡 Stream wird gestartet";
+            return "🟡 Stream verbindet";
         case "error":
             return "🔴 " + (
                 stream.error ??

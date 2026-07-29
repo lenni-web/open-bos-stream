@@ -8,6 +8,8 @@ SOURCE_SERVICE_FILE="${SCRIPT_DIR}/open-bos-stream.service"
 TARGET_SERVICE_FILE="/etc/systemd/system/open-bos-stream.service"
 SOURCE_DISPLAY_SERVICE_FILE="${SCRIPT_DIR}/open-bos-display.service"
 TARGET_DISPLAY_SERVICE_FILE="/etc/systemd/system/open-bos-display.service"
+SOURCE_STREAMER_SERVICE_FILE="${SCRIPT_DIR}/open-bos-streamer.service"
+TARGET_STREAMER_SERVICE_FILE="/etc/systemd/system/open-bos-streamer.service"
 SOURCE_SUDOERS_FILE="${SCRIPT_DIR}/open-bos-stream-sudoers"
 TARGET_SUDOERS_FILE="/etc/sudoers.d/open-bos-stream"
 
@@ -77,6 +79,11 @@ sudo install \
     "${TARGET_DISPLAY_SERVICE_FILE}"
 
 sudo install \
+    --mode=0644 \
+    "${SOURCE_STREAMER_SERVICE_FILE}" \
+    "${TARGET_STREAMER_SERVICE_FILE}"
+
+sudo install \
     --mode=0440 \
     "${SOURCE_SUDOERS_FILE}" \
     "${TARGET_SUDOERS_FILE}"
@@ -129,6 +136,12 @@ if [ "${PASSTHROUGH_ENABLED}" = "yes" ]; then
         --now \
         open-bos-streamer.service \
         >/dev/null 2>&1 || true
+else
+    echo "Verwalteter Stream aktiv: FFmpeg-Streamer einschalten ..."
+
+    sudo systemctl enable \
+        --now \
+        open-bos-streamer.service
 fi
 
 sudo systemctl enable open-bos-stream.service

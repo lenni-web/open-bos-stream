@@ -111,6 +111,12 @@ fi
 echo
 echo "Prüfe optionalen Display-Dienst ..."
 
+if [ -f "/etc/systemd/system/open-bos-streamer.service" ]; then
+    check_success "Streamer-Service installiert"
+else
+    check_failure "Streamer-Service fehlt"
+fi
+
 if [ -f "/etc/systemd/system/open-bos-display.service" ]; then
     check_success "Display-Service installiert"
 else

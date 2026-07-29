@@ -132,7 +132,13 @@ function updateStreamDiagnostics(stream, storage) {
         );
         updateValue(
             "stream-diagnostic-restarts",
-            String(diagnostics.restart_count)
+            diagnostics.restart_count_total !==
+                diagnostics.restart_count
+                ? (
+                    `${diagnostics.restart_count} aktuell · ` +
+                    `${diagnostics.restart_count_total} gesamt`
+                )
+                : String(diagnostics.restart_count)
         );
         updateValue(
             "stream-diagnostic-exit",
@@ -147,6 +153,39 @@ function updateStreamDiagnostics(stream, storage) {
                     `${stream.width}×${stream.height} · ` +
                     `${stream.viewers} Leser`
                 : "Kein Publisher erkannt"
+        );
+
+        const probe = diagnostics.probe;
+        updateValue(
+            "stream-probe-fps",
+            probe?.available
+                ? (
+                    `${probe.average_fps.toFixed(2)} fps ` +
+                    `(nominal ${probe.nominal_fps.toFixed(2)})`
+                )
+                : "Noch keine Messung"
+        );
+        updateValue(
+            "stream-probe-timebase",
+            probe?.time_base || "—"
+        );
+        updateValue(
+            "stream-probe-timestamps",
+            probe?.available
+                ? (
+                    probe.backwards_dts > 0
+                        ? `${probe.backwards_dts} rückwärts`
+                        : `${probe.packets_checked} Pakete geprüft`
+                )
+                : "—"
+        );
+        updateValue(
+            "stream-stable-for",
+            diagnostics.stable_for_seconds > 0
+                ? formatRecordingDuration(
+                    diagnostics.stable_for_seconds
+                )
+                : "Noch nicht stabil"
         );
 
         const state =
@@ -224,6 +263,12 @@ function updateStreamDiagnostics(stream, storage) {
     }
     if ((storage?.used_percent || 0) >= 85) {
         alerts.push("Weniger als 15 % Speicherplatz verfügbar.");
+    }
+    for (
+        const warning
+        of diagnostics?.probe?.warnings || []
+    ) {
+        alerts.push(warning.message);
     }
 
     const alertBox = document.getElementById("system-alerts");

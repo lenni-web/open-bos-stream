@@ -7,6 +7,27 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.8.3] - 2026-07-29
+
+### Added
+
+- Passive, gecachte Eingangsdiagnose mit `ffprobe`.
+- Anzeige von Codec, tatsächlicher und nomineller Bildrate, Zeitbasis,
+  B-Frames sowie geprüften Zeitstempeln.
+- Erkennung unplausibler Bildraten, fehlender DTS und
+  rückwärtslaufender DTS-Zeitstempel.
+- Streamzustände für wartende, verbindende, stabile, instabile und
+  fehlerhafte Quellen.
+- Anzeige der stabilen Laufzeit und eines seit stabiler Laufzeit
+  zurückgesetzten Restart-Zählers.
+
+### Changed
+
+- Der verwaltete Streamer verwendet systemd-Backoff von 3 bis
+  60 Sekunden und ein begrenztes Startlimit.
+- Der Copy-Modus erzeugt garantiert keine Videofilter oder Overlays.
+- Diagnosemessungen werden höchstens alle 15 Sekunden ausgeführt.
+
 ## [0.8.2] - 2026-07-29
 
 ### Changed

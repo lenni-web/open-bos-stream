@@ -18,6 +18,7 @@ from open_bos_stream.recording.service import RecordingService
 from open_bos_stream.snapshot.library import SnapshotLibrary
 from open_bos_stream.snapshot.service import SnapshotService
 from open_bos_stream.stream.service import StreamService
+from open_bos_stream.stream.probe import StreamProbeService
 from open_bos_stream.system.health import HealthService
 from open_bos_stream.stream_output.manager import (
     StreamOutputManager,
@@ -66,12 +67,18 @@ stream_output_manager = StreamOutputManager(
     config
 )
 
+stream_probe_service = StreamProbeService(
+    config,
+    process_runner,
+)
+
 config_apply_service = ConfigApplyService(
     loader=ConfigLoader(),
     runtime_config=config,
     stream=stream_service,
     outputs=stream_output_manager,
     preflight=ConfigPreflightValidator(process_runner),
+    probe=stream_probe_service,
 )
 
 display_manager = DisplayManager(
@@ -113,6 +120,7 @@ dashboard_service = DashboardService(
     system_info_service=system_info_service,
     stream_output_service=stream_output_service,
     media_storage_service=media_storage_service,
+    stream_probe_service=stream_probe_service,
 )
 
 

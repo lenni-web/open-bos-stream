@@ -11,6 +11,8 @@ from open_bos_stream.mediamtx.service import MediaMTXService
 from open_bos_stream.media.storage import MediaStorageService
 from open_bos_stream.recording.service import RecordingService
 from open_bos_stream.stream.service import StreamService
+from open_bos_stream.stream.probe import StreamProbeService
+import time
 from open_bos_stream.system.health import HealthService
 from open_bos_stream.system.info import SystemInfoService
 from open_bos_stream.stream_output.service import (
@@ -30,6 +32,7 @@ class DashboardService:
         stream_output_service: StreamOutputService,
         system_info_service: SystemInfoService,
         media_storage_service: MediaStorageService,
+        stream_probe_service: StreamProbeService,
     ) -> None:
 
         self._config = config
@@ -40,6 +43,41 @@ class DashboardService:
         self._stream_output = stream_output_service
         self._system_info = system_info_service
         self._media_storage = media_storage_service
+        self._probe = stream_probe_service
+        self._stream_state: str | None = None
+        self._state_since = time.monotonic()
+        self._stable_since: float | None = None
+        self._restart_baseline = 0
+
+    def _stability(
+        self,
+        state: str,
+        restart_count: int,
+    ) -> dict:
+        now = time.monotonic()
+        if state != self._stream_state:
+            self._stream_state = state
+            self._state_since = now
+
+        if state == "online":
+            if self._stable_since is None:
+                self._stable_since = now
+            stable_for = now - self._stable_since
+            if stable_for >= 120:
+                self._restart_baseline = restart_count
+        else:
+            self._stable_since = None
+            stable_for = 0.0
+
+        return {
+            "state_for_seconds": int(now - self._state_since),
+            "stable_for_seconds": int(stable_for),
+            "restart_count_total": restart_count,
+            "restart_count": max(
+                0,
+                restart_count - self._restart_baseline,
+            ),
+        }
 
     def status(self) -> dict:
         """Aktuellen Dashboard-Status zurückgeben."""
@@ -55,26 +93,47 @@ class DashboardService:
         recording = self._recording.status
 
         stream_running = self._stream.running
+        diagnostics = self._stream.diagnostics()
+        probe = self._probe.status(mediamtx.ready)
+        timestamp_warning = any(
+            warning.get("code") in {
+                "non_monotonic_dts",
+                "missing_dts",
+                "implausible_frame_rate",
+            }
+            for warning in probe.get("warnings", [])
+        )
 
         if not self._stream.managed and not mediamtx.ready:
-            stream_state = "waiting_for_publisher"
+            stream_state = "waiting_for_source"
             stream_message = (
                 "Warte auf RTMP-Publisher an "
                 f"'{self._config.stream.name}'."
             )
+            stream_error = None
+        elif stream_running and mediamtx.ready and timestamp_warning:
+            stream_state = "unstable"
+            stream_message = "Stream online, Eingangssignal ist instabil."
             stream_error = None
         elif stream_running and mediamtx.ready:
             stream_state = "online"
             stream_message = "Stream online."
             stream_error = None
         elif stream_running:
-            stream_state = "starting"
+            stream_state = "connecting"
             stream_message = "Streamer gestartet; MediaMTX wartet."
             stream_error = None
         else:
             stream_error = self._stream.last_error()
             stream_state = "error" if stream_error else "stopped"
             stream_message = stream_error or "Stream gestoppt."
+
+        stability = self._stability(
+            stream_state,
+            diagnostics.get("restart_count", 0),
+        )
+        diagnostics.update(stability)
+        diagnostics["probe"] = probe
 
         return {
 
@@ -171,7 +230,7 @@ class DashboardService:
 
                 "error": stream_error,
 
-                "diagnostics": self._stream.diagnostics(),
+                "diagnostics": diagnostics,
 
             },
 
