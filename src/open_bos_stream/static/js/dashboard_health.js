@@ -217,3 +217,7 @@ async function copySystemDiagnostics() {
         }
     }
 }
+
+function downloadSystemDiagnostics() {
+    window.location.href = "/dashboard/diagnostics";
+}

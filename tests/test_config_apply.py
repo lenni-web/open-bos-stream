@@ -13,9 +13,18 @@ from open_bos_stream.core.models import AppConfig
 class FakeLoader:
     def __init__(self) -> None:
         self.saved: list[AppConfig] = []
+        self.last_known_good: AppConfig | None = None
 
     def save(self, config: AppConfig) -> None:
         self.saved.append(config.model_copy(deep=True))
+
+    def save_last_known_good(self, config: AppConfig) -> None:
+        self.last_known_good = config.model_copy(deep=True)
+
+    def load_last_known_good(self) -> AppConfig:
+        if self.last_known_good is None:
+            raise FileNotFoundError
+        return self.last_known_good.model_copy(deep=True)
 
 
 class FakeReloadable:
@@ -101,6 +110,7 @@ def test_capture_profile_is_activated_atomically(
     assert stream.restarts == 1
     assert stream.stops == 0
     assert len(loader.saved) == 1
+    assert loader.last_known_good is not None
     assert "aktiviert" in message
 
 
@@ -136,3 +146,29 @@ def test_failed_capture_activation_rolls_back(
     assert loader.saved[-1].source_profile == (
         "rtmp_passthrough"
     )
+
+
+def test_configuration_test_does_not_persist_or_restart(
+    tmp_path: Path,
+) -> None:
+    device = tmp_path / "video0"
+    device.touch()
+    runtime = ConfigLoader().load()
+    candidate = capture_config(runtime, device)
+    loader = FakeLoader()
+    stream = FakeStream(runtime)
+    preflight = FakePreflight()
+    service = ConfigApplyService(
+        loader,
+        runtime,
+        stream,
+        FakeReloadable(),
+        preflight,
+    )
+
+    checks = service.test(candidate)
+
+    assert checks == ["Testprüfung"]
+    assert loader.saved == []
+    assert stream.restarts == 0
+    assert preflight.validated == [candidate]

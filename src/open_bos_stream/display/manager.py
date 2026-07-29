@@ -2,17 +2,22 @@
 
 from __future__ import annotations
 
-import subprocess
 import shutil
 
+from open_bos_stream.core.process import ProcessRunner
 from open_bos_stream.display.config import DisplayConfig
 
 
 class DisplayManager:
     SERVICE = "open-bos-display.service"
 
-    def __init__(self, config: DisplayConfig) -> None:
+    def __init__(
+        self,
+        config: DisplayConfig,
+        runner: ProcessRunner | None = None,
+    ) -> None:
         self.config = config
+        self._runner = runner or ProcessRunner()
 
     def reload(self, config: DisplayConfig) -> None:
         self.config = config
@@ -22,14 +27,14 @@ class DisplayManager:
         if shutil.which("systemctl") is None:
             return False
 
-        result = subprocess.run(
+        result = self._runner.run(
             [
                 "systemctl",
                 "is-active",
                 "--quiet",
                 self.SERVICE,
             ],
-            check=False,
+            timeout=3,
         )
         return result.returncode == 0
 
@@ -39,13 +44,14 @@ class DisplayManager:
                 "systemd ist auf diesem System nicht verfügbar."
             )
 
-        subprocess.run(
+        self._runner.run(
             [
                 "sudo",
                 "systemctl",
                 "start",
                 self.SERVICE,
             ],
+            timeout=10,
             check=True,
         )
         return self.running
@@ -56,13 +62,14 @@ class DisplayManager:
                 "systemd ist auf diesem System nicht verfügbar."
             )
 
-        subprocess.run(
+        self._runner.run(
             [
                 "sudo",
                 "systemctl",
                 "stop",
                 self.SERVICE,
             ],
+            timeout=10,
             check=True,
         )
         return not self.running
@@ -73,13 +80,14 @@ class DisplayManager:
                 "systemd ist auf diesem System nicht verfügbar."
             )
 
-        subprocess.run(
+        self._runner.run(
             [
                 "sudo",
                 "systemctl",
                 "restart",
                 self.SERVICE,
             ],
+            timeout=10,
             check=True,
         )
         return self.running
@@ -88,7 +96,7 @@ class DisplayManager:
         if shutil.which("journalctl") is None:
             return None
 
-        result = subprocess.run(
+        result = self._runner.run(
             [
                 "journalctl",
                 "-u",
@@ -99,9 +107,7 @@ class DisplayManager:
                 "-o",
                 "cat",
             ],
-            capture_output=True,
-            text=True,
-            check=False,
+            timeout=3,
         )
 
         for line in reversed(result.stdout.splitlines()):

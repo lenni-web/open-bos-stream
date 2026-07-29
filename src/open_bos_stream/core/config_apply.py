@@ -79,14 +79,7 @@ class ConfigApplyService:
         self._outputs.reload(self._runtime)
 
     def apply(self, candidate: AppConfig) -> str:
-        self._validate(candidate)
-
-        try:
-            checks = self._preflight.validate(candidate)
-        except ConfigPreflightError as exc:
-            raise ConfigApplyError(
-                f"Vorabprüfung fehlgeschlagen: {exc}"
-            ) from exc
+        checks = self.test(candidate)
 
         previous = self._runtime.model_copy(deep=True)
         previous_managed = self._stream.managed
@@ -99,6 +92,8 @@ class ConfigApplyService:
             self._replace_runtime(candidate)
 
             if candidate.passthrough_active:
+                if self._stream.running:
+                    self._loader.save_last_known_good(candidate)
                 return (
                     f"Vorabprüfung erfolgreich ({len(checks)} Prüfungen). "
                     "RTMP-Passthrough aktiv; warte auf Publisher an "
@@ -116,6 +111,7 @@ class ConfigApplyService:
                     "innerhalb des Zeitlimits erkannt."
                 )
 
+            self._loader.save_last_known_good(candidate)
             return (
                 f"Vorabprüfung erfolgreich ({len(checks)} Prüfungen). "
                 "Capture-Card-Profil aktiviert und Streamer neu gestartet."
@@ -141,3 +137,25 @@ class ConfigApplyService:
                 raise
 
             raise ConfigApplyError(str(exc)) from exc
+
+    def test(self, candidate: AppConfig) -> list[str]:
+        """Prüft eine Konfiguration ohne sie zu speichern."""
+
+        self._validate(candidate)
+        try:
+            return self._preflight.validate(candidate)
+        except ConfigPreflightError as exc:
+            raise ConfigApplyError(
+                f"Vorabprüfung fehlgeschlagen: {exc}"
+            ) from exc
+
+    def restore_last_known_good(self) -> str:
+        try:
+            candidate = self._loader.load_last_known_good()
+        except FileNotFoundError as exc:
+            raise ConfigApplyError(
+                "Es ist noch keine funktionierende "
+                "Konfiguration gesichert."
+            ) from exc
+
+        return self.apply(candidate)

@@ -195,6 +195,59 @@ async function saveConfig() {
 
 }
 
+function collectConfigForm() {
+    saveInputConfig();
+    saveEncoderConfig();
+    saveStreamConfig();
+    saveStreamOutputs();
+}
+
+async function testConfig() {
+    const button =
+        document.getElementById("config-test-button");
+
+    try {
+        if (button) {
+            button.disabled = true;
+            button.textContent = "Wird geprüft …";
+        }
+        collectConfigForm();
+        const result = await api.testConfig(currentConfig);
+        setConfigSaveStatus(
+            `${result.message} ${result.checks.join(" · ")}`,
+            "success"
+        );
+    } catch (err) {
+        setConfigSaveStatus(err.message, "error");
+    } finally {
+        if (button) {
+            button.disabled = false;
+            button.textContent = "Konfiguration testen";
+        }
+    }
+}
+
+async function restoreConfig() {
+    const confirmed = window.confirm(
+        "Die letzte funktionierende Konfiguration " +
+        "wiederherstellen und aktivieren?"
+    );
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        setConfigSaveStatus(
+            "Wiederherstellung läuft …"
+        );
+        const result = await api.restoreConfig();
+        await refreshConfig();
+        setConfigSaveStatus(result.message, "success");
+    } catch (err) {
+        setConfigSaveStatus(err.message, "error");
+    }
+}
+
 function updateEncoderSelect() {
 
     const select =

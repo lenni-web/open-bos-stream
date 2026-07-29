@@ -4,11 +4,11 @@ Snapshot Service
 
 from __future__ import annotations
 
-import subprocess
 from datetime import datetime
 from pathlib import Path
 
 from open_bos_stream.core.models import AppConfig
+from open_bos_stream.core.process import ProcessRunner
 
 
 class SnapshotService:
@@ -18,9 +18,11 @@ class SnapshotService:
         self,
         config: AppConfig,
         directory: str = "snapshots",
+        runner: ProcessRunner | None = None,
     ) -> None:
 
         self._config = config
+        self._runner = runner or ProcessRunner()
 
         self.directory = Path(directory)
         self.directory.mkdir(exist_ok=True)
@@ -91,7 +93,7 @@ class SnapshotService:
 
         filename = self.next_filename()
 
-        subprocess.run(
+        self._runner.run(
             [
                 "ffmpeg",
                 "-y",
@@ -103,9 +105,8 @@ class SnapshotService:
                 "1",
                 str(filename),
             ],
+            timeout=15,
             check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
         )
 
         self._last_snapshot = filename

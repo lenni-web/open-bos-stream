@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-import subprocess
+from open_bos_stream.core.process import ProcessRunner
 
 from open_bos_stream.stream.inputs.v4l2_device import (
     V4L2Device,
@@ -16,20 +16,20 @@ from open_bos_stream.stream.video_formats import (
 )
 
 class V4L2Detector:
+    _runner = ProcessRunner()
 
     @staticmethod
     def devices(
     ) -> list[V4L2Device]:
 
-        result = subprocess.run(
+        result = V4L2Detector._runner.run(
 
             [
                 "v4l2-ctl",
                 "--list-devices",
             ],
 
-            capture_output=True,
-            text=True,
+            timeout=5,
 
         )
 
@@ -135,7 +135,7 @@ class V4L2Detector:
         device: str,
     ) -> list[str]:
 
-        result = subprocess.run(
+        result = V4L2Detector._runner.run(
 
             [
                 "v4l2-ctl",
@@ -144,8 +144,7 @@ class V4L2Detector:
                 "--all",
             ],
 
-            capture_output=True,
-            text=True,
+            timeout=5,
 
         )
 
@@ -194,7 +193,7 @@ class V4L2Detector:
         device: str,
     ) -> list[str]:
 
-        result = subprocess.run(
+        result = V4L2Detector._runner.run(
 
             [
                 "v4l2-ctl",
@@ -203,8 +202,7 @@ class V4L2Detector:
                 "--all",
             ],
 
-            capture_output=True,
-            text=True,
+            timeout=5,
 
         )
 
@@ -251,7 +249,7 @@ class V4L2Detector:
         device: str,
     ) -> str:
 
-        result = subprocess.run(
+        result = V4L2Detector._runner.run(
 
             [
                 "v4l2-ctl",
@@ -260,8 +258,7 @@ class V4L2Detector:
                 "--all",
             ],
 
-            capture_output=True,
-            text=True,
+            timeout=5,
 
         )
 
@@ -306,7 +303,7 @@ class V4L2Detector:
         device: str,
     ) -> list[str]:
 
-        result = subprocess.run(
+        result = V4L2Detector._runner.run(
 
             [
                 "v4l2-ctl",
@@ -315,8 +312,7 @@ class V4L2Detector:
                 "--list-formats-ext",
             ],
 
-            capture_output=True,
-            text=True,
+            timeout=5,
 
         )
 

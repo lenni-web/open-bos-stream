@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import os
 import shutil
-import subprocess
 from pathlib import Path
 from urllib.parse import urlparse
 
 from open_bos_stream.core.models import AppConfig
+from open_bos_stream.core.process import ProcessRunner
 from open_bos_stream.stream.command import FFmpegCommandBuilder
 
 
@@ -19,6 +19,9 @@ class ConfigPreflightError(RuntimeError):
 class ConfigPreflightValidator:
     """Prüft Laufzeitvoraussetzungen ohne Dienste zu verändern."""
 
+    def __init__(self, runner: ProcessRunner | None = None) -> None:
+        self._runner = runner or ProcessRunner()
+
     @staticmethod
     def _valid_url(value: str | None, schemes: set[str]) -> bool:
         if not value:
@@ -27,17 +30,13 @@ class ConfigPreflightValidator:
         parsed = urlparse(value)
         return parsed.scheme in schemes and bool(parsed.hostname)
 
-    @staticmethod
-    def _available_encoders() -> str:
+    def _available_encoders(self) -> str:
         try:
-            result = subprocess.run(
+            result = self._runner.run(
                 ["ffmpeg", "-hide_banner", "-encoders"],
-                capture_output=True,
-                text=True,
                 timeout=5,
-                check=False,
             )
-        except (OSError, subprocess.TimeoutExpired) as exc:
+        except (RuntimeError, TimeoutError) as exc:
             raise ConfigPreflightError(
                 "FFmpeg konnte für die Encoder-Prüfung nicht "
                 "ausgeführt werden."

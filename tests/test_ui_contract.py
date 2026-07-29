@@ -76,4 +76,5 @@ def test_system_diagnostics_controls_remain_available() -> None:
         "system-storage-free",
         "system-storage-bar",
         "system-storage-media",
+        "system-alerts",
     } <= ids

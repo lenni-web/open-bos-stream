@@ -4,7 +4,7 @@ FFmpeg Encoder Detection
 
 from __future__ import annotations
 
-import subprocess
+from open_bos_stream.core.process import ProcessRunner
 
 from open_bos_stream.stream.encoder.factory import (
     EncoderFactory,
@@ -16,22 +16,21 @@ from open_bos_stream.stream.encoder.models import (
 
 
 class EncoderDetector:
+    def __init__(self, runner: ProcessRunner | None = None) -> None:
+        self._runner = runner or ProcessRunner()
 
     def available(
         self,
     ) -> set[str]:
 
-        result = subprocess.run(
-
+        result = self._runner.run(
             [
                 "ffmpeg",
                 "-hide_banner",
                 "-encoders",
             ],
 
-            capture_output=True,
-            text=True,
-
+            timeout=5,
         )
 
         encoders: set[str] = set()

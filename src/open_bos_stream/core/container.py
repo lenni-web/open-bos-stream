@@ -7,6 +7,7 @@ Erzeugt alle Singleton-Services der Anwendung.
 from open_bos_stream.core.config import ConfigLoader
 from open_bos_stream.core.config_apply import ConfigApplyService
 from open_bos_stream.core.config_preflight import ConfigPreflightValidator
+from open_bos_stream.core.process import ProcessRunner
 
 from open_bos_stream.dashboard.service import DashboardService
 from open_bos_stream.display.manager import DisplayManager
@@ -44,6 +45,7 @@ config = ConfigLoader().load()
 # ---------------------------------------------------------
 
 mediamtx_client = MediaMTXClient()
+process_runner = ProcessRunner()
 
 mediamtx_service = MediaMTXService(
     mediamtx_client
@@ -57,6 +59,7 @@ mediamtx_service = MediaMTXService(
 stream_service = StreamService(
     config=config,
     mediamtx_service=mediamtx_service,
+    runner=process_runner,
 )
 
 stream_output_manager = StreamOutputManager(
@@ -68,11 +71,12 @@ config_apply_service = ConfigApplyService(
     runtime_config=config,
     stream=stream_service,
     outputs=stream_output_manager,
-    preflight=ConfigPreflightValidator(),
+    preflight=ConfigPreflightValidator(process_runner),
 )
 
 display_manager = DisplayManager(
-    config.display
+    config.display,
+    process_runner,
 )
 
 stream_output_service = StreamOutputService(
@@ -87,7 +91,7 @@ health_service = HealthService(
     mediamtx_service=mediamtx_service,
 )
 
-system_info_service = SystemInfoService()
+system_info_service = SystemInfoService(process_runner)
 media_storage_service = MediaStorageService()
 
 recording_service = RecordingService(
@@ -96,7 +100,8 @@ recording_service = RecordingService(
 )
 
 snapshot_service = SnapshotService(
-    config
+    config,
+    runner=process_runner,
 )
 
 dashboard_service = DashboardService(

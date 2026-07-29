@@ -7,10 +7,10 @@ Steuert den Stream über den systemd-Service
 
 from __future__ import annotations
 
-import subprocess
 import time
 
 from open_bos_stream.core.models import AppConfig, StreamStatus
+from open_bos_stream.core.process import ProcessRunner
 from open_bos_stream.mediamtx.service import MediaMTXService
 
 class StreamService:
@@ -21,9 +21,11 @@ class StreamService:
         self,
         config: AppConfig,
         mediamtx_service: MediaMTXService,
+        runner: ProcessRunner | None = None,
     ) -> None:
         self._config = config
         self._mediamtx = mediamtx_service
+        self._runner = runner or ProcessRunner()
 
     def reload(self, config: AppConfig) -> None:
         """Übernimmt eine bereits persistierte Konfiguration."""
@@ -44,7 +46,7 @@ class StreamService:
                 self._config.stream.name
             ).ready
 
-        result = subprocess.run(
+        result = self._runner.run(
             [
                 "systemctl",
                 "is-active",
@@ -61,7 +63,7 @@ class StreamService:
         if not self.managed:
             return None
 
-        result = subprocess.run(
+        result = self._runner.run(
             [
                 "systemctl",
                 "show",
@@ -69,8 +71,7 @@ class StreamService:
                 "--property=MainPID",
                 "--value",
             ],
-            capture_output=True,
-            text=True,
+            timeout=3,
         )
 
         pid = result.stdout.strip()
@@ -92,13 +93,14 @@ class StreamService:
                 f"'{self._config.stream.name}'."
             )
 
-        subprocess.run(
+        self._runner.run(
             [
                 "sudo",
                 "systemctl",
                 "start",
                 self.SERVICE,
             ],
+            timeout=10,
             check=True,
         )
 
@@ -115,50 +117,120 @@ class StreamService:
 
         return True
 
-    def last_error(self) -> str | None:
+    @staticmethod
+    def _classify_error(line: str) -> tuple[str, str]:
+        categories = (
+            (
+                ("Permission denied",),
+                "permission",
+                "Berechtigungen für Gerät oder Datei prüfen.",
+            ),
+            (
+                ("Device or resource busy",),
+                "device_busy",
+                "Prüfen, ob ein anderer Prozess die Quelle verwendet.",
+            ),
+            (
+                ("No such file or directory",),
+                "missing_resource",
+                "Gerätepfad oder Datei in der Konfiguration prüfen.",
+            ),
+            (
+                (
+                    "too many reordered frames",
+                    "non monotonically increasing",
+                ),
+                "timestamps",
+                "Zeitstempel der Eingangsquelle sind instabil.",
+            ),
+            (
+                (
+                    "Error opening input",
+                    "Input/output error",
+                ),
+                "input_unavailable",
+                "Eingangsquelle und Verbindung prüfen.",
+            ),
+            (
+                ("Unknown encoder", "Encoder not found"),
+                "encoder",
+                "Konfigurierten Encoder und FFmpeg prüfen.",
+            ),
+            (
+                ("Configuration error:",),
+                "configuration",
+                "Stream-Konfiguration prüfen.",
+            ),
+        )
+        for markers, category, advice in categories:
+            if any(marker in line for marker in markers):
+                return category, advice
+        return "unknown", "Dienstprotokoll für Details prüfen."
+
+    def last_error_details(self) -> dict | None:
 
         if not self.managed:
             return None
 
         try:
-            result = subprocess.run(
+            properties = self._runner.run(
                 [
-                    "journalctl",
-                    "-u",
+                    "systemctl",
+                    "show",
                     self.SERVICE,
-                    "-n",
-                    "40",
-                    "--no-pager",
-                    "-o",
-                    "cat",
+                    "--property=ExecMainStartTimestamp",
+                    "--value",
                 ],
-                capture_output=True,
-                text=True,
                 timeout=3,
-                check=False,
             )
-        except (OSError, subprocess.TimeoutExpired):
+            command = [
+                "journalctl",
+                "-b",
+                "-u",
+                self.SERVICE,
+                "-n",
+                "80",
+                "--no-pager",
+                "-o",
+                "short-iso",
+            ]
+            started = properties.stdout.strip()
+            if started:
+                command.extend(["--since", started])
+            result = self._runner.run(command, timeout=3)
+        except (RuntimeError, TimeoutError):
             return None
 
-        for line in reversed(
-            result.stdout.splitlines()
-        ):
-
-            for marker in (
-                "Configuration error:",
-                "Error opening input file ",
-                "Error opening input:",
-                "Input/output error",
-                "too many reordered frames",
-                "non monotonically increasing",
-                "Permission denied",
-                "Device or resource busy",
-                "No such file or directory",
-            ):
-                if marker in line:
-                    return line.strip()
+        markers = (
+            "Configuration error:",
+            "Error opening input file ",
+            "Error opening input:",
+            "Input/output error",
+            "too many reordered frames",
+            "non monotonically increasing",
+            "Permission denied",
+            "Device or resource busy",
+            "No such file or directory",
+            "Unknown encoder",
+            "Encoder not found",
+        )
+        for line in reversed(result.stdout.splitlines()):
+            if any(marker in line for marker in markers):
+                clean = line.strip()
+                timestamp = clean.split(" ", 1)[0]
+                category, advice = self._classify_error(clean)
+                return {
+                    "timestamp": timestamp,
+                    "category": category,
+                    "message": clean,
+                    "advice": advice,
+                }
 
         return None
+
+    def last_error(self) -> str | None:
+        details = self.last_error_details()
+        return details["message"] if details else None
 
     def diagnostics(self) -> dict:
         """Kompakte Laufzeitdiagnose für Dashboard und Support."""
@@ -172,18 +244,15 @@ class StreamService:
 
         if self.managed:
             try:
-                result = subprocess.run(
+                result = self._runner.run(
                     [
                         "systemctl",
                         "show",
                         self.SERVICE,
                         "--property=ActiveState,SubState,NRestarts,"
-                        "ExecMainStatus",
+                        "ExecMainStatus,ExecMainStartTimestamp",
                     ],
-                    capture_output=True,
-                    text=True,
                     timeout=3,
-                    check=False,
                 )
                 values = {}
                 for line in result.stdout.splitlines():
@@ -203,10 +272,15 @@ class StreamService:
                         if values.get("ExecMainStatus", "").isdigit()
                         else None
                     ),
+                    "started_at": values.get(
+                        "ExecMainStartTimestamp"
+                    ) or None,
                 }
-            except (OSError, subprocess.TimeoutExpired, ValueError):
+            except (RuntimeError, TimeoutError, ValueError):
                 service["active_state"] = "unknown"
                 service["sub_state"] = "unknown"
+
+        error_details = self.last_error_details()
 
         return {
             "mode": (
@@ -226,7 +300,12 @@ class StreamService:
             "configured_fps": self._config.input.fps,
             "encoder": self._config.encoder.codec,
             "output": self._config.stream.rtsp_url,
-            "last_error": self.last_error(),
+            "last_error": (
+                error_details["message"]
+                if error_details
+                else None
+            ),
+            "last_error_details": error_details,
             **service,
         }
 
@@ -271,13 +350,14 @@ class StreamService:
                 "gestoppt werden."
             )
 
-        subprocess.run(
+        self._runner.run(
             [
                 "sudo",
                 "systemctl",
                 "stop",
                 self.SERVICE,
             ],
+            timeout=10,
             check=True,
         )
 
@@ -292,13 +372,14 @@ class StreamService:
                 "neu gestartet werden."
             )
 
-        subprocess.run(
+        self._runner.run(
             [
                 "sudo",
                 "systemctl",
                 "restart",
                 self.SERVICE,
             ],
+            timeout=10,
             check=True,
         )
 
