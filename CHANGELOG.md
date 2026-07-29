@@ -7,6 +7,21 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.8.4] - 2026-07-29
+
+### Fixed
+
+- Konkrete FFmpeg- und SRT-Fehler werden bis zur Weboberfläche
+  durchgereicht.
+- Laufende Streaming-Ausgänge lesen `stderr` kontinuierlich und können
+  dadurch nicht mehr an einem gefüllten Fehlerausgabepuffer blockieren.
+- Bereits konfigurierte SRT-Parameter und eigene `streamid`-Werte
+  bleiben erhalten und werden nicht doppelt ergänzt.
+- Ein nicht konfigurierter SRT-`streamid` wird nicht mehr durch den
+  festen, serverspezifischen Wert `publish:live` ersetzt.
+- Früh beendete Streaming-Ausgänge liefern Exit-Ursache und
+  Handlungsempfehlung.
+
 ## [0.8.3] - 2026-07-29
 
 ### Added

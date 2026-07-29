@@ -124,6 +124,13 @@ class StreamOutputManager:
 
         return process.pid if process else None
 
+    def last_error(
+        self,
+        name: str,
+    ) -> str | None:
+        process = self.process(name)
+        return process.last_error if process else None
+
     # ---------------------------------------------------------
     # Steuerung
     # ---------------------------------------------------------
@@ -152,7 +159,13 @@ class StreamOutputManager:
 
         process.start(command)
 
-        return process.running
+        if not process.running:
+            raise RuntimeError(
+                process.last_error
+                or "Streaming Output wurde unerwartet beendet."
+            )
+
+        return True
 
     def stop(
         self,

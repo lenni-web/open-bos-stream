@@ -93,3 +93,12 @@ def test_compact_header_keeps_responsive_system_summary() -> None:
     assert "header-system-summary" in ids
     assert "<h1>Übersicht</h1>" in index
     assert "<h1>Livebetrieb</h1>" not in index
+
+
+def test_stream_output_uses_shared_api_error_handling() -> None:
+    api = (
+        ROOT / "static" / "js" / "api.js"
+    ).read_text(encoding="utf-8")
+
+    assert "Streaming Output konnte nicht gestartet werden." not in api
+    assert "/stream-output/${encodeURIComponent(name)}/start" in api

@@ -7,6 +7,12 @@ from open_bos_stream.stream_output.audio.factory import (
     AudioFactory,
 )
 from .base import BaseOutput
+from urllib.parse import (
+    parse_qsl,
+    urlencode,
+    urlsplit,
+    urlunsplit,
+)
 
 
 class SRTOutput(BaseOutput):
@@ -32,15 +38,23 @@ class SRTOutput(BaseOutput):
         output: StreamOutputConfig,
     ) -> list[str]:
 
-        separator = "&" if "?" in output.url else "?"
-
-        srt_url = (
-            f"{output.url}{separator}"
-            "mode=caller"
-            "&transtype=live"
-            "&streamid=publish:live"
-            "&pkt_size=1316"
+        parsed = urlsplit(output.url)
+        parameters = dict(
+            parse_qsl(
+                parsed.query,
+                keep_blank_values=True,
+            )
         )
+        parameters.setdefault("mode", "caller")
+        parameters.setdefault("transtype", "live")
+        parameters.setdefault("pkt_size", "1316")
+        srt_url = urlunsplit((
+            parsed.scheme,
+            parsed.netloc,
+            parsed.path,
+            urlencode(parameters),
+            parsed.fragment,
+        ))
 
         audio = AudioFactory.create(
             output.audio,
