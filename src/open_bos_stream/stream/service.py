@@ -120,20 +120,25 @@ class StreamService:
         if not self.managed:
             return None
 
-        result = subprocess.run(
-            [
-                "journalctl",
-                "-u",
-                self.SERVICE,
-                "-n",
-                "40",
-                "--no-pager",
-                "-o",
-                "cat",
-            ],
-            capture_output=True,
-            text=True,
-        )
+        try:
+            result = subprocess.run(
+                [
+                    "journalctl",
+                    "-u",
+                    self.SERVICE,
+                    "-n",
+                    "40",
+                    "--no-pager",
+                    "-o",
+                    "cat",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=3,
+                check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return None
 
         for line in reversed(
             result.stdout.splitlines()
@@ -143,6 +148,9 @@ class StreamService:
                 "Configuration error:",
                 "Error opening input file ",
                 "Error opening input:",
+                "Input/output error",
+                "too many reordered frames",
+                "non monotonically increasing",
                 "Permission denied",
                 "Device or resource busy",
                 "No such file or directory",
@@ -151,6 +159,76 @@ class StreamService:
                     return line.strip()
 
         return None
+
+    def diagnostics(self) -> dict:
+        """Kompakte Laufzeitdiagnose für Dashboard und Support."""
+
+        service = {
+            "active_state": "external",
+            "sub_state": "publisher",
+            "restart_count": 0,
+            "exit_status": None,
+        }
+
+        if self.managed:
+            try:
+                result = subprocess.run(
+                    [
+                        "systemctl",
+                        "show",
+                        self.SERVICE,
+                        "--property=ActiveState,SubState,NRestarts,"
+                        "ExecMainStatus",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=3,
+                    check=False,
+                )
+                values = {}
+                for line in result.stdout.splitlines():
+                    key, _, value = line.partition("=")
+                    values[key] = value
+
+                service = {
+                    "active_state": values.get(
+                        "ActiveState", "unknown"
+                    ),
+                    "sub_state": values.get("SubState", "unknown"),
+                    "restart_count": int(
+                        values.get("NRestarts", "0") or 0
+                    ),
+                    "exit_status": (
+                        int(values["ExecMainStatus"])
+                        if values.get("ExecMainStatus", "").isdigit()
+                        else None
+                    ),
+                }
+            except (OSError, subprocess.TimeoutExpired, ValueError):
+                service["active_state"] = "unknown"
+                service["sub_state"] = "unknown"
+
+        return {
+            "mode": (
+                "managed_ffmpeg"
+                if self.managed
+                else "mediamtx_passthrough"
+            ),
+            "input_type": self._config.input.type,
+            "input": (
+                self._config.input.url
+                if self._config.input.type == "rtmp"
+                else self._config.input.device
+            ),
+            "configured_format": self._config.input.format,
+            "configured_width": self._config.input.width,
+            "configured_height": self._config.input.height,
+            "configured_fps": self._config.input.fps,
+            "encoder": self._config.encoder.codec,
+            "output": self._config.stream.rtsp_url,
+            "last_error": self.last_error(),
+            **service,
+        }
 
     def wait_until_ready(
         self,

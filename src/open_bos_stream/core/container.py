@@ -6,6 +6,7 @@ Erzeugt alle Singleton-Services der Anwendung.
 
 from open_bos_stream.core.config import ConfigLoader
 from open_bos_stream.core.config_apply import ConfigApplyService
+from open_bos_stream.core.config_preflight import ConfigPreflightValidator
 
 from open_bos_stream.dashboard.service import DashboardService
 from open_bos_stream.display.manager import DisplayManager
@@ -23,6 +24,7 @@ from open_bos_stream.stream_output.manager import (
 from open_bos_stream.media.library import (
     MediaLibrary,
 )
+from open_bos_stream.media.storage import MediaStorageService
 from open_bos_stream.stream_output.service import (
     StreamOutputService,
 )
@@ -66,6 +68,7 @@ config_apply_service = ConfigApplyService(
     runtime_config=config,
     stream=stream_service,
     outputs=stream_output_manager,
+    preflight=ConfigPreflightValidator(),
 )
 
 display_manager = DisplayManager(
@@ -85,6 +88,7 @@ health_service = HealthService(
 )
 
 system_info_service = SystemInfoService()
+media_storage_service = MediaStorageService()
 
 recording_service = RecordingService(
     config=config,
@@ -103,6 +107,7 @@ dashboard_service = DashboardService(
     recording_service=recording_service,
     system_info_service=system_info_service,
     stream_output_service=stream_output_service,
+    media_storage_service=media_storage_service,
 )
 
 

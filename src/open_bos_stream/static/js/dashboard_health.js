@@ -193,6 +193,8 @@ async function copySystemDiagnostics() {
             window.dashboard.system,
         stream:
             window.dashboard.stream,
+        media_storage:
+            window.dashboard.media_storage,
     };
 
     try {

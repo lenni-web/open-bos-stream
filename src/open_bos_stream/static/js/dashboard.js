@@ -69,6 +69,11 @@ function updateDashboard(data) {
 	    data.system_info
 	);
 
+    updateStreamDiagnostics(
+        data.stream,
+        data.media_storage
+    );
+
 	checkServiceEvents(
 	    data.services
 	);
@@ -94,6 +99,117 @@ function updateDashboard(data) {
         data.stream_outputs
     );
 
+}
+
+function updateStreamDiagnostics(stream, storage) {
+    const diagnostics = stream?.diagnostics;
+
+    if (diagnostics) {
+        updateValue(
+            "stream-diagnostic-mode",
+            diagnostics.mode === "managed_ffmpeg"
+                ? "Interner FFmpeg-Dienst"
+                : "MediaMTX direkt"
+        );
+        updateValue(
+            "stream-diagnostic-input",
+            diagnostics.input || "Nicht konfiguriert"
+        );
+        updateValue(
+            "stream-diagnostic-signal",
+            `${diagnostics.configured_width}×` +
+            `${diagnostics.configured_height} · ` +
+            `${diagnostics.configured_fps} fps · ` +
+            `${diagnostics.configured_format}`
+        );
+        updateValue(
+            "stream-diagnostic-encoder",
+            diagnostics.encoder
+        );
+        updateValue(
+            "stream-diagnostic-output",
+            diagnostics.output
+        );
+        updateValue(
+            "stream-diagnostic-restarts",
+            String(diagnostics.restart_count)
+        );
+        updateValue(
+            "stream-diagnostic-exit",
+            diagnostics.exit_status === null
+                ? "—"
+                : String(diagnostics.exit_status)
+        );
+        updateValue(
+            "stream-diagnostic-mediamtx",
+            stream.ready
+                ? `${stream.codec || "Stream"} · ` +
+                    `${stream.width}×${stream.height} · ` +
+                    `${stream.viewers} Leser`
+                : "Kein Publisher erkannt"
+        );
+
+        const state =
+            document.getElementById(
+                "stream-diagnostic-state"
+            );
+        if (state) {
+            state.textContent =
+                `${diagnostics.active_state} / ` +
+                diagnostics.sub_state;
+            state.classList.toggle(
+                "is-error",
+                Boolean(diagnostics.last_error) &&
+                !stream.running
+            );
+        }
+
+        const error =
+            document.getElementById(
+                "stream-diagnostic-error"
+            );
+        if (error) {
+            error.hidden = !diagnostics.last_error;
+            error.textContent = diagnostics.last_error
+                ? `Letzter FFmpeg-Fehler: ${diagnostics.last_error}`
+                : "";
+        }
+    }
+
+    if (storage) {
+        updateValue(
+            "system-storage-free",
+            formatBytes(storage.free_bytes)
+        );
+        updateValue(
+            "system-storage-percent",
+            `${storage.used_percent.toFixed(1)} % belegt`
+        );
+        updateValue(
+            "system-storage-usage",
+            `${formatBytes(storage.used_bytes)} von ` +
+            `${formatBytes(storage.total_bytes)} belegt`
+        );
+        updateValue(
+            "system-storage-media",
+            `${storage.recordings} Aufnahmen · ` +
+            `${storage.snapshots} Snapshots · ` +
+            formatBytes(storage.media_bytes)
+        );
+
+        const bar =
+            document.getElementById(
+                "system-storage-bar"
+            );
+        if (bar) {
+            bar.style.width =
+                `${Math.min(storage.used_percent, 100)}%`;
+            bar.classList.toggle(
+                "is-warning",
+                storage.used_percent >= 85
+            );
+        }
+    }
 }
 
 function updateDashboardSystemInfo(info) {

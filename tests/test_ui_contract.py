@@ -62,3 +62,18 @@ def test_navigation_stops_media_preview() -> None:
 
     assert "stopMediaPreview()" in navigation
     assert "function stopMediaPreview()" in media
+
+
+def test_system_diagnostics_controls_remain_available() -> None:
+    ids = template_ids("system_card.html")
+
+    assert {
+        "stream-diagnostic-state",
+        "stream-diagnostic-mode",
+        "stream-diagnostic-input",
+        "stream-diagnostic-restarts",
+        "stream-diagnostic-error",
+        "system-storage-free",
+        "system-storage-bar",
+        "system-storage-media",
+    } <= ids

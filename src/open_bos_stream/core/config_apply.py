@@ -6,6 +6,10 @@ from pathlib import Path
 from typing import Protocol
 
 from open_bos_stream.core.config import ConfigLoader
+from open_bos_stream.core.config_preflight import (
+    ConfigPreflightError,
+    ConfigPreflightValidator,
+)
 from open_bos_stream.core.models import AppConfig
 
 
@@ -36,11 +40,13 @@ class ConfigApplyService:
         runtime_config: AppConfig,
         stream: StreamController,
         outputs: Reloadable,
+        preflight: ConfigPreflightValidator | None = None,
     ) -> None:
         self._loader = loader
         self._runtime = runtime_config
         self._stream = stream
         self._outputs = outputs
+        self._preflight = preflight or ConfigPreflightValidator()
 
     @staticmethod
     def _validate(config: AppConfig) -> None:
@@ -75,6 +81,13 @@ class ConfigApplyService:
     def apply(self, candidate: AppConfig) -> str:
         self._validate(candidate)
 
+        try:
+            checks = self._preflight.validate(candidate)
+        except ConfigPreflightError as exc:
+            raise ConfigApplyError(
+                f"Vorabprüfung fehlgeschlagen: {exc}"
+            ) from exc
+
         previous = self._runtime.model_copy(deep=True)
         previous_managed = self._stream.managed
 
@@ -87,8 +100,9 @@ class ConfigApplyService:
 
             if candidate.passthrough_active:
                 return (
-                    "RTMP-Passthrough aktiv; warte auf "
-                    f"Publisher an '{candidate.stream.name}'."
+                    f"Vorabprüfung erfolgreich ({len(checks)} Prüfungen). "
+                    "RTMP-Passthrough aktiv; warte auf Publisher an "
+                    f"'{candidate.stream.name}'."
                 )
 
             if not self._stream.restart():
@@ -103,8 +117,8 @@ class ConfigApplyService:
                 )
 
             return (
-                "Capture-Card-Profil aktiviert und "
-                "Streamer neu gestartet."
+                f"Vorabprüfung erfolgreich ({len(checks)} Prüfungen). "
+                "Capture-Card-Profil aktiviert und Streamer neu gestartet."
             )
 
         except Exception as exc:
