@@ -2,7 +2,7 @@
 Recording API
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
 from open_bos_stream.core.container import (
@@ -75,11 +75,10 @@ async def download(filename: str):
     file = recording_library.get_file(filename)
 
     if file is None:
-
-        return {
-            "success": False,
-            "error": "Datei nicht gefunden",
-        }
+        raise HTTPException(
+            status_code=404,
+            detail="Aufnahme nicht gefunden.",
+        )
 
     return FileResponse(
         path=file,
@@ -94,11 +93,10 @@ async def play(filename: str):
     file = recording_library.get_file(filename)
 
     if file is None:
-
-        return {
-            "success": False,
-            "error": "Datei nicht gefunden",
-        }
+        raise HTTPException(
+            status_code=404,
+            detail="Aufnahme nicht gefunden.",
+        )
 
     return FileResponse(
         path=file,
