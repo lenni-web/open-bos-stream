@@ -81,6 +81,11 @@ async function refreshDisplayStatus() {
 }
 
 async function saveDisplayConfig() {
+    const button =
+        document.getElementById(
+            "display-save-button"
+        );
+
     const candidate = {
         ...displayConfig,
         enabled: document.getElementById(
@@ -106,6 +111,12 @@ async function saveDisplayConfig() {
     };
 
     try {
+        if (button) {
+            button.disabled = true;
+            button.textContent =
+                "Wird übernommen …";
+        }
+
         const result =
             await api.saveDisplayConfig(
                 candidate
@@ -119,6 +130,12 @@ async function saveDisplayConfig() {
         addEvent("success", "🖥 " + result.message);
     } catch (error) {
         addEvent("error", "🖥 " + error.message);
+    } finally {
+        if (button) {
+            button.disabled = false;
+            button.textContent =
+                "Display übernehmen";
+        }
     }
 
     await refreshDisplayStatus();

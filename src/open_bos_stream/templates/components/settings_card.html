@@ -1,213 +1,202 @@
-<div class="bos-card">
+<section class="settings-page">
+    <header class="page-header">
+        <div>
+            <span class="page-eyebrow">Konfiguration</span>
+            <h1>Einstellungen</h1>
+        </div>
+        <p>Quelle, Verarbeitung, Ausgabe und lokales Display verwalten.</p>
+    </header>
 
-    <div
-        class="card-header"
-        onclick="toggleCard('settings')">
+    <div id="settings-content" class="settings-grid">
+        <section class="bos-card settings-section">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">↳</span>
+                <div>
+                    <span class="section-kicker">Eingang</span>
+                    <h2>Quelle</h2>
+                    <p>Signalquelle und gerätespezifische Parameter.</p>
+                </div>
+            </div>
 
-        <h3>⚙ Einstellungen</h3>
+            <div class="form-grid">
+                <div class="form-field form-field-wide">
+                    <label for="cfg-source-profile">Quellenprofil</label>
+                    <select id="cfg-source-profile" class="bos-input">
+                        <option value="capture_card">Capture Card</option>
+                        <option value="rtmp_passthrough">
+                            Externer RTMP-Stream (direkt)
+                        </option>
+                        <option value="custom">Benutzerdefiniert</option>
+                    </select>
+                </div>
 
-        <span
-            id="settings-arrow"
-            class="card-arrow">
+                <div class="form-field form-field-wide">
+                    <label for="cfg-input-type">Quellentyp</label>
+                    <select id="cfg-input-type" class="bos-input"></select>
+                </div>
 
-            ▼
+                <div id="cfg-input-fields" class="dynamic-fields"></div>
+            </div>
+        </section>
 
-        </span>
+        <section class="bos-card settings-section">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">◉</span>
+                <div>
+                    <span class="section-kicker">Verarbeitung</span>
+                    <h2>Encoder</h2>
+                    <p>Codec und Qualitätsparameter für das Videosignal.</p>
+                </div>
+            </div>
 
+            <div class="form-grid">
+                <div class="form-field form-field-wide">
+                    <label for="cfg-encoder-codec">Codec</label>
+                    <select id="cfg-encoder-codec" class="bos-input"></select>
+                </div>
+                <div id="encoder-options" class="dynamic-fields"></div>
+            </div>
+        </section>
+
+        <section class="bos-card settings-section">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">⌁</span>
+                <div>
+                    <span class="section-kicker">Bereitstellung</span>
+                    <h2>Stream</h2>
+                    <p>Name, Zieladresse und Wiedergabeprotokoll.</p>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="cfg-stream-name">Streamname</label>
+                    <input id="cfg-stream-name" class="bos-input" type="text">
+                </div>
+
+                <div class="form-field">
+                    <label for="cfg-viewer-protocol">Live-Viewer</label>
+                    <select id="cfg-viewer-protocol" class="bos-input">
+                        <option value="webrtc">WebRTC – geringe Latenz</option>
+                        <option value="hls">HLS – Bild und Ton</option>
+                    </select>
+                </div>
+
+                <div class="form-field form-field-wide">
+                    <label for="cfg-rtsp-url">RTSP-URL</label>
+                    <input id="cfg-rtsp-url" class="bos-input" type="text">
+                </div>
+            </div>
+
+            <label class="switch-row">
+                <input id="cfg-stream-passthrough" type="checkbox">
+                <span>
+                    <strong>MediaMTX-Stream direkt verwenden</strong>
+                    <small>Umgeht den internen FFmpeg-Streamer bei kompatiblen Quellen.</small>
+                </span>
+            </label>
+
+            <div class="info-note">
+                WebRTC bietet die geringste Latenz. HLS besitzt eine höhere
+                Latenz, unterstützt in der aktuellen Konfiguration aber Bild
+                und Ton.
+            </div>
+        </section>
+
+        <section class="bos-card settings-section">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">⇥</span>
+                <div>
+                    <span class="section-kicker">Weiterleitung</span>
+                    <h2>Streaming-Ausgänge</h2>
+                    <p>Zusätzliche RTMP-, RTSP- oder SRT-Ziele.</p>
+                </div>
+            </div>
+
+            <div id="stream-output-settings"></div>
+
+            <button
+                class="bos-button"
+                type="button"
+                onclick="addStreamOutput()">
+                + Ausgang hinzufügen
+            </button>
+        </section>
+
+        <section class="bos-card settings-section settings-section-display">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">▣</span>
+                <div>
+                    <span class="section-kicker">Vor Ort</span>
+                    <h2>Lokales Display</h2>
+                    <p>Chromium-Modus und Energieverwaltung des Bildschirms.</p>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-field form-field-wide">
+                    <label for="cfg-display-mode">Startmodus</label>
+                    <select id="cfg-display-mode" class="bos-input">
+                        <option value="kiosk">Kiosk – Dashboard ohne Browserrahmen</option>
+                        <option value="normal">Normal – Chromium mit Bedienoberfläche</option>
+                        <option value="stream">Vollbild – nur Live-Stream</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="cfg-display-dashboard-url">Dashboard-URL</label>
+                    <input id="cfg-display-dashboard-url" class="bos-input" type="url">
+                </div>
+
+                <div class="form-field">
+                    <label for="cfg-display-stream-url">Streamanzeige-URL</label>
+                    <input id="cfg-display-stream-url" class="bos-input" type="url">
+                </div>
+            </div>
+
+            <div class="switch-list">
+                <label class="switch-row">
+                    <input id="cfg-display-hide-cursor" type="checkbox">
+                    <span><strong>Mauszeiger ausblenden</strong></span>
+                </label>
+                <label class="switch-row">
+                    <input id="cfg-display-power" type="checkbox">
+                    <span><strong>Energiesparen verhindern</strong></span>
+                </label>
+                <label class="switch-row">
+                    <input id="cfg-display-enabled" type="checkbox">
+                    <span><strong>Display-Dienst einschalten</strong></span>
+                </label>
+            </div>
+
+            <div class="inline-action">
+                <p id="display-service-status" class="service-inline-status">
+                    Display-Status wird geladen …
+                </p>
+                <button
+                    id="display-save-button"
+                    class="bos-button"
+                    type="button"
+                    onclick="saveDisplayConfig()">
+                    Display übernehmen
+                </button>
+            </div>
+        </section>
     </div>
 
-    <div
-        id="settings-content"
-        class="card-content">
-
-		<h4>📥 Input</h4>
-
-        <label>Quellenprofil</label>
-
-        <select
-            id="cfg-source-profile"
-            class="bos-input">
-            <option value="capture_card">Capture Card</option>
-            <option value="rtmp_passthrough">
-                Externer RTMP-Stream (direkt)
-            </option>
-            <option value="custom">Benutzerdefiniert</option>
-        </select>
-
-		<label>Quelle</label>
-
-		<select
-		    id="cfg-input-type"
-		    class="bos-input">
-		</select>
-
-		<div id="cfg-input-fields">
-		</div>
-
-        <hr>
-
-        <h4>🎥 Encoder</h4>
-
-		<label>Codec</label>
-
-		<select
-		    id="cfg-encoder-codec"
-		    class="bos-input">
-		</select>
-
-	   <div id="encoder-options">
-
-	   </div>
-
-        <hr>
-
-        <h4>📡 Streaming</h4>
-
-        <label>Streamname</label>
-        <input
-            id="cfg-stream-name"
-            class="bos-input"
-            type="text">
-
-        <label>RTSP URL</label>
-        <input
-            id="cfg-rtsp-url"
-            class="bos-input"
-            type="text">
-
-		<label>Live-Viewer</label>
-
-		<select
-		    id="cfg-viewer-protocol"
-		    class="bos-input">
-
-		    <option value="webrtc">
-		        WebRTC (geringe Latenz)
-		    </option>
-
-		    <option value="hls">
-		        HLS (mit Audio)
-		    </option>
-
-		</select>
-
-		<label
-		    style="
-		        display:flex;
-		        align-items:center;
-		        gap:8px;
-		        margin-top:12px;
-		    ">
-
-		    <input
-		        id="cfg-stream-passthrough"
-		        type="checkbox">
-
-		    MediaMTX-Stream direkt verwenden
-
-		</label>
-
-		<p
-		    style="
-		        margin-top:8px;
-		        font-size:0.9em;
-		        color:#777;
-		    ">
-
-		    WebRTC bietet die geringste Latenz, überträgt in der aktuellen
-		    Konfiguration jedoch keine Audiospur.
-		    HLS besitzt eine höhere Latenz, unterstützt dafür Bild und Ton.
-
-		</p>
-
-        <hr>
-
-<h4>📺 Streaming Outputs</h4>
-
-<div id="stream-output-settings">
-
-</div>
-
-<button
-    class="bos-button bos-button-green"
-    onclick="addStreamOutput()">
-
-    ➕ Output hinzufügen
-
-</button>
-
-<hr>
-
+    <div class="settings-actionbar">
+        <div>
+            <span id="config-dirty-indicator" class="dirty-indicator">
+                Keine ungespeicherten Änderungen
+            </span>
+            <span id="config-save-status" class="save-status" aria-live="polite"></span>
+        </div>
         <button
+            id="config-save-button"
             class="bos-button bos-button-green"
+            type="button"
             onclick="saveConfig()">
-
-            💾 Speichern
-
+            Änderungen speichern
         </button>
-
-        <hr>
-
-        <h4>🖥 Lokales Display</h4>
-
-        <label>Startmodus</label>
-        <select
-            id="cfg-display-mode"
-            class="bos-input">
-            <option value="kiosk">
-                Kiosk – Dashboard ohne Browserrahmen
-            </option>
-            <option value="normal">
-                Normal – Chromium mit Bedienoberfläche
-            </option>
-            <option value="stream">
-                Vollbild – nur Live-Stream
-            </option>
-        </select>
-
-        <label>Dashboard-URL</label>
-        <input
-            id="cfg-display-dashboard-url"
-            class="bos-input"
-            type="url">
-
-        <label>Streamanzeige-URL</label>
-        <input
-            id="cfg-display-stream-url"
-            class="bos-input"
-            type="url">
-
-        <label class="display-option">
-            <input
-                id="cfg-display-hide-cursor"
-                type="checkbox">
-            Mauszeiger im Kiosk ausblenden
-        </label>
-
-        <label class="display-option">
-            <input
-                id="cfg-display-power"
-                type="checkbox">
-            Bildschirmabschaltung und Energiesparen verhindern
-        </label>
-
-        <label class="display-option">
-            <input
-                id="cfg-display-enabled"
-                type="checkbox">
-            Display-Dienst einschalten
-        </label>
-
-        <p id="display-service-status">
-            Display-Status wird geladen …
-        </p>
-
-        <button
-            class="bos-button bos-button-green"
-            onclick="saveDisplayConfig()">
-            🖥 Display-Einstellung übernehmen
-        </button>
-
     </div>
-
-</div>
+</section>

@@ -80,24 +80,53 @@ function updateDashboardServices(
         return;
     }
 
-    updateValue(
-        "system-capture",
-        (services.capture.online ? "🟢 " : "🔴 ") +
+    updateServiceCard(
+        "capture",
+        services.capture.online,
         services.capture.name
     );
 
-    updateValue(
-        "system-ffmpeg",
-        (services.ffmpeg.online ? "🟢 " : "🔴 ") +
+    updateServiceCard(
+        "ffmpeg",
+        services.ffmpeg.online,
         services.ffmpeg.name
     );
 
-    updateValue(
-        "system-mediamtx",
-        (services.mediamtx.online ? "🟢 " : "🔴 ") +
-        "MediaMTX"
+    updateServiceCard(
+        "mediamtx",
+        services.mediamtx.online,
+        services.mediamtx.online
+            ? "Dienst erreichbar"
+            : "Dienst nicht erreichbar"
     );
 
+}
+
+function updateServiceCard(
+    service,
+    online,
+    description
+) {
+    const card =
+        document.getElementById(
+            `service-card-${service}`
+        );
+
+    if (card) {
+        card.classList.toggle(
+            "is-online",
+            online
+        );
+        card.classList.toggle(
+            "is-offline",
+            !online
+        );
+    }
+
+    updateValue(
+        `system-${service}`,
+        `${online ? "Online" : "Offline"} · ${description}`
+    );
 }
 
 // ==========================================================
@@ -132,3 +161,57 @@ function updateDashboardSystem(
 
 }
 
+async function copySystemDiagnostics() {
+    const feedback =
+        document.getElementById(
+            "system-feedback"
+        );
+
+    if (!window.dashboard) {
+        if (feedback) {
+            feedback.textContent =
+                "Diagnosedaten sind noch nicht verfügbar.";
+        }
+        return;
+    }
+
+    const diagnostics = {
+        generated_at: new Date().toISOString(),
+        application:
+            window.dashboard.system_info?.application,
+        hardware:
+            window.dashboard.system_info?.hardware,
+        operating_system:
+            window.dashboard.system_info?.operating_system,
+        runtime:
+            window.dashboard.system_info?.runtime,
+        network:
+            window.dashboard.system_info?.network,
+        services:
+            window.dashboard.services,
+        system:
+            window.dashboard.system,
+        stream:
+            window.dashboard.stream,
+    };
+
+    try {
+        await navigator.clipboard.writeText(
+            JSON.stringify(
+                diagnostics,
+                null,
+                2
+            )
+        );
+
+        if (feedback) {
+            feedback.textContent =
+                "Diagnoseinformationen wurden kopiert.";
+        }
+    } catch (error) {
+        if (feedback) {
+            feedback.textContent =
+                "Diagnoseinformationen konnten nicht kopiert werden.";
+        }
+    }
+}

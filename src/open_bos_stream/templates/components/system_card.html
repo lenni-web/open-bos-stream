@@ -1,182 +1,113 @@
-<div class="bos-card">
+<section class="system-page">
+    <header class="page-header">
+        <div>
+            <span class="page-eyebrow">Diagnose</span>
+            <h1>System</h1>
+        </div>
+        <div class="page-header-actions">
+            <span id="system-refresh-status" class="refresh-status">Live</span>
+            <button
+                class="bos-button"
+                type="button"
+                onclick="copySystemDiagnostics()">
+                Diagnose kopieren
+            </button>
+        </div>
+    </header>
 
-    <div
-        class="card-header"
-        onclick="toggleCard('system')">
+    <div id="system-content" class="system-layout">
+        <section class="system-services">
+            <article id="service-card-ffmpeg" class="service-card bos-card">
+                <span class="service-card-dot"></span>
+                <div>
+                    <span class="section-kicker">Verarbeitung</span>
+                    <h2>FFmpeg</h2>
+                    <p id="system-ffmpeg">Status wird geladen …</p>
+                </div>
+            </article>
 
-        <h3>🖥 System</h3>
+            <article id="service-card-mediamtx" class="service-card bos-card">
+                <span class="service-card-dot"></span>
+                <div>
+                    <span class="section-kicker">Streaming</span>
+                    <h2>MediaMTX</h2>
+                    <p id="system-mediamtx">Status wird geladen …</p>
+                </div>
+            </article>
 
-        <span
-            id="system-arrow"
-            class="card-arrow">
+            <article id="service-card-capture" class="service-card bos-card">
+                <span class="service-card-dot"></span>
+                <div>
+                    <span class="section-kicker">Eingang</span>
+                    <h2>Quelle</h2>
+                    <p id="system-capture">Status wird geladen …</p>
+                </div>
+            </article>
+        </section>
 
-            ▼
+        <section class="system-metrics">
+            <article class="metric-panel bos-card">
+                <span>CPU</span>
+                <strong id="system-cpu">—</strong>
+            </article>
+            <article class="metric-panel bos-card">
+                <span>Arbeitsspeicher</span>
+                <strong id="system-ram">—</strong>
+            </article>
+            <article class="metric-panel bos-card">
+                <span>Temperatur</span>
+                <strong id="system-temp">—</strong>
+            </article>
+        </section>
 
-        </span>
+        <section class="system-details">
+            <article class="bos-card detail-card">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-kicker">Software</span>
+                        <h2>Anwendung & Laufzeit</h2>
+                    </div>
+                </div>
+                <dl class="detail-list">
+                    <div><dt>Name</dt><dd id="system-app-name">—</dd></div>
+                    <div><dt>Version</dt><dd id="system-app-version">—</dd></div>
+                    <div><dt>Python</dt><dd id="system-runtime-python">—</dd></div>
+                    <div><dt>FFmpeg</dt><dd id="system-runtime-ffmpeg">—</dd></div>
+                </dl>
+            </article>
 
+            <article class="bos-card detail-card">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-kicker">Gerät</span>
+                        <h2>Hardware & Betriebssystem</h2>
+                    </div>
+                </div>
+                <dl class="detail-list">
+                    <div><dt>Modell</dt><dd id="system-hardware-model">—</dd></div>
+                    <div><dt>Architektur</dt><dd id="system-hardware-arch">—</dd></div>
+                    <div><dt>System</dt><dd id="system-os-system">—</dd></div>
+                    <div><dt>Distribution</dt><dd id="system-os-distribution">—</dd></div>
+                    <div><dt>Kernel</dt><dd id="system-os-kernel">—</dd></div>
+                </dl>
+            </article>
+
+            <article class="bos-card detail-card">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-kicker">Verbindung</span>
+                        <h2>Netzwerk</h2>
+                    </div>
+                </div>
+                <dl class="detail-list">
+                    <div><dt>Hostname</dt><dd id="system-network-hostname">—</dd></div>
+                    <div><dt>Schnittstelle</dt><dd id="system-network-interface">—</dd></div>
+                    <div><dt>IPv4</dt><dd id="system-network-ipv4">—</dd></div>
+                    <div><dt>MAC</dt><dd id="system-network-mac">—</dd></div>
+                </dl>
+            </article>
+        </section>
+
+        <div id="system-feedback" class="system-feedback" aria-live="polite"></div>
     </div>
-
-    <div
-        id="system-content"
-        class="card-content">
-
-        <div class="info-row">
-
-            <span>FFmpeg</span>
-
-            <span id="system-ffmpeg">
-
-                —
-
-            </span>
-
-        </div>
-
-        <div class="info-row">
-
-            <span>MediaMTX</span>
-
-            <span id="system-mediamtx">
-
-                —
-
-            </span>
-
-        </div>
-
-        <div class="info-row">
-
-            <span>Capture</span>
-
-            <span id="system-capture">
-
-                —
-
-            </span>
-
-        </div>
-
-		<hr>
-		<h4>Application</h4>
-		
-		<div class="info-row">
-		    <span>Name</span>
-		    <span id="system-app-name">—</span>
-		</div>
-
-		<div class="info-row">
-		    <span>Version</span>
-		    <span id="system-app-version">—</span>
-		</div>
-
-		<hr>
-
-		<h4>Hardware</h4>
-
-		<div class="info-row">
-		    <span>Model</span>
-		    <span id="system-hardware-model">—</span>
-		</div>
-
-		<div class="info-row">
-		    <span>Architecture</span>
-		    <span id="system-hardware-arch">—</span>
-		</div>
-		
-		<hr>
-
-		<h4>Operating System</h4>
-
-		<div class="info-row">
-		    <span>System</span>
-		    <span id="system-os-system">—</span>
-		</div>
-
-		<div class="info-row">
-		    <span>Distribution</span>
-		    <span id="system-os-distribution">—</span>
-		</div>
-
-		<div class="info-row">
-		    <span>Kernel</span>
-		    <span id="system-os-kernel">—</span>
-		</div>
-
-		<hr>
-		<h4>Runtime</h4>
-
-		<div class="info-row">
-		    <span>Python</span>
-		    <span id="system-runtime-python">—</span>
-		</div>
-
-		<div class="info-row">
-		    <span>FFmpeg Version</span>
-		    <span id="system-runtime-ffmpeg">—</span>
-		</div>
-
-		<hr>
-
-		<h4>Network</h4>
-
-		<div class="info-row">
-		    <span>Hostname</span>
-		    <span id="system-network-hostname">—</span>
-		</div>
-
-		<div class="info-row">
-		    <span>Interface</span>
-		    <span id="system-network-interface">—</span>
-		</div>
-
-		<div class="info-row">
-		    <span>IPv4</span>
-		    <span id="system-network-ipv4">—</span>
-		</div>
-
-		<div class="info-row">
-		    <span>MAC</span>
-		    <span id="system-network-mac">—</span>
-		</div>
-
-        <hr>
-
-        <div class="info-row">
-
-            <span>CPU</span>
-
-            <span id="system-cpu">
-
-                —
-
-            </span>
-
-        </div>
-
-        <div class="info-row">
-
-            <span>RAM</span>
-
-            <span id="system-ram">
-
-                —
-
-            </span>
-
-        </div>
-
-        <div class="info-row">
-
-            <span>Temperatur</span>
-
-            <span id="system-temp">
-
-                —
-
-            </span>
-
-        </div>
-
-    </div>
-
-</div>
+</section>

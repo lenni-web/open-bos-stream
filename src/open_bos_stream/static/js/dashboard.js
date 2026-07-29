@@ -22,6 +22,19 @@ async function refreshDashboard() {
             err
         );
 
+        const refreshStatus =
+            document.getElementById(
+                "system-refresh-status"
+            );
+
+        if (refreshStatus) {
+            refreshStatus.textContent =
+                "Verbindung unterbrochen";
+            refreshStatus.classList.add(
+                "is-error"
+            );
+        }
+
     }
 
 }
@@ -34,6 +47,18 @@ function updateDashboard(data) {
 
     if (!data) {
         return;
+    }
+
+    const refreshStatus =
+        document.getElementById(
+            "system-refresh-status"
+        );
+
+    if (refreshStatus) {
+        refreshStatus.textContent = "Live";
+        refreshStatus.classList.remove(
+            "is-error"
+        );
     }
 
     updateDashboardHealth(
