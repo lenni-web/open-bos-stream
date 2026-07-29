@@ -297,6 +297,18 @@ class OBSApi {
             config
         );
     }
+
+    async webAccessConfig() {
+        return await this.get("/web-access/config");
+    }
+
+    async webAccessStatus() {
+        return await this.get("/web-access/status");
+    }
+
+    async saveWebAccessConfig(config) {
+        return await this.put("/web-access/config", config);
+    }
 }
 
 async function apiStartStreamOutput(name) {

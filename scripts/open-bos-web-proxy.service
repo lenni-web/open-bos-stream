@@ -1,0 +1,11 @@
+[Unit]
+Description=Open BOS Stream HTTP-Proxy
+Requires=open-bos-web-proxy.socket
+After=open-bos-stream.service
+
+[Service]
+ExecStart=/usr/lib/systemd/systemd-socket-proxyd 127.0.0.1:8000
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict

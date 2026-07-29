@@ -1,0 +1,10 @@
+[Unit]
+Description=Open BOS Stream HTTP-Standardport
+
+[Socket]
+ListenStream=80
+NoDelay=true
+Accept=no
+
+[Install]
+WantedBy=sockets.target

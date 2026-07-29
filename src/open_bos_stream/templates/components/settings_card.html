@@ -4,7 +4,7 @@
             <span class="page-eyebrow">Konfiguration</span>
             <h1>Einstellungen</h1>
         </div>
-        <p>Quelle, Verarbeitung, Ausgabe und lokales Display verwalten.</p>
+        <p>Quelle, Ausgabe, lokales Display und Webzugriff verwalten.</p>
     </header>
 
     <div id="settings-content" class="settings-grid">
@@ -179,6 +179,38 @@
                     type="button"
                     onclick="saveDisplayConfig()">
                     Display übernehmen
+                </button>
+            </div>
+        </section>
+
+        <section class="bos-card settings-section settings-section-web">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">◎</span>
+                <div>
+                    <span class="section-kicker">Erreichbarkeit</span>
+                    <h2>Webzugriff</h2>
+                    <p>Optional ohne Portangabe über den HTTP-Standardport.</p>
+                </div>
+            </div>
+
+            <label class="switch-row">
+                <input id="cfg-web-access-enabled" type="checkbox">
+                <span>
+                    <strong>Standard-Webzugriff über Port 80</strong>
+                    <small>Port 8000 bleibt unabhängig davon als Rückfallweg verfügbar.</small>
+                </span>
+            </label>
+
+            <div class="inline-action">
+                <p id="web-access-status" class="service-inline-status">
+                    Webzugriff-Status wird geladen …
+                </p>
+                <button
+                    id="web-access-save-button"
+                    class="bos-button"
+                    type="button"
+                    onclick="saveWebAccessConfig()">
+                    Webzugriff übernehmen
                 </button>
             </div>
         </section>

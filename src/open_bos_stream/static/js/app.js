@@ -53,6 +53,7 @@ window.addEventListener("load", async () => {
     await refreshConfig();
 
     await loadDisplayConfig();
+    await loadWebAccessConfig();
 
     try {
         await loadEncoders();
@@ -89,6 +90,11 @@ window.addEventListener("load", async () => {
 
     setInterval(
         refreshDisplayStatus,
+        3000
+    );
+
+    setInterval(
+        refreshWebAccessStatus,
         3000
     );
 
