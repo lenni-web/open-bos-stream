@@ -255,7 +255,32 @@ function showVideo(title, src) {
 
     video.load();
 
-    video.play();
+    video.play().catch(error => {
+
+        if (error.name === "AbortError") {
+            return;
+        }
+
+        console.error(
+            "Medienwiedergabe:",
+            error
+        );
+
+        video.style.display = "none";
+
+        if (placeholder) {
+            placeholder.style.display = "flex";
+            placeholder.innerHTML = `
+                <span class="empty-state-icon" aria-hidden="true">!</span>
+                <strong>Video kann nicht wiedergegeben werden</strong>
+                <span>
+                    Die Datei ist nicht verfügbar oder verwendet
+                    einen nicht unterstützten Codec.
+                </span>
+            `;
+        }
+
+    });
 
 }
 

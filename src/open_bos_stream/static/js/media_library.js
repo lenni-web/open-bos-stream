@@ -5,6 +5,13 @@ async function refreshMediaLibrary() {
         const files =
             await api.mediaFiles();
 
+        const count =
+            document.getElementById("media-count");
+
+        if (count) {
+            count.textContent = String(files.length);
+        }
+
         renderMediaLibrary(
             "media-library",
             files,
@@ -66,6 +73,17 @@ async function refreshMediaLibrary() {
             "Media Library:",
             err
         );
+
+        const container =
+            document.getElementById("media-library");
+
+        if (container) {
+            container.innerHTML = `
+                <div class="media-error" role="alert">
+                    Mediathek konnte nicht geladen werden.
+                </div>
+            `;
+        }
 
     }
 

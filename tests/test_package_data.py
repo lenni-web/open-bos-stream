@@ -19,3 +19,6 @@ def test_runtime_map_resources_are_packaged() -> None:
         / "open-sans-regular"
         / "0-255.pbf"
     ).is_file()
+    assert (
+        package_root / "static" / "css" / "modern.css"
+    ).is_file()

@@ -24,6 +24,18 @@ function showPage(page) {
         .getElementById("nav-" + page)
         ?.classList.add("active");
 
+    document
+        .getElementById("nav-" + page)
+        ?.setAttribute("aria-current", "page");
+
+    document
+        .querySelectorAll(
+            `.bos-nav-item:not(#nav-${page})`
+        )
+        .forEach(element => {
+            element.removeAttribute("aria-current");
+        });
+
     localStorage.setItem(
         "currentPage",
         page
