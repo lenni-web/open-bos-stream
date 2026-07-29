@@ -20,7 +20,7 @@ window.addEventListener("load", async () => {
     // Initiale Aktualisierung
     // ------------------------------------------------------
 
-	await refreshDashboard();
+    await refreshDashboard();
 	
     // ------------------------------------------------------
     // Event Log
@@ -50,13 +50,20 @@ window.addEventListener("load", async () => {
 
     refreshMediaLibrary();
 
-	await refreshConfig();
+    await refreshConfig();
 
     await loadDisplayConfig();
 
-	await loadEncoders();
+    try {
+        await loadEncoders();
+    } catch (error) {
+        console.error(
+            "Encoder konnten nicht geladen werden:",
+            error
+        );
+    }
 	
-	loadEncoderConfig();
+    loadEncoderConfig();
 
     // ------------------------------------------------------
     // Regelmäßige Aktualisierung

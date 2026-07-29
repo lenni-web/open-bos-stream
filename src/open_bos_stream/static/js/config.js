@@ -2,6 +2,75 @@ let currentConfig = null;
 
 let availableEncoders = [];
 
+let configDirty = false;
+
+function setConfigDirty(dirty) {
+    configDirty = dirty;
+
+    const indicator =
+        document.getElementById(
+            "config-dirty-indicator"
+        );
+
+    if (!indicator) {
+        return;
+    }
+
+    indicator.textContent = dirty
+        ? "Ungespeicherte Änderungen"
+        : "Keine ungespeicherten Änderungen";
+
+    indicator.classList.toggle(
+        "is-dirty",
+        dirty
+    );
+}
+
+function setConfigSaveStatus(message, type = "") {
+    const status =
+        document.getElementById(
+            "config-save-status"
+        );
+
+    if (!status) {
+        return;
+    }
+
+    status.textContent = message;
+    status.className =
+        "save-status" +
+        (type ? ` is-${type}` : "");
+}
+
+function bindConfigChangeTracking() {
+    const settings =
+        document.getElementById(
+            "settings-content"
+        );
+
+    if (!settings || settings.dataset.trackingBound) {
+        return;
+    }
+
+    settings.dataset.trackingBound = "true";
+
+    settings.addEventListener(
+        "input",
+        event => {
+            if (
+                event.target.id?.startsWith(
+                    "cfg-display-"
+                )
+            ) {
+                return;
+            }
+
+            setConfigDirty(true);
+            setConfigSaveStatus("");
+        }
+    );
+}
+
 async function loadEncoders(
     forceSelection = false,
 ) {
@@ -39,6 +108,9 @@ async function refreshConfig() {
 
         renderStreamOutputs();
 
+        setConfigDirty(false);
+        setConfigSaveStatus("");
+
     }
 
     catch (err) {
@@ -53,8 +125,21 @@ async function refreshConfig() {
 }
 
 async function saveConfig() {
+    const button =
+        document.getElementById(
+            "config-save-button"
+        );
 
     try {
+        if (button) {
+            button.disabled = true;
+            button.textContent =
+                "Wird gespeichert …";
+        }
+
+        setConfigSaveStatus(
+            "Konfiguration wird geprüft …"
+        );
 
         saveInputConfig();
 
@@ -64,23 +149,17 @@ async function saveConfig() {
 
         saveStreamOutputs();
 
-        console.log(
-            "CONFIG TO SAVE"
-        );
-
-        console.log(
-            JSON.stringify(
-                currentConfig,
-                null,
-                2
-            )
-        );
-
         const result = await api.saveConfig(
             currentConfig
         );
 
         await refreshConfig();
+
+        setConfigDirty(false);
+        setConfigSaveStatus(
+            result.message,
+            "success"
+        );
 
         addEvent(
             "success",
@@ -96,11 +175,22 @@ async function saveConfig() {
             err
         );
 
+        setConfigSaveStatus(
+            err.message,
+            "error"
+        );
+
         addEvent(
             "error",
             "⚙️ " + err.message
         );
 
+    } finally {
+        if (button) {
+            button.disabled = false;
+            button.textContent =
+                "Änderungen speichern";
+        }
     }
 
 }
@@ -244,3 +334,5 @@ function selectDefaultEncoder(
     }
 
 }
+
+bindConfigChangeTracking();

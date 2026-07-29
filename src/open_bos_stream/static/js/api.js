@@ -4,94 +4,90 @@ class OBSApi {
     // HTTP Helper
     // ---------------------------------------------------------
 
-    async get(url) {
+    async request(url, options = {}) {
+        let response;
 
-        const response = await fetch(url);
-		
-		if (!response.ok) {
+        try {
+            response = await fetch(url, options);
+        } catch (error) {
+            if (error.name === "AbortError") {
+                throw error;
+            }
 
-		    const error = await response.json();
-
-		    console.error(error);
-
-		    throw new Error(
-		        error.detail?.[0]?.msg ??
-		        "Request failed",
-		    );
-
-		}
-
-        return await response.json();
-
-    }
-
-	async post(url, body = null) {
-
-	    const options = {
-	        method: "POST",
-	    };
-
-	    if (body !== null) {
-
-	        options.headers = {
-	            "Content-Type": "application/json",
-	        };
-
-	        options.body = JSON.stringify(body);
-
-	    }
-
-	    const response = await fetch(url, options);
-
-	    const json = await response.json();
-
-	    return json;
-
-	}
-
-    async put(url, body) {
-
-        const response = await fetch(url, {
-
-            method: "PUT",
-
-            headers: {
-                "Content-Type": "application/json",
-            },
-
-            body: JSON.stringify(body),
-
-        });
-
-        const json = await response.json();
-
-        if (!response.ok) {
             throw new Error(
-                json.detail?.message ??
-                json.detail?.[0]?.msg ??
-                (
-                    typeof json.detail === "string"
-                        ? json.detail
-                        : null
-                ) ??
-                "Request failed",
+                "Verbindung zur Anwendung fehlgeschlagen."
             );
         }
 
-        return json;
+        const contentType =
+            response.headers.get("content-type") ?? "";
 
+        let payload = null;
+
+        if (contentType.includes("application/json")) {
+            payload = await response.json();
+        } else {
+            payload = await response.text();
+        }
+
+        if (!response.ok) {
+            const detail = payload?.detail;
+            const message =
+                detail?.message ??
+                detail?.[0]?.msg ??
+                (
+                    typeof detail === "string"
+                        ? detail
+                        : null
+                ) ??
+                payload?.error ??
+                `Anfrage fehlgeschlagen (HTTP ${response.status}).`;
+
+            const error = new Error(message);
+            error.status = response.status;
+            error.url = url;
+            throw error;
+        }
+
+        return payload;
+    }
+
+    async get(url) {
+        return await this.request(url);
+    }
+
+    async post(url, body = null) {
+        const options = {
+            method: "POST",
+        };
+
+        if (body !== null) {
+            options.headers = {
+                "Content-Type": "application/json",
+            };
+
+            options.body = JSON.stringify(body);
+        }
+
+        return await this.request(url, options);
+    }
+
+    async put(url, body) {
+
+        return await this.request(url, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+        });
     }
 
     async delete(url) {
 
-        const response = await fetch(url, {
-
+        return await this.request(url, {
             method: "DELETE",
-
         });
-
-        return await response.json();
-
     }
 
     // ---------------------------------------------------------
