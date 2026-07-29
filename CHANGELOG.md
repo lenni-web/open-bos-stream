@@ -7,6 +7,14 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.8.6] - 2026-07-29
+
+### Fixed
+
+- Die Tablet-Navigation reserviert im Querformat keine unsichtbare
+  Bildschirmhöhe mehr. Seitenüberschrift und Inhalt schließen direkt
+  an die Navigation an.
+
 ## [0.8.5] - 2026-07-29
 
 ### Added
