@@ -1,4 +1,16 @@
 function showPage(page) {
+    const previousPage =
+        document.querySelector(
+            ".page.active"
+        )?.id?.replace("page-", "");
+
+    if (
+        previousPage === "media" &&
+        page !== "media" &&
+        typeof stopMediaPreview === "function"
+    ) {
+        stopMediaPreview();
+    }
 
     document
         .querySelectorAll(".page")
