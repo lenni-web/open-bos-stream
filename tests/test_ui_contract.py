@@ -1,0 +1,64 @@
+from __future__ import annotations
+
+from html.parser import HTMLParser
+from pathlib import Path
+
+
+ROOT = Path(__file__).parents[1] / "src" / "open_bos_stream"
+
+
+class IdCollector(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.ids: set[str] = set()
+
+    def handle_starttag(
+        self,
+        tag: str,
+        attrs: list[tuple[str, str | None]],
+    ) -> None:
+        attributes = dict(attrs)
+        element_id = attributes.get("id")
+
+        if element_id:
+            self.ids.add(element_id)
+
+
+def template_ids(name: str) -> set[str]:
+    parser = IdCollector()
+    parser.feed(
+        (
+            ROOT / "templates" / "components" / name
+        ).read_text(encoding="utf-8")
+    )
+    return parser.ids
+
+
+def test_media_controls_remain_available() -> None:
+    ids = (
+        template_ids("media_library.html")
+        | template_ids("media_preview.html")
+    )
+
+    assert {
+        "media-count",
+        "media-search",
+        "media-type-filter",
+        "media-library",
+        "media-title",
+        "media-video",
+        "media-image",
+        "media-placeholder",
+    } <= ids
+
+
+def test_navigation_stops_media_preview() -> None:
+    navigation = (
+        ROOT / "static" / "js" / "navigation.js"
+    ).read_text(encoding="utf-8")
+    media = (
+        ROOT / "static" / "js" / "media.js"
+    ).read_text(encoding="utf-8")
+
+    assert "stopMediaPreview()" in navigation
+    assert "function stopMediaPreview()" in media

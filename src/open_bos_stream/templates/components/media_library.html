@@ -8,6 +8,26 @@
         <span id="media-count" class="count-badge">0</span>
     </div>
 
+    <div class="media-tools">
+        <label class="media-search">
+            <span aria-hidden="true">⌕</span>
+            <input
+                id="media-search"
+                type="search"
+                placeholder="Dateiname durchsuchen"
+                autocomplete="off">
+        </label>
+
+        <select
+            id="media-type-filter"
+            class="media-filter"
+            aria-label="Medientyp filtern">
+            <option value="all">Alle Medien</option>
+            <option value="recording">Aufnahmen</option>
+            <option value="snapshot">Snapshots</option>
+        </select>
+    </div>
+
     <div id="media-library">
 
         <div class="library-entry">

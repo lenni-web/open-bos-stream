@@ -75,6 +75,11 @@ async function deleteRecording(filename) {
     if (result.success) {
 
         refreshRecordingLibrary();
+        refreshMediaLibrary();
+
+        if (activeMediaName === filename) {
+            stopMediaPreview();
+        }
 
         addEvent(
             "warning",

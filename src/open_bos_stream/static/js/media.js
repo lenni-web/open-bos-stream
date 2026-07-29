@@ -1,4 +1,5 @@
 let activeMediaEntry = null;
+let activeMediaName = null;
 
 function formatFileSize(bytes) {
 
@@ -58,6 +59,10 @@ function setActiveMediaEntry(entry) {
         activeMediaEntry.classList.add(
             "library-entry-active"
         );
+
+        activeMediaName =
+            activeMediaEntry.dataset.filename ??
+            null;
 
     }
 
@@ -137,7 +142,7 @@ function renderMediaLibrary(containerId, files, actions) {
 
         container.innerHTML = `
             <div class="library-entry">
-                Keine Dateien vorhanden.
+                Keine passenden Medien gefunden.
             </div>
         `;
 
@@ -182,6 +187,14 @@ function renderMediaLibrary(containerId, files, actions) {
 
         row.className =
             "library-entry";
+        row.dataset.filename = file.name;
+
+        if (file.name === activeMediaName) {
+            row.classList.add(
+                "library-entry-active"
+            );
+            activeMediaEntry = row;
+        }
 
         row.innerHTML = `
             <div class="library-row">
@@ -194,6 +207,12 @@ function renderMediaLibrary(containerId, files, actions) {
 
                         ${mediaTitle(file)}
 
+                    </div>
+
+                    <div
+                        class="library-filename"
+                        title="${file.name}">
+                        ${file.name}
                     </div>
 
                     <div class="library-info">
@@ -250,6 +269,10 @@ function showVideo(title, src) {
     }
 
     video.style.display = "block";
+    video.setAttribute(
+        "aria-label",
+        title
+    );
 
     video.src = src;
 
@@ -317,6 +340,7 @@ function showImage(title, src) {
     heading.textContent = title;
 
     image.src = src;
+    image.alt = title;
 
     image.style.display = "block";
 
@@ -325,3 +349,97 @@ function showImage(title, src) {
     }
 
 }
+
+function resetMediaPlaceholder() {
+    const placeholder =
+        document.getElementById(
+            "media-placeholder"
+        );
+
+    if (!placeholder) {
+        return;
+    }
+
+    placeholder.innerHTML = `
+        <span class="empty-state-icon" aria-hidden="true">▧</span>
+        <strong>Keine Vorschau geöffnet</strong>
+        <span>
+            Wähle links eine Aufnahme oder einen Snapshot aus.
+        </span>
+    `;
+    placeholder.style.display = "flex";
+}
+
+function stopMediaPreview() {
+    const video =
+        document.getElementById(
+            "media-video"
+        );
+    const image =
+        document.getElementById(
+            "media-image"
+        );
+    const heading =
+        document.getElementById(
+            "media-title"
+        );
+
+    if (video) {
+        video.pause();
+        video.removeAttribute("src");
+        video.load();
+        video.style.display = "none";
+    }
+
+    if (image) {
+        image.removeAttribute("src");
+        image.alt = "";
+        image.style.display = "none";
+    }
+
+    if (heading) {
+        heading.textContent =
+            "Medium auswählen";
+    }
+
+    activeMediaName = null;
+    setActiveMediaEntry(null);
+    resetMediaPlaceholder();
+}
+
+function bindMediaPreviewErrors() {
+    const image =
+        document.getElementById(
+            "media-image"
+        );
+
+    if (!image || image.dataset.errorBound) {
+        return;
+    }
+
+    image.dataset.errorBound = "true";
+    image.addEventListener(
+        "error",
+        () => {
+            image.style.display = "none";
+
+            const placeholder =
+                document.getElementById(
+                    "media-placeholder"
+                );
+
+            if (placeholder) {
+                placeholder.style.display = "flex";
+                placeholder.innerHTML = `
+                    <span class="empty-state-icon" aria-hidden="true">!</span>
+                    <strong>Bild kann nicht geladen werden</strong>
+                    <span>
+                        Die Datei ist nicht mehr verfügbar oder beschädigt.
+                    </span>
+                `;
+            }
+        }
+    );
+}
+
+bindMediaPreviewErrors();

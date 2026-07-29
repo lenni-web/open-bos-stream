@@ -74,6 +74,11 @@ async function deleteSnapshot(filename) {
     if (result.success) {
 
         refreshSnapshotLibrary();
+        refreshMediaLibrary();
+
+        if (activeMediaName === filename) {
+            stopMediaPreview();
+        }
 
         addEvent(
             "warning",
