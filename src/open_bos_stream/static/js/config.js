@@ -102,7 +102,7 @@ async function refreshConfig() {
 
         await loadInputTypes();
 
-        loadEncoderConfig();
+        await loadSourceEncoders();
 
         loadStreamConfig();
 
@@ -143,8 +143,6 @@ async function saveConfig() {
             "Konfiguration wird geprüft und aktiviert. " +
             "Das kann einige Sekunden dauern …"
         );
-
-        saveEncoderConfig();
 
         saveStreamConfig();
 
@@ -198,7 +196,6 @@ async function saveConfig() {
 }
 
 function collectConfigForm() {
-    saveEncoderConfig();
     saveStreamConfig();
     saveStreamOutputs();
     saveSources();

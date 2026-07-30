@@ -27,6 +27,66 @@ function sourceProfileOptions(selected) {
     `).join("");
 }
 
+function sourceEncoderOptions(source, selected) {
+    const encoders = (
+        sourceEncodersByType.get(source.type) ?? availableEncoders
+    ).filter(
+        encoder => encoder.available && encoder.codec !== "copy"
+    );
+    return encoders.map(encoder => `
+        <option value="${escapeHTML(encoder.codec)}"
+            ${encoder.codec === selected ? "selected" : ""}>
+            ${escapeHTML(encoder.name)}
+        </option>
+    `).join("");
+}
+
+function sourceTranscodingFields(source) {
+    if (source.profile !== "transcode") {
+        return "";
+    }
+    const encoder = currentConfig.encoder;
+    const codec = source.codec ?? encoder.codec;
+    return `
+        <fieldset class="source-transcoding form-field-wide">
+            <legend>Transcoding dieser Quelle</legend>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label>Encoder</label>
+                    <select class="bos-input" data-field="codec">
+                        ${sourceEncoderOptions(source, codec)}
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Bitrate</label>
+                    <input class="bos-input" data-field="bitrate"
+                        value="${escapeHTML(source.bitrate ?? encoder.bitrate)}">
+                </div>
+                <div class="form-field">
+                    <label>Pixelformat</label>
+                    <input class="bos-input" data-field="pixel_format"
+                        value="${escapeHTML(source.pixel_format ?? encoder.pixel_format)}">
+                </div>
+                <div class="form-field">
+                    <label>GOP</label>
+                    <input class="bos-input" data-field="gop" type="number"
+                        min="1" value="${Number(source.gop ?? encoder.gop)}">
+                </div>
+                <div class="form-field">
+                    <label>Preset</label>
+                    <input class="bos-input" data-field="preset"
+                        value="${escapeHTML(source.preset ?? encoder.preset)}">
+                </div>
+                <div class="form-field">
+                    <label>Tune</label>
+                    <input class="bos-input" data-field="tune"
+                        value="${escapeHTML(source.tune ?? encoder.tune)}">
+                </div>
+            </div>
+        </fieldset>
+    `;
+}
+
 function sourceSpecificFields(source) {
     if (source.type === "rtmp") {
         return `
@@ -214,12 +274,7 @@ function renderSources() {
                         <option value="aac" ${source.audio_mode === "aac" ? "selected" : ""}>AAC umkodieren</option>
                     </select>
                 </div>
-                <div class="form-field">
-                    <label>Encoder bei Transcoding</label>
-                    <input class="bos-input" data-field="codec"
-                        value="${escapeHTML(source.codec ?? currentConfig.encoder.codec)}"
-                        ${source.profile === "transcode" ? "" : "disabled"}>
-                </div>
+                ${sourceTranscodingFields(source)}
                 <div class="source-specific-fields form-grid form-field-wide">
                     ${sourceSpecificFields(source)}
                 </div>
@@ -234,12 +289,13 @@ function renderSources() {
 
         card.querySelector('[data-field="type"]')?.addEventListener(
             "change",
-            event => {
+            async event => {
                 saveSources();
                 currentConfig.sources[index].type = event.target.value;
                 if (event.target.value === "v4l2") {
                     currentConfig.sources[index].profile = "transcode";
                 }
+                await loadSourceEncoders();
                 renderSources();
                 setConfigDirty(true);
             }
@@ -312,6 +368,13 @@ function saveSources() {
             format: value("format", "mjpeg"),
             transport: value("transport", "tcp"),
             codec: value("codec"),
+            bitrate: value("bitrate"),
+            pixel_format: value("pixel_format"),
+            gop: value("gop") === null
+                ? null
+                : Number(value("gop")),
+            preset: value("preset"),
+            tune: value("tune"),
             audio_mode: value("audio_mode", "none"),
         };
     });
@@ -343,6 +406,11 @@ function addSource() {
         format: "mjpeg",
         transport: "tcp",
         codec: null,
+        bitrate: null,
+        pixel_format: null,
+        gop: null,
+        preset: null,
+        tune: null,
         audio_mode: "none",
     });
     renderSources();
@@ -378,5 +446,33 @@ function moveSource(index, direction) {
     setConfigDirty(true);
     setConfigSaveStatus(
         "Reihenfolge geändert – bitte speichern."
+    );
+}
+const sourceEncodersByType = new Map();
+
+async function loadSourceEncoders() {
+    const representatives = new Map();
+    for (const source of currentConfig.sources ?? []) {
+        if (!representatives.has(source.type)) {
+            representatives.set(source.type, source);
+        }
+    }
+    await Promise.all(
+        Array.from(representatives.entries()).map(
+            async ([type, source]) => {
+                try {
+                    sourceEncodersByType.set(
+                        type,
+                        await api.encoders(source)
+                    );
+                } catch (error) {
+                    console.error(
+                        `Encoder für ${type} konnten nicht geladen werden:`,
+                        error
+                    );
+                    sourceEncodersByType.set(type, []);
+                }
+            }
+        )
     );
 }

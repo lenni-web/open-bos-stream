@@ -17,6 +17,11 @@ class UserCreate(Credentials):
     role: str
 
 
+class UserUpdate(BaseModel):
+    role: str | None = None
+    password: str | None = None
+
+
 @router.get("/status")
 async def status(request: Request):
     return {
@@ -86,6 +91,19 @@ async def delete_user(username: str, request: Request):
     except AuthError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     return {"success": True}
+
+
+@router.patch("/users/{username}")
+async def update_user(username: str, payload: UserUpdate):
+    try:
+        user = auth_service.update_user(
+            username,
+            role=payload.role,
+            password=payload.password,
+        )
+    except AuthError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {"success": True, "user": user}
 
 
 def _set_session(response: Response, token: str) -> None:

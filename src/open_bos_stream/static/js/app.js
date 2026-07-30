@@ -49,15 +49,6 @@ window.addEventListener("load", async () => {
 
     if (window.currentUser?.role !== "viewer") {
         await refreshConfig();
-        try {
-            await loadEncoders();
-        } catch (error) {
-            console.error(
-                "Encoder konnten nicht geladen werden:",
-                error
-            );
-        }
-        loadEncoderConfig();
     }
     if (window.currentUser?.role === "superadmin") {
         await loadDisplayConfig();

@@ -92,6 +92,16 @@ class FFmpegCommandBuilder:
                 encoder.codec = "copy"
             elif source.codec:
                 encoder.codec = source.codec
+            for field_name in (
+                "bitrate",
+                "pixel_format",
+                "gop",
+                "preset",
+                "tune",
+            ):
+                value = getattr(source, field_name, None)
+                if value is not None:
+                    setattr(encoder, field_name, value)
 
             stream.name = source.viewer_path
             stream.rtsp_url = (
@@ -169,9 +179,14 @@ class FFmpegCommandBuilder:
         #
         # Encoder arguments
         #
-        command.extend(
-            encoder_builder.build_args(),
-        )
+        encoder_arguments = encoder_builder.build_args()
+        command.extend(encoder_arguments)
+        if (
+            encoder.codec != "copy"
+            and encoder.gop > 0
+            and "-g" not in encoder_arguments
+        ):
+            command.extend(["-g", str(encoder.gop)])
 
         if encoder.codec == "copy":
             command.extend([
