@@ -21,6 +21,19 @@ async def dashboard(request: Request):
             "request": request,
             "host": request.url.hostname,
             "version": VERSION,
+            "user": request.state.user,
+        },
+    )
+
+
+@router.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={
+            "request": request,
+            "version": VERSION,
         },
     )
 

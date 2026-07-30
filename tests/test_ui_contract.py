@@ -219,3 +219,44 @@ def test_source_settings_are_compact_and_urls_can_be_revealed() -> None:
     assert "URL anzeigen und bearbeiten" in source_js
     assert 'input.type = visible ? "password" : "text"' in source_js
     assert 'audio_mode: "none"' in source_js
+
+
+def test_offline_sources_and_role_ui_are_present() -> None:
+    panel = (
+        ROOT / "templates" / "components" / "multi_source_panel.html"
+    ).read_text(encoding="utf-8")
+    index = (
+        ROOT / "templates" / "index.html"
+    ).read_text(encoding="utf-8")
+    settings = (
+        ROOT / "templates" / "components" / "settings_card.html"
+    ).read_text(encoding="utf-8")
+    source_js = (
+        ROOT / "static" / "js" / "multi_source.js"
+    ).read_text(encoding="utf-8")
+
+    assert "offline-source-grid" in panel
+    assert "offlineOrder" in source_js
+    assert "window.currentUser" in index
+    assert 'user.role == "superadmin"' in settings
+    assert "Benutzer und Rollen" in settings
+
+
+def test_installation_check_uses_public_auth_status() -> None:
+    verify = Path(__file__).parents[1] / "scripts" / "verify-installation.sh"
+    content = verify.read_text(encoding="utf-8")
+
+    assert "/auth/status" in content
+
+
+def test_hidden_superadmin_outputs_are_not_cleared_by_admin_save() -> None:
+    outputs = (
+        ROOT / "static" / "js" / "config_stream_outputs.js"
+    ).read_text(encoding="utf-8")
+
+    save_function = outputs.split(
+        "function saveStreamOutputs()",
+        1,
+    )[1]
+    assert '"stream-output-settings"' in save_function
+    assert "if (!container)" in outputs

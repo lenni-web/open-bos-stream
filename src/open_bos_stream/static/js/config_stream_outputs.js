@@ -142,6 +142,12 @@ function removeStreamOutput(index) {
 }
 
 function saveStreamOutputs() {
+    const container = document.getElementById(
+        "stream-output-settings"
+    );
+    if (!container) {
+        return;
+    }
 
     const outputs = [];
 

@@ -47,21 +47,23 @@ window.addEventListener("load", async () => {
 
     refreshMediaLibrary();
 
-    await refreshConfig();
-
-    await loadDisplayConfig();
-    await loadWebAccessConfig();
-
-    try {
-        await loadEncoders();
-    } catch (error) {
-        console.error(
-            "Encoder konnten nicht geladen werden:",
-            error
-        );
+    if (window.currentUser?.role !== "viewer") {
+        await refreshConfig();
+        try {
+            await loadEncoders();
+        } catch (error) {
+            console.error(
+                "Encoder konnten nicht geladen werden:",
+                error
+            );
+        }
+        loadEncoderConfig();
     }
-	
-    loadEncoderConfig();
+    if (window.currentUser?.role === "superadmin") {
+        await loadDisplayConfig();
+        await loadWebAccessConfig();
+        await loadUsers();
+    }
 
     // ------------------------------------------------------
     // Regelmäßige Aktualisierung
@@ -85,14 +87,9 @@ window.addEventListener("load", async () => {
 	    2000
 	);
 
-    setInterval(
-        refreshDisplayStatus,
-        3000
-    );
-
-    setInterval(
-        refreshWebAccessStatus,
-        3000
-    );
+    if (window.currentUser?.role === "superadmin") {
+        setInterval(refreshDisplayStatus, 3000);
+        setInterval(refreshWebAccessStatus, 3000);
+    }
 
 });

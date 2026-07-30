@@ -102,11 +102,13 @@
 
     </div>
 
+    {% if user.role == "superadmin" %}
     <div class="dashboard-right">
 
         {% include "components/stream_outputs_card.html" %}
 
     </div>
+    {% endif %}
 
 </div>
 
@@ -128,6 +130,7 @@
 
 			</div>
 
+            {% if user.role != "viewer" %}
             <div
                 id="page-settings"
                 class="page">
@@ -135,6 +138,7 @@
                 {% include "components/settings_card.html" %}
 
             </div>
+            {% endif %}
 
             <div
                 id="page-system"
@@ -150,7 +154,11 @@
 
 </div>
 
+<script>
+window.currentUser = {{ user | tojson }};
+</script>
 <script src="/static/js/api.js?v={{ version }}"></script>
+<script src="/static/js/auth_users.js?v={{ version }}"></script>
 
 <script src="/static/js/ui.js?v={{ version }}"></script>
 

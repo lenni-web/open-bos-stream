@@ -1,4 +1,7 @@
 function showPage(page) {
+    if (!document.getElementById("page-" + page)) {
+        page = "dashboard";
+    }
     const previousPage =
         document.querySelector(
             ".page.active"

@@ -7,6 +7,44 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.10.6] - 2026-07-30
+
+### Fixed
+
+- Eine bewusst leere Quellenliste bleibt nach dem Speichern leer und löst
+  nicht erneut die Migration der alten Standardquelle aus.
+- Blockierende Vorabprüfungen und systemd-Aufrufe laufen außerhalb des
+  FastAPI-Eventloops; Status- und Browseranfragen bleiben dabei ansprechbar.
+- Das Entfernen der letzten verwalteten Quelle stoppt den Streamer kontrolliert,
+  ohne ihn anschließend erneut zu starten.
+
+### Changed
+
+- Der Speicherdialog erklärt, dass Aktivierung und Dienstwechsel einige
+  Sekunden benötigen können.
+- Konfigurationsanfragen brechen nach 35 Sekunden mit einer verständlichen
+  Fehlermeldung ab, statt unbegrenzt im Ladezustand zu bleiben.
+- Offline-Quellen werden kompakt und gesammelt unter den aktiven Playern
+  dargestellt.
+- Die Oberfläche verwendet die drei Rollen Viewer, Admin und Superadmin.
+
+### Added
+
+- Lokale Ersteinrichtung des ersten Superadmins, Anmeldung, Abmeldung und
+  signierte Sitzungscookies.
+- Lokale Benutzerverwaltung für Superadmins mit PBKDF2-Passwort-Hashes.
+- Serverseitige Rollenprüfung für alle schreibenden API-Zugriffe.
+- Streaming-Ausgänge, lokales Display, Webzugriff, Benutzerverwaltung und das
+  Wiederherstellen einer Gesamtkonfiguration sind Superadmins vorbehalten.
+- Admins können Quellen verwalten, ohne geschützte Systemfelder verändern zu
+  können.
+- Die Installationsprüfung verwendet den öffentlichen Auth-Status und bleibt
+  dadurch auch vor dem Anlegen des ersten Superadmins funktionsfähig.
+- Gespeicherte Navigation auf eine nun rollenbedingt unsichtbare Seite fällt
+  automatisch auf die Übersicht zurück.
+- Der lokale Kiosk erhält automatisch eine ausschließlich über Loopback
+  gültige Viewer-Ansicht; der normale Displaymodus verlangt eine Anmeldung.
+
 ## [0.10.5] - 2026-07-30
 
 ### Changed

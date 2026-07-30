@@ -65,6 +65,7 @@
 
 			</a>
 
+            {% if user.role != "viewer" %}
             <a
                 id="nav-settings"
                 class="bos-nav-item"
@@ -75,6 +76,7 @@
                 <span class="nav-label">Einstellungen</span>
 
             </a>
+            {% endif %}
 
             <a
                 id="nav-system"

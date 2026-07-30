@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Anmeldung · Open BOS Stream</title>
+    <link rel="stylesheet" href="/static/css/obds.css?v={{ version }}">
+    <link rel="stylesheet" href="/static/css/modern.css?v={{ version }}">
+</head>
+<body class="auth-page">
+    <main class="auth-card bos-card">
+        <span class="page-eyebrow">Open BOS Stream</span>
+        <h1 id="auth-title">Anmelden</h1>
+        <p id="auth-description">Mit einem lokalen Benutzerkonto fortfahren.</p>
+        <form id="auth-form">
+            <label class="form-field">
+                <span>Benutzername</span>
+                <input id="auth-username" class="bos-input" autocomplete="username" required>
+            </label>
+            <label class="form-field">
+                <span>Passwort</span>
+                <input id="auth-password" class="bos-input" type="password"
+                    autocomplete="current-password" minlength="10" required>
+            </label>
+            <button class="bos-button bos-button-primary" type="submit">
+                Fortfahren
+            </button>
+            <p id="auth-error" class="save-status is-error"></p>
+        </form>
+    </main>
+    <script>
+        const params = new URLSearchParams(location.search);
+        const setup = params.get("setup") === "1";
+        if (setup) {
+            document.getElementById("auth-title").textContent =
+                "Ersten Superadmin anlegen";
+            document.getElementById("auth-description").textContent =
+                "Dieses Konto erhält die vollständige Systemverwaltung.";
+            document.getElementById("auth-password").autocomplete =
+                "new-password";
+        }
+        document.getElementById("auth-form").addEventListener(
+            "submit",
+            async event => {
+                event.preventDefault();
+                const error = document.getElementById("auth-error");
+                error.textContent = "";
+                try {
+                    const response = await fetch(
+                        setup ? "/auth/setup" : "/auth/login",
+                        {
+                            method: "POST",
+                            headers: {"Content-Type": "application/json"},
+                            body: JSON.stringify({
+                                username: document.getElementById(
+                                    "auth-username"
+                                ).value,
+                                password: document.getElementById(
+                                    "auth-password"
+                                ).value,
+                            }),
+                        }
+                    );
+                    const payload = await response.json();
+                    if (!response.ok) {
+                        throw new Error(
+                            typeof payload.detail === "string"
+                                ? payload.detail
+                                : "Anmeldung fehlgeschlagen."
+                        );
+                    }
+                    location.href = "/";
+                } catch (exception) {
+                    error.textContent = exception.message;
+                }
+            }
+        );
+    </script>
+</body>
+</html>

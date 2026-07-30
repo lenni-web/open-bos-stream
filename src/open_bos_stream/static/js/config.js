@@ -140,7 +140,8 @@ async function saveConfig() {
         }
 
         setConfigSaveStatus(
-            "Konfiguration wird geprüft …"
+            "Konfiguration wird geprüft und aktiviert. " +
+            "Das kann einige Sekunden dauern …"
         );
 
         saveEncoderConfig();

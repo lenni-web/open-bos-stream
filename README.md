@@ -213,6 +213,26 @@ rtsp://admin:PASSWORT@192.168.1.50:554/Preview_01_main
 
 Zugangsdaten werden in der Oberfläche maskiert und in Streamer-Protokollen
 redigiert. Verwaltete Quellen werden durch einen systemd-Dienst überwacht.
+
+## Benutzer und Rollen
+
+Beim ersten Aufruf nach Installation oder Update fordert Open BOS Stream dazu
+auf, ein lokales Superadmin-Konto anzulegen. Benutzer und Passwort-Hashes
+werden ausschließlich in `config/users.yaml` gespeichert; die Datei und der
+lokale Sitzungsschlüssel werden nicht in Git übernommen.
+
+- `viewer`: Übersicht, Streams, Medien, Karte und Systemstatus ansehen
+- `admin`: zusätzlich Quellen anlegen, bearbeiten, sortieren und entfernen
+- `superadmin`: zusätzlich Benutzer, Streaming-Ausgänge, lokales Display und
+  Webzugriff verwalten
+
+Die Rechte werden sowohl in der Oberfläche als auch an den API-Endpunkten
+geprüft. Ein Admin kann geschützte Superadmin-Felder daher nicht über einen
+direkten API-Aufruf verändern.
+
+Der lokale Kiosk erhält ausschließlich eine auf Loopback begrenzte
+Viewer-Ansicht. Im normalen Chromium-Modus ist eine reguläre Anmeldung nötig,
+wenn Einstellungen bedient werden sollen.
 Eine vorübergehend nicht erreichbare Quelle wird unabhängig mit begrenztem
 Backoff neu verbunden und unterbricht die übrigen Quellen nicht.
 

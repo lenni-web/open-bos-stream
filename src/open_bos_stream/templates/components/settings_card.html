@@ -98,6 +98,7 @@
             </div>
         </section>
 
+        {% if user.role == "superadmin" %}
         <section class="bos-card settings-section">
             <div class="settings-section-header">
                 <span class="settings-icon" aria-hidden="true">⇥</span>
@@ -209,6 +210,43 @@
                 </button>
             </div>
         </section>
+        <section class="bos-card settings-section settings-section-users">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">♙</span>
+                <div>
+                    <span class="section-kicker">Zugriff</span>
+                    <h2>Benutzer und Rollen</h2>
+                    <p>Lokale Konten für Anzeige und Verwaltung.</p>
+                </div>
+            </div>
+            <div id="user-list" class="user-list"></div>
+            <div class="form-grid">
+                <label class="form-field">
+                    <span>Benutzername</span>
+                    <input id="new-user-name" class="bos-input">
+                </label>
+                <label class="form-field">
+                    <span>Rolle</span>
+                    <select id="new-user-role" class="bos-input">
+                        <option value="viewer">Viewer – nur ansehen</option>
+                        <option value="admin">Admin – Quellen verwalten</option>
+                        <option value="superadmin">Superadmin – Systemverwaltung</option>
+                    </select>
+                </label>
+                <label class="form-field form-field-wide">
+                    <span>Startpasswort</span>
+                    <input id="new-user-password" class="bos-input"
+                        type="password" minlength="10" autocomplete="new-password">
+                </label>
+            </div>
+            <div class="inline-action">
+                <p id="user-management-status" class="service-inline-status"></p>
+                <button class="bos-button" type="button" onclick="createUser()">
+                    Benutzer anlegen
+                </button>
+            </div>
+        </section>
+        {% endif %}
     </div>
 
     <div class="settings-actionbar">
