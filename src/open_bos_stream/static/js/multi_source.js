@@ -27,8 +27,30 @@ function multiSourceCard(input) {
         <footer class="multi-source-meta">
             <span data-value="format">—</span>
             <span data-value="viewers">0 Viewer</span>
+            <button
+                class="multi-source-audio bos-button bos-button-small"
+                type="button"
+                aria-pressed="false">
+                🔇 Ton aus
+            </button>
         </footer>
     `;
+    const video = card.querySelector("video");
+    const audioButton = card.querySelector(
+        ".multi-source-audio"
+    );
+    video.muted = true;
+    video.defaultMuted = true;
+    audioButton.addEventListener("click", () => {
+        video.muted = !video.muted;
+        audioButton.textContent = video.muted
+            ? "🔇 Ton aus"
+            : "🔊 Ton an";
+        audioButton.setAttribute(
+            "aria-pressed",
+            String(!video.muted)
+        );
+    });
     return card;
 }
 

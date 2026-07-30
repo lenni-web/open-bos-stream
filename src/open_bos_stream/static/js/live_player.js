@@ -32,6 +32,10 @@ class LivePlayer {
                 "LivePlayer benötigt ein Videoelement."
             );
         }
+
+        // Livestreams starten stumm. Audio wird pro Player bewusst aktiviert.
+        this.video.muted = true;
+        this.video.defaultMuted = true;
 			
 		this.video.addEventListener(
 		    "playing",

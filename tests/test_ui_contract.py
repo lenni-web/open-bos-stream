@@ -183,3 +183,17 @@ def test_dashboard_uses_only_unified_source_players() -> None:
     assert "Signal verfügbar" in events
     assert "Signal verloren" in events
     assert "defaultLiveVideo" in player
+
+
+def test_multi_source_audio_starts_muted() -> None:
+    source_js = (
+        ROOT / "static" / "js" / "multi_source.js"
+    ).read_text(encoding="utf-8")
+    player_js = (
+        ROOT / "static" / "js" / "live_player.js"
+    ).read_text(encoding="utf-8")
+
+    assert "video.muted = true" in source_js
+    assert "video.defaultMuted = true" in source_js
+    assert "🔇 Ton aus" in source_js
+    assert "this.video.muted = true" in player_js
