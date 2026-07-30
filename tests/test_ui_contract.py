@@ -141,3 +141,21 @@ def test_settings_use_one_equal_source_list() -> None:
     assert "function renderSources()" in source_js
     assert "data-role=\"publish-url\"" in source_js
     assert "readonly" in source_js
+
+
+def test_missing_map_shows_stade_download_and_target_path() -> None:
+    map_template = (
+        ROOT / "templates" / "components" / "map.html"
+    ).read_text(encoding="utf-8")
+    map_js = (
+        ROOT / "static" / "js" / "map.js"
+    ).read_text(encoding="utf-8")
+
+    assert "map-empty-state" in map_template
+    assert (
+        "https://nextcloud.lenni-web.de/index.php/s/"
+        "YXpLgCPG5Twm8MP"
+    ) in map_template
+    assert "/opt/open-bos-stream/mapdata/stade.mbtiles" in map_template
+    assert '"/api/map/maps"' in map_js
+    assert "showMissingMap(maps.path)" in map_js

@@ -54,6 +54,35 @@ Der Installer übernimmt automatisch:
 - Installation des systemd-Dienstes
 - Funktionsprüfung
 
+## Offline-Karte Landkreis Stade
+
+Die Kartendaten sind wegen ihrer Größe nicht Bestandteil des Repositorys.
+Für den Landkreis Stade steht eine vorbereitete MBTiles-Datei bereit:
+
+[Karte Landkreis Stade herunterladen](https://nextcloud.lenni-web.de/index.php/s/YXpLgCPG5Twm8MP)
+
+Die heruntergeladene Datei muss auf einer Standardinstallation als
+`stade.mbtiles` in folgendem Pfad liegen:
+
+```text
+/opt/open-bos-stream/mapdata/stade.mbtiles
+```
+
+Beispiel zum Installieren einer bereits auf den Raspberry Pi übertragenen
+Datei:
+
+```bash
+sudo install \
+  -o streampi \
+  -g video \
+  -m 0644 \
+  /pfad/zur/heruntergeladenen-datei.mbtiles \
+  /opt/open-bos-stream/mapdata/stade.mbtiles
+```
+
+Wenn ein abweichender Kartenpfad konfiguriert wurde, zeigt die Kartenansicht
+bei fehlender Datei den tatsächlich verwendeten Zielpfad an.
+
 ---
 
 # Update

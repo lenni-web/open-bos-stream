@@ -21,6 +21,10 @@ class MapService:
             config.path
         )
 
+    @property
+    def map_directory(self) -> Path:
+        return self._map_directory
+
     def validate(self) -> None:
         if not self._map_directory.exists():
             raise RuntimeError(

@@ -7,6 +7,23 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.10.1] - 2026-07-30
+
+### Added
+
+- Die Kartenansicht zeigt bei fehlendem Kartenmaterial einen verständlichen
+  Installationshinweis mit Download-Link für die Karte des Landkreises Stade.
+- Der tatsächlich konfigurierte Zielpfad der MBTiles-Datei wird direkt in der
+  leeren Kartenansicht angezeigt.
+- Die Installationsdokumentation beschreibt Download, Dateiname,
+  Berechtigungen und den Standardpfad
+  `/opt/open-bos-stream/mapdata/stade.mbtiles`.
+
+### Changed
+
+- Neuinstallationen verwenden für Kartendaten konsistent den produktiven
+  Laufzeitpfad `/opt/open-bos-stream/mapdata`.
+
 ## [0.10.0] - 2026-07-30
 
 ### Added

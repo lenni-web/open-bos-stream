@@ -50,6 +50,7 @@ def list_maps() -> dict:
     return {
         "maps": service.list_maps(),
         "default": service.default_map(),
+        "path": str(service.map_directory),
     }
 
 

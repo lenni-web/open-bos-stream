@@ -19,6 +19,32 @@
             <!-- MapLibre -->
             <div id="map"></div>
 
+            <div
+                id="map-empty-state"
+                class="map-empty-state"
+                hidden
+            >
+                <span class="map-empty-icon" aria-hidden="true">◇</span>
+                <h2>Keine Offline-Karte installiert</h2>
+                <p>
+                    Für den Landkreis Stade wird eine vorbereitete
+                    Kartendatei zum Download bereitgestellt.
+                </p>
+                <a
+                    class="bos-button"
+                    href="https://nextcloud.lenni-web.de/index.php/s/YXpLgCPG5Twm8MP"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Karte Landkreis Stade herunterladen
+                </a>
+                <p class="map-empty-path-label">
+                    Die heruntergeladene MBTiles-Datei muss hier als
+                    <code>stade.mbtiles</code> abgelegt werden:
+                </p>
+                <code id="map-empty-path">/opt/open-bos-stream/mapdata/stade.mbtiles</code>
+            </div>
+
             <!-- Werkzeugleiste -->
             <div class="map-toolbar">
 
