@@ -80,6 +80,10 @@ function updateDashboard(data) {
 	    data.services
 	);
 
+    updateMultiSources(
+        data.rtmp_inputs ?? []
+    );
+
 	updateDashboardStream(
 	    data.stream,
 	    data.recording

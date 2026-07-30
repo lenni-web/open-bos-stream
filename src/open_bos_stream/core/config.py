@@ -76,6 +76,29 @@ class ConfigLoader:
                 "transcode",
             )
 
+        # Migration: Der bisherige einzelne RTMP-Eingang wird zum ersten
+        # Mehrquellen-Slot. Eine bewusst gespeicherte leere Liste bleibt leer.
+        if "rtmp_inputs" not in data:
+            data["rtmp_inputs"] = []
+            input_config = data.get("input", {})
+            input_url = input_config.get("url")
+            if input_config.get("type") == "rtmp" and input_url:
+                from urllib.parse import urlparse
+
+                path = urlparse(input_url).path.strip("/")
+                if path:
+                    data["rtmp_inputs"].append({
+                        "id": "quelle-1",
+                        "name": "Quelle 1",
+                        "path": path,
+                        "viewer_path": (
+                            data.get("stream", {}).get("name")
+                            if input_config.get("mode") == "copy_repair"
+                            else None
+                        ),
+                        "enabled": True,
+                    })
+
         return AppConfig(**data)
 
     def save(

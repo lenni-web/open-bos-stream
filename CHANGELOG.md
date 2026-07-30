@@ -7,6 +7,29 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.9.0] - 2026-07-30
+
+### Added
+
+- Konfigurierbare Mehrquellenverwaltung für bis zu acht RTMP-Eingänge.
+- Individuelle Namen, IDs, Publisher-Pfade und optionale separate
+  Wiedergabepfade pro Eingang.
+- Gemeinsame MediaMTX-Statusprüfung aller Eingänge mit Online-, Codec-,
+  Auflösungs- und Viewerstatus.
+- Dynamisches Dashboard-Raster mit einer unabhängigen WebRTC-Playerinstanz
+  pro tatsächlich verfügbarem Stream.
+- Automatische Migration des bisherigen einzelnen RTMP-Eingangs in den
+  ersten Mehrquellen-Slot.
+
+### Changed
+
+- Die bisherige Einzelstreamanzeige wird bei konfigurierten RTMP-Slots durch
+  das Mehrquellenraster ersetzt.
+- Offline-Eingänge öffnen keine Browser-Medienverbindung und zeigen nur ihre
+  individuelle Empfangsadresse.
+- Aufnahmefunktionen werden nicht in den neuen Mehrquellen-Workflow
+  übernommen.
+
 ## [0.8.9] - 2026-07-30
 
 ### Fixed

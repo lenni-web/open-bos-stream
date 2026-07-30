@@ -7,7 +7,10 @@ from open_bos_stream.core.config_apply import (
     ConfigApplyError,
     ConfigApplyService,
 )
-from open_bos_stream.core.models import AppConfig
+from open_bos_stream.core.models import (
+    AppConfig,
+    RTMPInputConfig,
+)
 
 
 class FakeLoader:
@@ -172,3 +175,35 @@ def test_configuration_test_does_not_persist_or_restart(
     assert loader.saved == []
     assert stream.restarts == 0
     assert preflight.validated == [candidate]
+
+
+def test_rtmp_input_slots_apply_without_stream_restart() -> None:
+    runtime = ConfigLoader().load()
+    candidate = runtime.model_copy(deep=True)
+    candidate.rtmp_inputs.append(
+        RTMPInputConfig(
+            id="quelle-2",
+            name="Quelle 2",
+            path="live/quelle-2",
+            enabled=True,
+        )
+    )
+    candidate = AppConfig.model_validate(
+        candidate.model_dump()
+    )
+    loader = FakeLoader()
+    stream = FakeStream(runtime)
+    service = ConfigApplyService(
+        loader,
+        runtime,
+        stream,
+        FakeReloadable(),
+        FakePreflight(),
+    )
+
+    message = service.apply(candidate)
+
+    assert stream.restarts == 0
+    assert len(runtime.rtmp_inputs) == 2
+    assert loader.last_known_good is not None
+    assert "ohne Streamer-Neustart" in message

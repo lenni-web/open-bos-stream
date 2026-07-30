@@ -150,6 +150,23 @@ In der eigenständigen minimalen labwc-Sitzung wird kein Bildschirmschoner
 oder Desktop-Power-Manager gestartet. Bei aktivierter Option bleibt die
 Anzeige daher ohne zusätzliche, privilegierte Inhibit-Sperre aktiv.
 
+## Mehrere RTMP-Eingänge
+
+In den Einstellungen können bis zu acht benannte RTMP-Eingänge angelegt
+werden. Jeder Eingang erhält einen eindeutigen MediaMTX-Pfad und damit eine
+eigene Publisher-Adresse:
+
+```text
+rtmp://<StreamPi-IP>:1935/live/quelle-1
+rtmp://<StreamPi-IP>:1935/live/quelle-2
+```
+
+MediaMTX kann die Quellen gleichzeitig empfangen. Das Dashboard prüft alle
+konfigurierten Pfade gemeinsam und öffnet für jeden tatsächlich verfügbaren
+Stream eine unabhängige WebRTC-Kachel. Für einen vorgeschalteten
+Zeitstempel-Reparaturpfad kann zusätzlich ein abweichender Wiedergabepfad
+eingetragen werden.
+
 ## Webzugriff über Port 80
 
 Die Oberfläche bleibt immer unter `http://<geraet>:8000` erreichbar.

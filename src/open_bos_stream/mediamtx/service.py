@@ -22,22 +22,21 @@ class MediaMTXService:
     # MediaMTX Status
     # ---------------------------------------------------------
 
-    def status(self, path: str) -> MediaMTXStatus:
-        """Status eines Streams zurückgeben."""
-
-        if not self._client.online():
-
+    @staticmethod
+    def _status_from_stream(
+        path: str,
+        stream: dict | None,
+        online: bool,
+    ) -> MediaMTXStatus:
+        if not online:
             return MediaMTXStatus(
                 online=False,
                 publisher=False,
-                path=None,
+                path=path,
                 readers=0,
             )
 
-        stream = self._client.path(path)
-
         if stream is None:
-
             return MediaMTXStatus(
                 online=True,
                 publisher=False,
@@ -80,13 +79,9 @@ class MediaMTXService:
             )
 
         return MediaMTXStatus(
-
             online=True,
-
             publisher=True,
-
             path=path,
-
             readers=len(
                 stream.get(
                     "readers",
@@ -122,8 +117,35 @@ class MediaMTXService:
             online_time=stream.get(
                 "onlineTime"
             ),
-
         )
+
+    def statuses(
+        self,
+        paths: list[str],
+    ) -> dict[str, MediaMTXStatus]:
+        """Mehrere Pfade mit nur einem MediaMTX-Listenabruf prüfen."""
+
+        unique_paths = list(dict.fromkeys(paths))
+        online = self._client.online()
+        streams = {
+            item.get("name"): item
+            for item in self._client.paths()
+            if item.get("name")
+        } if online else {}
+
+        return {
+            path: self._status_from_stream(
+                path,
+                streams.get(path),
+                online,
+            )
+            for path in unique_paths
+        }
+
+    def status(self, path: str) -> MediaMTXStatus:
+        """Status eines Streams zurückgeben."""
+
+        return self.statuses([path])[path]
 
     # ---------------------------------------------------------
     # Stream Information

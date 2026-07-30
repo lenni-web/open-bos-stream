@@ -1,8 +1,10 @@
 from pydantic import (
     BaseModel,
     Field,
+    field_validator,
     model_validator,
 )
+import re
 from typing import Literal
 from open_bos_stream.display.config import DisplayConfig
 from open_bos_stream.web_access.config import WebAccessConfig
@@ -55,6 +57,59 @@ class SourceConfig(BaseModel):
     class Config:
 
         extra = "allow"
+
+
+class RTMPInputConfig(BaseModel):
+    """Ein individuell adressierbarer RTMP-Empfangs-Slot."""
+
+    id: str
+    name: str
+    path: str
+    viewer_path: str | None = None
+    enabled: bool = True
+
+    @field_validator("id")
+    @classmethod
+    def validate_id(cls, value: str) -> str:
+        value = value.strip()
+        if not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,31}", value):
+            raise ValueError(
+                "ID muss aus Kleinbuchstaben, Zahlen, '-' oder '_' bestehen."
+            )
+        return value
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Quellenname darf nicht leer sein.")
+        return value
+
+    @field_validator("path")
+    @classmethod
+    def validate_path(cls, value: str) -> str:
+        value = value.strip().strip("/")
+        if not value or not re.fullmatch(
+            r"[A-Za-z0-9][A-Za-z0-9_./-]{0,127}",
+            value,
+        ):
+            raise ValueError(
+                "RTMP-Pfad enthält ungültige Zeichen."
+            )
+        if ".." in value.split("/"):
+            raise ValueError("RTMP-Pfad darf '..' nicht enthalten.")
+        return value
+
+    @field_validator("viewer_path")
+    @classmethod
+    def validate_viewer_path(
+        cls,
+        value: str | None,
+    ) -> str | None:
+        if value is None or not value.strip():
+            return None
+        return cls.validate_path(value)
 
 class OverlayConfig(BaseModel):
     source: str = "none"
@@ -171,6 +226,11 @@ class AppConfig(BaseModel):
             default_factory=list,
         )
 
+    rtmp_inputs: list[RTMPInputConfig] = Field(
+        default_factory=list,
+        max_length=8,
+    )
+
     encoder: EncoderConfig
 
     stream: StreamConfig
@@ -264,6 +324,24 @@ class AppConfig(BaseModel):
                 f"rtsp://127.0.0.1:8554/{output_name}"
             )
 
+        return self
+
+    @model_validator(mode="after")
+    def validate_rtmp_inputs(self) -> "AppConfig":
+        ids = [item.id for item in self.rtmp_inputs]
+        paths = [item.path for item in self.rtmp_inputs]
+        if len(ids) != len(set(ids)):
+            raise ValueError("RTMP-Eingangs-IDs müssen eindeutig sein.")
+        if len(paths) != len(set(paths)):
+            raise ValueError("RTMP-Eingangspfade müssen eindeutig sein.")
+        viewer_paths = [
+            item.viewer_path or item.path
+            for item in self.rtmp_inputs
+        ]
+        if len(viewer_paths) != len(set(viewer_paths)):
+            raise ValueError(
+                "RTMP-Wiedergabepfade müssen eindeutig sein."
+            )
         return self
 
     @property

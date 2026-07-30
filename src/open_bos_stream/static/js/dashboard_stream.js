@@ -11,6 +11,12 @@ function updateDashboardStream(
         return;
     }
 
+    if (window.multiSourceActive) {
+        if (window.livePlayer.currentStream !== null) {
+            window.livePlayer.stop();
+        }
+    }
+
     const streamState =
 
         streamLabel(stream);
@@ -84,6 +90,7 @@ const videoContainer =
     );
 
 if (
+    !window.multiSourceActive &&
     video &&
     placeholder &&
     videoContainer
