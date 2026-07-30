@@ -556,7 +556,7 @@ function formatRecordingDuration(
 // LivePlayer Status
 // ==========================================================
 
-window.livePlayer.onStateChanged((event) => {
+window.livePlayer?.onStateChanged((event) => {
 
     const playerState =
         typeof event === "string"

@@ -2,6 +2,65 @@
 // Stream Events
 // ==========================================================
 
+function checkSourceEvents(sources = []) {
+    const currentIds = new Set();
+
+    for (const source of sources) {
+        currentIds.add(source.id);
+        const previous =
+            lastDashboardState.sources[source.id];
+
+        if (previous) {
+            if (!previous.ready && source.ready) {
+                addEvent(
+                    "success",
+                    `🟢 ${source.name}: Signal verfügbar`
+                );
+            }
+            if (previous.ready && !source.ready) {
+                addEvent(
+                    "warning",
+                    `🔴 ${source.name}: Signal verloren`
+                );
+            }
+            if (source.viewers > previous.viewers) {
+                addEvent(
+                    "info",
+                    `👤 ${source.name}: Viewer verbunden ` +
+                    `(${source.viewers})`
+                );
+            }
+            if (source.viewers < previous.viewers) {
+                addEvent(
+                    "info",
+                    `👤 ${source.name}: Viewer getrennt ` +
+                    `(${source.viewers})`
+                );
+            }
+        }
+
+        lastDashboardState.sources[source.id] = {
+            name: source.name,
+            ready: Boolean(source.ready),
+            viewers: Number(source.viewers ?? 0),
+        };
+    }
+
+    for (
+        const [sourceId, previous]
+        of Object.entries(lastDashboardState.sources)
+    ) {
+        if (currentIds.has(sourceId)) {
+            continue;
+        }
+        addEvent(
+            "info",
+            `⚪ ${previous.name}: Quelle deaktiviert oder entfernt`
+        );
+        delete lastDashboardState.sources[sourceId];
+    }
+}
+
 function checkStreamEvents(
     stream
 ) {

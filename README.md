@@ -190,6 +190,9 @@ ID sowie ein Verarbeitungsprofil:
 - `Copy mit Zeitstempel-Korrektur`: Originalvideo mit reparierten Zeitstempeln
 - `Transcodieren`: den pro Quelle gewählten Encoder verwenden
 
+Die Quellen lassen sich mit den Pfeilschaltflächen umsortieren. Diese
+Reihenfolge wird gespeichert und ebenso im Livebildraster verwendet.
+
 Bei RTMP wird der Empfangspfad automatisch aus der ID erzeugt und kann nicht
 separat verändert werden:
 

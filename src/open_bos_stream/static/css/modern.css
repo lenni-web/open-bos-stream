@@ -427,6 +427,12 @@ body {
     margin-bottom: 12px;
 }
 
+.source-order-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .settings-section-header {
     display: flex;
     gap: 14px;

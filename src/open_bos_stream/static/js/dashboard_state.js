@@ -17,4 +17,6 @@ let lastDashboardState = {
 
     streamOutputs: {},
 
+    sources: Object.create(null),
+
 };
