@@ -197,3 +197,13 @@ def test_multi_source_audio_starts_muted() -> None:
     assert "video.defaultMuted = true" in source_js
     assert "🔇 Ton aus" in source_js
     assert "this.video.muted = true" in player_js
+
+
+def test_each_source_player_has_fullscreen_control() -> None:
+    source_js = (
+        ROOT / "static" / "js" / "multi_source.js"
+    ).read_text(encoding="utf-8")
+
+    assert "multi-source-fullscreen" in source_js
+    assert "card.requestFullscreen()" in source_js
+    assert "video.webkitEnterFullscreen()" in source_js

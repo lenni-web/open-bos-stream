@@ -73,6 +73,24 @@
     margin-left: auto;
 }
 
+.multi-source-card:fullscreen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 0;
+    border-radius: 0;
+    background: #000;
+}
+
+.multi-source-card:fullscreen .multi-source-frame {
+    width: 100%;
+    max-height: calc(100vh - 110px);
+}
+
+.multi-source-card:fullscreen .multi-source-video {
+    max-height: calc(100vh - 110px);
+}
+
 .multi-source-state {
     color: var(--bos-muted);
     font-size: 0.78rem;

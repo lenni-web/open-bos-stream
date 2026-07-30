@@ -1,5 +1,28 @@
 const multiSourcePlayers = new Map();
 
+async function openSourceFullscreen(card, video) {
+    try {
+        if (typeof card.requestFullscreen === "function") {
+            await card.requestFullscreen();
+            return;
+        }
+        if (
+            !video.hidden &&
+            typeof video.webkitEnterFullscreen === "function"
+        ) {
+            video.webkitEnterFullscreen();
+            return;
+        }
+        if (typeof video.requestFullscreen === "function") {
+            await video.requestFullscreen();
+            return;
+        }
+        throw new Error("Vollbild wird von diesem Browser nicht unterstützt.");
+    } catch (error) {
+        console.error("Quellen-Vollbild:", error);
+    }
+}
+
 function multiSourceCard(input) {
     const card = document.createElement("article");
     card.className = "multi-source-card";
@@ -33,6 +56,13 @@ function multiSourceCard(input) {
                 aria-pressed="false">
                 🔇 Ton aus
             </button>
+            <button
+                class="multi-source-fullscreen bos-button bos-button-small"
+                type="button"
+                title="Quelle im Vollbild anzeigen"
+                aria-label="Quelle im Vollbild anzeigen">
+                ⛶ Vollbild
+            </button>
         </footer>
     `;
     const video = card.querySelector("video");
@@ -51,6 +81,12 @@ function multiSourceCard(input) {
             String(!video.muted)
         );
     });
+    card.querySelector(
+        ".multi-source-fullscreen"
+    ).addEventListener(
+        "click",
+        () => openSourceFullscreen(card, video)
+    );
     return card;
 }
 
