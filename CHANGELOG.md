@@ -7,6 +7,14 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.10.4] - 2026-07-30
+
+### Added
+
+- Jede Quellenkachel besitzt einen eigenen Vollbild-Schalter.
+- Der Vollbildmodus nutzt die native Element-API und auf Safari/iPad den
+  dort verfügbaren Video-Vollbildmodus als Rückfall.
+
 ## [0.10.3] - 2026-07-30
 
 ### Changed
