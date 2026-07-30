@@ -66,6 +66,28 @@ def test_server_mediamtx_authenticates_rtmp_publishers() -> None:
     assert "publish" not in config["authHTTPExclude"]
 
 
+def test_local_mediamtx_authenticates_rtmp_publishers() -> None:
+    config = yaml.safe_load(
+        read("config/mediamtx.local.yml")
+    )
+
+    assert config["authMethod"] == "http"
+    assert config["authHTTPAddress"] == (
+        "http://127.0.0.1:8000/internal/mediamtx/auth"
+    )
+    assert "apiAddress" not in config
+    assert "rtspAddress" not in config
+    assert "publish" not in config["authHTTPExclude"]
+
+
+def test_installer_manages_mediamtx_in_both_profiles() -> None:
+    installer = read("scripts/install-service.sh")
+
+    assert 'mediamtx.${PROFILE}.yml' in installer
+    assert "sudo systemctl enable mediamtx.service" in installer
+    assert "sudo systemctl restart mediamtx.service" in installer
+
+
 def test_caddy_routes_application_whep_and_hls() -> None:
     caddy = read("scripts/Caddyfile.server")
 

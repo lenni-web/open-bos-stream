@@ -7,6 +7,21 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [Unreleased]
+
+### Changed
+
+- Der pfadgebundene RTMP-Publisher-Token gilt nun auch im lokalen
+  Raspberry-Pi-Profil.
+- Der Installer verwaltet und prüft die MediaMTX-Konfiguration in beiden
+  Installationsprofilen.
+- Publisher-URL und Token sind auch im lokalen Profil standardmäßig verdeckt.
+
+### Security
+
+- Externe RTMP-Publisher müssen unabhängig vom Installationsprofil die
+  passende Kombination aus Quellen-ID und Token verwenden.
+
 ## [0.10.9] - 2026-07-30
 
 ### Added

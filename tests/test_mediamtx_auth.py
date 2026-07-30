@@ -10,7 +10,6 @@ from starlette.requests import Request
 
 from open_bos_stream.api import mediamtx_auth
 from open_bos_stream.api.mediamtx_auth import MediaMTXAuthRequest
-from open_bos_stream.core import config as config_module
 from open_bos_stream.core.config import ConfigLoader
 from open_bos_stream.core.models import SourceConfig
 
@@ -43,12 +42,7 @@ def local_request() -> Request:
     )
 
 
-def configure_server(monkeypatch, token: str) -> None:
-    monkeypatch.setattr(
-        mediamtx_auth,
-        "installation_profile",
-        lambda: "server",
-    )
+def configure_auth(monkeypatch, token: str) -> None:
     source = SourceConfig(
         id="quelle-1",
         name="Quelle 1",
@@ -72,7 +66,7 @@ def test_matching_source_token_allows_external_rtmp_publisher(
     monkeypatch,
 ) -> None:
     token = "a" * 32
-    configure_server(monkeypatch, token)
+    configure_auth(monkeypatch, token)
 
     assert authorize(auth_request(token=token)) == {"authorized": True}
 
@@ -90,7 +84,7 @@ def test_invalid_external_publisher_is_rejected(
     payload: MediaMTXAuthRequest,
     status_code: int,
 ) -> None:
-    configure_server(monkeypatch, "a" * 32)
+    configure_auth(monkeypatch, "a" * 32)
 
     with pytest.raises(HTTPException) as error:
         authorize(payload)
@@ -99,7 +93,7 @@ def test_invalid_external_publisher_is_rejected(
 
 
 def test_internal_relay_is_allowed_without_token(monkeypatch) -> None:
-    configure_server(monkeypatch, "a" * 32)
+    configure_auth(monkeypatch, "a" * 32)
 
     assert authorize(
         auth_request(token="", protocol="rtsp", ip="127.0.0.1")
@@ -115,10 +109,7 @@ def test_rtmp_source_gets_random_publisher_token() -> None:
     assert first.publish_token != second.publish_token
 
 
-def test_server_migration_persists_missing_publisher_token(
-    monkeypatch,
-    tmp_path,
-) -> None:
+def test_migration_persists_missing_publisher_token(tmp_path) -> None:
     data = ConfigLoader().load().model_dump()
     data["sources"] = [
         {
@@ -132,12 +123,6 @@ def test_server_migration_persists_missing_publisher_token(
         yaml.safe_dump(data, sort_keys=False),
         encoding="utf-8",
     )
-    monkeypatch.setattr(
-        config_module,
-        "installation_profile",
-        lambda: "server",
-    )
-
     first = ConfigLoader(str(config_file)).load()
     second = ConfigLoader(str(config_file)).load()
 
