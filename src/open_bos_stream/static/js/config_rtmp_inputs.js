@@ -27,6 +27,27 @@ function sourceProfileOptions(selected) {
     `).join("");
 }
 
+function generatePublisherToken() {
+    const bytes = new Uint8Array(32);
+    window.crypto.getRandomValues(bytes);
+    return Array.from(
+        bytes,
+        value => value.toString(16).padStart(2, "0")
+    ).join("");
+}
+
+function sourcePublishUrl(source) {
+    const host = window.location.hostname || "<Server-IP>";
+    const base = `rtmp://${host}:1935/${source.id}`;
+    if (
+        window.installationProfile === "server"
+        && source.publish_token
+    ) {
+        return `${base}?token=${encodeURIComponent(source.publish_token)}`;
+    }
+    return base;
+}
+
 function sourceEncoderOptions(source, selected) {
     const encoders = (
         sourceEncodersByType.get(source.type) ?? availableEncoders
@@ -89,22 +110,54 @@ function sourceTranscodingFields(source) {
 
 function sourceSpecificFields(source) {
     if (source.type === "rtmp") {
-        const host = window.location.hostname || "<Server-IP>";
-        const publishUrl =
-            `rtmp://${host}:1935/${source.id}`;
+        const protectedInput = window.installationProfile === "server";
+        const publishUrl = sourcePublishUrl(source);
         return `
             <div class="form-field form-field-wide">
                 <label>RTMP-Empfangsadresse</label>
                 <input
                     class="bos-input"
                     data-role="publish-url"
+                    type="${protectedInput ? "password" : "text"}"
                     value="${escapeHTML(publishUrl)}"
                     readonly>
+                ${protectedInput ? `
+                <button
+                    class="bos-button bos-button-small"
+                    type="button"
+                    data-role="toggle-publish-url"
+                    aria-pressed="false">
+                    Adresse anzeigen
+                </button>
+                ` : ""}
                 <small>
                     Der Empfangspfad entspricht automatisch der ID.
-                    RTMP ist derzeit nicht authentifiziert oder verschlüsselt.
+                    ${protectedInput
+                        ? "Der Token schützt diesen Pfad vor fremden Publishern. RTMP selbst bleibt unverschlüsselt."
+                        : "Im lokalen Profil ist RTMP nicht authentifiziert oder verschlüsselt."}
                 </small>
             </div>
+            ${protectedInput ? `
+            <div class="form-field form-field-wide">
+                <label>Publisher-Token</label>
+                <input
+                    class="bos-input"
+                    data-field="publish_token"
+                    type="password"
+                    autocomplete="new-password"
+                    minlength="24"
+                    maxlength="128"
+                    value="${escapeHTML(source.publish_token ?? "")}">
+                <button
+                    class="bos-button bos-button-small"
+                    type="button"
+                    data-role="toggle-publish-token"
+                    aria-pressed="false">
+                    Token anzeigen
+                </button>
+                <small>Nur an vertrauenswürdige Publisher weitergeben.</small>
+            </div>
+            ` : ""}
         `;
     }
 
@@ -317,11 +370,57 @@ function renderSources() {
         card.querySelector('[data-field="id"]')?.addEventListener(
             "input",
             event => {
-                const id = event.target.value;
-                const host = window.location.hostname || "<Server-IP>";
-                card.querySelector(
+                currentConfig.sources[index].id = event.target.value;
+                const publishUrl = card.querySelector(
                     '[data-role="publish-url"]'
-                ).value = `rtmp://${host}:1935/${id}`;
+                );
+                if (publishUrl) {
+                    publishUrl.value = sourcePublishUrl({
+                        ...currentConfig.sources[index],
+                        publish_token: card.querySelector(
+                            '[data-field="publish_token"]'
+                        )?.value,
+                    });
+                }
+            }
+        );
+        card.querySelector('[data-field="publish_token"]')?.addEventListener(
+            "input",
+            event => {
+                currentConfig.sources[index].publish_token =
+                    event.target.value;
+                card.querySelector('[data-role="publish-url"]').value =
+                    sourcePublishUrl(currentConfig.sources[index]);
+            }
+        );
+        card.querySelector('[data-role="toggle-publish-url"]')?.addEventListener(
+            "click",
+            event => {
+                const input = card.querySelector('[data-role="publish-url"]');
+                const visible = input.type === "text";
+                input.type = visible ? "password" : "text";
+                event.currentTarget.textContent = visible
+                    ? "Adresse anzeigen"
+                    : "Adresse ausblenden";
+                event.currentTarget.setAttribute(
+                    "aria-pressed",
+                    String(!visible)
+                );
+            }
+        );
+        card.querySelector('[data-role="toggle-publish-token"]')?.addEventListener(
+            "click",
+            event => {
+                const input = card.querySelector('[data-field="publish_token"]');
+                const visible = input.type === "text";
+                input.type = visible ? "password" : "text";
+                event.currentTarget.textContent = visible
+                    ? "Token anzeigen"
+                    : "Token ausblenden";
+                event.currentTarget.setAttribute(
+                    "aria-pressed",
+                    String(!visible)
+                );
             }
         );
         card.querySelector('[data-role="toggle-source-url"]')?.addEventListener(
@@ -382,6 +481,7 @@ function saveSources() {
             preset: value("preset"),
             tune: value("tune"),
             audio_mode: value("audio_mode", "none"),
+            publish_token: value("publish_token"),
         };
     });
 }
@@ -418,6 +518,7 @@ function addSource() {
         preset: null,
         tune: null,
         audio_mode: "none",
+        publish_token: generatePublisherToken(),
     });
     renderSources();
     const cards = document.querySelectorAll(

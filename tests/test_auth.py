@@ -129,4 +129,7 @@ def test_superadmin_only_routes_cover_sensitive_features() -> None:
     assert "/web-access" in SUPERADMIN_PREFIXES
     assert "/stream-output" in SUPERADMIN_PREFIXES
     assert "/auth/users" in SUPERADMIN_PREFIXES
+    assert "/media" in SUPERADMIN_PREFIXES
+    assert "/recording" in SUPERADMIN_PREFIXES
+    assert "/snapshot" in SUPERADMIN_PREFIXES
     assert "/config/restore" in SUPERADMIN_PATHS

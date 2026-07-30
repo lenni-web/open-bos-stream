@@ -14,8 +14,8 @@ def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_release_version_is_0_10_8() -> None:
-    assert VERSION == "0.10.8"
+def test_release_version_is_0_10_9() -> None:
+    assert VERSION == "0.10.9"
 
 
 def test_server_profile_can_be_selected_from_environment(
@@ -52,14 +52,18 @@ def test_server_access_settings_are_read(
     }
 
 
-def test_server_mediamtx_keeps_rtmp_unprotected() -> None:
+def test_server_mediamtx_authenticates_rtmp_publishers() -> None:
     config = yaml.safe_load(
         read("config/mediamtx.server.yml")
     )
 
     assert config["apiAddress"] == "127.0.0.1:9997"
     assert config["rtspAddress"] == "127.0.0.1:8554"
-    assert "authMethod" not in config
+    assert config["authMethod"] == "http"
+    assert config["authHTTPAddress"] == (
+        "http://127.0.0.1:8000/internal/mediamtx/auth"
+    )
+    assert "publish" not in config["authHTTPExclude"]
 
 
 def test_caddy_routes_application_whep_and_hls() -> None:
@@ -87,5 +91,5 @@ def test_firewall_preserves_ssh_and_warns_about_rtmp() -> None:
 
     assert 'sudo sshd -T' in script
     assert 'sudo ufw allow "${ssh_port}/tcp"' in script
-    assert 'sudo ufw allow 1935/tcp comment "RTMP ungeschuetzt"' in script
-    assert "RTMP auf TCP 1935 bleibt dabei unverschlüsselt" in script
+    assert 'sudo ufw allow 1935/tcp comment "RTMP Publisher Token"' in script
+    assert "Publisher benötigen aber einen Token" in script

@@ -164,19 +164,26 @@ Ohne HTTPS werden statt 80/443 die direkten Ports 8000, 8888 und 8889
 freigegeben. Eine zusätzliche Firewall des vServer-Anbieters kann der
 Installer nicht verändern und muss dort entsprechend konfiguriert werden.
 
-### Derzeit ungeschützter RTMP-Eingang
+### RTMP-Publisher-Token im Serverprofil
 
-RTMP bleibt in Version 0.10.8 bewusst ohne Anmeldung und ohne
-Transportverschlüsselung:
+Im Serverprofil erhält jede RTMP-Quelle automatisch einen eigenen,
+zufälligen Publisher-Token. Die vollständige Empfangsadresse ist in den
+Einstellungen zunächst verdeckt und kann bewusst eingeblendet werden:
 
 ```text
-rtmp://stream.example.de:1935/quelle-1
+rtmp://server.example:1935/quelle-1?token=GEHEIMNIS
 ```
 
-Wer Port 1935 und die Quellen-ID kennt, kann auf diesen Pfad publizieren.
-Port 1935 sollte deshalb möglichst über die Anbieter-Firewall auf bekannte
-Absender-IP-Adressen beschränkt werden. VPN oder RTMPS sind als spätere
-Härtung vorgesehen.
+MediaMTX fragt die Anwendung bei jeder externen Veröffentlichung ab. Dabei
+müssen Quellen-ID und Token zusammenpassen; ein Token einer anderen Quelle
+genügt nicht. Bestehende RTMP-Quellen erhalten beim ersten Laden nach dem
+Update automatisch einen persistenten Token.
+
+Der Token verhindert unbefugtes Publizieren, verschlüsselt den Transport aber
+nicht. Port 1935 sollte deshalb möglichst über die Anbieter-Firewall auf
+bekannte Absender-IP-Adressen beschränkt werden. VPN oder RTMPS sind als
+spätere Härtung vorgesehen. Im lokalen Installationsprofil bleibt der
+RTMP-Eingang für den Betrieb im geschützten Netz ohne Token erreichbar.
 
 ## Offline-Karte Landkreis Stade
 
@@ -324,11 +331,12 @@ Die Quellen lassen sich mit den Pfeilschaltflächen umsortieren. Diese
 Reihenfolge wird gespeichert und ebenso im Livebildraster verwendet.
 
 Bei RTMP wird der Empfangspfad automatisch aus der ID erzeugt und kann nicht
-separat verändert werden:
+separat verändert werden. Im Serverprofil hängt die Oberfläche den
+individuellen, standardmäßig verdeckten Publisher-Token an:
 
 ```text
-rtmp://<StreamPi-IP>:1935/quelle-1
-rtmp://<StreamPi-IP>:1935/quelle-2
+rtmp://<Server-IP>:1935/quelle-1?token=<TOKEN-DER-QUELLE>
+rtmp://<Server-IP>:1935/quelle-2?token=<TOKEN-DER-QUELLE>
 ```
 
 IDs dürfen ausschließlich Kleinbuchstaben, Zahlen, Bindestriche und
@@ -351,10 +359,10 @@ auf, ein lokales Superadmin-Konto anzulegen. Benutzer und Passwort-Hashes
 werden ausschließlich in `config/users.yaml` gespeichert; die Datei und der
 lokale Sitzungsschlüssel werden nicht in Git übernommen.
 
-- `viewer`: Übersicht, Streams, Medien, Karte und Systemstatus ansehen
+- `viewer`: Übersicht, Streams, Karte und Systemstatus ansehen
 - `admin`: zusätzlich Quellen anlegen, bearbeiten, sortieren und entfernen
-- `superadmin`: zusätzlich Benutzer, Streaming-Ausgänge, lokales Display und
-  Webzugriff verwalten
+- `superadmin`: zusätzlich Medien, Benutzer, Streaming-Ausgänge, lokales
+  Display und Webzugriff verwalten
 
 Die Rechte werden sowohl in der Oberfläche als auch an den API-Endpunkten
 geprüft. Ein Admin kann geschützte Superadmin-Felder daher nicht über einen

@@ -45,6 +45,9 @@ from open_bos_stream.api.media import (
 from open_bos_stream.api.stream_output import (
     router as stream_output_router,
 )
+from open_bos_stream.api.mediamtx_auth import (
+    router as mediamtx_auth_router,
+)
 from open_bos_stream.logging.logger import setup_logging
 import logging
 
@@ -113,3 +116,4 @@ app.include_router(video_devices_router)
 app.include_router(display_router)
 app.include_router(web_access_router)
 app.include_router(map_router)
+app.include_router(mediamtx_auth_router)
