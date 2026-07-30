@@ -7,6 +7,26 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.8.8] - 2026-07-30
+
+### Changed
+
+- Der WebRTC-Player verwendet einen moderaten browserseitigen
+  Wiedergabepuffer, um schwankende RTMP-Zeitstempel zu glätten.
+- Kurzzeitige Statusaussetzer bis sechs Sekunden beenden die laufende
+  Browserwiedergabe nicht mehr.
+- „Lokales Display“ steht wegen seines erhöhten Ressourcenbedarfs am
+  Ende der Einstellungen.
+
+### Fixed
+
+- Die reine Streamanzeige verbindet sich nach einem verzögerten
+  Streamausfall wieder zuverlässig.
+- Der lokale Display-Dienst startet seine eigene labwc-Sitzung auch
+  auf Systemen, die nur bis zur Konsole booten.
+- Chromium wird nicht mehr durch eine unzulässige systemweite
+  Inhibit-Anforderung am Start gehindert.
+
 ## [0.8.7] - 2026-07-29
 
 ### Added

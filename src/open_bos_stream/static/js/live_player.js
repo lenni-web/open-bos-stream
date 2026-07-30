@@ -7,6 +7,7 @@ class LivePlayer {
 		this.currentStream = null;
 		this.hls = null;
 		this.webrtc = null;
+        this.unavailableTimer = null;
 		this.state = "idle";
 		this.stateListeners = [];
         this.transportDiagnostics = {
@@ -136,6 +137,8 @@ class LivePlayer {
 	}
 	
 	play(streamName, protocol = "hls") {
+
+        this.cancelUnavailableStop();
 
 		if (
 		    this.mode === protocol &&
@@ -297,6 +300,31 @@ class LivePlayer {
 
 	        onTrack: (evt) => {
 
+                const receiver = evt.receiver;
+                if (receiver) {
+                    try {
+                        if (
+                            "jitterBufferTarget" in receiver
+                        ) {
+                            // Millisekunden; glättet schwankende
+                            // RTMP-Zeitstempel vor der Wiedergabe.
+                            receiver.jitterBufferTarget = 650;
+                        }
+                        if (
+                            "playoutDelayHint" in receiver
+                        ) {
+                            // Sekunden; Rückfall für Browser ohne
+                            // jitterBufferTarget-Unterstützung.
+                            receiver.playoutDelayHint = 0.65;
+                        }
+                    } catch (error) {
+                        console.debug(
+                            "WebRTC-Puffer konnte nicht gesetzt werden:",
+                            error
+                        );
+                    }
+                }
+
 	            this.video.srcObject =
 	                evt.streams[0];
 
@@ -370,10 +398,42 @@ class LivePlayer {
 
     diagnostics() {
         return {...this.transportDiagnostics};
+	}
+
+    cancelUnavailableStop() {
+        if (this.unavailableTimer !== null) {
+            window.clearTimeout(
+                this.unavailableTimer
+            );
+            this.unavailableTimer = null;
+        }
+    }
+
+    deferUnavailableStop(delayMs = 6000) {
+        if (
+            this.mode === null ||
+            this.currentStream === null
+        ) {
+            return false;
+        }
+
+        if (this.unavailableTimer === null) {
+            this.unavailableTimer =
+                window.setTimeout(
+                    () => {
+                        this.unavailableTimer = null;
+                        this.stop();
+                    },
+                    delayMs
+                );
+        }
+
+        return true;
     }
 
 	reset() {
 
+        this.cancelUnavailableStop();
 		this.resetting = true;
 	    if (this.hls) {
 	        this.hls.destroy();

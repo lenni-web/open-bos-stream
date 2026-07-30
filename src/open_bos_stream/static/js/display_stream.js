@@ -29,7 +29,11 @@ async function refreshDisplayStream() {
         if (stream.ready) {
             message.classList.add("hidden");
 
-            if (displayedStream !== stream.name) {
+            if (
+                displayedStream !== stream.name ||
+                window.livePlayer.currentStream !==
+                    stream.name
+            ) {
                 displayedStream = stream.name;
                 window.livePlayer.play(
                     stream.name,
@@ -39,19 +43,29 @@ async function refreshDisplayStream() {
             return;
         }
 
-        displayedStream = null;
-        window.livePlayer.reset();
-        message.classList.remove("hidden");
-        state.textContent =
-            stream.message ??
-            "Warte auf Stream …";
+        const holdCurrentPicture =
+            window.livePlayer.deferUnavailableStop(
+                6000
+            );
+        if (!holdCurrentPicture) {
+            displayedStream = null;
+            message.classList.remove("hidden");
+            state.textContent =
+                stream.message ??
+                "Warte auf Stream …";
+        }
 
     } catch (error) {
-        displayedStream = null;
-        window.livePlayer.reset();
-        message.classList.remove("hidden");
-        state.textContent =
-            "Verbindung zum StreamPi wird hergestellt …";
+        const holdCurrentPicture =
+            window.livePlayer.deferUnavailableStop(
+                6000
+            );
+        if (!holdCurrentPicture) {
+            displayedStream = null;
+            message.classList.remove("hidden");
+            state.textContent =
+                "Verbindung zum StreamPi wird hergestellt …";
+        }
     }
 }
 
