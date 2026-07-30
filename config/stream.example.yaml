@@ -1,0 +1,50 @@
+capture:
+  device: /dev/video0
+  width: 1280
+  height: 720
+  fps: 30
+  format: mjpeg
+input:
+  type: rtmp
+  mode: copy
+  device: /dev/video0
+  url: rtmp://127.0.0.1:1935/live/drohne
+  width: 1280
+  height: 720
+  fps: 30
+  format: mjpeg
+sources: []
+rtmp_inputs:
+  - id: quelle-1
+    name: Quelle 1
+    path: live/drohne
+    viewer_path: null
+    enabled: true
+encoder:
+  codec: copy
+  bitrate: 8M
+  pixel_format: yuv420p
+  gop: 30
+  preset: ultrafast
+  tune: zerolatency
+stream:
+  name: live/drohne
+  rtsp_url: rtsp://127.0.0.1:8554/live/drohne
+  passthrough: true
+  viewer:
+    protocol: webrtc
+  audio:
+    source: none
+    device: null
+  overlay:
+    source: none
+    font: /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
+    size: 24
+    color: white
+    x: w-tw-20
+    y: "20"
+map:
+  source: mbtiles
+  path: /home/streampi/open-bos-stream/mapdata
+  default: stade
+stream_outputs: []
