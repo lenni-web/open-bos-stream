@@ -13,6 +13,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 - Der pfadgebundene RTMP-Publisher-Token gilt nun auch im lokalen
   Raspberry-Pi-Profil.
+- Publisher-Tokens haben für die manuelle Eingabe an Geräten genau
+  12 Zeichen und können in der Quellenkonfiguration selbst festgelegt werden.
+- Bestehende längere Publisher-Tokens werden stabil auf ihre ersten
+  12 Zeichen migriert.
 - Der Installer verwaltet und prüft die MediaMTX-Konfiguration in beiden
   Installationsprofilen.
 - Publisher-URL und Token sind auch im lokalen Profil standardmäßig verdeckt.

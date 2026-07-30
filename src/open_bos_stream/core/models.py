@@ -10,6 +10,13 @@ import secrets
 from typing import Literal
 from open_bos_stream.display.config import DisplayConfig
 from open_bos_stream.web_access.config import WebAccessConfig
+
+PUBLISH_TOKEN_LENGTH = 12
+PUBLISH_TOKEN_ALPHABET = (
+    "ABCDEFGHJKLMNPQRSTUVWXYZ"
+    "abcdefghijkmnopqrstuvwxyz"
+    "23456789"
+)
 # ---------------------------------------------------------
 # Konfiguration
 # ---------------------------------------------------------
@@ -66,8 +73,9 @@ class SourceConfig(BaseModel):
     audio_mode: Literal["none", "copy", "aac"] = "none"
     publish_token: str | None = Field(
         default=None,
-        min_length=24,
-        max_length=128,
+        min_length=PUBLISH_TOKEN_LENGTH,
+        max_length=PUBLISH_TOKEN_LENGTH,
+        pattern=r"^[A-Za-z0-9_-]{12}$",
     )
 
     @field_validator("id")
@@ -88,6 +96,21 @@ class SourceConfig(BaseModel):
             raise ValueError("Quellenname darf nicht leer sein.")
         return value
 
+    @field_validator("publish_token", mode="before")
+    @classmethod
+    def normalize_publish_token(
+        cls,
+        value: str | None,
+    ) -> str | None:
+        if value is None:
+            return None
+        normalized = str(value).strip()
+        if not normalized:
+            return None
+        # Migration der bisher längeren Tokens: Das Präfix bleibt erhalten,
+        # damit die Umstellung vorhersehbar und einmalig ist.
+        return normalized[:PUBLISH_TOKEN_LENGTH]
+
     @model_validator(mode="after")
     def validate_source(self) -> "SourceConfig":
         if self.type in {
@@ -105,7 +128,10 @@ class SourceConfig(BaseModel):
             # Lokale RTMP-Publisher verwenden immer die unveränderliche ID.
             self.url = f"rtmp://127.0.0.1:1935/{self.id}"
             if not self.publish_token:
-                self.publish_token = secrets.token_urlsafe(32)
+                self.publish_token = "".join(
+                    secrets.choice(PUBLISH_TOKEN_ALPHABET)
+                    for _ in range(PUBLISH_TOKEN_LENGTH)
+                )
         if self.type == "v4l2" and not self.device:
             raise ValueError("Für die Capture Card fehlt das Gerät.")
         return self

@@ -28,12 +28,20 @@ function sourceProfileOptions(selected) {
 }
 
 function generatePublisherToken() {
-    const bytes = new Uint8Array(32);
-    window.crypto.getRandomValues(bytes);
-    return Array.from(
-        bytes,
-        value => value.toString(16).padStart(2, "0")
-    ).join("");
+    const alphabet =
+        "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+    const limit = Math.floor(256 / alphabet.length) * alphabet.length;
+    let token = "";
+    while (token.length < 12) {
+        const bytes = new Uint8Array(16);
+        window.crypto.getRandomValues(bytes);
+        bytes.forEach(value => {
+            if (value < limit && token.length < 12) {
+                token += alphabet[value % alphabet.length];
+            }
+        });
+    }
+    return token;
 }
 
 function sourcePublishUrl(source) {
@@ -137,8 +145,9 @@ function sourceSpecificFields(source) {
                     data-field="publish_token"
                     type="password"
                     autocomplete="new-password"
-                    minlength="24"
-                    maxlength="128"
+                    minlength="12"
+                    maxlength="12"
+                    pattern="[A-Za-z0-9_-]{12}"
                     value="${escapeHTML(source.publish_token ?? "")}">
                 <button
                     class="bos-button bos-button-small"
@@ -147,7 +156,10 @@ function sourceSpecificFields(source) {
                     aria-pressed="false">
                     Token anzeigen
                 </button>
-                <small>Nur an vertrauenswürdige Publisher weitergeben.</small>
+                <small>
+                    Genau 12 Zeichen. Das Feld ist bearbeitbar; nach einer
+                    Änderung bitte speichern und die neue URL verwenden.
+                </small>
             </div>
         `;
     }
