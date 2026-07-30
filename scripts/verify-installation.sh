@@ -160,6 +160,24 @@ else
     check_failure "Chromium fehlt"
 fi
 
+if command -v labwc >/dev/null 2>&1; then
+    check_success "labwc vorhanden"
+else
+    check_failure "labwc fehlt"
+fi
+
+if command -v dbus-run-session >/dev/null 2>&1; then
+    check_success "D-Bus-Sitzungsstarter vorhanden"
+else
+    check_failure "dbus-run-session fehlt"
+fi
+
+if systemctl cat seatd.service >/dev/null 2>&1; then
+    check_success "seatd-Service vorhanden"
+else
+    check_failure "seatd-Service fehlt"
+fi
+
 echo
 
 if [ "${FAILED}" -ne 0 ]; then

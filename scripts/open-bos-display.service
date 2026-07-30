@@ -1,6 +1,7 @@
 [Unit]
 Description=Open BOS Local Display
-After=graphical.target open-bos-stream.service
+Wants=seatd.service
+After=seatd.service open-bos-stream.service
 StartLimitIntervalSec=0
 
 [Service]
@@ -11,13 +12,22 @@ Group=video
 
 WorkingDirectory=/opt/open-bos-stream
 RuntimeDirectory=open-bos-display
-RuntimeDirectoryMode=0750
+RuntimeDirectoryMode=0700
 
-ExecStart=/opt/open-bos-stream/.venv/bin/python \
+Environment=XDG_RUNTIME_DIR=/run/open-bos-display
+Environment=XDG_SESSION_TYPE=wayland
+Environment=XDG_CURRENT_DESKTOP=labwc
+Environment=LIBSEAT_BACKEND=seatd
+Environment=WLR_LIBINPUT_NO_DEVICES=1
+
+ExecStart=/usr/bin/dbus-run-session -- \
+    /opt/open-bos-stream/.venv/bin/python \
     -m open_bos_stream.display.runner
 
 Restart=on-failure
 RestartSec=3
+TimeoutStopSec=10
+KillMode=control-group
 
 StandardOutput=journal
 StandardError=journal
