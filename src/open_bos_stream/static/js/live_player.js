@@ -308,14 +308,14 @@ class LivePlayer {
                         ) {
                             // Millisekunden; glättet schwankende
                             // RTMP-Zeitstempel vor der Wiedergabe.
-                            receiver.jitterBufferTarget = 650;
+                            receiver.jitterBufferTarget = 350;
                         }
                         if (
                             "playoutDelayHint" in receiver
                         ) {
                             // Sekunden; Rückfall für Browser ohne
                             // jitterBufferTarget-Unterstützung.
-                            receiver.playoutDelayHint = 0.65;
+                            receiver.playoutDelayHint = 0.35;
                         }
                     } catch (error) {
                         console.debug(

@@ -66,9 +66,11 @@ class RTMPInputBuilder(InputBuilder):
             input_url, use_rtsp = repair_input_url(source.url)
             command.extend([
                 "-thread_queue_size",
-                "1024",
+                "512",
                 "-fflags",
-                "+genpts+discardcorrupt",
+                "+genpts+discardcorrupt+nobuffer",
+                "-flags",
+                "low_delay",
                 "-use_wallclock_as_timestamps",
                 "1",
             ])
@@ -76,6 +78,8 @@ class RTMPInputBuilder(InputBuilder):
                 command.extend([
                     "-rtsp_transport",
                     "tcp",
+                    "-max_delay",
+                    "0",
                 ])
         else:
             input_url = source.url

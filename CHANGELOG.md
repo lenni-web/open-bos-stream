@@ -7,6 +7,17 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.8.9] - 2026-07-30
+
+### Fixed
+
+- Der RTMP-Reparaturpfad begrenzt die FFmpeg-Interleave-Wartezeit von
+  standardmäßig bis zu zehn Sekunden auf 100 ms.
+- RTSP-Eingang und RTSP-Ausgabe arbeiten im Reparaturmodus mit
+  reduziertem Puffer und sofortigem Paket-Flush.
+- Der WebRTC-Wiedergabepuffer wurde auf 350 ms reduziert, um Glättung
+  und einsatztaugliche Latenz besser auszubalancieren.
+
 ## [0.8.8] - 2026-07-30
 
 ### Changed
