@@ -69,6 +69,10 @@
     font-size: 0.75rem;
 }
 
+.multi-source-audio {
+    margin-left: auto;
+}
+
 .multi-source-state {
     color: var(--bos-muted);
     font-size: 0.78rem;

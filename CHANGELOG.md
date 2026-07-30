@@ -7,6 +7,14 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.10.3] - 2026-07-30
+
+### Changed
+
+- Alle Mehrquellen-Player starten ausdrücklich und browserübergreifend stumm.
+- Jede Quellenkachel besitzt einen eigenen Schalter, um ihren Ton bewusst
+  ein- oder wieder auszuschalten.
+
 ## [0.10.2] - 2026-07-30
 
 ### Added
