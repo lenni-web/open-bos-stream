@@ -41,6 +41,16 @@ class FakeMediaMTXClient:
         ]
 
 
+def test_new_source_defaults_to_disabled_audio() -> None:
+    source = SourceConfig(
+        id="kamera-1",
+        name="Kamera 1",
+        type="rtmp",
+    )
+
+    assert source.audio_mode == "none"
+
+
 def test_up_to_eight_unique_rtmp_inputs_are_valid() -> None:
     data = ConfigLoader().load().model_dump()
     data["rtmp_inputs"] = [

@@ -59,6 +59,7 @@ class FFmpegCommandBuilder:
             source = SourceConfig(
                 id="legacy",
                 name="Legacy-Quelle",
+                audio_mode="copy",
                 profile=(
                     "copy_repair"
                     if self._config.input.mode == "copy_repair"

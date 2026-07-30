@@ -53,7 +53,14 @@ function sourceSpecificFields(source) {
                     autocomplete="off"
                     value="${escapeHTML(source.url ?? "")}"
                     placeholder="rtsp://benutzer:passwort@kamera/stream">
-                <small>Zugangsdaten werden in der Anzeige maskiert.</small>
+                <button
+                    class="bos-button bos-button-small source-url-toggle"
+                    type="button"
+                    data-role="toggle-source-url"
+                    aria-pressed="false">
+                    URL anzeigen und bearbeiten
+                </button>
+                <small>Die Adresse bleibt bis zum bewussten Einblenden maskiert.</small>
             </div>
             <div class="form-field">
                 <label>Transport</label>
@@ -141,11 +148,11 @@ function renderSources() {
         : `<p class="empty-state">Noch keine Quelle konfiguriert.</p>`;
 
     sources.forEach((source, index) => {
-        const card = document.createElement("article");
+        const card = document.createElement("details");
         card.className = "rtmp-input-config source-config";
         card.dataset.index = String(index);
         card.innerHTML = `
-            <div class="rtmp-input-config-header">
+            <summary class="rtmp-input-config-header">
                 <div>
                     <strong>Quelle ${index + 1}: ${escapeHTML(source.name)}</strong>
                     <small>${escapeHTML(source.type)} · ${escapeHTML(source.profile)}</small>
@@ -155,7 +162,7 @@ function renderSources() {
                         type="button"
                         title="Quelle nach oben verschieben"
                         aria-label="Quelle nach oben verschieben"
-                        onclick="moveSource(${index}, -1)"
+                        onclick="event.preventDefault(); event.stopPropagation(); moveSource(${index}, -1)"
                         ${index === 0 ? "disabled" : ""}>
                         ↑
                     </button>
@@ -163,17 +170,18 @@ function renderSources() {
                         type="button"
                         title="Quelle nach unten verschieben"
                         aria-label="Quelle nach unten verschieben"
-                        onclick="moveSource(${index}, 1)"
+                        onclick="event.preventDefault(); event.stopPropagation(); moveSource(${index}, 1)"
                         ${index === sources.length - 1 ? "disabled" : ""}>
                         ↓
                     </button>
                     <button class="bos-button bos-button-small"
-                        type="button" onclick="removeSource(${index})">
+                        type="button"
+                        onclick="event.preventDefault(); event.stopPropagation(); removeSource(${index})">
                         Entfernen
                     </button>
                 </div>
-            </div>
-            <div class="form-grid">
+            </summary>
+            <div class="source-config-body form-grid">
                 <div class="form-field">
                     <label>Name</label>
                     <input class="bos-input" data-field="name"
@@ -201,9 +209,9 @@ function renderSources() {
                 <div class="form-field">
                     <label>Audio</label>
                     <select class="bos-input" data-field="audio_mode">
-                        <option value="copy" ${source.audio_mode !== "none" && source.audio_mode !== "aac" ? "selected" : ""}>Übernehmen</option>
+                        <option value="none" ${source.audio_mode === "none" || !source.audio_mode ? "selected" : ""}>Deaktiviert</option>
+                        <option value="copy" ${source.audio_mode === "copy" ? "selected" : ""}>Übernehmen</option>
                         <option value="aac" ${source.audio_mode === "aac" ? "selected" : ""}>AAC umkodieren</option>
-                        <option value="none" ${source.audio_mode === "none" ? "selected" : ""}>Deaktivieren</option>
                     </select>
                 </div>
                 <div class="form-field">
@@ -254,6 +262,24 @@ function renderSources() {
                 }
             }
         );
+        card.querySelector('[data-role="toggle-source-url"]')?.addEventListener(
+            "click",
+            event => {
+                const input = card.querySelector('[data-field="url"]');
+                const visible = input.type === "text";
+                input.type = visible ? "password" : "text";
+                event.currentTarget.textContent = visible
+                    ? "URL anzeigen und bearbeiten"
+                    : "URL wieder ausblenden";
+                event.currentTarget.setAttribute(
+                    "aria-pressed",
+                    String(!visible)
+                );
+                if (!visible) {
+                    input.focus();
+                }
+            }
+        );
     });
 
     const addButton = document.getElementById("source-add-button");
@@ -286,7 +312,7 @@ function saveSources() {
             format: value("format", "mjpeg"),
             transport: value("transport", "tcp"),
             codec: value("codec"),
-            audio_mode: value("audio_mode", "copy"),
+            audio_mode: value("audio_mode", "none"),
         };
     });
 }
@@ -317,9 +343,15 @@ function addSource() {
         format: "mjpeg",
         transport: "tcp",
         codec: null,
-        audio_mode: "copy",
+        audio_mode: "none",
     });
     renderSources();
+    const cards = document.querySelectorAll(
+        "#source-settings .source-config"
+    );
+    if (cards.length) {
+        cards[cards.length - 1].open = true;
+    }
     setConfigDirty(true);
 }
 

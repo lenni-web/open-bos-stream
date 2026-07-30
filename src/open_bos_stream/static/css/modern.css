@@ -424,7 +424,33 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 12px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.rtmp-input-config-header::-webkit-details-marker {
+    display: none;
+}
+
+.rtmp-input-config-header::before {
+    content: "›";
+    flex: 0 0 auto;
+    color: var(--bos-muted);
+    font-size: 1.3rem;
+    transition: transform 0.15s ease;
+}
+
+.rtmp-input-config[open] > .rtmp-input-config-header::before {
+    transform: rotate(90deg);
+}
+
+.source-config-body {
+    margin-top: 12px;
+}
+
+.source-url-toggle {
+    justify-self: start;
+    margin-top: 6px;
 }
 
 .source-order-actions {

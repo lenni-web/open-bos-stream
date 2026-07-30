@@ -191,6 +191,7 @@ class SourceManager:
                 id="default",
 
                 enabled=True,
+                audio_mode="copy",
 
                 **config.input.model_dump(),
 
