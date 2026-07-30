@@ -13,12 +13,16 @@ PUBLIC_PREFIXES = (
     "/auth/logout",
     "/login",
     "/display/stream",
+    "/internal/mediamtx/auth",
 )
 SUPERADMIN_PREFIXES = (
     "/display",
     "/web-access",
     "/stream-output",
     "/auth/users",
+    "/media",
+    "/recording",
+    "/snapshot",
 )
 SUPERADMIN_PATHS = {
     "/config/restore",

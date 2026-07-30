@@ -219,6 +219,9 @@ def test_source_settings_are_compact_and_urls_can_be_revealed() -> None:
     assert "URL anzeigen und bearbeiten" in source_js
     assert 'input.type = visible ? "password" : "text"' in source_js
     assert 'audio_mode: "none"' in source_js
+    assert 'data-field="publish_token"' in source_js
+    assert 'data-role="toggle-publish-url"' in source_js
+    assert "?token=${encodeURIComponent(source.publish_token)}" in source_js
 
 
 def test_offline_sources_and_role_ui_are_present() -> None:
@@ -240,6 +243,22 @@ def test_offline_sources_and_role_ui_are_present() -> None:
     assert "window.currentUser" in index
     assert 'user.role == "superadmin"' in settings
     assert "Benutzer und Rollen" in settings
+
+
+def test_media_page_is_visible_only_to_superadmins() -> None:
+    index = (
+        ROOT / "templates" / "index.html"
+    ).read_text(encoding="utf-8")
+    sidebar = (
+        ROOT / "templates" / "components" / "sidebar.html"
+    ).read_text(encoding="utf-8")
+
+    assert index.index('{% if user.role == "superadmin" %}') < index.index(
+        'id="page-media"'
+    )
+    assert sidebar.index('{% if user.role == "superadmin" %}') < (
+        sidebar.index('id="nav-media"')
+    )
 
 
 def test_installation_check_uses_public_auth_status() -> None:

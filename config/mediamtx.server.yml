@@ -3,5 +3,14 @@ api: yes
 apiAddress: 127.0.0.1:9997
 rtspAddress: 127.0.0.1:8554
 
+authMethod: http
+authHTTPAddress: http://127.0.0.1:8000/internal/mediamtx/auth
+authHTTPExclude:
+  - action: read
+  - action: playback
+  - action: api
+  - action: metrics
+  - action: pprof
+
 paths:
   all_others:

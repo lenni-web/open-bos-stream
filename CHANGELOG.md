@@ -7,6 +7,30 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.10.9] - 2026-07-30
+
+### Added
+
+- Jede RTMP-Quelle erhält im Serverprofil einen eigenen, persistenten
+  Publisher-Token.
+- Die Einstellungen zeigen die vollständige RTMP-Empfangsadresse im Format
+  `rtmp://server.example:1935/quelle-1?token=GEHEIMNIS` standardmäßig
+  verdeckt und erlauben das gezielte Einblenden.
+
+### Changed
+
+- Die Seite „Medien“ und ihre API-Endpunkte sind ausschließlich für
+  Superadmins verfügbar.
+- Vorhandene Snapshot- und Aufzeichnungsfunktionen bleiben unverändert und
+  werden vorerst nicht weiter ausgebaut.
+
+### Security
+
+- MediaMTX authentifiziert externe RTMP-Publisher im Serverprofil per
+  HTTP-Callback gegen Quellen-ID und Token.
+- RTMP bleibt trotz Publisher-Token unverschlüsselt; VPN oder RTMPS bleiben
+  als spätere Transportabsicherung vorgesehen.
+
 ## [0.10.8] - 2026-07-30
 
 ### Added

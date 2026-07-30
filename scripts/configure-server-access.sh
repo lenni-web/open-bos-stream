@@ -103,7 +103,7 @@ if [ "${INTERACTIVE}" = true ]; then
 
     echo
     echo "Die optionale Firewall lässt SSH, HTTP, HTTPS, RTMP und WebRTC zu."
-    echo "RTMP auf TCP 1935 bleibt dabei unverschlüsselt und ohne Anmeldung."
+    echo "RTMP auf TCP 1935 bleibt unverschlüsselt, Publisher benötigen aber einen Token."
     read -r -p "UFW-Regeln jetzt konfigurieren? [j/N]: " answer
     case "${answer:-n}" in
         j|J|ja|JA|yes|YES) FIREWALL_MODE="configure" ;;
@@ -238,7 +238,7 @@ if [ "${FIREWALL_MODE}" = "configure" ]; then
         sudo ufw allow 8888/tcp comment "MediaMTX HLS"
         sudo ufw allow 8889/tcp comment "MediaMTX WHEP"
     fi
-    sudo ufw allow 1935/tcp comment "RTMP ungeschuetzt"
+    sudo ufw allow 1935/tcp comment "RTMP Publisher Token"
     sudo ufw allow 8189/udp comment "MediaMTX WebRTC"
     sudo ufw --force enable
     sudo ufw status verbose
@@ -248,4 +248,4 @@ fi
 
 echo
 echo "Serverzugriff konfiguriert."
-echo "RTMP: rtmp://${DOMAIN:-SERVER-IP}:1935/<quellen-id> (ungeschützt)"
+echo "RTMP: rtmp://${DOMAIN:-SERVER-IP}:1935/<quellen-id>?token=<TOKEN>"

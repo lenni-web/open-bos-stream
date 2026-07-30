@@ -2,6 +2,6 @@
 Open BOS Stream Version
 """
 APP_NAME = "Open BOS Stream"
-VERSION = "0.10.8"
+VERSION = "0.10.9"
 
 __version__ = VERSION

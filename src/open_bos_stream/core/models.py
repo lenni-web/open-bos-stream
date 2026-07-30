@@ -6,6 +6,7 @@ from pydantic import (
     model_validator,
 )
 import re
+import secrets
 from typing import Literal
 from open_bos_stream.display.config import DisplayConfig
 from open_bos_stream.web_access.config import WebAccessConfig
@@ -63,6 +64,11 @@ class SourceConfig(BaseModel):
     preset: str | None = None
     tune: str | None = None
     audio_mode: Literal["none", "copy", "aac"] = "none"
+    publish_token: str | None = Field(
+        default=None,
+        min_length=24,
+        max_length=128,
+    )
 
     @field_validator("id")
     @classmethod
@@ -98,6 +104,8 @@ class SourceConfig(BaseModel):
         if self.type == "rtmp":
             # Lokale RTMP-Publisher verwenden immer die unveränderliche ID.
             self.url = f"rtmp://127.0.0.1:1935/{self.id}"
+            if not self.publish_token:
+                self.publish_token = secrets.token_urlsafe(32)
         if self.type == "v4l2" and not self.device:
             raise ValueError("Für die Capture Card fehlt das Gerät.")
         return self
