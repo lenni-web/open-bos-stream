@@ -32,6 +32,27 @@ SERVICE_GROUP="$(
 
 VENV_DIR="${TARGET_DIR}/.venv"
 
+PROFILE_DIR="/etc/open-bos-stream"
+PROFILE_FILE="${PROFILE_DIR}/profile"
+SERVER_CONFIG_FILE="${PROFILE_DIR}/server.env"
+
+installation_profile() {
+    if [ -n "${OPEN_BOS_PROFILE:-}" ]; then
+        printf '%s\n' "${OPEN_BOS_PROFILE}"
+    elif [ -f "${PROFILE_FILE}" ]; then
+        tr -d '[:space:]' < "${PROFILE_FILE}"
+    else
+        printf '%s\n' "local"
+    fi
+}
+
+validate_installation_profile() {
+    case "$1" in
+        local|server) ;;
+        *) fail "Unbekanntes Installationsprofil: $1" ;;
+    esac
+}
+
 print_header() {
 
     echo

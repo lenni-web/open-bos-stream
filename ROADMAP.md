@@ -131,9 +131,16 @@ Erweiterbarkeit durch Plugins.
 
 ## Plattformen
 
-- Raspberry Pi
-- Debian
+- [x] Raspberry Pi
+- [x] Debian-Serverprofil
 - Ubuntu
+
+## Serverbetrieb
+
+- [x] Optionales Caddy-/HTTPS-Setup mit Let's Encrypt
+- [x] Öffentliche WebRTC-/ICE-Konfiguration
+- [x] Optionale Host-Firewall-Regeln mit SSH-Schutz
+- [ ] RTMP über VPN oder RTMPS absichern
 
 ## Bedienung
 

@@ -362,6 +362,23 @@ function updateDashboardSystemInfo(info) {
     document.getElementById("system-app-version").textContent =
         info.application.version;
 
+    document.getElementById("system-installation-profile").textContent =
+        info.installation_profile === "server"
+            ? "Server"
+            : "Lokal / Raspberry Pi";
+
+    const serverAccess = info.server_access ?? {};
+    document.getElementById("system-public-domain").textContent =
+        serverAccess.public_domain || "Nicht konfiguriert";
+    document.getElementById("system-https-mode").textContent =
+        serverAccess.https_enabled === "yes" ? "Caddy aktiv" : "Deaktiviert";
+    document.getElementById("system-webrtc-mode").textContent =
+        serverAccess.webrtc_mode === "public" ? "Öffentlich" : "Lokal";
+    document.getElementById("system-firewall-mode").textContent =
+        serverAccess.firewall_mode === "configure"
+            ? "Durch Open BOS verwaltet"
+            : "Extern / unverändert";
+
     document.getElementById("system-hardware-model").textContent =
         info.hardware.model;
 

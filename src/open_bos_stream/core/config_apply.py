@@ -11,6 +11,7 @@ from open_bos_stream.core.config_preflight import (
     ConfigPreflightValidator,
 )
 from open_bos_stream.core.models import AppConfig
+from open_bos_stream.core.installation import installation_profile
 
 
 class Reloadable(Protocol):
@@ -55,6 +56,14 @@ class ConfigApplyService:
         for source in config.sources:
             if not source.enabled:
                 continue
+            if (
+                source.type == "v4l2"
+                and installation_profile() == "server"
+            ):
+                raise ConfigApplyError(
+                    f"Die Capture-Quelle '{source.name}' ist im "
+                    "Server-Profil nicht verfügbar."
+                )
             if (
                 source.type == "v4l2"
                 and not Path(source.device or "").exists()

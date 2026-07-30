@@ -1,0 +1,7 @@
+# Von Open BOS Stream verwaltete MediaMTX-Basiskonfiguration für Server.
+api: yes
+apiAddress: 127.0.0.1:9997
+rtspAddress: 127.0.0.1:8554
+
+paths:
+  all_others:

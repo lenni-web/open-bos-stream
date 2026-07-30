@@ -1,0 +1,25 @@
+{
+    acme_ca https://acme-v02.api.letsencrypt.org/directory
+}
+
+__DOMAIN__ {
+    encode zstd gzip
+
+    handle_path /whep/* {
+        reverse_proxy {
+            to 127.0.0.1:8889
+            header_down Location ^/ /whep/
+        }
+    }
+
+    handle_path /hls/* {
+        reverse_proxy {
+            to 127.0.0.1:8888
+            header_down Location ^/ /hls/
+        }
+    }
+
+    handle {
+        reverse_proxy 127.0.0.1:8000
+    }
+}

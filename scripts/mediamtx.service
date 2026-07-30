@@ -8,7 +8,7 @@ Type=simple
 User=streampi
 WorkingDirectory=/home/streampi
 
-ExecStart=/home/streampi/mediamtx
+ExecStart=/home/streampi/mediamtx /etc/open-bos-stream/mediamtx.yml
 
 Restart=always
 RestartSec=5

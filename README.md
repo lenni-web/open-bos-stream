@@ -21,7 +21,7 @@ Open BOS Stream ist eine webbasierte Streaming- und Kartenplattform für BOS-Anw
 
 ## Voraussetzungen
 
-- Raspberry Pi OS (Bookworm empfohlen)
+- Raspberry Pi OS oder Debian
 - Python 3.13 oder neuer
 - Git
 - Internetzugang während der Installation
@@ -45,6 +45,29 @@ Installer starten:
 ./scripts/install.sh
 ```
 
+Der Installer fragt bei einer interaktiven Neuinstallation nach dem Profil:
+
+- `local`: Raspberry Pi bzw. lokaler Rechner mit optionaler Capture Card und
+  lokalem Wayland-Display
+- `server`: Debian-Server mit Netzwerkquellen, ohne Chromium, labwc, seatd
+  und Display-Dienst
+
+Für eine nicht-interaktive Installation kann das Profil direkt angegeben
+werden:
+
+```bash
+./scripts/install.sh --profile server
+```
+
+Die Auswahl wird in `/etc/open-bos-stream/profile` gespeichert. Ein Update
+verwendet automatisch das vorhandene Profil. Ein bewusster Profilwechsel ist
+mit `./scripts/update.sh --profile local|server` möglich.
+
+Im Server-Profil muss MediaMTX wie bei der bisherigen Installation als
+`/home/streampi/mediamtx` vorhanden sein. Der Installer richtet eine eigene
+MediaMTX-Konfiguration ein und installiert weder den Display-Dienst noch
+dessen Systemabhängigkeiten.
+
 Der Installer übernimmt automatisch:
 
 - Installation der Systemabhängigkeiten
@@ -53,6 +76,107 @@ Der Installer übernimmt automatisch:
 - Erstellung der Python-Virtualenv
 - Installation des systemd-Dienstes
 - Funktionsprüfung
+
+## Öffentliches Serverprofil: HTTPS, WebRTC und Firewall
+
+Bei einer interaktiven Serverinstallation fragt der Installer zusätzlich:
+
+- öffentliche Domain
+- HTTPS-Einrichtung mit Caddy und Let's Encrypt
+- öffentliche WebRTC-Bereitstellung
+- optionale Verwaltung der Host-Firewall mit UFW
+
+Eine vollständige nicht-interaktive Installation ist beispielsweise:
+
+```bash
+./scripts/install.sh \
+  --profile server \
+  --domain stream.example.de \
+  --https \
+  --webrtc public \
+  --firewall configure
+```
+
+Die Serverparameter werden in `/etc/open-bos-stream/server.env` gespeichert.
+Normale Updates verwenden diese Werte ohne erneute Rückfragen. Sie können
+bewusst über das Update-Skript geändert werden:
+
+```bash
+./scripts/update.sh \
+  --domain stream.example.de \
+  --https \
+  --webrtc public \
+  --firewall configure
+```
+
+Oder unabhängig von einem Update:
+
+```bash
+./scripts/configure-server-access.sh --interactive
+```
+
+Verfügbare Optionen:
+
+| Option | Wirkung |
+|---|---|
+| `--domain NAME` | öffentliche DNS-Domain |
+| `--https` | Caddy installieren und HTTPS aktivieren |
+| `--no-https` | verwalteten Caddy-Zugriff deaktivieren |
+| `--webrtc public` | Domain als öffentlichen WebRTC-/ICE-Host eintragen |
+| `--webrtc local` | keine öffentliche WebRTC-Domain konfigurieren |
+| `--firewall configure` | UFW-Regeln verwalten und aktivieren |
+| `--firewall off` | vorhandene Firewall nicht verändern |
+
+Vor der HTTPS-Aktivierung muss der A- beziehungsweise AAAA-Eintrag der Domain
+auf den Server zeigen. Caddy fordert das Zertifikat direkt bei Let's Encrypt
+an, erneuert es automatisch und leitet HTTP auf HTTPS um. Certbot wird nicht
+benötigt.
+
+Unter HTTPS werden alle Browserzugriffe über dieselbe Domain geführt:
+
+```text
+https://stream.example.de/              Open BOS Stream
+https://stream.example.de/whep/...      WebRTC/WHEP
+https://stream.example.de/hls/...       HLS
+```
+
+Uvicorn, HLS, WHEP, RTSP und die MediaMTX-API lauschen dabei ausschließlich
+lokal. Der WebRTC-Medienstrom verwendet weiterhin UDP 8189. MediaMTX erhält
+die öffentliche Domain automatisch als `webrtcAdditionalHosts`.
+
+Wenn HTTPS deaktiviert bleibt, verwendet die Anwendung weiterhin die direkten
+Ports 8000, 8888 und 8889.
+
+### Firewall-Regeln
+
+Bei `--firewall configure` erkennt der Installer zunächst den SSH-Port und
+lässt ihn geöffnet. Anschließend verwaltet er folgende Open-BOS-Regeln:
+
+| Port | Protokoll | Funktion |
+|---|---|---|
+| SSH-Port | TCP | Administration |
+| 80 | TCP | HTTP und ACME-Prüfung |
+| 443 | TCP | HTTPS, WHEP und HLS |
+| 1935 | TCP | RTMP-Publisher |
+| 8189 | UDP | WebRTC-Medien |
+
+Ohne HTTPS werden statt 80/443 die direkten Ports 8000, 8888 und 8889
+freigegeben. Eine zusätzliche Firewall des vServer-Anbieters kann der
+Installer nicht verändern und muss dort entsprechend konfiguriert werden.
+
+### Derzeit ungeschützter RTMP-Eingang
+
+RTMP bleibt in Version 0.10.8 bewusst ohne Anmeldung und ohne
+Transportverschlüsselung:
+
+```text
+rtmp://stream.example.de:1935/quelle-1
+```
+
+Wer Port 1935 und die Quellen-ID kennt, kann auf diesen Pfad publizieren.
+Port 1935 sollte deshalb möglichst über die Anbieter-Firewall auf bekannte
+Absender-IP-Adressen beschränkt werden. VPN oder RTMPS sind als spätere
+Härtung vorgesehen.
 
 ## Offline-Karte Landkreis Stade
 
@@ -129,6 +253,7 @@ Nach der Installation befindet sich die produktive Installation unter:
 | `update.sh` | Aktualisierung einer bestehenden Installation |
 | `verify-installation.sh` | Installationsprüfung |
 | `install-service.sh` | Installation des systemd-Dienstes |
+| `configure-server-access.sh` | Caddy, WebRTC und optionale UFW-Regeln |
 
 ---
 
@@ -245,7 +370,7 @@ wenn Einstellungen bedient werden sollen.
 Eine vorübergehend nicht erreichbare Quelle wird unabhängig mit begrenztem
 Backoff neu verbunden und unterbricht die übrigen Quellen nicht.
 
-## Webzugriff über Port 80
+## Webzugriff im lokalen Profil
 
 Die Oberfläche bleibt immer unter `http://<geraet>:8000` erreichbar.
 In den Einstellungen kann zusätzlich der HTTP-Standardport aktiviert
@@ -255,6 +380,10 @@ Ein eigener systemd-Socket leitet Port 80 intern an Port 8000 weiter.
 Ist Port 80 bereits belegt, bleibt die Anwendung auf Port 8000
 verfügbar und zeigt den Konflikt in den Einstellungen und auf der
 Systemseite an.
+
+Diese Umschaltung gilt nur für das lokale Profil. Im Server-Profil übernimmt
+Caddy die Ports 80 und 443. Bei aktiviertem HTTPS ist Port 8000 nur noch über
+Loopback erreichbar.
 
 ## RTMP Copy mit Zeitstempel-Reparatur
 

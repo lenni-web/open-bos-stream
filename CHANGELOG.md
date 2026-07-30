@@ -7,6 +7,38 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.10.8] - 2026-07-30
+
+### Added
+
+- Der Installer bietet die persistenten Profile `local` und `server`; das
+  Server-Profil verzichtet auf Capture- und Display-Abhängigkeiten.
+- Optionale Caddy-Installation mit automatischen Let's-Encrypt-Zertifikaten.
+- HTTPS-Routen für Anwendung, WHEP und HLS unter derselben Domain.
+- Öffentliche WebRTC-Konfiguration mit Domain und UDP-Port 8189.
+- Optionale UFW-Konfiguration mit Erkennung und Erhalt des SSH-Ports.
+- Persistente Serverparameter und nicht-interaktive Installeroptionen.
+- Die Systemseite zeigt Installationsprofil, öffentliche Domain, HTTPS-,
+  WebRTC- und Firewall-Modus.
+
+### Changed
+
+- Capture-Quellen und das lokale Display werden im Server-Profil nicht
+  angeboten.
+- Der Browser verwendet unter HTTPS relative WHEP- und HLS-Adressen, wodurch
+  keine Mixed-Content-Anfragen entstehen.
+- RTMP-Empfangsadressen verwenden im Server-Profil die konfigurierte
+  öffentliche Domain.
+- Bei aktiviertem HTTPS lauschen Uvicorn, HLS, WHEP, RTSP und MediaMTX-API
+  ausschließlich lokal.
+
+### Security
+
+- RTMP auf Port 1935 bleibt vorerst bewusst unverschlüsselt und ohne
+  Authentifizierung; Dokumentation und Oberfläche weisen darauf hin.
+- UFW-Regeln werden nur nach expliziter Auswahl angewendet und halten den
+  erkannten SSH-Port offen.
+
 ## [0.10.7] - 2026-07-30
 
 ### Changed

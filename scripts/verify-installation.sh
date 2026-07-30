@@ -3,6 +3,8 @@
 set -euo pipefail
 
 source "$(cd "$(dirname "$0")" && pwd)/common.sh"
+PROFILE="$(installation_profile)"
+validate_installation_profile "${PROFILE}"
 SERVICE_NAME="open-bos-stream.service"
 # Der Auth-Status ist absichtlich öffentlich und bestätigt sowohl HTTP als
 # auch die initialisierte Anwendung, ohne geschützte Fachdaten offenzulegen.
@@ -23,6 +25,8 @@ echo
 echo "========================================"
 echo " Open BOS Stream Installationsprüfung"
 echo "========================================"
+echo
+echo "Profil: ${PROFILE}"
 echo
 
 echo "Prüfe Verzeichnisstruktur ..."
@@ -119,13 +123,19 @@ else
     check_failure "Streamer-Service fehlt"
 fi
 
-if [ -f "/etc/systemd/system/open-bos-display.service" ]; then
+if [ "${PROFILE}" = "local" ] &&
+    [ -f "/etc/systemd/system/open-bos-display.service" ]; then
     check_success "Display-Service installiert"
+elif [ "${PROFILE}" = "server" ] &&
+    [ ! -f "/etc/systemd/system/open-bos-display.service" ]; then
+    check_success "Server-Profil ohne Display-Service"
 else
-    check_failure "Display-Service fehlt"
+    check_failure "Display-Service passt nicht zum Profil"
 fi
 
-if [ -f "/etc/systemd/system/open-bos-web-proxy.socket" ] &&
+if [ "${PROFILE}" = "server" ]; then
+    check_success "Port 80 bleibt für den späteren HTTPS-Proxy reserviert"
+elif [ -f "/etc/systemd/system/open-bos-web-proxy.socket" ] &&
     [ -f "/etc/systemd/system/open-bos-web-proxy.service" ]
 then
     check_success "Optionaler Standard-Webzugriff installiert"
@@ -133,51 +143,111 @@ else
     check_failure "Units für den Standard-Webzugriff fehlen"
 fi
 
-WEB_PROXY_STATE="$(
-    systemctl is-active open-bos-web-proxy.socket 2>/dev/null || true
-)"
-check_success \
-    "Standard-Webzugriff: ${WEB_PROXY_STATE:-inaktiv}; Port 8000 bleibt verfügbar"
-
-DISPLAY_ENABLEMENT="$(
-    systemctl is-enabled \
-        open-bos-display.service \
-        2>/dev/null || true
-)"
-
-if [ "${DISPLAY_ENABLEMENT}" = "enabled" ] ||
-    [ "${DISPLAY_ENABLEMENT}" = "enabled-runtime" ]
-then
-    check_failure "Display-Service darf nicht beim Boot aktiviert sein"
-else
+if [ "${PROFILE}" = "local" ]; then
+    WEB_PROXY_STATE="$(
+        systemctl is-active open-bos-web-proxy.socket 2>/dev/null || true
+    )"
     check_success \
-        "Display-Service startet nicht automatisch beim Boot (${DISPLAY_ENABLEMENT:-disabled})"
+        "Standard-Webzugriff: ${WEB_PROXY_STATE:-inaktiv}; Port 8000 bleibt verfügbar"
 fi
 
-if command -v chromium >/dev/null 2>&1 ||
-    command -v chromium-browser >/dev/null 2>&1
-then
-    check_success "Chromium vorhanden"
-else
-    check_failure "Chromium fehlt"
-fi
+if [ "${PROFILE}" = "local" ]; then
+    DISPLAY_ENABLEMENT="$(
+        systemctl is-enabled \
+            open-bos-display.service \
+            2>/dev/null || true
+    )"
+    if [ "${DISPLAY_ENABLEMENT}" = "enabled" ] ||
+        [ "${DISPLAY_ENABLEMENT}" = "enabled-runtime" ]; then
+        check_failure "Display-Service darf nicht beim Boot aktiviert sein"
+    else
+        check_success "Display-Service startet nicht automatisch beim Boot"
+    fi
 
-if command -v labwc >/dev/null 2>&1; then
-    check_success "labwc vorhanden"
-else
-    check_failure "labwc fehlt"
-fi
+    if command -v chromium >/dev/null 2>&1 ||
+        command -v chromium-browser >/dev/null 2>&1; then
+        check_success "Chromium vorhanden"
+    else
+        check_failure "Chromium fehlt"
+    fi
 
-if command -v dbus-run-session >/dev/null 2>&1; then
-    check_success "D-Bus-Sitzungsstarter vorhanden"
-else
-    check_failure "dbus-run-session fehlt"
-fi
+    for command in labwc dbus-run-session; do
+        if command -v "${command}" >/dev/null 2>&1; then
+            check_success "${command} vorhanden"
+        else
+            check_failure "${command} fehlt"
+        fi
+    done
 
-if systemctl cat seatd.service >/dev/null 2>&1; then
-    check_success "seatd-Service vorhanden"
+    if systemctl cat seatd.service >/dev/null 2>&1; then
+        check_success "seatd-Service vorhanden"
+    else
+        check_failure "seatd-Service fehlt"
+    fi
 else
-    check_failure "seatd-Service fehlt"
+    if systemctl is-active mediamtx.service >/dev/null 2>&1; then
+        check_success "MediaMTX läuft"
+    else
+        check_failure "MediaMTX läuft nicht"
+    fi
+    if [ -f "${PROFILE_DIR}/mediamtx.yml" ]; then
+        check_success "MediaMTX-Serverkonfiguration vorhanden"
+    else
+        check_failure "MediaMTX-Serverkonfiguration fehlt"
+    fi
+
+    if [ -f "${SERVER_CONFIG_FILE}" ]; then
+        check_success "Serverzugriff-Konfiguration vorhanden"
+        HTTPS_ENABLED="$(
+            awk -F= '$1 == "HTTPS_ENABLED" {print $2}' \
+                "${SERVER_CONFIG_FILE}"
+        )"
+        WEBRTC_MODE="$(
+            awk -F= '$1 == "WEBRTC_MODE" {print $2}' \
+                "${SERVER_CONFIG_FILE}"
+        )"
+        FIREWALL_MODE="$(
+            awk -F= '$1 == "FIREWALL_MODE" {print $2}' \
+                "${SERVER_CONFIG_FILE}"
+        )"
+
+        if [ "${HTTPS_ENABLED}" = "yes" ]; then
+            if systemctl is-active caddy.service >/dev/null 2>&1; then
+                check_success "Caddy/HTTPS läuft"
+            else
+                check_failure "Caddy/HTTPS läuft nicht"
+            fi
+            if grep -q "127.0.0.1:8889" \
+                "${PROFILE_DIR}/mediamtx.yml"; then
+                check_success "WHEP wird ausschließlich über Caddy veröffentlicht"
+            else
+                check_failure "WHEP lauscht trotz HTTPS nicht nur lokal"
+            fi
+        else
+            check_success "HTTPS ist bewusst deaktiviert"
+        fi
+
+        if [ "${WEBRTC_MODE}" = "public" ]; then
+            if grep -q "^webrtcAdditionalHosts:" \
+                "${PROFILE_DIR}/mediamtx.yml"; then
+                check_success "Öffentlicher WebRTC-Host konfiguriert"
+            else
+                check_failure "Öffentlicher WebRTC-Host fehlt"
+            fi
+        fi
+
+        if [ "${FIREWALL_MODE}" = "configure" ]; then
+            if sudo ufw status 2>/dev/null | grep -q "^Status: active"; then
+                check_success "UFW ist aktiv"
+            else
+                check_failure "UFW sollte aktiv sein"
+            fi
+        else
+            check_success "Host-Firewall wird extern verwaltet"
+        fi
+    else
+        check_failure "Serverzugriff-Konfiguration fehlt"
+    fi
 fi
 
 echo

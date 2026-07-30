@@ -7,6 +7,7 @@ Stellt alle Informationen für das Web-Dashboard zentral bereit.
 from __future__ import annotations
 
 from open_bos_stream.core.models import AppConfig
+from open_bos_stream.core.installation import server_access_settings
 from open_bos_stream.mediamtx.service import MediaMTXService
 from open_bos_stream.media.storage import MediaStorageService
 from open_bos_stream.recording.service import RecordingService
@@ -85,6 +86,10 @@ class DashboardService:
         health = self._health.health()
 
         system_info = self._system_info.info()
+        public_host = (
+            server_access_settings()["public_domain"]
+            or system_info.network.ipv4
+        )
 
         enabled_sources = [
             item
@@ -277,7 +282,7 @@ class DashboardService:
                     "publish_url": (
                         (
                             "rtmp://"
-                            f"{system_info.network.ipv4}:1935/"
+                            f"{public_host}:1935/"
                             f"{item.publish_path}"
                         )
                         if item.type == "rtmp"
