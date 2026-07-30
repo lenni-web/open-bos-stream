@@ -190,6 +190,11 @@ ID sowie ein Verarbeitungsprofil:
 - `Copy mit Zeitstempel-Korrektur`: Originalvideo mit reparierten Zeitstempeln
 - `Transcodieren`: den pro Quelle gewählten Encoder verwenden
 
+Bei `Transcodieren` erscheinen Encoder, Bitrate, Pixelformat, GOP, Preset und
+Tune direkt innerhalb der betroffenen Quelle. Es gibt keine missverständliche
+globale Transcoding-Karte mehr; Quellen können unterschiedliche Einstellungen
+verwenden.
+
 Die Quellen lassen sich mit den Pfeilschaltflächen umsortieren. Diese
 Reihenfolge wird gespeichert und ebenso im Livebildraster verwendet.
 
@@ -229,6 +234,10 @@ lokale Sitzungsschlüssel werden nicht in Git übernommen.
 Die Rechte werden sowohl in der Oberfläche als auch an den API-Endpunkten
 geprüft. Ein Admin kann geschützte Superadmin-Felder daher nicht über einen
 direkten API-Aufruf verändern.
+
+Superadmins können bestehende Konten in den Einstellungen aufklappen, deren
+Rolle ändern oder ein neues Passwort vergeben. Mindestens ein Superadmin muss
+immer erhalten bleiben.
 
 Der lokale Kiosk erhält ausschließlich eine auf Loopback begrenzte
 Viewer-Ansicht. Im normalen Chromium-Modus ist eine reguläre Anmeldung nötig,

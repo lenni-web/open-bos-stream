@@ -42,6 +42,10 @@ function loadEncoderConfig() {
             "cfg-encoder-codec"
         );
 
+    if (!select) {
+        return;
+    }
+
     if (
 
         currentConfig.encoder.codec
@@ -94,10 +98,13 @@ function loadEncoderConfig() {
 function saveEncoderConfig() {
 
     const codec =
-
         document.getElementById(
             "cfg-encoder-codec"
-        ).value;
+        )?.value;
+
+    if (!codec) {
+        return;
+    }
 
     currentConfig.encoder.codec =
         codec;

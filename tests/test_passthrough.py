@@ -1,5 +1,9 @@
 from open_bos_stream.core.config import ConfigLoader
-from open_bos_stream.core.models import AppConfig, MediaMTXStatus
+from open_bos_stream.core.models import (
+    AppConfig,
+    MediaMTXStatus,
+    SourceConfig,
+)
 from open_bos_stream.stream.command import FFmpegCommandBuilder
 from open_bos_stream.stream.service import StreamService
 from open_bos_stream.stream.inputs.rtmp import repair_input_url
@@ -249,6 +253,32 @@ def test_transcoding_rtsp_output_uses_tcp() -> None:
         "-f",
         "rtsp",
     ]
+
+
+def test_source_transcoding_overrides_global_encoder_options() -> None:
+    config = ConfigLoader().load()
+    config.encoder.codec = "h264_v4l2m2m"
+    config.encoder.bitrate = "8M"
+    source = SourceConfig(
+        id="kamera-1",
+        name="Kamera 1",
+        type="rtsp",
+        url="rtsp://192.0.2.10/Preview_01_main",
+        profile="transcode",
+        codec="libx264",
+        bitrate="3M",
+        pixel_format="yuv420p",
+        gop=50,
+        preset="veryfast",
+        tune="zerolatency",
+    )
+
+    command = FFmpegCommandBuilder(config).build_source(source)
+
+    assert command[command.index("-c:v") + 1] == "libx264"
+    assert command[command.index("-b:v") + 1] == "3M"
+    assert command[command.index("-g") + 1] == "50"
+    assert command[command.index("-preset") + 1] == "veryfast"
 
 
 def test_copy_mode_never_builds_video_filters_or_overlay() -> None:

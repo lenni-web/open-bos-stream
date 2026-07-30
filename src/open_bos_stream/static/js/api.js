@@ -107,6 +107,16 @@ class OBSApi {
         });
     }
 
+    async patch(url, body) {
+        return await this.request(url, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+        });
+    }
+
     async testConfig(config) {
         return await this.post(
             "/config/test",

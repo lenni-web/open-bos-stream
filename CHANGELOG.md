@@ -7,6 +7,31 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.10.7] - 2026-07-30
+
+### Changed
+
+- Die wirkungslose globale Karte „Bereitstellung / Wiedergabe“ wurde aus der
+  Mehrquellen-Konfiguration entfernt.
+- Die separate globale Transcoding-Karte wurde entfernt. Encoder, Bitrate,
+  Pixelformat, GOP, Preset und Tune befinden sich direkt in der jeweiligen
+  Quelle und erscheinen nur beim Profil „Transcodieren“.
+- Benutzerkonten lassen sich aufklappen und bearbeiten.
+
+### Added
+
+- Superadmins können Rollen bestehender Benutzer ändern.
+- Superadmins können für bestehende Benutzer ein neues Passwort setzen.
+- Rollen- und Passwortänderungen machen bestehende Sitzungen des betroffenen
+  Benutzers ungültig.
+- Verfügbare Encoder werden passend zum Quellentyp jeder Transcoding-Quelle
+  ermittelt.
+
+### Security
+
+- Der letzte Superadmin kann weder gelöscht noch zu einer niedrigeren Rolle
+  herabgestuft werden.
+
 ## [0.10.6] - 2026-07-30
 
 ### Fixed

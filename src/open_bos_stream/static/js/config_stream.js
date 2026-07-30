@@ -1,4 +1,10 @@
 function loadStreamConfig() {
+    const protocol = document.getElementById(
+        "cfg-viewer-protocol"
+    );
+    if (!protocol) {
+        return;
+    }
 
     document.getElementById(
         "cfg-stream-name"
@@ -34,6 +40,12 @@ function loadStreamConfig() {
 }
 
 function saveStreamConfig() {
+    const protocol = document.getElementById(
+        "cfg-viewer-protocol"
+    );
+    if (!protocol) {
+        return;
+    }
 
     currentConfig.stream.name =
         document.getElementById(

@@ -185,10 +185,55 @@ class AuthService:
             raise AuthError("Mindestens ein Superadmin muss erhalten bleiben.")
         self._write_users(remaining)
 
+    def update_user(
+        self,
+        username: str,
+        *,
+        role: str | None = None,
+        password: str | None = None,
+    ) -> dict:
+        username = username.strip().lower()
+        if role is not None and role not in ROLES:
+            raise AuthError("Unbekannte Rolle.")
+        users = self._read_users()
+        target = next(
+            (
+                item for item in users
+                if item["username"] == username
+            ),
+            None,
+        )
+        if target is None:
+            raise AuthError("Benutzer wurde nicht gefunden.")
+        if role is not None:
+            target["role"] = role
+        if password:
+            target["password_hash"] = self._password_hash(password)
+        if not any(item["role"] == "superadmin" for item in users):
+            raise AuthError("Mindestens ein Superadmin muss erhalten bleiben.")
+        self._write_users(users)
+        return {"username": username, "role": target["role"]}
+
     def create_token(self, user: dict) -> str:
+        if user["username"] == "__display__":
+            stamp = "display"
+        else:
+            stored = next(
+                (
+                    item for item in self._read_users()
+                    if item["username"] == user["username"]
+                ),
+                None,
+            )
+            if stored is None:
+                raise AuthError("Benutzer wurde nicht gefunden.")
+            stamp = hashlib.sha256(
+                stored["password_hash"].encode()
+            ).hexdigest()[:16]
         payload = {
             "sub": user["username"],
             "role": user["role"],
+            "stamp": stamp,
             "exp": int(time.time()) + self.SESSION_SECONDS,
         }
         raw = base64.urlsafe_b64encode(
@@ -234,6 +279,13 @@ class AuthService:
             )
             if int(payload["exp"]) < int(time.time()):
                 return None
+            stored = next(
+                (
+                    item for item in self._read_users()
+                    if item["username"] == payload["sub"]
+                ),
+                None,
+            )
             current = (
                 {
                     "username": "Lokales Display",
@@ -243,15 +295,25 @@ class AuthService:
                     payload["sub"] == "__display__"
                     and payload["role"] == "viewer"
                 )
-                else next(
-                    (
-                        user for user in self.users()
-                        if user["username"] == payload["sub"]
-                    ),
-                    None,
+                else (
+                    {
+                        "username": stored["username"],
+                        "role": stored["role"],
+                    }
+                    if stored
+                    else None
                 )
             )
             if not current or current["role"] != payload["role"]:
+                return None
+            expected_stamp = (
+                "display"
+                if payload["sub"] == "__display__"
+                else hashlib.sha256(
+                    stored["password_hash"].encode()
+                ).hexdigest()[:16]
+            )
+            if payload.get("stamp") != expected_stamp:
                 return None
             return current
         except (ValueError, KeyError, json.JSONDecodeError):

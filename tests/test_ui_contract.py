@@ -260,3 +260,37 @@ def test_hidden_superadmin_outputs_are_not_cleared_by_admin_save() -> None:
     )[1]
     assert '"stream-output-settings"' in save_function
     assert "if (!container)" in outputs
+
+
+def test_outdated_delivery_card_is_removed() -> None:
+    settings = (
+        ROOT / "templates" / "components" / "settings_card.html"
+    ).read_text(encoding="utf-8")
+
+    assert "Bereitstellung" not in settings
+    assert "cfg-viewer-protocol" not in settings
+    assert "settings-advanced" not in settings
+
+
+def test_transcoding_options_belong_to_each_source() -> None:
+    settings = (
+        ROOT / "templates" / "components" / "settings_card.html"
+    ).read_text(encoding="utf-8")
+    sources = (
+        ROOT / "static" / "js" / "config_rtmp_inputs.js"
+    ).read_text(encoding="utf-8")
+
+    assert "cfg-encoder-codec" not in settings
+    assert "Transcoding dieser Quelle" in sources
+    assert "sourceTranscodingFields(source)" in sources
+    assert "loadSourceEncoders" in sources
+
+
+def test_superadmin_can_edit_user_role_and_password() -> None:
+    users = (
+        ROOT / "static" / "js" / "auth_users.js"
+    ).read_text(encoding="utf-8")
+
+    assert "function saveUser(username)" in users
+    assert "Neues Passwort (optional)" in users
+    assert "api.patch(" in users

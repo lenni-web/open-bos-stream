@@ -64,6 +64,49 @@ def test_roles_and_last_superadmin_are_protected(tmp_path: Path) -> None:
         auth.delete_user("leitung", "anzeige")
 
 
+def test_user_role_and_password_can_be_updated(tmp_path: Path) -> None:
+    auth = service(tmp_path)
+    auth.create_user(
+        "leitung",
+        "sicheres-passwort",
+        "superadmin",
+        initial=True,
+    )
+    user = auth.create_user(
+        "operator",
+        "anderes-passwort",
+        "viewer",
+    )
+    old_token = auth.create_token(user)
+
+    updated = auth.update_user(
+        "operator",
+        role="admin",
+        password="ganz-neues-passwort",
+    )
+
+    assert updated == {"username": "operator", "role": "admin"}
+    assert auth.authenticate(
+        "operator",
+        "ganz-neues-passwort",
+    ) == updated
+    assert auth.authenticate("operator", "anderes-passwort") is None
+    assert auth.verify_token(old_token) is None
+
+
+def test_last_superadmin_cannot_be_demoted(tmp_path: Path) -> None:
+    auth = service(tmp_path)
+    auth.create_user(
+        "leitung",
+        "sicheres-passwort",
+        "superadmin",
+        initial=True,
+    )
+
+    with pytest.raises(AuthError):
+        auth.update_user("leitung", role="admin")
+
+
 def test_duplicate_user_and_short_password_are_rejected(
     tmp_path: Path,
 ) -> None:
