@@ -392,6 +392,10 @@ body {
     grid-column: 1 / -1;
 }
 
+.settings-section-display {
+    order: 99;
+}
+
 .settings-section-header {
     display: flex;
     gap: 14px;

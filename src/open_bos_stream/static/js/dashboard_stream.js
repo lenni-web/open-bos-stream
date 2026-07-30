@@ -111,13 +111,23 @@ if (
 
 	} else {
 
-	    window.livePlayer.stop();
+        const holdCurrentPicture =
+            window.livePlayer.deferUnavailableStop(
+                6000
+            );
 
-	    videoContainer.style.display =
-	        "none";
-
-	    placeholder.style.display =
-	        "flex";
+        if (holdCurrentPicture) {
+            videoContainer.style.display =
+                "block";
+            placeholder.style.display =
+                "none";
+        } else {
+            window.livePlayer.stop();
+            videoContainer.style.display =
+                "none";
+            placeholder.style.display =
+                "flex";
+        }
 		}
 	}
 }
