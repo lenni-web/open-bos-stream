@@ -15,6 +15,10 @@ async function loadInputTypes() {
             "cfg-input-type"
         );
 
+    if (!select) {
+        return;
+    }
+
     select.innerHTML = "";
 
     for (const input of inputTypes) {

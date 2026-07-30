@@ -62,7 +62,10 @@ class RTMPInputBuilder(InputBuilder):
 
         command = []
 
-        if getattr(source, "mode", None) == "copy_repair":
+        if (
+            getattr(source, "mode", None) == "copy_repair"
+            or getattr(source, "profile", None) == "copy_repair"
+        ):
             input_url, use_rtsp = repair_input_url(source.url)
             command.extend([
                 "-thread_queue_size",

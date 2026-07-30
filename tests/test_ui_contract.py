@@ -124,3 +124,20 @@ def test_rtmp_input_views_use_available_html_escaping() -> None:
     assert index.index("/static/js/ui.js") < index.index(
         "/static/js/multi_source.js"
     )
+
+
+def test_settings_use_one_equal_source_list() -> None:
+    settings = (
+        ROOT / "templates" / "components" / "settings_card.html"
+    ).read_text(encoding="utf-8")
+    source_js = (
+        ROOT / "static" / "js" / "config_rtmp_inputs.js"
+    ).read_text(encoding="utf-8")
+
+    assert 'id="source-settings"' in settings
+    assert 'id="source-add-button"' in settings
+    assert "+ Quelle hinzufügen" in settings
+    assert "RTMP-Eingang hinzufügen" not in settings
+    assert "function renderSources()" in source_js
+    assert "data-role=\"publish-url\"" in source_js
+    assert "readonly" in source_js

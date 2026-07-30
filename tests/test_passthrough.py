@@ -51,7 +51,7 @@ def test_passthrough_uses_mediamtx_path_without_pid() -> None:
     assert service.managed is False
     assert service.running is True
     assert service.pid is None
-    assert mediamtx.requested_paths == ["live/drohne"]
+    assert mediamtx.requested_paths == ["quelle-1"]
 
 
 def test_passthrough_waits_for_external_publisher() -> None:
@@ -71,9 +71,8 @@ def test_passthrough_waits_for_external_publisher() -> None:
 
 def test_capture_card_always_uses_managed_streamer() -> None:
     config = ConfigLoader().load()
-    config.input.type = "v4l2"
-    config.encoder.codec = "h264_v4l2m2m"
-    config.stream.passthrough = True
+    config.sources[0].type = "v4l2"
+    config.sources[0].profile = "transcode"
 
     service = StreamService(
         config=config,
@@ -86,6 +85,7 @@ def test_capture_card_always_uses_managed_streamer() -> None:
 
 def test_capture_card_config_is_normalized() -> None:
     data = ConfigLoader().load().model_dump()
+    data["sources"] = []
     data["source_profile"] = "capture_card"
     data["input"]["type"] = "v4l2"
     data["input"]["mode"] = "copy"
@@ -109,6 +109,7 @@ def test_capture_card_config_is_normalized() -> None:
 
 def test_rtmp_passthrough_profile_is_normalized() -> None:
     data = ConfigLoader().load().model_dump()
+    data["sources"] = []
     data["source_profile"] = "rtmp_passthrough"
     data["input"]["type"] = "v4l2"
     data["encoder"]["codec"] = "h264_v4l2m2m"
@@ -129,6 +130,7 @@ def test_rtmp_passthrough_profile_is_normalized() -> None:
 
 def test_rtmp_repair_profile_uses_managed_copy_relay() -> None:
     data = ConfigLoader().load().model_dump()
+    data["sources"] = []
     data["source_profile"] = "rtmp_repair"
     data["input"]["url"] = (
         "rtmp://127.0.0.1:1935/live/drohne"
@@ -154,6 +156,7 @@ def test_rtmp_repair_profile_uses_managed_copy_relay() -> None:
 
 def test_rtmp_repair_command_normalizes_timestamps_without_transcoding() -> None:
     data = ConfigLoader().load().model_dump()
+    data["sources"] = []
     data["source_profile"] = "rtmp_repair"
     data["input"]["url"] = (
         "rtmp://127.0.0.1:1935/live/drohne"
@@ -218,6 +221,7 @@ def test_rtmp_repair_command_normalizes_timestamps_without_transcoding() -> None
 
 def test_custom_v4l2_cannot_enable_passthrough() -> None:
     data = ConfigLoader().load().model_dump()
+    data["sources"] = []
     data["source_profile"] = "custom"
     data["input"]["type"] = "v4l2"
     data["encoder"]["codec"] = "copy"

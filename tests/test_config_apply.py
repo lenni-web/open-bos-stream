@@ -9,7 +9,7 @@ from open_bos_stream.core.config_apply import (
 )
 from open_bos_stream.core.models import (
     AppConfig,
-    RTMPInputConfig,
+    SourceConfig,
 )
 
 
@@ -58,7 +58,10 @@ class FakeStream(FakeReloadable):
     @property
     def managed(self) -> bool:
         assert self.config is not None
-        return not self.config.passthrough_active
+        return any(
+            source.enabled and source.requires_process
+            for source in self.config.sources
+        )
 
     def start(self) -> bool:
         return True
@@ -80,8 +83,14 @@ def capture_config(
     device: Path,
 ) -> AppConfig:
     data = base.model_dump()
-    data["source_profile"] = "capture_card"
-    data["input"]["device"] = str(device)
+    data["sources"] = [{
+        "id": "capture-1",
+        "name": "Capture 1",
+        "type": "v4l2",
+        "profile": "transcode",
+        "device": str(device),
+        "enabled": True,
+    }]
     return AppConfig(**data)
 
 
@@ -108,8 +117,7 @@ def test_capture_profile_is_activated_atomically(
 
     message = service.apply(candidate)
 
-    assert runtime.source_profile == "capture_card"
-    assert runtime.input.type == "v4l2"
+    assert runtime.sources[0].type == "v4l2"
     assert stream.restarts == 1
     assert stream.stops == 0
     assert len(loader.saved) == 1
@@ -142,8 +150,8 @@ def test_failed_capture_activation_rolls_back(
     with pytest.raises(ConfigApplyError):
         service.apply(candidate)
 
-    assert runtime.source_profile == "rtmp_passthrough"
-    assert runtime.passthrough_active is True
+    assert runtime.sources[0].type == "rtmp"
+    assert runtime.sources[0].profile == "direct"
     assert stream.stops == 1
     assert len(loader.saved) == 2
     assert loader.saved[-1].source_profile == (
@@ -177,14 +185,15 @@ def test_configuration_test_does_not_persist_or_restart(
     assert preflight.validated == [candidate]
 
 
-def test_rtmp_input_slots_apply_without_stream_restart() -> None:
+def test_direct_rtmp_source_applies_without_stream_restart() -> None:
     runtime = ConfigLoader().load()
     candidate = runtime.model_copy(deep=True)
-    candidate.rtmp_inputs.append(
-        RTMPInputConfig(
+    candidate.sources.append(
+        SourceConfig(
             id="quelle-2",
             name="Quelle 2",
-            path="live/quelle-2",
+            type="rtmp",
+            profile="direct",
             enabled=True,
         )
     )
@@ -204,6 +213,6 @@ def test_rtmp_input_slots_apply_without_stream_restart() -> None:
     message = service.apply(candidate)
 
     assert stream.restarts == 0
-    assert len(runtime.rtmp_inputs) == 2
+    assert len(runtime.sources) == 2
     assert loader.last_known_good is not None
-    assert "ohne Streamer-Neustart" in message
+    assert "direkte Quellen" in message

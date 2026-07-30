@@ -76,8 +76,7 @@ class ConfigLoader:
                 "transcode",
             )
 
-        # Migration: Der bisherige einzelne RTMP-Eingang wird zum ersten
-        # Mehrquellen-Slot. Eine bewusst gespeicherte leere Liste bleibt leer.
+        # Alte RTMP-Slots zunächst weiterhin einlesen.
         if "rtmp_inputs" not in data:
             data["rtmp_inputs"] = []
             input_config = data.get("input", {})
@@ -98,6 +97,83 @@ class ConfigLoader:
                         ),
                         "enabled": True,
                     })
+
+        # Migration: Hauptquelle und zusätzliche RTMP-Slots werden einmalig
+        # in eine gemeinsame Liste gleichwertiger Quellen überführt.
+        if not data.get("sources"):
+            sources: list[dict] = []
+            input_config = data.get("input", {})
+            stream_config = data.get("stream", {})
+            source_profile = data.get("source_profile")
+
+            profile = {
+                "rtmp_passthrough": "direct",
+                "rtmp_repair": "copy_repair",
+                "capture_card": "transcode",
+            }.get(
+                source_profile,
+                (
+                    "copy_repair"
+                    if input_config.get("mode") == "copy_repair"
+                    else (
+                        "direct"
+                        if input_config.get("type") in {"rtmp", "rtsp"}
+                        else "transcode"
+                    )
+                ),
+            )
+
+            primary_id = "quelle-1"
+            if input_config.get("type") == "rtmp":
+                from urllib.parse import urlparse
+
+                path = urlparse(input_config.get("url") or "").path.strip("/")
+                matching = next(
+                    (
+                        item
+                        for item in data.get("rtmp_inputs", [])
+                        if item.get("path") == path
+                    ),
+                    None,
+                )
+                if matching:
+                    primary_id = matching.get("id", primary_id)
+
+            sources.append({
+                "id": primary_id,
+                "name": "Quelle 1",
+                "type": input_config.get("type", "v4l2"),
+                "profile": profile,
+                "enabled": True,
+                "url": input_config.get("url"),
+                "device": input_config.get("device"),
+                "width": input_config.get("width", 1280),
+                "height": input_config.get("height", 720),
+                "fps": input_config.get("fps", 30),
+                "format": input_config.get("format", "mjpeg"),
+                "transport": input_config.get("transport", "tcp"),
+                "codec": data.get("encoder", {}).get("codec"),
+            })
+
+            known_ids = {primary_id}
+            for item in data.get("rtmp_inputs", []):
+                item_id = item.get("id")
+                if not item_id or item_id in known_ids:
+                    continue
+                sources.append({
+                    "id": item_id,
+                    "name": item.get("name") or item_id,
+                    "type": "rtmp",
+                    "profile": (
+                        "copy_repair"
+                        if item.get("viewer_path")
+                        else "direct"
+                    ),
+                    "enabled": item.get("enabled", True),
+                })
+                known_ids.add(item_id)
+
+            data["sources"] = sources[:8]
 
         return AppConfig(**data)
 

@@ -13,7 +13,21 @@ input:
   height: 720
   fps: 30
   format: mjpeg
-sources: []
+sources:
+  - id: quelle-1
+    name: Quelle 1
+    type: rtmp
+    profile: direct
+    enabled: true
+    url: rtmp://127.0.0.1:1935/quelle-1
+    device: /dev/video0
+    width: 1280
+    height: 720
+    fps: 30
+    format: mjpeg
+    transport: tcp
+    codec: null
+    audio_mode: copy
 rtmp_inputs:
   - id: quelle-1
     name: Quelle 1

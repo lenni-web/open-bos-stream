@@ -1,5 +1,6 @@
 from pydantic import (
     BaseModel,
+    ConfigDict,
     Field,
     field_validator,
     model_validator,
@@ -36,28 +37,82 @@ class InputConfig(BaseModel):
     format: str = "v4l2"
 
 class SourceConfig(BaseModel):
+    model_config = ConfigDict(extra="allow")
 
-    #
-    # Eindeutige ID der Quelle
-    #
     id: str
-
-    #
-    # Quelltyp
-    #
+    name: str = "Quelle"
     type: str
-
-    #
-    # Aktiviert?
-    #
+    profile: Literal[
+        "direct",
+        "copy_repair",
+        "transcode",
+    ] = "direct"
     enabled: bool = True
-
     priority: int = 0
+    url: str | None = None
+    device: str | None = "/dev/video0"
+    width: int = 1280
+    height: int = 720
+    fps: int = 30
+    format: str = "mjpeg"
+    transport: Literal["tcp", "udp"] = "tcp"
+    codec: str | None = None
+    audio_mode: Literal["none", "copy", "aac"] = "copy"
 
-    class Config:
+    @field_validator("id")
+    @classmethod
+    def validate_id(cls, value: str) -> str:
+        value = value.strip().lower()
+        if not re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,31}", value):
+            raise ValueError(
+                "ID muss aus Kleinbuchstaben, Zahlen, '-' oder '_' bestehen."
+            )
+        return value
 
-        extra = "allow"
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Quellenname darf nicht leer sein.")
+        return value
 
+    @model_validator(mode="after")
+    def validate_source(self) -> "SourceConfig":
+        if self.type in {
+            "rtsp",
+            "srt",
+            "udp",
+            "http",
+            "hls",
+        }:
+            if not self.url:
+                raise ValueError(
+                    f"Für die {self.type.upper()}-Quelle fehlt die URL."
+                )
+        if self.type == "rtmp":
+            # Lokale RTMP-Publisher verwenden immer die unveränderliche ID.
+            self.url = f"rtmp://127.0.0.1:1935/{self.id}"
+        if self.type == "v4l2" and not self.device:
+            raise ValueError("Für die Capture Card fehlt das Gerät.")
+        return self
+
+    @property
+    def publish_path(self) -> str:
+        return self.id
+
+    @property
+    def viewer_path(self) -> str:
+        if self.type == "rtmp" and self.profile == "direct":
+            return self.id
+        return f"{self.id}-view"
+
+    @property
+    def requires_process(self) -> bool:
+        return not (
+            self.type == "rtmp"
+            and self.profile == "direct"
+        )
 
 class RTMPInputConfig(BaseModel):
     """Ein individuell adressierbarer RTMP-Empfangs-Slot."""
@@ -178,6 +233,7 @@ class StreamOutputAudioConfig(BaseModel):
     ] = "none"
 
 class StreamOutputConfig(BaseModel):
+    model_config = ConfigDict(extra="allow")
 
     type: str = Field(
         default="rtmp",
@@ -192,10 +248,6 @@ class StreamOutputConfig(BaseModel):
     audio: StreamOutputAudioConfig = Field(
         default_factory=StreamOutputAudioConfig,
     )
-
-    class Config:
-
-        extra = "allow"
 
 class AppConfig(BaseModel):
 
@@ -220,11 +272,10 @@ class AppConfig(BaseModel):
         default_factory=InputConfig,
     )
 
-    sources: list[
-            SourceConfig
-        ] = Field(
-            default_factory=list,
-        )
+    sources: list[SourceConfig] = Field(
+        default_factory=list,
+        max_length=8,
+    )
 
     rtmp_inputs: list[RTMPInputConfig] = Field(
         default_factory=list,
@@ -328,6 +379,48 @@ class AppConfig(BaseModel):
 
     @model_validator(mode="after")
     def validate_rtmp_inputs(self) -> "AppConfig":
+        source_ids = [item.id for item in self.sources]
+        if len(source_ids) != len(set(source_ids)):
+            raise ValueError("Quellen-IDs müssen eindeutig sein.")
+        viewer_paths = [item.viewer_path for item in self.sources]
+        if len(viewer_paths) != len(set(viewer_paths)):
+            raise ValueError(
+                "Wiedergabepfade der Quellen müssen eindeutig sein."
+            )
+
+        # Übergangsweise folgen Einzelstream-Verbraucher wie Diagnose,
+        # Snapshot und Streaming-Ausgänge der ersten aktivierten Quelle.
+        if self.sources:
+            primary = next(
+                (
+                    source
+                    for source in self.sources
+                    if source.enabled
+                ),
+                self.sources[0],
+            )
+            self.input.type = primary.type
+            self.input.mode = (
+                "copy_repair"
+                if primary.profile == "copy_repair"
+                else (
+                    "transcode"
+                    if primary.profile == "transcode"
+                    else "copy"
+                )
+            )
+            self.input.url = primary.url
+            self.input.device = primary.device
+            self.input.width = primary.width
+            self.input.height = primary.height
+            self.input.fps = primary.fps
+            self.input.format = primary.format
+            self.stream.name = primary.viewer_path
+            self.stream.rtsp_url = (
+                f"rtsp://127.0.0.1:8554/{primary.viewer_path}"
+            )
+            self.stream.passthrough = not primary.requires_process
+
         ids = [item.id for item in self.rtmp_inputs]
         paths = [item.path for item in self.rtmp_inputs]
         if len(ids) != len(set(ids)):

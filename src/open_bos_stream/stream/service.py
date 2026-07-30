@@ -34,17 +34,33 @@ class StreamService:
 
     @property
     def managed(self) -> bool:
-        """True, wenn der interne FFmpeg-Dienst benötigt wird."""
+        """True, wenn mindestens eine Quelle FFmpeg benötigt."""
 
-        return not self._config.passthrough_active
+        if not self._config.sources:
+            return not self._config.passthrough_active
+
+        return any(
+            source.enabled and source.requires_process
+            for source in self._config.sources
+        )
 
     @property
     def running(self) -> bool:
 
         if not self.managed:
-            return self._mediamtx.status(
-                self._config.stream.name
-            ).ready
+            if not self._config.sources:
+                return self._mediamtx.status(
+                    self._config.stream.name
+                ).ready
+            enabled = [
+                source
+                for source in self._config.sources
+                if source.enabled
+            ]
+            return any(
+                self._mediamtx.status(source.viewer_path).ready
+                for source in enabled
+            )
 
         result = self._runner.run(
             [
@@ -321,13 +337,11 @@ class StreamService:
 
         deadline = time.monotonic() + timeout
 
+        if not self.managed:
+            return True
+
         while time.monotonic() < deadline:
-            if (
-                self.running
-                and self._mediamtx.status(
-                    self._config.stream.name
-                ).ready
-            ):
+            if self.running:
                 return True
 
             time.sleep(0.25)

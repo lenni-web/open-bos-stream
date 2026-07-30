@@ -400,6 +400,17 @@ body {
     grid-column: 1 / -1;
 }
 
+.source-specific-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.source-config input[readonly] {
+    color: var(--bos-muted);
+    background: var(--bos-gray-soft);
+}
+
 .rtmp-input-config {
     margin-bottom: 14px;
     padding: 14px;

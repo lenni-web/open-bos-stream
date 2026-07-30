@@ -52,83 +52,85 @@ class ConfigPreflightValidator:
     def validate(self, config: AppConfig) -> list[str]:
         checks: list[str] = []
 
-        if config.passthrough_active:
-            if not self._valid_url(config.input.url, {"rtmp", "rtmps"}):
-                raise ConfigPreflightError(
-                    "Die RTMP-Eingangs-URL ist ungültig."
-                )
-
-            if not config.stream.name.strip("/"):
-                raise ConfigPreflightError(
-                    "Der MediaMTX-Pfad darf nicht leer sein."
-                )
-
-            checks.extend([
-                "RTMP-Eingangs-URL gültig",
-                "MediaMTX-Pfad gültig",
-                "Kein interner FFmpeg-Neustart erforderlich",
-            ])
+        enabled = [source for source in config.sources if source.enabled]
+        if not enabled:
+            checks.append("Keine Quelle aktiviert")
             return checks
 
-        if config.input.type == "v4l2":
-            device = Path(config.input.device or "")
-            if not device.exists():
-                raise ConfigPreflightError(
-                    f"Capture-Gerät '{device}' ist nicht verfügbar."
-                )
-            if not os.access(device, os.R_OK | os.W_OK):
-                raise ConfigPreflightError(
-                    f"Keine ausreichenden Berechtigungen für '{device}'."
-                )
-            checks.append(f"Capture-Gerät zugreifbar ({device})")
+        managed = [source for source in enabled if source.requires_process]
 
-        if config.source_profile == "rtmp_repair":
-            if not self._valid_url(config.input.url, {"rtmp", "rtmps"}):
+        # Konkrete Quellenfehler vor allgemeinen Abhängigkeiten melden.
+        for source in enabled:
+            if source.type == "v4l2":
+                device = Path(source.device or "")
+                if not device.exists():
+                    raise ConfigPreflightError(
+                        f"Capture-Gerät '{device}' der Quelle "
+                        f"'{source.name}' ist nicht verfügbar."
+                    )
+            schemes = {
+                "rtsp": {"rtsp", "rtsps"},
+                "srt": {"srt"},
+                "udp": {"udp"},
+                "http": {"http", "https"},
+                "hls": {"http", "https"},
+            }.get(source.type)
+            if schemes and not self._valid_url(source.url, schemes):
                 raise ConfigPreflightError(
-                    "Die RTMP-Eingangs-URL ist ungültig."
+                    f"{source.type.upper()}-URL der Quelle "
+                    f"'{source.name}' ist ungültig."
                 )
-            input_path = urlparse(config.input.url or "").path.strip("/")
-            output_path = urlparse(config.stream.rtsp_url).path.strip("/")
-            if input_path == output_path:
-                raise ConfigPreflightError(
-                    "RTMP-Eingang und reparierte Ausgabe dürfen nicht "
-                    "denselben MediaMTX-Pfad verwenden."
-                )
-            checks.append("Getrennte RTMP-Eingangs- und Ausgabepfade")
 
-        ffmpeg = shutil.which("ffmpeg")
-        if not ffmpeg:
-            raise ConfigPreflightError(
-                "FFmpeg ist nicht installiert oder nicht im PATH."
+        if managed:
+            ffmpeg = shutil.which("ffmpeg")
+            if not ffmpeg:
+                raise ConfigPreflightError(
+                    "FFmpeg ist nicht installiert oder nicht im PATH."
+                )
+            checks.append(f"FFmpeg verfügbar ({ffmpeg})")
+
+        encoders: str | None = None
+        builder = FFmpegCommandBuilder(config)
+
+        for source in enabled:
+            if source.type == "v4l2":
+                device = Path(source.device or "")
+                if not os.access(device, os.R_OK | os.W_OK):
+                    raise ConfigPreflightError(
+                        f"Keine ausreichenden Berechtigungen für '{device}'."
+                    )
+
+            if not source.requires_process:
+                checks.append(
+                    f"{source.name}: direkter RTMP-Pfad '{source.id}'"
+                )
+                continue
+
+            try:
+                command = builder.build_source(source)
+            except Exception as exc:
+                raise ConfigPreflightError(
+                    f"FFmpeg-Befehl für '{source.name}' konnte nicht "
+                    f"erzeugt werden: {exc}"
+                ) from exc
+
+            if not command or command[0] != "ffmpeg":
+                raise ConfigPreflightError(
+                    f"FFmpeg-Befehl für '{source.name}' ist ungültig."
+                )
+
+            codec = (
+                source.codec or config.encoder.codec
+                if source.profile == "transcode"
+                else "copy"
             )
-        checks.append(f"FFmpeg verfügbar ({ffmpeg})")
-
-        if not self._valid_url(config.stream.rtsp_url, {"rtsp", "rtsps"}):
-            raise ConfigPreflightError(
-                "Die RTSP-Ausgabe-URL ist ungültig."
-            )
-        checks.append("RTSP-Ausgabe-URL gültig")
-
-        try:
-            command = FFmpegCommandBuilder(config).build()
-        except Exception as exc:
-            raise ConfigPreflightError(
-                f"FFmpeg-Befehl konnte nicht erzeugt werden: {exc}"
-            ) from exc
-
-        if not command or command[0] != "ffmpeg":
-            raise ConfigPreflightError(
-                "Der erzeugte FFmpeg-Befehl ist ungültig."
-            )
-        checks.append("FFmpeg-Befehl erfolgreich erzeugt")
-
-        codec = config.encoder.codec
-        if codec != "copy":
-            encoders = self._available_encoders()
-            if codec not in encoders:
-                raise ConfigPreflightError(
-                    f"Der Encoder '{codec}' ist in FFmpeg nicht verfügbar."
-                )
-            checks.append(f"Encoder verfügbar ({codec})")
+            if codec != "copy":
+                encoders = encoders or self._available_encoders()
+                if codec not in encoders:
+                    raise ConfigPreflightError(
+                        f"Encoder '{codec}' für '{source.name}' ist "
+                        "in FFmpeg nicht verfügbar."
+                    )
+            checks.append(f"{source.name}: FFmpeg-Befehl gültig")
 
         return checks

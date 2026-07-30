@@ -65,15 +65,31 @@ class RTSPInputBuilder(InputBuilder):
             "tcp",
         )
 
-        return [
-
+        command = [
             "-rtsp_transport",
             transport,
+        ]
 
+        if getattr(source, "profile", None) == "copy_repair":
+            command.extend([
+                "-thread_queue_size",
+                "512",
+                "-fflags",
+                "+genpts+discardcorrupt+nobuffer",
+                "-flags",
+                "low_delay",
+                "-use_wallclock_as_timestamps",
+                "1",
+                "-max_delay",
+                "0",
+            ])
+
+        command.extend([
             "-i",
             source.url,
+        ])
 
-        ]
+        return command
 
     def validate(
         self,
