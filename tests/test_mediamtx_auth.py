@@ -65,7 +65,7 @@ def authorize(payload: MediaMTXAuthRequest) -> dict[str, bool]:
 def test_matching_source_token_allows_external_rtmp_publisher(
     monkeypatch,
 ) -> None:
-    token = "a" * 32
+    token = "a" * 12
     configure_auth(monkeypatch, token)
 
     assert authorize(auth_request(token=token)) == {"authorized": True}
@@ -74,9 +74,9 @@ def test_matching_source_token_allows_external_rtmp_publisher(
 @pytest.mark.parametrize(
     ("payload", "status_code"),
     [
-        (auth_request(token="b" * 32), 401),
-        (auth_request(token="a" * 32, path="quelle-2"), 403),
-        (auth_request(token="a" * 32, protocol="rtsp"), 403),
+        (auth_request(token="b" * 12), 401),
+        (auth_request(token="a" * 12, path="quelle-2"), 403),
+        (auth_request(token="a" * 12, protocol="rtsp"), 403),
     ],
 )
 def test_invalid_external_publisher_is_rejected(
@@ -84,7 +84,7 @@ def test_invalid_external_publisher_is_rejected(
     payload: MediaMTXAuthRequest,
     status_code: int,
 ) -> None:
-    configure_auth(monkeypatch, "a" * 32)
+    configure_auth(monkeypatch, "a" * 12)
 
     with pytest.raises(HTTPException) as error:
         authorize(payload)
@@ -93,7 +93,7 @@ def test_invalid_external_publisher_is_rejected(
 
 
 def test_internal_relay_is_allowed_without_token(monkeypatch) -> None:
-    configure_auth(monkeypatch, "a" * 32)
+    configure_auth(monkeypatch, "a" * 12)
 
     assert authorize(
         auth_request(token="", protocol="rtsp", ip="127.0.0.1")
@@ -105,8 +105,19 @@ def test_rtmp_source_gets_random_publisher_token() -> None:
     second = SourceConfig(id="quelle-2", name="Quelle", type="rtmp")
 
     assert first.publish_token is not None
-    assert len(first.publish_token) >= 24
+    assert len(first.publish_token) == 12
     assert first.publish_token != second.publish_token
+
+
+def test_long_legacy_publisher_token_is_shortened_stably() -> None:
+    source = SourceConfig(
+        id="quelle-1",
+        name="Quelle",
+        type="rtmp",
+        publish_token="abcdefghijklmnopqrstuvwx",
+    )
+
+    assert source.publish_token == "abcdefghijkl"
 
 
 def test_migration_persists_missing_publisher_token(tmp_path) -> None:
@@ -132,3 +143,28 @@ def test_migration_persists_missing_publisher_token(tmp_path) -> None:
         == second.sources[0].publish_token
     )
     assert "publish_token:" in config_file.read_text(encoding="utf-8")
+
+
+def test_migration_persists_shortened_legacy_token(tmp_path) -> None:
+    data = ConfigLoader().load().model_dump()
+    data["sources"] = [
+        {
+            "id": "quelle-1",
+            "name": "Quelle 1",
+            "type": "rtmp",
+            "publish_token": "abcdefghijklmnopqrstuvwx",
+        }
+    ]
+    config_file = tmp_path / "stream.yaml"
+    config_file.write_text(
+        yaml.safe_dump(data, sort_keys=False),
+        encoding="utf-8",
+    )
+
+    config = ConfigLoader(str(config_file)).load()
+    persisted = yaml.safe_load(
+        config_file.read_text(encoding="utf-8")
+    )
+
+    assert config.sources[0].publish_token == "abcdefghijkl"
+    assert persisted["sources"][0]["publish_token"] == "abcdefghijkl"

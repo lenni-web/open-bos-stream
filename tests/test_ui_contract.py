@@ -222,6 +222,9 @@ def test_source_settings_are_compact_and_urls_can_be_revealed() -> None:
     assert 'data-field="publish_token"' in source_js
     assert 'data-role="toggle-publish-url"' in source_js
     assert "?token=${encodeURIComponent(source.publish_token)}" in source_js
+    assert 'minlength="12"' in source_js
+    assert 'maxlength="12"' in source_js
+    assert "Das Feld ist bearbeitbar" in source_js
     assert "window.installationProfile" not in source_js
 
 

@@ -167,8 +167,9 @@ Installer nicht verändern und muss dort entsprechend konfiguriert werden.
 ### RTMP-Publisher-Token
 
 In beiden Installationsprofilen erhält jede RTMP-Quelle automatisch einen
-eigenen, zufälligen Publisher-Token. Die vollständige Empfangsadresse ist in
-den Einstellungen zunächst verdeckt und kann bewusst eingeblendet werden:
+eigenen, zufälligen Publisher-Token mit genau 12 Zeichen. Die vollständige
+Empfangsadresse ist in den Einstellungen zunächst verdeckt und kann bewusst
+eingeblendet werden:
 
 ```text
 rtmp://server.example:1935/quelle-1?token=GEHEIMNIS
@@ -177,7 +178,14 @@ rtmp://server.example:1935/quelle-1?token=GEHEIMNIS
 MediaMTX fragt die Anwendung bei jeder externen Veröffentlichung ab. Dabei
 müssen Quellen-ID und Token zusammenpassen; ein Token einer anderen Quelle
 genügt nicht. Bestehende RTMP-Quellen erhalten beim ersten Laden nach dem
-Update automatisch einen persistenten Token.
+Update automatisch einen persistenten Token. Ältere, längere Tokens werden
+einmalig auf die ersten 12 Zeichen gekürzt.
+
+Der Token kann in der Quellenkonfiguration nach dem Einblenden selbst
+festgelegt werden. Er muss aus genau 12 Buchstaben, Zahlen, Bindestrichen oder
+Unterstrichen bestehen. Die zusammengesetzte Publisher-URL bleibt
+schreibgeschützt und aktualisiert sich automatisch, sobald ID oder Token
+geändert werden.
 
 Der Token verhindert unbefugtes Publizieren, verschlüsselt den Transport aber
 nicht. Port 1935 sollte deshalb möglichst über die Anbieter-Firewall auf

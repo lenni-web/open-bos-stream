@@ -191,13 +191,13 @@ class ConfigLoader:
 
             data["sources"] = sources[:8]
 
-        missing_publisher_tokens = any(
+        publisher_tokens_need_migration = any(
             source.get("type") == "rtmp"
-            and not source.get("publish_token")
+            and len(str(source.get("publish_token") or "").strip()) != 12
             for source in data.get("sources", [])
         )
         config = AppConfig(**data)
-        if missing_publisher_tokens:
+        if publisher_tokens_need_migration:
             # Einmalige Migration: MediaMTX liest den Token bei jeder
             # Publish-Anmeldung neu aus der Laufzeitkonfiguration.
             self._save_to(self.config_file, config)
