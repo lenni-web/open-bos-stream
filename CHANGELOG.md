@@ -7,6 +7,17 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.9.2] - 2026-07-30
+
+### Fixed
+
+- Der Button „RTMP-Eingang hinzufügen“ legt wieder unmittelbar einen
+  konfigurierbaren Eingang an.
+- Konfigurierte RTMP-Eingänge werden in den Einstellungen und im
+  Mehrquellen-Dashboard wieder zuverlässig gerendert.
+- Die gemeinsame HTML-Escaping-Funktion steht vor allen abhängigen
+  Mehrquellen-Skripten zur Verfügung.
+
 ## [0.9.1] - 2026-07-30
 
 ### Fixed
