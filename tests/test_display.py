@@ -5,6 +5,7 @@ from pydantic import ValidationError
 
 from open_bos_stream.display.config import DisplayConfig
 from open_bos_stream.display.runner import (
+    base_environment,
     display_url,
     wayland_environment,
 )
@@ -51,3 +52,19 @@ def test_wayland_environment_detects_labwc_socket(
 
     assert environment["XDG_RUNTIME_DIR"] == str(tmp_path)
     assert environment["WAYLAND_DISPLAY"] == "wayland-0"
+
+
+def test_base_environment_prepares_private_runtime_directory(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime_dir = tmp_path / "display-runtime"
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(runtime_dir))
+    monkeypatch.delenv("XDG_SESSION_TYPE", raising=False)
+
+    environment = base_environment()
+
+    assert runtime_dir.is_dir()
+    assert runtime_dir.stat().st_mode & 0o777 == 0o700
+    assert environment["XDG_SESSION_TYPE"] == "wayland"
+    assert environment["XDG_CURRENT_DESKTOP"] == "labwc"

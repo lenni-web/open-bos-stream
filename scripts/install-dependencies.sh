@@ -18,6 +18,9 @@ PACKAGES=(
     ffmpeg
     curl
     git
+    dbus-daemon
+    labwc
+    seatd
 )
 
 MISSING_PACKAGES=()

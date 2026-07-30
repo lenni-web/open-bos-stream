@@ -125,16 +125,19 @@ journalctl -u open-bos-stream.service -f
 
 ## Lokales Display
 
-Auf Raspberry Pi OS wird eine laufende labwc/Wayland-Desktopsitzung
-benötigt. Das Display kann in den Einstellungen manuell in drei Modi
-gestartet werden:
+Der Display-Dienst startet bei Bedarf eine eigene minimale
+labwc/Wayland-Sitzung und öffnet darin Chromium. Dadurch funktioniert die
+Anzeige auch auf Raspberry Pi OS, wenn nach dem Boot zunächst nur die
+Shell-Konsole sichtbar ist. labwc, seatd und die D-Bus-Komponenten werden
+vom Installationsskript eingerichtet. Das Display kann in den Einstellungen
+manuell in drei Modi gestartet werden:
 
 - `kiosk`: Dashboard ohne Chromium-Browserrahmen
 - `normal`: normales Chromium-Fenster mit Bedienoberfläche
 - `stream`: reduzierte Vollbildanzeige des Live-Streams
 
 Der Dienst wird bewusst nicht beim Boot aktiviert. Nach einem manuellen
-Start startet systemd Chromium bei einem Absturz erneut.
+Start startet systemd die Display-Sitzung bei einem Absturz erneut.
 
 Status und Logs:
 

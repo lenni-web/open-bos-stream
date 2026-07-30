@@ -1,10 +1,11 @@
-"""Startet Chromium in der aktiven labwc/Wayland-Sitzung."""
+"""Startet eine lokale labwc-Sitzung mit Chromium."""
 
 from __future__ import annotations
 
 import os
 from pathlib import Path
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -31,7 +32,10 @@ def display_url(url: str, hide_cursor: bool) -> str:
     )
 
 
-def wayland_environment(timeout: float = 20.0) -> dict[str, str]:
+def wayland_environment(
+    timeout: float = 20.0,
+    compositor: subprocess.Popen | None = None,
+) -> dict[str, str]:
     runtime_dir = Path(
         os.environ.get(
             "XDG_RUNTIME_DIR",
@@ -41,6 +45,14 @@ def wayland_environment(timeout: float = 20.0) -> dict[str, str]:
     deadline = time.monotonic() + timeout
 
     while time.monotonic() < deadline:
+        if compositor is not None:
+            returncode = compositor.poll()
+            if returncode is not None:
+                raise RuntimeError(
+                    "labwc wurde vor dem Aufbau der "
+                    f"Wayland-Sitzung beendet (Exit {returncode})."
+                )
+
         sockets = sorted(runtime_dir.glob("wayland-*"))
         sockets = [
             socket
@@ -60,11 +72,14 @@ def wayland_environment(timeout: float = 20.0) -> dict[str, str]:
         time.sleep(0.5)
 
     raise RuntimeError(
-        "Keine aktive labwc/Wayland-Sitzung gefunden."
+        "labwc hat innerhalb von "
+        f"{timeout:g} Sekunden keinen Wayland-Socket angelegt."
     )
 
 
-def chromium_command() -> list[str]:
+def chromium_command(
+    runtime_dir: str = "/run/open-bos-display",
+) -> list[str]:
     config = ConfigLoader().load().display
     chromium = (
         shutil.which("chromium")
@@ -84,7 +99,7 @@ def chromium_command() -> list[str]:
         "--no-default-browser-check",
         "--disable-session-crashed-bubble",
         "--ozone-platform=wayland",
-        "--user-data-dir=/run/open-bos-display/chromium",
+        f"--user-data-dir={runtime_dir}/chromium",
     ]
 
     if config.mode in {"kiosk", "stream"}:
@@ -121,12 +136,97 @@ def chromium_command() -> list[str]:
     return command
 
 
+def compositor_command() -> list[str]:
+    labwc = shutil.which("labwc")
+    if labwc is None:
+        raise RuntimeError(
+            "labwc ist nicht installiert. Bitte das Update-Skript "
+            "erneut ausführen."
+        )
+    return [labwc]
+
+
+def base_environment() -> dict[str, str]:
+    environment = os.environ.copy()
+    runtime_dir = Path(
+        environment.get(
+            "XDG_RUNTIME_DIR",
+            "/run/open-bos-display",
+        )
+    )
+    runtime_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+    runtime_dir.chmod(0o700)
+
+    environment["XDG_RUNTIME_DIR"] = str(runtime_dir)
+    environment["XDG_SESSION_TYPE"] = "wayland"
+    environment["XDG_CURRENT_DESKTOP"] = "labwc"
+    environment.setdefault("WLR_LIBINPUT_NO_DEVICES", "1")
+    return environment
+
+
+def stop_process(process: subprocess.Popen | None) -> None:
+    if process is None or process.poll() is not None:
+        return
+
+    process.terminate()
+    try:
+        process.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait(timeout=2)
+
+
+def run_display_session() -> int:
+    environment = base_environment()
+    labwc_command = compositor_command()
+
+    print(
+        "Open BOS Display compositor:",
+        " ".join(labwc_command),
+        flush=True,
+    )
+    compositor = subprocess.Popen(
+        labwc_command,
+        env=environment,
+    )
+    browser: subprocess.Popen | None = None
+
+    try:
+        environment = wayland_environment(
+            timeout=20,
+            compositor=compositor,
+        )
+        command = chromium_command(
+            environment["XDG_RUNTIME_DIR"],
+        )
+        print("Open BOS Display browser:", " ".join(command), flush=True)
+        browser = subprocess.Popen(command, env=environment)
+
+        while True:
+            browser_returncode = browser.poll()
+            if browser_returncode is not None:
+                return browser_returncode
+
+            compositor_returncode = compositor.poll()
+            if compositor_returncode is not None:
+                raise RuntimeError(
+                    "labwc wurde während der Anzeige beendet "
+                    f"(Exit {compositor_returncode})."
+                )
+
+            time.sleep(0.5)
+    finally:
+        stop_process(browser)
+        stop_process(compositor)
+
+
 def main() -> int:
     try:
-        environment = wayland_environment()
-        command = chromium_command()
-        print("Open BOS Display:", " ".join(command), flush=True)
-        return subprocess.call(command, env=environment)
+        signal.signal(signal.SIGTERM, signal.default_int_handler)
+        signal.signal(signal.SIGINT, signal.default_int_handler)
+        return run_display_session()
+    except KeyboardInterrupt:
+        return 0
     except Exception as exc:
         print(f"Display error: {exc}", file=sys.stderr, flush=True)
         return 1

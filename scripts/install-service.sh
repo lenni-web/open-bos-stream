@@ -38,6 +38,26 @@ echo "Service-Benutzer:"
 echo "  ${SERVICE_USER}:${SERVICE_GROUP}"
 echo
 
+echo "Ergänze Berechtigungen für Display und Eingabegeräte ..."
+
+DISPLAY_GROUPS=()
+for group in video render input; do
+    if getent group "${group}" >/dev/null 2>&1; then
+        DISPLAY_GROUPS+=("${group}")
+    fi
+done
+
+if [ "${#DISPLAY_GROUPS[@]}" -gt 0 ]; then
+    DISPLAY_GROUP_LIST="$(
+        IFS=,
+        echo "${DISPLAY_GROUPS[*]}"
+    )"
+    sudo usermod \
+        --append \
+        --groups "${DISPLAY_GROUP_LIST}" \
+        "${SERVICE_USER}"
+fi
+
 echo "Stelle Besitzrechte des Installationsverzeichnisses sicher ..."
 
 sudo chown "${SERVICE_USER}:${SERVICE_GROUP}" "${TARGET_DIR}"
