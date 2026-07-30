@@ -133,15 +133,24 @@ class LivePlayer {
 	getStreamUrl(streamName, protocol) {
 
 	    const host = window.location.hostname;
+        const path = streamName
+            .split("/")
+            .map(segment => encodeURIComponent(segment))
+            .join("/");
+        const secure = window.location.protocol === "https:";
 
 	    switch (protocol) {
 
 	        case "webrtc":
-	            return `http://${host}:8889/${streamName}/whep`;
+                return secure
+                    ? `${window.location.origin}/whep/${path}/whep`
+                    : `http://${host}:8889/${path}/whep`;
 
 	        case "hls":
 	        default:
-	            return `http://${host}:8888/${streamName}/index.m3u8`;
+                return secure
+                    ? `${window.location.origin}/hls/${path}/index.m3u8`
+                    : `http://${host}:8888/${path}/index.m3u8`;
 
 	    }
 

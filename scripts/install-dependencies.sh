@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+source "$(cd "$(dirname "$0")" && pwd)/common.sh"
+PROFILE="$(installation_profile)"
+validate_installation_profile "${PROFILE}"
+
 echo
 echo "Prüfe Systemabhängigkeiten ..."
 echo
@@ -18,10 +22,15 @@ PACKAGES=(
     ffmpeg
     curl
     git
-    dbus-daemon
-    labwc
-    seatd
 )
+
+if [ "${PROFILE}" = "local" ]; then
+    PACKAGES+=(
+        dbus-daemon
+        labwc
+        seatd
+    )
+fi
 
 MISSING_PACKAGES=()
 
@@ -37,7 +46,9 @@ for package in "${PACKAGES[@]}"; do
     fi
 done
 
-if command -v chromium >/dev/null 2>&1 ||
+if [ "${PROFILE}" = "server" ]; then
+    echo "Server-Profil: Chromium und Wayland-Komponenten werden ausgelassen."
+elif command -v chromium >/dev/null 2>&1 ||
     command -v chromium-browser >/dev/null 2>&1
 then
     echo "Chromium ist bereits installiert."

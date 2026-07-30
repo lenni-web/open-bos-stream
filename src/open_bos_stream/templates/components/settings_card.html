@@ -55,6 +55,7 @@
             </button>
         </section>
 
+        {% if installation_profile == "local" %}
         <section class="bos-card settings-section settings-section-display">
             <div class="settings-section-header">
                 <span class="settings-icon" aria-hidden="true">▣</span>
@@ -114,7 +115,9 @@
                 </button>
             </div>
         </section>
+        {% endif %}
 
+        {% if installation_profile == "local" %}
         <section class="bos-card settings-section settings-section-web">
             <div class="settings-section-header">
                 <span class="settings-icon" aria-hidden="true">◎</span>
@@ -146,6 +149,7 @@
                 </button>
             </div>
         </section>
+        {% endif %}
         <section class="bos-card settings-section settings-section-users">
             <div class="settings-section-header">
                 <span class="settings-icon" aria-hidden="true">♙</span>

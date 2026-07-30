@@ -89,15 +89,21 @@ function sourceTranscodingFields(source) {
 
 function sourceSpecificFields(source) {
     if (source.type === "rtmp") {
+        const host = window.location.hostname || "<Server-IP>";
+        const publishUrl =
+            `rtmp://${host}:1935/${source.id}`;
         return `
             <div class="form-field form-field-wide">
                 <label>RTMP-Empfangsadresse</label>
                 <input
                     class="bos-input"
                     data-role="publish-url"
-                    value="rtmp://&lt;StreamPi-IP&gt;:1935/${escapeHTML(source.id)}"
+                    value="${escapeHTML(publishUrl)}"
                     readonly>
-                <small>Der Empfangspfad entspricht automatisch der ID.</small>
+                <small>
+                    Der Empfangspfad entspricht automatisch der ID.
+                    RTMP ist derzeit nicht authentifiziert oder verschlüsselt.
+                </small>
             </div>
         `;
     }
@@ -311,11 +317,11 @@ function renderSources() {
         card.querySelector('[data-field="id"]')?.addEventListener(
             "input",
             event => {
-                const display = card.querySelector('[data-role="publish-url"]');
-                if (display) {
-                    display.value =
-                        `rtmp://<StreamPi-IP>:1935/${event.target.value}`;
-                }
+                const id = event.target.value;
+                const host = window.location.hostname || "<Server-IP>";
+                card.querySelector(
+                    '[data-role="publish-url"]'
+                ).value = `rtmp://${host}:1935/${id}`;
             }
         );
         card.querySelector('[data-role="toggle-source-url"]')?.addEventListener(

@@ -3,6 +3,8 @@
 set -euo pipefail
 
 source "$(cd "$(dirname "$0")" && pwd)/common.sh"
+PROFILE="$(installation_profile)"
+validate_installation_profile "${PROFILE}"
 
 SOURCE_SERVICE_FILE="${SCRIPT_DIR}/open-bos-stream.service"
 TARGET_SERVICE_FILE="/etc/systemd/system/open-bos-stream.service"
@@ -14,7 +16,12 @@ SOURCE_WEB_PROXY_SOCKET_FILE="${SCRIPT_DIR}/open-bos-web-proxy.socket"
 TARGET_WEB_PROXY_SOCKET_FILE="/etc/systemd/system/open-bos-web-proxy.socket"
 SOURCE_WEB_PROXY_SERVICE_FILE="${SCRIPT_DIR}/open-bos-web-proxy.service"
 TARGET_WEB_PROXY_SERVICE_FILE="/etc/systemd/system/open-bos-web-proxy.service"
+SOURCE_MEDIAMTX_SERVICE_FILE="${SCRIPT_DIR}/mediamtx.service"
+TARGET_MEDIAMTX_SERVICE_FILE="/etc/systemd/system/mediamtx.service"
+SOURCE_MEDIAMTX_CONFIG="${PROJECT_DIR}/config/mediamtx.server.yml"
+TARGET_MEDIAMTX_CONFIG="${PROFILE_DIR}/mediamtx.yml"
 SOURCE_SUDOERS_FILE="${SCRIPT_DIR}/open-bos-stream-sudoers"
+SOURCE_SERVER_SUDOERS_FILE="${SCRIPT_DIR}/open-bos-stream-server-sudoers"
 TARGET_SUDOERS_FILE="/etc/sudoers.d/open-bos-stream"
 
 if [ -z "${SERVICE_USER}" ] || [ -z "${SERVICE_GROUP}" ]; then
@@ -38,14 +45,21 @@ echo "Service-Benutzer:"
 echo "  ${SERVICE_USER}:${SERVICE_GROUP}"
 echo
 
-echo "Ergänze Berechtigungen für Display und Eingabegeräte ..."
+echo "Installationsprofil: ${PROFILE}"
 
 DISPLAY_GROUPS=()
-for group in video render input; do
+for group in video; do
     if getent group "${group}" >/dev/null 2>&1; then
         DISPLAY_GROUPS+=("${group}")
     fi
 done
+if [ "${PROFILE}" = "local" ]; then
+    for group in render input; do
+        if getent group "${group}" >/dev/null 2>&1; then
+            DISPLAY_GROUPS+=("${group}")
+        fi
+    done
+fi
 
 if [ "${#DISPLAY_GROUPS[@]}" -gt 0 ]; then
     DISPLAY_GROUP_LIST="$(
@@ -97,29 +111,67 @@ sudo install \
     "${SOURCE_SERVICE_FILE}" \
     "${TARGET_SERVICE_FILE}"
 
-sudo install \
-    --mode=0644 \
-    "${SOURCE_DISPLAY_SERVICE_FILE}" \
-    "${TARGET_DISPLAY_SERVICE_FILE}"
+if [ "${PROFILE}" = "local" ]; then
+    sudo install \
+        --mode=0644 \
+        "${SOURCE_DISPLAY_SERVICE_FILE}" \
+        "${TARGET_DISPLAY_SERVICE_FILE}"
+    if [ -f "${SERVER_CONFIG_FILE}" ]; then
+        sudo systemctl disable --now caddy.service >/dev/null 2>&1 || true
+        sudo rm -f \
+            /etc/systemd/system/open-bos-stream.service.d/server-bind.conf
+        if [ -f "${TARGET_MEDIAMTX_SERVICE_FILE}" ]; then
+            sudo install -m 0644 \
+                "${SOURCE_MEDIAMTX_CONFIG}" \
+                "${TARGET_MEDIAMTX_CONFIG}"
+        fi
+    fi
+else
+    sudo systemctl disable --now open-bos-display.service >/dev/null 2>&1 || true
+    sudo rm -f "${TARGET_DISPLAY_SERVICE_FILE}"
+
+    if [ ! -x "/home/${SERVICE_USER}/mediamtx" ]; then
+        fail "MediaMTX fehlt unter /home/${SERVICE_USER}/mediamtx. Bitte MediaMTX vor der Server-Installation bereitstellen."
+    fi
+    sudo install -d -m 0755 "${PROFILE_DIR}"
+    sudo install -m 0644 \
+        "${SOURCE_MEDIAMTX_CONFIG}" \
+        "${TARGET_MEDIAMTX_CONFIG}"
+    sudo install -m 0644 \
+        "${SOURCE_MEDIAMTX_SERVICE_FILE}" \
+        "${TARGET_MEDIAMTX_SERVICE_FILE}"
+fi
 
 sudo install \
     --mode=0644 \
     "${SOURCE_STREAMER_SERVICE_FILE}" \
     "${TARGET_STREAMER_SERVICE_FILE}"
 
-sudo install \
-    --mode=0644 \
-    "${SOURCE_WEB_PROXY_SOCKET_FILE}" \
-    "${TARGET_WEB_PROXY_SOCKET_FILE}"
-
-sudo install \
-    --mode=0644 \
-    "${SOURCE_WEB_PROXY_SERVICE_FILE}" \
-    "${TARGET_WEB_PROXY_SERVICE_FILE}"
+if [ "${PROFILE}" = "local" ]; then
+    sudo install \
+        --mode=0644 \
+        "${SOURCE_WEB_PROXY_SOCKET_FILE}" \
+        "${TARGET_WEB_PROXY_SOCKET_FILE}"
+    sudo install \
+        --mode=0644 \
+        "${SOURCE_WEB_PROXY_SERVICE_FILE}" \
+        "${TARGET_WEB_PROXY_SERVICE_FILE}"
+else
+    sudo systemctl disable --now open-bos-web-proxy.socket >/dev/null 2>&1 || true
+    sudo rm -f \
+        "${TARGET_WEB_PROXY_SOCKET_FILE}" \
+        "${TARGET_WEB_PROXY_SERVICE_FILE}"
+fi
 
 sudo install \
     --mode=0440 \
-    "${SOURCE_SUDOERS_FILE}" \
+    "$(
+        if [ "${PROFILE}" = "server" ]; then
+            printf '%s' "${SOURCE_SERVER_SUDOERS_FILE}"
+        else
+            printf '%s' "${SOURCE_SUDOERS_FILE}"
+        fi
+    )" \
     "${TARGET_SUDOERS_FILE}"
 
 sudo visudo \
@@ -127,6 +179,10 @@ sudo visudo \
     --file="${TARGET_SUDOERS_FILE}"
 
 sudo systemctl daemon-reload
+
+if [ "${PROFILE}" = "server" ]; then
+    sudo systemctl enable --now mediamtx.service
+fi
 
 # Der Display-Dienst wird bewusst niemals für den Boot aktiviert.
 sudo systemctl disable \
@@ -148,7 +204,9 @@ print("yes" if config.get("web_access", {}).get("enabled", False) else "no")
         "${TARGET_DIR}/config/stream.yaml"
 )"
 
-if [ "${WEB_ACCESS_ENABLED}" = "yes" ]; then
+if [ "${PROFILE}" = "server" ]; then
+    echo "Server-Profil: Port 80 bleibt für einen HTTPS-Proxy reserviert."
+elif [ "${WEB_ACCESS_ENABLED}" = "yes" ]; then
     echo "Standard-Webzugriff aktivieren ..."
     sudo systemctl enable open-bos-web-proxy.socket
     if ! sudo systemctl restart open-bos-web-proxy.socket; then

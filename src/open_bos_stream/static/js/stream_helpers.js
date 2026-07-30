@@ -8,10 +8,10 @@ function streamViewerUrl(stream) {
         stream.viewer?.protocol ??
         "webrtc";
 
-    const port =
-        protocol === "hls"
-            ? 8888
-            : 8889;
+    const path = stream.name
+        .split("/")
+        .map(segment => encodeURIComponent(segment))
+        .join("/");
 
     const params =
         new URLSearchParams({
@@ -21,16 +21,12 @@ function streamViewerUrl(stream) {
             playsInline: "true",
         });
 
-    return (
-        window.location.protocol +
-        "//" +
-        window.location.hostname +
-        ":" +
-        port +
-        "/" +
-        stream.name +
-        "/?" +
-        params.toString()
-    );
+    if (window.location.protocol === "https:") {
+        const prefix = protocol === "hls" ? "hls" : "whep";
+        return `${window.location.origin}/${prefix}/${path}/?${params}`;
+    }
+
+    const port = protocol === "hls" ? 8888 : 8889;
+    return `http://${window.location.hostname}:${port}/${path}/?${params}`;
 
 }
