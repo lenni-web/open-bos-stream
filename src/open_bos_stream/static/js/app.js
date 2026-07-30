@@ -34,17 +34,14 @@ window.addEventListener("load", async () => {
 
 	);
 
-	if (window.dashboard?.stream?.running) {
-
-	    addEvent(
-
-	        "success",
-
-	        `📡 Stream aktiv (PID ${window.dashboard.stream.pid})`
-
-	    );
-
-	}
+    const initialSources =
+        window.dashboard?.sources ?? [];
+    const initialOnline =
+        initialSources.filter(source => source.ready).length;
+    addEvent(
+        initialOnline > 0 ? "success" : "info",
+        `📡 ${initialOnline} von ${initialSources.length} Quellen online`
+    );
 
     refreshSnapshot();
 

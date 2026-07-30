@@ -159,3 +159,27 @@ def test_missing_map_shows_stade_download_and_target_path() -> None:
     assert "/opt/open-bos-stream/mapdata/stade.mbtiles" in map_template
     assert '"/api/map/maps"' in map_js
     assert "showMissingMap(maps.path)" in map_js
+
+
+def test_dashboard_uses_only_unified_source_players() -> None:
+    index = (
+        ROOT / "templates" / "index.html"
+    ).read_text(encoding="utf-8")
+    source_js = (
+        ROOT / "static" / "js" / "config_rtmp_inputs.js"
+    ).read_text(encoding="utf-8")
+    events = (
+        ROOT / "static" / "js" / "dashboard_events.js"
+    ).read_text(encoding="utf-8")
+    player = (
+        ROOT / "static" / "js" / "live_player.js"
+    ).read_text(encoding="utf-8")
+
+    assert 'components/video_panel.html' not in index
+    assert 'components/status_card.html' not in index
+    assert 'components/stream_card.html' not in index
+    assert "function moveSource(index, direction)" in source_js
+    assert "function checkSourceEvents(sources = [])" in events
+    assert "Signal verfügbar" in events
+    assert "Signal verloren" in events
+    assert "defaultLiveVideo" in player

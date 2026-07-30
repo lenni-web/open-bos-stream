@@ -48,18 +48,14 @@ function updateMultiSources(inputs = []) {
         document.getElementById("multi-source-panel");
     const grid =
         document.getElementById("multi-source-grid");
-    const legacy =
-        document.getElementById("legacy-video-panel");
-
     const active = inputs.length > 0;
     window.multiSourceActive = active;
 
-    if (!panel || !grid || !legacy) {
+    if (!panel || !grid) {
         return;
     }
 
     panel.hidden = !active;
-    legacy.hidden = active;
 
     if (!active) {
         removeStaleMultiSources(new Set());
@@ -96,6 +92,10 @@ function updateMultiSources(inputs = []) {
             };
             multiSourcePlayers.set(input.id, entry);
         }
+
+        // appendChild verschiebt bestehende Karten und übernimmt damit
+        // die in den Einstellungen gespeicherte Quellenreihenfolge.
+        grid.appendChild(entry.card);
 
         entry.card.querySelector(
             ".multi-source-card-header strong"

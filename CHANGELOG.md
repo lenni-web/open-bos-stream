@@ -7,6 +7,31 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.10.2] - 2026-07-30
+
+### Added
+
+- Quellen können in den Einstellungen mit Hoch-/Runter-Schaltflächen
+  umsortiert werden; die Reihenfolge gilt unmittelbar für das Livebildraster.
+- Das Ereignisprotokoll erfasst Signal verfügbar/verloren,
+  Viewer-Verbindungen und deaktivierte oder entfernte Quellen für jeden
+  konfigurierten Stream.
+
+### Changed
+
+- Das Dashboard verwendet ausschließlich das einheitliche Livebildraster.
+- Der alte große Einzelstream-Player sowie die überholten Karten
+  „Übersicht“ und „Stream“ wurden entfernt.
+- Die initiale Ereignismeldung zeigt die Anzahl online verfügbarer Quellen.
+
+### Fixed
+
+- Die globale Playerinitialisierung funktioniert auch auf dem Dashboard ohne
+  das entfernte Einzelstream-Videoelement.
+- Bereits gerenderte Livebildkarten übernehmen nach einer Umsortierung
+  zuverlässig die gespeicherte Quellenreihenfolge.
+- Beim Entfernen einer Quellenkarte wird auch ihr Diagnose-Timer beendet.
+
 ## [0.10.1] - 2026-07-30
 
 ### Added

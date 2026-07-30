@@ -150,10 +150,28 @@ function renderSources() {
                     <strong>Quelle ${index + 1}: ${escapeHTML(source.name)}</strong>
                     <small>${escapeHTML(source.type)} · ${escapeHTML(source.profile)}</small>
                 </div>
-                <button class="bos-button bos-button-small"
-                    type="button" onclick="removeSource(${index})">
-                    Entfernen
-                </button>
+                <div class="source-order-actions">
+                    <button class="bos-button bos-button-small"
+                        type="button"
+                        title="Quelle nach oben verschieben"
+                        aria-label="Quelle nach oben verschieben"
+                        onclick="moveSource(${index}, -1)"
+                        ${index === 0 ? "disabled" : ""}>
+                        ↑
+                    </button>
+                    <button class="bos-button bos-button-small"
+                        type="button"
+                        title="Quelle nach unten verschieben"
+                        aria-label="Quelle nach unten verschieben"
+                        onclick="moveSource(${index}, 1)"
+                        ${index === sources.length - 1 ? "disabled" : ""}>
+                        ↓
+                    </button>
+                    <button class="bos-button bos-button-small"
+                        type="button" onclick="removeSource(${index})">
+                        Entfernen
+                    </button>
+                </div>
             </div>
             <div class="form-grid">
                 <div class="form-field">
@@ -310,4 +328,23 @@ function removeSource(index) {
     currentConfig.sources.splice(index, 1);
     renderSources();
     setConfigDirty(true);
+}
+
+function moveSource(index, direction) {
+    saveSources();
+    const target = index + direction;
+    if (
+        target < 0 ||
+        target >= currentConfig.sources.length
+    ) {
+        return;
+    }
+
+    const [source] = currentConfig.sources.splice(index, 1);
+    currentConfig.sources.splice(target, 0, source);
+    renderSources();
+    setConfigDirty(true);
+    setConfigSaveStatus(
+        "Reihenfolge geändert – bitte speichern."
+    );
 }

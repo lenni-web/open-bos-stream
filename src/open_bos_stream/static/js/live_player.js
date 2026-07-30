@@ -48,7 +48,7 @@ class LivePlayer {
 		    }
 		);
 
-        window.setInterval(
+        this.diagnosticsTimer = window.setInterval(
             () => this.refreshTransportDiagnostics(),
             2000
         );
@@ -486,6 +486,10 @@ class LivePlayer {
     }
 }
 
-window.livePlayer =
-    new LivePlayer();
 window.LivePlayer = LivePlayer;
+const defaultLiveVideo =
+    document.getElementById("live-video");
+window.livePlayer =
+    defaultLiveVideo
+        ? new LivePlayer(defaultLiveVideo)
+        : null;

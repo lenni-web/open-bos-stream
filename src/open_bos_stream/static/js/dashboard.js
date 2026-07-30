@@ -84,14 +84,9 @@ function updateDashboard(data) {
         data.sources ?? []
     );
 
-	updateDashboardStream(
-	    data.stream,
-	    data.recording
-	);
-
-	checkStreamEvents(
-	    data.stream
-	);
+    checkSourceEvents(
+        data.sources ?? []
+    );
 
 	checkStreamOutputEvents(
 	    data.stream_outputs
