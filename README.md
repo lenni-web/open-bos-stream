@@ -146,9 +146,9 @@ systemctl status open-bos-display.service
 journalctl -u open-bos-display.service -f
 ```
 
-Bei aktivierter Option verhindert der Dienst für seine Laufzeit
-Idle- und Sleep-Energiesparzustände. Beim Stoppen wird dieses Inhibit
-automatisch aufgehoben.
+In der eigenständigen minimalen labwc-Sitzung wird kein Bildschirmschoner
+oder Desktop-Power-Manager gestartet. Bei aktivierter Option bleibt die
+Anzeige daher ohne zusätzliche, privilegierte Inhibit-Sperre aktiv.
 
 ## Webzugriff über Port 80
 
