@@ -6,17 +6,40 @@ class OBSApi {
 
     async request(url, options = {}) {
         let response;
+        const timeoutMs = options.timeoutMs ?? 0;
+        const requestOptions = {...options};
+        delete requestOptions.timeoutMs;
+        const controller = timeoutMs > 0
+            ? new AbortController()
+            : null;
+        const timeout = controller
+            ? window.setTimeout(
+                () => controller.abort(),
+                timeoutMs
+            )
+            : null;
+        if (controller) {
+            requestOptions.signal = controller.signal;
+        }
 
         try {
-            response = await fetch(url, options);
+            response = await fetch(url, requestOptions);
         } catch (error) {
             if (error.name === "AbortError") {
-                throw error;
+                throw new Error(
+                    "Speichern dauert ungewöhnlich lange. " +
+                    "Der Vorgang wurde nach " +
+                    `${Math.round(timeoutMs / 1000)} Sekunden beendet.`
+                );
             }
 
             throw new Error(
                 "Verbindung zur Anwendung fehlgeschlagen."
             );
+        } finally {
+            if (timeout !== null) {
+                window.clearTimeout(timeout);
+            }
         }
 
         const contentType =
@@ -72,9 +95,10 @@ class OBSApi {
         return await this.request(url, options);
     }
 
-    async put(url, body) {
+    async put(url, body, options = {}) {
 
         return await this.request(url, {
+            ...options,
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -265,7 +289,8 @@ class OBSApi {
 
         return await this.put(
             "/config/",
-            config
+            config,
+            {timeoutMs: 35000}
         );
 
     }

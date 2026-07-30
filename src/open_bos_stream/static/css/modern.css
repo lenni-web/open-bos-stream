@@ -396,6 +396,69 @@ body {
     order: 99;
 }
 
+.settings-section-users {
+    grid-column: 1 / -1;
+}
+
+.user-list {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.user-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 11px;
+    border: 1px solid var(--bos-gray);
+    border-radius: 10px;
+}
+
+.user-row span {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-row small {
+    color: var(--bos-muted);
+}
+
+.auth-page {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: 20px;
+    background: var(--bos-gray-soft);
+}
+
+.auth-card {
+    width: min(420px, 100%);
+    padding: 26px;
+}
+
+.auth-card form {
+    display: grid;
+    gap: 14px;
+}
+
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--bos-muted);
+    font-size: 0.78rem;
+}
+
+.header-logout {
+    padding: 3px 7px;
+    border: 1px solid var(--bos-gray);
+    border-radius: 7px;
+    background: #fff;
+    cursor: pointer;
+}
+
 .settings-section-rtmp-inputs {
     grid-column: 1 / -1;
 }

@@ -100,7 +100,20 @@ class ConfigLoader:
 
         # Migration: Hauptquelle und zusätzliche RTMP-Slots werden einmalig
         # in eine gemeinsame Liste gleichwertiger Quellen überführt.
-        if not data.get("sources"):
+        # Ältere Dateien enthielten teils bereits `sources: []`, obwohl die
+        # Hauptquelle noch migriert werden musste. Neu gespeicherte Dateien
+        # tragen deshalb einen expliziten Marker, damit eine bewusst geleerte
+        # Quellenliste nicht wieder aufgefüllt wird.
+        sources_configured = bool(
+            data.get("sources_configured", False)
+        )
+        if (
+            "sources" not in data
+            or (
+                not data.get("sources")
+                and not sources_configured
+            )
+        ):
             sources: list[dict] = []
             input_config = data.get("input", {})
             stream_config = data.get("stream", {})
@@ -195,6 +208,7 @@ class ConfigLoader:
         )
 
         data = config.model_dump()
+        data["sources_configured"] = True
 
         descriptor, temporary = tempfile.mkstemp(
             prefix=f".{path.name}.",

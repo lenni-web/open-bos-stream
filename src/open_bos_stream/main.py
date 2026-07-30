@@ -11,6 +11,9 @@ from fastapi.staticfiles import StaticFiles
 from open_bos_stream.version import VERSION
 
 from open_bos_stream.core.container import stream_service
+from open_bos_stream.core.container import auth_service
+from open_bos_stream.auth.middleware import AuthMiddleware
+from open_bos_stream.api.auth import router as auth_router
 from open_bos_stream.api.input import (
     router as input_router,
 )
@@ -78,6 +81,7 @@ app = FastAPI(
     version=VERSION,
     lifespan=lifespan,
 )
+app.add_middleware(AuthMiddleware, service=auth_service)
 
 # ----------------------------------------------------------
 # Static Files
@@ -94,6 +98,7 @@ app.mount(
 # ----------------------------------------------------------
 
 app.include_router(web_router)
+app.include_router(auth_router)
 app.include_router(stream_router)
 app.include_router(input_router)
 app.include_router(system_router)

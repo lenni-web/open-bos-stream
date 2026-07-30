@@ -28,6 +28,7 @@ from open_bos_stream.media.library import (
     MediaLibrary,
 )
 from open_bos_stream.media.storage import MediaStorageService
+from open_bos_stream.auth.service import AuthService
 from open_bos_stream.stream_output.service import (
     StreamOutputService,
 )
@@ -40,6 +41,7 @@ from open_bos_stream.system.info import (
 # ---------------------------------------------------------
 
 config = ConfigLoader().load()
+auth_service = AuthService()
 
 
 # ---------------------------------------------------------

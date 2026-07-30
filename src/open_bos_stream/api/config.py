@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
+from starlette.concurrency import run_in_threadpool
 
 from open_bos_stream.core.config import ConfigLoader
 from open_bos_stream.core.config_apply import ConfigApplyError
@@ -17,15 +18,48 @@ loader = ConfigLoader()
 
 
 @router.get("/")
-async def get_config():
+async def get_config(request: Request):
+    if request.state.user["role"] == "viewer":
+        raise HTTPException(
+            status_code=403,
+            detail="Für die Konfiguration ist die Rolle Admin erforderlich.",
+        )
 
     return loader.load()
 
 
 @router.put("/")
-async def save_config(config: AppConfig):
+async def save_config(config: AppConfig, request: Request):
+    if request.state.user["role"] != "superadmin":
+        current = loader.load()
+        protected = (
+            ("stream_outputs", config.stream_outputs, current.stream_outputs),
+            ("display", config.display, current.display),
+            ("web_access", config.web_access, current.web_access),
+        )
+        changed = [
+            name
+            for name, proposed, existing in protected
+            if proposed != existing
+        ]
+        if changed:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "code": "superadmin_configuration_required",
+                    "message": (
+                        "Nur Superadmins dürfen folgende Bereiche ändern: "
+                        + ", ".join(changed)
+                    ),
+                },
+            )
     try:
-        message = config_apply_service.apply(config)
+        # systemctl und die anschließende Bereitschaftsprüfung sind blockierend.
+        # Sie dürfen den FastAPI-Eventloop nicht anhalten.
+        message = await run_in_threadpool(
+            config_apply_service.apply,
+            config,
+        )
     except ConfigApplyError as exc:
         raise HTTPException(
             status_code=409,
@@ -44,7 +78,10 @@ async def save_config(config: AppConfig):
 @router.post("/test")
 async def test_config(config: AppConfig):
     try:
-        checks = config_apply_service.test(config)
+        checks = await run_in_threadpool(
+            config_apply_service.test,
+            config,
+        )
     except ConfigApplyError as exc:
         raise HTTPException(
             status_code=409,
@@ -67,7 +104,9 @@ async def test_config(config: AppConfig):
 @router.post("/restore")
 async def restore_config():
     try:
-        message = config_apply_service.restore_last_known_good()
+        message = await run_in_threadpool(
+            config_apply_service.restore_last_known_good
+        )
     except ConfigApplyError as exc:
         raise HTTPException(
             status_code=409,

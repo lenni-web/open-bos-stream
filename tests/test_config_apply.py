@@ -216,3 +216,32 @@ def test_direct_rtmp_source_applies_without_stream_restart() -> None:
     assert len(runtime.sources) == 2
     assert loader.last_known_good is not None
     assert "direkte Quellen" in message
+
+
+def test_removing_last_managed_source_stops_without_restart(
+    tmp_path: Path,
+) -> None:
+    device = tmp_path / "video0"
+    device.touch()
+    base = ConfigLoader().load()
+    runtime = capture_config(base, device)
+    candidate = runtime.model_copy(deep=True)
+    candidate.sources = []
+    candidate = AppConfig.model_validate(candidate.model_dump())
+    loader = FakeLoader()
+    stream = FakeStream(runtime)
+    service = ConfigApplyService(
+        loader,
+        runtime,
+        stream,
+        FakeReloadable(),
+        FakePreflight(),
+    )
+
+    message = service.apply(candidate)
+
+    assert runtime.sources == []
+    assert stream.stops == 1
+    assert stream.restarts == 0
+    assert loader.last_known_good is not None
+    assert "0 direkte Quellen" in message

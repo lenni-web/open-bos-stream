@@ -106,10 +106,14 @@ function updateMultiSources(inputs = []) {
         document.getElementById("multi-source-panel");
     const grid =
         document.getElementById("multi-source-grid");
+    const offlineGrid =
+        document.getElementById("offline-source-grid");
+    const offlineSection =
+        document.getElementById("offline-source-section");
     const active = inputs.length > 0;
     window.multiSourceActive = active;
 
-    if (!panel || !grid) {
+    if (!panel || !grid || !offlineGrid || !offlineSection) {
         return;
     }
 
@@ -126,6 +130,8 @@ function updateMultiSources(inputs = []) {
     removeStaleMultiSources(activeIds);
 
     let onlineCount = 0;
+    const onlineOrder = [];
+    const offlineOrder = [];
 
     for (const input of inputs) {
         let entry = multiSourcePlayers.get(input.id);
@@ -180,6 +186,7 @@ function updateMultiSources(inputs = []) {
         state.textContent =
             input.ready ? "Online" : "Offline";
 
+        let displayedOnline = input.ready;
         if (input.ready) {
             onlineCount += 1;
             placeholder.hidden = true;
@@ -191,12 +198,18 @@ function updateMultiSources(inputs = []) {
         } else {
             const awaitingSignal =
                 entry.player.deferUnavailableStop(4000);
+            displayedOnline = awaitingSignal;
             placeholder.hidden = awaitingSignal;
             video.hidden = !awaitingSignal;
             state.textContent = awaitingSignal
                 ? "Signal wird geprüft"
                 : "Offline";
         }
+        entry.card.classList.toggle(
+            "is-compact-offline",
+            !displayedOnline
+        );
+        (displayedOnline ? onlineOrder : offlineOrder).push(input.id);
 
         const format =
             input.width > 0
@@ -213,21 +226,30 @@ function updateMultiSources(inputs = []) {
 
     // Bestehende Player nicht bei jedem Statusabruf neu in den DOM hängen:
     // Das beendet natives Vollbild und kann die Videodarstellung unterbrechen.
-    const desiredOrder = inputs.map(input => input.id);
-    const currentOrder = Array.from(grid.children).map(
-        card => card.dataset.sourceId
-    );
-    const orderChanged = desiredOrder.some(
-        (id, index) => currentOrder[index] !== id
-    );
-    if (orderChanged && !document.fullscreenElement) {
-        for (const id of desiredOrder) {
-            const entry = multiSourcePlayers.get(id);
-            if (entry) {
-                grid.appendChild(entry.card);
+    if (!document.fullscreenElement) {
+        for (const [target, order] of [
+            [grid, onlineOrder],
+            [offlineGrid, offlineOrder],
+        ]) {
+            const currentOrder = Array.from(target.children).map(
+                card => card.dataset.sourceId
+            );
+            const orderChanged =
+                currentOrder.length !== order.length ||
+                order.some(
+                    (id, index) => currentOrder[index] !== id
+                );
+            if (orderChanged) {
+                for (const id of order) {
+                    const entry = multiSourcePlayers.get(id);
+                    if (entry) {
+                        target.appendChild(entry.card);
+                    }
+                }
             }
         }
     }
+    offlineSection.hidden = offlineOrder.length === 0;
 
     const summary =
         document.getElementById(

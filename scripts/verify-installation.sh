@@ -4,7 +4,9 @@ set -euo pipefail
 
 source "$(cd "$(dirname "$0")" && pwd)/common.sh"
 SERVICE_NAME="open-bos-stream.service"
-CHECK_URL="http://127.0.0.1:8000/api/map/layers"
+# Der Auth-Status ist absichtlich öffentlich und bestätigt sowohl HTTP als
+# auch die initialisierte Anwendung, ohne geschützte Fachdaten offenzulegen.
+CHECK_URL="http://127.0.0.1:8000/auth/status"
 
 FAILED=0
 

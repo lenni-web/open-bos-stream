@@ -92,6 +92,9 @@ def chromium_command(
         url = config.stream_url
     else:
         url = config.dashboard_url
+        if config.mode == "kiosk":
+            separator = "&" if "?" in url else "?"
+            url = f"{url}{separator}display=1"
 
     command = [
         chromium,

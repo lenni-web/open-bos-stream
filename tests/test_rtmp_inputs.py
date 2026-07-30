@@ -143,7 +143,7 @@ def test_legacy_main_and_rtmp_slots_become_equal_sources(
     tmp_path: Path,
 ) -> None:
     data = ConfigLoader().load().model_dump()
-    data["sources"] = []
+    data.pop("sources")
     data["source_profile"] = "rtmp_repair"
     data["input"]["type"] = "rtmp"
     data["input"]["mode"] = "copy_repair"
@@ -182,6 +182,20 @@ def test_legacy_main_and_rtmp_slots_become_equal_sources(
     assert config.sources[0].url == (
         "rtmp://127.0.0.1:1935/drohne"
     )
+
+
+def test_explicit_empty_source_list_stays_empty(
+    tmp_path: Path,
+) -> None:
+    config = ConfigLoader().load()
+    config.sources = []
+    config_file = tmp_path / "stream.yaml"
+    loader = ConfigLoader(str(config_file))
+
+    loader.save(config)
+    loaded = loader.load()
+
+    assert loaded.sources == []
 
 
 def test_multiple_mediamtx_paths_use_one_list_request() -> None:
