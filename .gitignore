@@ -6,6 +6,8 @@ config/stream.last-known-good.yaml
 config/users.yaml
 config/auth.secret
 recordings/*
+snapshots/*
+!snapshots/.gitkeep
 logs/*
 *.log
 mapdata/*
