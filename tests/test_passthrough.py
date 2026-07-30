@@ -165,7 +165,11 @@ def test_rtmp_repair_command_normalizes_timestamps_without_transcoding() -> None
     assert ["-c:v", "copy"] == command[
         command.index("-c:v"):command.index("-c:v") + 2
     ]
-    assert "+genpts+discardcorrupt" in command
+    assert "+genpts+discardcorrupt+nobuffer" in command
+    assert ["-flags", "low_delay"] == command[
+        command.index("-flags"):
+        command.index("-flags") + 2
+    ]
     assert (
         "rtsp://127.0.0.1:8554/live/drohne"
         in command
@@ -177,14 +181,32 @@ def test_rtmp_repair_command_normalizes_timestamps_without_transcoding() -> None
     input_index = command.index(
         "rtsp://127.0.0.1:8554/live/drohne"
     )
-    assert command[input_index - 3:input_index] == [
+    assert command[input_index - 5:input_index] == [
         "-rtsp_transport",
         "tcp",
+        "-max_delay",
+        "0",
         "-i",
     ]
     assert ["-use_wallclock_as_timestamps", "1"] == command[
         command.index("-use_wallclock_as_timestamps"):
         command.index("-use_wallclock_as_timestamps") + 2
+    ]
+    assert ["-max_delay", "0"] == command[
+        command.index("-max_delay"):
+        command.index("-max_delay") + 2
+    ]
+    assert ["-max_interleave_delta", "100000"] == command[
+        command.index("-max_interleave_delta"):
+        command.index("-max_interleave_delta") + 2
+    ]
+    assert ["-flush_packets", "1"] == command[
+        command.index("-flush_packets"):
+        command.index("-flush_packets") + 2
+    ]
+    assert ["-muxdelay", "0"] == command[
+        command.index("-muxdelay"):
+        command.index("-muxdelay") + 2
     ]
     assert ["-map", "0:a:0?", "-c:a", "copy"] == command[
         command.index("0:a:0?") - 1:

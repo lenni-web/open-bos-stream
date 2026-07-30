@@ -167,6 +167,12 @@ class FFmpegCommandBuilder:
                 "passthrough",
                 "-avoid_negative_ts",
                 "make_zero",
+                "-max_interleave_delta",
+                "100000",
+                "-flush_packets",
+                "1",
+                "-muxdelay",
+                "0",
             ])
 
         #
