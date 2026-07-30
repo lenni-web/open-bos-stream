@@ -3,6 +3,38 @@
 let map = null;
 let mapInitPromise = null;
 
+function showMissingMap(mapDirectory) {
+    const emptyState =
+        document.getElementById("map-empty-state");
+    const path =
+        document.getElementById("map-empty-path");
+    const mapElement =
+        document.getElementById("map");
+    const toolbar =
+        document.querySelector("#map-container .map-toolbar");
+    const layerControl =
+        document.getElementById("map-layer-control");
+
+    if (path) {
+        const directory = String(
+            mapDirectory || "/opt/open-bos-stream/mapdata"
+        ).replace(/\/+$/, "");
+        path.textContent = `${directory}/stade.mbtiles`;
+    }
+    if (emptyState) {
+        emptyState.hidden = false;
+    }
+    if (mapElement) {
+        mapElement.hidden = true;
+    }
+    if (toolbar) {
+        toolbar.hidden = true;
+    }
+    if (layerControl) {
+        layerControl.hidden = true;
+    }
+}
+
 async function loadMapStyle() {
     const response = await fetch(
         "/api/map/style",
@@ -138,6 +170,24 @@ async function createMap() {
         throw new Error(
             "MapLibre GL JS wurde nicht geladen."
         );
+    }
+
+    const mapsResponse = await fetch(
+        "/api/map/maps",
+        {
+            cache: "no-store"
+        }
+    );
+    if (!mapsResponse.ok) {
+        throw new Error(
+            "Kartenliste konnte nicht geladen werden: " +
+            `HTTP ${mapsResponse.status}`
+        );
+    }
+    const maps = await mapsResponse.json();
+    if (!Array.isArray(maps.maps) || maps.maps.length === 0) {
+        showMissingMap(maps.path);
+        return;
     }
 
     const configResponse = await fetch(

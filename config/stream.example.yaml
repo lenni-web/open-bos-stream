@@ -59,6 +59,6 @@ stream:
     y: "20"
 map:
   source: mbtiles
-  path: /home/streampi/open-bos-stream/mapdata
+  path: /opt/open-bos-stream/mapdata
   default: stade
 stream_outputs: []
