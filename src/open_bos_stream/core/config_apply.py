@@ -52,25 +52,21 @@ class ConfigApplyService:
 
     @staticmethod
     def _validate(config: AppConfig) -> None:
-        if (
-            config.source_profile == "capture_card"
-            and not Path(config.input.device or "").exists()
-        ):
-            raise ConfigApplyError(
-                "Capture-Gerät "
-                f"'{config.input.device}' ist nicht verfügbar."
-            )
-
-        if (
-            config.source_profile in {
-                "rtmp_passthrough",
-                "rtmp_repair",
-            }
-            and not config.input.url
-        ):
-            raise ConfigApplyError(
-                "Für das RTMP-Profil fehlt die Eingangs-URL."
-            )
+        for source in config.sources:
+            if not source.enabled:
+                continue
+            if (
+                source.type == "v4l2"
+                and not Path(source.device or "").exists()
+            ):
+                raise ConfigApplyError(
+                    f"Capture-Gerät '{source.device}' der Quelle "
+                    f"'{source.name}' ist nicht verfügbar."
+                )
+            if source.type == "rtsp" and not source.url:
+                raise ConfigApplyError(
+                    f"Für die RTSP-Quelle '{source.name}' fehlt die URL."
+                )
 
     def _replace_runtime(self, config: AppConfig) -> None:
         for field_name in AppConfig.model_fields:
@@ -85,50 +81,29 @@ class ConfigApplyService:
         if self._probe is not None:
             self._probe.reload(self._runtime)
 
-    @staticmethod
-    def _only_rtmp_inputs_changed(
-        previous: AppConfig,
-        candidate: AppConfig,
-    ) -> bool:
-        previous_data = previous.model_dump()
-        candidate_data = candidate.model_dump()
-        previous_data.pop("rtmp_inputs", None)
-        candidate_data.pop("rtmp_inputs", None)
-        return previous_data == candidate_data
-
     def apply(self, candidate: AppConfig) -> str:
         checks = self.test(candidate)
 
         previous = self._runtime.model_copy(deep=True)
         previous_managed = self._stream.managed
 
-        if self._only_rtmp_inputs_changed(
-            previous,
-            candidate,
-        ):
-            self._loader.save(candidate)
-            self._replace_runtime(candidate)
-            self._loader.save_last_known_good(candidate)
-            return (
-                f"Vorabprüfung erfolgreich ({len(checks)} Prüfungen). "
-                f"{len(candidate.rtmp_inputs)} RTMP-Eingänge "
-                "ohne Streamer-Neustart übernommen."
-            )
-
         try:
-            if previous_managed and candidate.passthrough_active:
+            candidate_managed = any(
+                source.enabled and source.requires_process
+                for source in candidate.sources
+            )
+            if previous_managed and not candidate_managed:
                 self._stream.stop()
 
             self._loader.save(candidate)
             self._replace_runtime(candidate)
 
-            if candidate.passthrough_active:
-                if self._stream.running:
-                    self._loader.save_last_known_good(candidate)
+            if not candidate_managed:
+                self._loader.save_last_known_good(candidate)
                 return (
                     f"Vorabprüfung erfolgreich ({len(checks)} Prüfungen). "
-                    "RTMP-Passthrough aktiv; warte auf Publisher an "
-                    f"'{candidate.stream.name}'."
+                    f"{len(candidate.sources)} direkte Quellen übernommen; "
+                    "MediaMTX wartet auf Publisher."
                 )
 
             if not self._stream.restart():
@@ -145,8 +120,8 @@ class ConfigApplyService:
             self._loader.save_last_known_good(candidate)
             return (
                 f"Vorabprüfung erfolgreich ({len(checks)} Prüfungen). "
-                f"Profil '{candidate.source_profile}' aktiviert und "
-                "Streamer neu gestartet."
+                f"{len(candidate.sources)} Quellen aktiviert und "
+                "Mehrquellen-Streamer neu gestartet."
             )
 
         except Exception as exc:

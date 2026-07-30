@@ -100,7 +100,7 @@ async function refreshConfig() {
 
             await api.config();
 
-        loadInputConfig();
+        await loadInputTypes();
 
         loadEncoderConfig();
 
@@ -108,7 +108,7 @@ async function refreshConfig() {
 
         renderStreamOutputs();
 
-        renderRTMPInputs();
+        renderSources();
 
         setConfigDirty(false);
         setConfigSaveStatus("");
@@ -143,14 +143,12 @@ async function saveConfig() {
             "Konfiguration wird geprüft …"
         );
 
-        saveInputConfig();
-
         saveEncoderConfig();
 
         saveStreamConfig();
 
         saveStreamOutputs();
-        saveRTMPInputs();
+        saveSources();
 
         const result = await api.saveConfig(
             currentConfig
@@ -199,11 +197,10 @@ async function saveConfig() {
 }
 
 function collectConfigForm() {
-    saveInputConfig();
     saveEncoderConfig();
     saveStreamConfig();
     saveStreamOutputs();
-    saveRTMPInputs();
+    saveSources();
 }
 
 async function testConfig() {

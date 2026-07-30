@@ -175,9 +175,20 @@ import yaml
 with open(sys.argv[1], encoding="utf-8") as config_file:
     config = yaml.safe_load(config_file) or {}
 
-print(
-    "yes"
-    if (
+sources = [
+    source
+    for source in config.get("sources", [])
+    if source.get("enabled", True)
+]
+managed = any(
+    not (
+        source.get("type") == "rtmp"
+        and source.get("profile", "direct") == "direct"
+    )
+    for source in sources
+)
+if not sources:
+    managed = not (
         config.get("stream", {}).get("passthrough", False)
         and config.get("encoder", {}).get("codec") == "copy"
         and config.get("input", {}).get("type") in {
@@ -189,8 +200,7 @@ print(
             "hls",
         }
     )
-    else "no"
-)
+print("no" if managed else "yes")
 ' \
         "${TARGET_DIR}/config/stream.yaml"
 )"

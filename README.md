@@ -150,22 +150,39 @@ In der eigenständigen minimalen labwc-Sitzung wird kein Bildschirmschoner
 oder Desktop-Power-Manager gestartet. Bei aktivierter Option bleibt die
 Anzeige daher ohne zusätzliche, privilegierte Inhibit-Sperre aktiv.
 
-## Mehrere RTMP-Eingänge
+## Mehrere gleichwertige Quellen
 
-In den Einstellungen können bis zu acht benannte RTMP-Eingänge angelegt
-werden. Jeder Eingang erhält einen eindeutigen MediaMTX-Pfad und damit eine
-eigene Publisher-Adresse:
+In den Einstellungen können bis zu acht Quellen angelegt werden. Unterstützt
+werden alle vorhandenen Eingangsadapter: Capture Card, RTMP, RTSP, SRT, UDP,
+HTTP und HLS. Jede Quelle besitzt einen eigenen Namen, eine strikt validierte
+ID sowie ein Verarbeitungsprofil:
+
+- `Direkt / Stream Copy`: Video ohne Neukodierung übernehmen
+- `Copy mit Zeitstempel-Korrektur`: Originalvideo mit reparierten Zeitstempeln
+- `Transcodieren`: den pro Quelle gewählten Encoder verwenden
+
+Bei RTMP wird der Empfangspfad automatisch aus der ID erzeugt und kann nicht
+separat verändert werden:
 
 ```text
-rtmp://<StreamPi-IP>:1935/live/quelle-1
-rtmp://<StreamPi-IP>:1935/live/quelle-2
+rtmp://<StreamPi-IP>:1935/quelle-1
+rtmp://<StreamPi-IP>:1935/quelle-2
 ```
 
-MediaMTX kann die Quellen gleichzeitig empfangen. Das Dashboard prüft alle
-konfigurierten Pfade gemeinsam und öffnet für jeden tatsächlich verfügbaren
-Stream eine unabhängige WebRTC-Kachel. Für einen vorgeschalteten
-Zeitstempel-Reparaturpfad kann zusätzlich ein abweichender Wiedergabepfad
-eingetragen werden.
+IDs dürfen ausschließlich Kleinbuchstaben, Zahlen, Bindestriche und
+Unterstriche enthalten. MediaMTX prüft alle Pfade gemeinsam; das Dashboard
+öffnet eine WebRTC-Kachel erst, wenn der jeweilige Stream verfügbar ist.
+
+RTSP-Netzwerkkameras können direkt als Quelle eingetragen werden, zum Beispiel:
+
+```text
+rtsp://admin:PASSWORT@192.168.1.50:554/Preview_01_main
+```
+
+Zugangsdaten werden in der Oberfläche maskiert und in Streamer-Protokollen
+redigiert. Verwaltete Quellen werden durch einen systemd-Dienst überwacht.
+Eine vorübergehend nicht erreichbare Quelle wird unabhängig mit begrenztem
+Backoff neu verbunden und unterbricht die übrigen Quellen nicht.
 
 ## Webzugriff über Port 80
 

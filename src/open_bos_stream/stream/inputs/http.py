@@ -58,8 +58,7 @@ class HTTPInputBuilder(InputBuilder):
             )
 
         if not source.url.startswith(
-            "http://"
-            "https://"
+            ("http://", "https://")
         ):
 
             raise ValueError(

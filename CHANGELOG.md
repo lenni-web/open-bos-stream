@@ -7,6 +7,44 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.10.0] - 2026-07-30
+
+### Added
+
+- Einheitliche Verwaltung von bis zu acht gleichwertigen Quellen.
+- Unterstützung aller vorhandenen Quellentypen in der Quellenliste:
+  Capture Card, RTMP, RTSP, SRT, UDP, HTTP und HLS.
+- Pro Quelle auswählbare Profile für direkten Stream Copy,
+  Zeitstempelkorrektur und Transcoding.
+- Pro Quelle wählbare Audioübernahme, AAC-Transcoding oder deaktiviertes Audio.
+- Direkter RTSP-Pull für Netzwerkkameras einschließlich TCP-/UDP-Auswahl.
+- Unabhängige Wiedergabepfade, Statusprüfung und WebRTC-Kacheln pro Quelle.
+- systemd-überwachter Mehrquellen-Supervisor mit unabhängigen
+  Wiederverbindungsversuchen und begrenztem Backoff.
+
+### Changed
+
+- Die bisherige Standardquelle und zusätzliche RTMP-Slots werden automatisch
+  in eine gemeinsame Quellenliste migriert.
+- RTMP-Empfangspfade werden unveränderlich aus der Quellen-ID erzeugt:
+  `rtmp://<StreamPi-IP>:1935/<id>`.
+- Quellen-IDs akzeptieren ausschließlich Kleinbuchstaben, Zahlen,
+  Bindestriche und Unterstriche.
+- Die Einstellungen zeigen keine separate Hauptquelle mehr; Encoderparameter
+  gelten nur noch als Vorgabe für Quellen mit Transcoding-Profil.
+- Dashboard-Player werden ausschließlich für tatsächlich verfügbare Quellen
+  geöffnet.
+
+### Fixed
+
+- Eine ausgefallene oder noch nicht sendende Quelle beendet nicht mehr die
+  Verarbeitung aller übrigen Quellen.
+- HTTP- und HLS-Quellen akzeptieren wieder korrekt `http://` und `https://`.
+- Zugangsdaten in Netzwerk-URLs und sensible URL-Parameter werden in
+  Streamer-Protokollen redigiert.
+- Fehlende lokale V4L2-Erkennung blockiert nicht mehr die Konfiguration
+  anderer Quellentypen.
+
 ## [0.9.2] - 2026-07-30
 
 ### Fixed

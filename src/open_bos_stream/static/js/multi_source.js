@@ -8,7 +8,7 @@ function multiSourceCard(input) {
         <header class="multi-source-card-header">
             <div>
                 <strong>${escapeHTML(input.name)}</strong>
-                <small>${escapeHTML(input.path)}</small>
+                <small>${escapeHTML(input.type)} · ${escapeHTML(input.profile)}</small>
             </div>
             <span class="multi-source-state">Offline</span>
         </header>
@@ -102,7 +102,8 @@ function updateMultiSources(inputs = []) {
         ).textContent = input.name;
         entry.card.querySelector(
             ".multi-source-card-header small"
-        ).textContent = input.path;
+        ).textContent =
+            `${input.type} · ${input.profile}`;
         entry.card.querySelector(
             ".multi-source-placeholder small"
         ).textContent = input.publish_url;

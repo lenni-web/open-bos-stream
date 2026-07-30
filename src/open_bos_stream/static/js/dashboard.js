@@ -81,7 +81,7 @@ function updateDashboard(data) {
 	);
 
     updateMultiSources(
-        data.rtmp_inputs ?? []
+        data.sources ?? []
     );
 
 	updateDashboardStream(
