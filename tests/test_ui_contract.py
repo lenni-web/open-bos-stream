@@ -195,7 +195,7 @@ def test_multi_source_audio_starts_muted() -> None:
 
     assert "video.muted = true" in source_js
     assert "video.defaultMuted = true" in source_js
-    assert "🔇 Ton aus" in source_js
+    assert "multi-source-audio" not in source_js
     assert "this.video.muted = true" in player_js
 
 
@@ -207,3 +207,15 @@ def test_each_source_player_has_fullscreen_control() -> None:
     assert "multi-source-fullscreen" in source_js
     assert "card.requestFullscreen()" in source_js
     assert "video.webkitEnterFullscreen()" in source_js
+    assert "deferUnavailableStop(4000)" in source_js
+
+
+def test_source_settings_are_compact_and_urls_can_be_revealed() -> None:
+    source_js = (
+        ROOT / "static" / "js" / "config_rtmp_inputs.js"
+    ).read_text(encoding="utf-8")
+
+    assert 'document.createElement("details")' in source_js
+    assert "URL anzeigen und bearbeiten" in source_js
+    assert 'input.type = visible ? "password" : "text"' in source_js
+    assert 'audio_mode: "none"' in source_js

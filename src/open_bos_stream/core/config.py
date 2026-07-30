@@ -153,6 +153,8 @@ class ConfigLoader:
                 "format": input_config.get("format", "mjpeg"),
                 "transport": input_config.get("transport", "tcp"),
                 "codec": data.get("encoder", {}).get("codec"),
+                # Bestehende Installationen behalten ihr bisheriges Audio.
+                "audio_mode": "copy",
             })
 
             known_ids = {primary_id}
@@ -170,6 +172,7 @@ class ConfigLoader:
                         else "direct"
                     ),
                     "enabled": item.get("enabled", True),
+                    "audio_mode": "copy",
                 })
                 known_ids.add(item_id)
 

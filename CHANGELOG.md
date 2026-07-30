@@ -7,6 +7,26 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.10.5] - 2026-07-30
+
+### Changed
+
+- Quellenoptionen sind in kompakte, aufklappbare Zeilen zusammengefasst.
+- Audio ist bei neuen Quellen standardmäßig deaktiviert und wird ausschließlich
+  in der Quellenkonfiguration eingestellt.
+- RTSP- und andere geschützte Quelladressen lassen sich bewusst einblenden,
+  bearbeiten und anschließend wieder maskieren.
+- Statusaktualisierungen verschieben bestehende Player nicht mehr im DOM.
+- Kurze Statusaussetzer erhalten den laufenden Player vier Sekunden lang,
+  anstatt die WebRTC-Verbindung sofort zu beenden.
+
+### Fixed
+
+- Vollbild wurde durch das periodische Neu-Einhängen der Quellenkarte sofort
+  wieder beendet.
+- Der Safari-/iPad-Fallback wird jetzt auch versucht, wenn Karten-Vollbild
+  vorhanden ist, aber vom Browser abgelehnt wird.
+
 ## [0.10.4] - 2026-07-30
 
 ### Added

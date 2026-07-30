@@ -1,26 +1,45 @@
 const multiSourcePlayers = new Map();
 
 async function openSourceFullscreen(card, video) {
-    try {
-        if (typeof card.requestFullscreen === "function") {
+    if (typeof card.requestFullscreen === "function") {
+        try {
             await card.requestFullscreen();
             return;
+        } catch (error) {
+            console.debug(
+                "Karten-Vollbild nicht verfügbar:",
+                error
+            );
         }
-        if (
-            !video.hidden &&
-            typeof video.webkitEnterFullscreen === "function"
-        ) {
+    }
+    if (
+        !video.hidden &&
+        typeof video.webkitEnterFullscreen === "function"
+    ) {
+        try {
             video.webkitEnterFullscreen();
             return;
+        } catch (error) {
+            console.debug(
+                "Safari-Video-Vollbild nicht verfügbar:",
+                error
+            );
         }
-        if (typeof video.requestFullscreen === "function") {
+    }
+    if (typeof video.requestFullscreen === "function") {
+        try {
             await video.requestFullscreen();
             return;
+        } catch (error) {
+            console.debug(
+                "Video-Vollbild nicht verfügbar:",
+                error
+            );
         }
-        throw new Error("Vollbild wird von diesem Browser nicht unterstützt.");
-    } catch (error) {
-        console.error("Quellen-Vollbild:", error);
     }
+    console.error(
+        "Quellen-Vollbild wird von diesem Browser nicht unterstützt."
+    );
 }
 
 function multiSourceCard(input) {
@@ -51,12 +70,6 @@ function multiSourceCard(input) {
             <span data-value="format">—</span>
             <span data-value="viewers">0 Viewer</span>
             <button
-                class="multi-source-audio bos-button bos-button-small"
-                type="button"
-                aria-pressed="false">
-                🔇 Ton aus
-            </button>
-            <button
                 class="multi-source-fullscreen bos-button bos-button-small"
                 type="button"
                 title="Quelle im Vollbild anzeigen"
@@ -66,21 +79,8 @@ function multiSourceCard(input) {
         </footer>
     `;
     const video = card.querySelector("video");
-    const audioButton = card.querySelector(
-        ".multi-source-audio"
-    );
     video.muted = true;
     video.defaultMuted = true;
-    audioButton.addEventListener("click", () => {
-        video.muted = !video.muted;
-        audioButton.textContent = video.muted
-            ? "🔇 Ton aus"
-            : "🔊 Ton an";
-        audioButton.setAttribute(
-            "aria-pressed",
-            String(!video.muted)
-        );
-    });
     card.querySelector(
         ".multi-source-fullscreen"
     ).addEventListener(
@@ -151,10 +151,6 @@ function updateMultiSources(inputs = []) {
             multiSourcePlayers.set(input.id, entry);
         }
 
-        // appendChild verschiebt bestehende Karten und übernimmt damit
-        // die in den Einstellungen gespeicherte Quellenreihenfolge.
-        grid.appendChild(entry.card);
-
         entry.card.querySelector(
             ".multi-source-card-header strong"
         ).textContent = input.name;
@@ -193,11 +189,13 @@ function updateMultiSources(inputs = []) {
                 "webrtc"
             );
         } else {
-            placeholder.hidden = false;
-            video.hidden = true;
-            if (entry.player.currentStream !== null) {
-                entry.player.stop();
-            }
+            const awaitingSignal =
+                entry.player.deferUnavailableStop(4000);
+            placeholder.hidden = awaitingSignal;
+            video.hidden = !awaitingSignal;
+            state.textContent = awaitingSignal
+                ? "Signal wird geprüft"
+                : "Offline";
         }
 
         const format =
@@ -211,6 +209,24 @@ function updateMultiSources(inputs = []) {
             '[data-value="viewers"]'
         ).textContent =
             `${input.viewers} Viewer`;
+    }
+
+    // Bestehende Player nicht bei jedem Statusabruf neu in den DOM hängen:
+    // Das beendet natives Vollbild und kann die Videodarstellung unterbrechen.
+    const desiredOrder = inputs.map(input => input.id);
+    const currentOrder = Array.from(grid.children).map(
+        card => card.dataset.sourceId
+    );
+    const orderChanged = desiredOrder.some(
+        (id, index) => currentOrder[index] !== id
+    );
+    if (orderChanged && !document.fullscreenElement) {
+        for (const id of desiredOrder) {
+            const entry = multiSourcePlayers.get(id);
+            if (entry) {
+                grid.appendChild(entry.card);
+            }
+        }
     }
 
     const summary =

@@ -57,7 +57,7 @@ class SourceConfig(BaseModel):
     format: str = "mjpeg"
     transport: Literal["tcp", "udp"] = "tcp"
     codec: str | None = None
-    audio_mode: Literal["none", "copy", "aac"] = "copy"
+    audio_mode: Literal["none", "copy", "aac"] = "none"
 
     @field_validator("id")
     @classmethod
