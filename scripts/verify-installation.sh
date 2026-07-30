@@ -184,18 +184,26 @@ if [ "${PROFILE}" = "local" ]; then
     else
         check_failure "seatd-Service fehlt"
     fi
-else
-    if systemctl is-active mediamtx.service >/dev/null 2>&1; then
-        check_success "MediaMTX läuft"
-    else
-        check_failure "MediaMTX läuft nicht"
-    fi
-    if [ -f "${PROFILE_DIR}/mediamtx.yml" ]; then
-        check_success "MediaMTX-Serverkonfiguration vorhanden"
-    else
-        check_failure "MediaMTX-Serverkonfiguration fehlt"
-    fi
+fi
 
+if systemctl is-active mediamtx.service >/dev/null 2>&1; then
+    check_success "MediaMTX läuft"
+else
+    check_failure "MediaMTX läuft nicht"
+fi
+if [ -f "${PROFILE_DIR}/mediamtx.yml" ]; then
+    check_success "MediaMTX-Konfiguration vorhanden"
+    if grep -q '^authMethod: http$' "${PROFILE_DIR}/mediamtx.yml" &&
+        grep -q '/internal/mediamtx/auth' "${PROFILE_DIR}/mediamtx.yml"; then
+        check_success "RTMP-Publisher-Token-Schutz aktiv"
+    else
+        check_failure "RTMP-Publisher-Token-Schutz fehlt"
+    fi
+else
+    check_failure "MediaMTX-Konfiguration fehlt"
+fi
+
+if [ "${PROFILE}" = "server" ]; then
     if [ -f "${SERVER_CONFIG_FILE}" ]; then
         check_success "Serverzugriff-Konfiguration vorhanden"
         HTTPS_ENABLED="$(

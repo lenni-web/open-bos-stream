@@ -63,10 +63,10 @@ Die Auswahl wird in `/etc/open-bos-stream/profile` gespeichert. Ein Update
 verwendet automatisch das vorhandene Profil. Ein bewusster Profilwechsel ist
 mit `./scripts/update.sh --profile local|server` möglich.
 
-Im Server-Profil muss MediaMTX wie bei der bisherigen Installation als
-`/home/streampi/mediamtx` vorhanden sein. Der Installer richtet eine eigene
-MediaMTX-Konfiguration ein und installiert weder den Display-Dienst noch
-dessen Systemabhängigkeiten.
+In beiden Profilen muss MediaMTX wie bei der bisherigen Installation als
+`/home/streampi/mediamtx` vorhanden sein. Der Installer richtet die passende,
+von Open BOS Stream verwaltete MediaMTX-Konfiguration ein. Im Serverprofil
+installiert er weder den Display-Dienst noch dessen Systemabhängigkeiten.
 
 Der Installer übernimmt automatisch:
 
@@ -164,11 +164,11 @@ Ohne HTTPS werden statt 80/443 die direkten Ports 8000, 8888 und 8889
 freigegeben. Eine zusätzliche Firewall des vServer-Anbieters kann der
 Installer nicht verändern und muss dort entsprechend konfiguriert werden.
 
-### RTMP-Publisher-Token im Serverprofil
+### RTMP-Publisher-Token
 
-Im Serverprofil erhält jede RTMP-Quelle automatisch einen eigenen,
-zufälligen Publisher-Token. Die vollständige Empfangsadresse ist in den
-Einstellungen zunächst verdeckt und kann bewusst eingeblendet werden:
+In beiden Installationsprofilen erhält jede RTMP-Quelle automatisch einen
+eigenen, zufälligen Publisher-Token. Die vollständige Empfangsadresse ist in
+den Einstellungen zunächst verdeckt und kann bewusst eingeblendet werden:
 
 ```text
 rtmp://server.example:1935/quelle-1?token=GEHEIMNIS
@@ -182,8 +182,7 @@ Update automatisch einen persistenten Token.
 Der Token verhindert unbefugtes Publizieren, verschlüsselt den Transport aber
 nicht. Port 1935 sollte deshalb möglichst über die Anbieter-Firewall auf
 bekannte Absender-IP-Adressen beschränkt werden. VPN oder RTMPS sind als
-spätere Härtung vorgesehen. Im lokalen Installationsprofil bleibt der
-RTMP-Eingang für den Betrieb im geschützten Netz ohne Token erreichbar.
+spätere Härtung vorgesehen.
 
 ## Offline-Karte Landkreis Stade
 
@@ -331,8 +330,8 @@ Die Quellen lassen sich mit den Pfeilschaltflächen umsortieren. Diese
 Reihenfolge wird gespeichert und ebenso im Livebildraster verwendet.
 
 Bei RTMP wird der Empfangspfad automatisch aus der ID erzeugt und kann nicht
-separat verändert werden. Im Serverprofil hängt die Oberfläche den
-individuellen, standardmäßig verdeckten Publisher-Token an:
+separat verändert werden. In beiden Installationsprofilen hängt die
+Oberfläche den individuellen, standardmäßig verdeckten Publisher-Token an:
 
 ```text
 rtmp://<Server-IP>:1935/quelle-1?token=<TOKEN-DER-QUELLE>

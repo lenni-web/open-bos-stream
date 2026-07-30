@@ -18,7 +18,7 @@ SOURCE_WEB_PROXY_SERVICE_FILE="${SCRIPT_DIR}/open-bos-web-proxy.service"
 TARGET_WEB_PROXY_SERVICE_FILE="/etc/systemd/system/open-bos-web-proxy.service"
 SOURCE_MEDIAMTX_SERVICE_FILE="${SCRIPT_DIR}/mediamtx.service"
 TARGET_MEDIAMTX_SERVICE_FILE="/etc/systemd/system/mediamtx.service"
-SOURCE_MEDIAMTX_CONFIG="${PROJECT_DIR}/config/mediamtx.server.yml"
+SOURCE_MEDIAMTX_CONFIG="${PROJECT_DIR}/config/mediamtx.${PROFILE}.yml"
 TARGET_MEDIAMTX_CONFIG="${PROFILE_DIR}/mediamtx.yml"
 SOURCE_SUDOERS_FILE="${SCRIPT_DIR}/open-bos-stream-sudoers"
 SOURCE_SERVER_SUDOERS_FILE="${SCRIPT_DIR}/open-bos-stream-server-sudoers"
@@ -46,6 +46,10 @@ echo "  ${SERVICE_USER}:${SERVICE_GROUP}"
 echo
 
 echo "Installationsprofil: ${PROFILE}"
+
+if [ ! -x "/home/${SERVICE_USER}/mediamtx" ]; then
+    fail "MediaMTX fehlt unter /home/${SERVICE_USER}/mediamtx."
+fi
 
 DISPLAY_GROUPS=()
 for group in video; do
@@ -120,27 +124,20 @@ if [ "${PROFILE}" = "local" ]; then
         sudo systemctl disable --now caddy.service >/dev/null 2>&1 || true
         sudo rm -f \
             /etc/systemd/system/open-bos-stream.service.d/server-bind.conf
-        if [ -f "${TARGET_MEDIAMTX_SERVICE_FILE}" ]; then
-            sudo install -m 0644 \
-                "${SOURCE_MEDIAMTX_CONFIG}" \
-                "${TARGET_MEDIAMTX_CONFIG}"
-        fi
     fi
 else
     sudo systemctl disable --now open-bos-display.service >/dev/null 2>&1 || true
     sudo rm -f "${TARGET_DISPLAY_SERVICE_FILE}"
 
-    if [ ! -x "/home/${SERVICE_USER}/mediamtx" ]; then
-        fail "MediaMTX fehlt unter /home/${SERVICE_USER}/mediamtx. Bitte MediaMTX vor der Server-Installation bereitstellen."
-    fi
-    sudo install -d -m 0755 "${PROFILE_DIR}"
-    sudo install -m 0644 \
-        "${SOURCE_MEDIAMTX_CONFIG}" \
-        "${TARGET_MEDIAMTX_CONFIG}"
-    sudo install -m 0644 \
-        "${SOURCE_MEDIAMTX_SERVICE_FILE}" \
-        "${TARGET_MEDIAMTX_SERVICE_FILE}"
 fi
+
+sudo install -d -m 0755 "${PROFILE_DIR}"
+sudo install -m 0644 \
+    "${SOURCE_MEDIAMTX_CONFIG}" \
+    "${TARGET_MEDIAMTX_CONFIG}"
+sudo install -m 0644 \
+    "${SOURCE_MEDIAMTX_SERVICE_FILE}" \
+    "${TARGET_MEDIAMTX_SERVICE_FILE}"
 
 sudo install \
     --mode=0644 \
@@ -180,9 +177,7 @@ sudo visudo \
 
 sudo systemctl daemon-reload
 
-if [ "${PROFILE}" = "server" ]; then
-    sudo systemctl enable --now mediamtx.service
-fi
+sudo systemctl enable mediamtx.service
 
 # Der Display-Dienst wird bewusst niemals für den Boot aktiviert.
 sudo systemctl disable \
@@ -280,6 +275,7 @@ fi
 
 sudo systemctl enable open-bos-stream.service
 sudo systemctl restart open-bos-stream.service
+sudo systemctl restart mediamtx.service
 
 echo
 echo "Service wurde installiert und neu gestartet."

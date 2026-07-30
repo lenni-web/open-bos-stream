@@ -140,7 +140,7 @@ Erweiterbarkeit durch Plugins.
 - [x] Optionales Caddy-/HTTPS-Setup mit Let's Encrypt
 - [x] Öffentliche WebRTC-/ICE-Konfiguration
 - [x] Optionale Host-Firewall-Regeln mit SSH-Schutz
-- [x] RTMP-Publisher im Serverprofil mit pfadgebundenen Tokens absichern
+- [x] RTMP-Publisher in beiden Profilen mit pfadgebundenen Tokens absichern
 - [ ] RTMP-Transport über VPN oder RTMPS verschlüsseln
 
 ## Bedienung

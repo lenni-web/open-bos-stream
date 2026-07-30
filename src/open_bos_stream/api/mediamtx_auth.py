@@ -8,8 +8,6 @@ from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel
 
 from open_bos_stream.core.config import ConfigLoader
-from open_bos_stream.core.installation import installation_profile
-
 router = APIRouter(
     prefix="/internal/mediamtx",
     tags=["MediaMTX"],
@@ -34,10 +32,7 @@ async def authorize_mediamtx(
     payload: MediaMTXAuthRequest,
     request: Request,
 ) -> dict[str, bool]:
-    """Schützt externe RTMP-Publisher im Serverprofil."""
-
-    if installation_profile() != "server":
-        return {"authorized": True}
+    """Schützt externe RTMP-Publisher in allen Installationsprofilen."""
 
     if payload.action != "publish":
         return {"authorized": True}

@@ -39,10 +39,7 @@ function generatePublisherToken() {
 function sourcePublishUrl(source) {
     const host = window.location.hostname || "<Server-IP>";
     const base = `rtmp://${host}:1935/${source.id}`;
-    if (
-        window.installationProfile === "server"
-        && source.publish_token
-    ) {
+    if (source.publish_token) {
         return `${base}?token=${encodeURIComponent(source.publish_token)}`;
     }
     return base;
@@ -110,7 +107,6 @@ function sourceTranscodingFields(source) {
 
 function sourceSpecificFields(source) {
     if (source.type === "rtmp") {
-        const protectedInput = window.installationProfile === "server";
         const publishUrl = sourcePublishUrl(source);
         return `
             <div class="form-field form-field-wide">
@@ -118,10 +114,9 @@ function sourceSpecificFields(source) {
                 <input
                     class="bos-input"
                     data-role="publish-url"
-                    type="${protectedInput ? "password" : "text"}"
+                    type="password"
                     value="${escapeHTML(publishUrl)}"
                     readonly>
-                ${protectedInput ? `
                 <button
                     class="bos-button bos-button-small"
                     type="button"
@@ -129,15 +124,12 @@ function sourceSpecificFields(source) {
                     aria-pressed="false">
                     Adresse anzeigen
                 </button>
-                ` : ""}
                 <small>
                     Der Empfangspfad entspricht automatisch der ID.
-                    ${protectedInput
-                        ? "Der Token schützt diesen Pfad vor fremden Publishern. RTMP selbst bleibt unverschlüsselt."
-                        : "Im lokalen Profil ist RTMP nicht authentifiziert oder verschlüsselt."}
+                    Der Token schützt diesen Pfad vor fremden Publishern.
+                    RTMP selbst bleibt unverschlüsselt.
                 </small>
             </div>
-            ${protectedInput ? `
             <div class="form-field form-field-wide">
                 <label>Publisher-Token</label>
                 <input
@@ -157,7 +149,6 @@ function sourceSpecificFields(source) {
                 </button>
                 <small>Nur an vertrauenswürdige Publisher weitergeben.</small>
             </div>
-            ` : ""}
         `;
     }
 

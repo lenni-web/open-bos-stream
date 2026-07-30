@@ -1,0 +1,14 @@
+# Von Open BOS Stream verwaltete MediaMTX-Basiskonfiguration für lokale Geräte.
+api: yes
+
+authMethod: http
+authHTTPAddress: http://127.0.0.1:8000/internal/mediamtx/auth
+authHTTPExclude:
+  - action: read
+  - action: playback
+  - action: api
+  - action: metrics
+  - action: pprof
+
+paths:
+  all_others:

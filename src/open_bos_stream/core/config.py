@@ -5,7 +5,6 @@ import tempfile
 import yaml
 
 from open_bos_stream.core.models import AppConfig
-from open_bos_stream.core.installation import installation_profile
 
 
 class ConfigLoader:
@@ -198,10 +197,7 @@ class ConfigLoader:
             for source in data.get("sources", [])
         )
         config = AppConfig(**data)
-        if (
-            missing_publisher_tokens
-            and installation_profile() == "server"
-        ):
+        if missing_publisher_tokens:
             # Einmalige Migration: MediaMTX liest den Token bei jeder
             # Publish-Anmeldung neu aus der Laufzeitkonfiguration.
             self._save_to(self.config_file, config)

@@ -3,7 +3,6 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from open_bos_stream.version import VERSION
-from open_bos_stream.core.installation import installation_profile
 
 router = APIRouter(tags=["Web"])
 
@@ -23,7 +22,6 @@ async def dashboard(request: Request):
             "host": request.url.hostname,
             "version": VERSION,
             "user": request.state.user,
-            "installation_profile": installation_profile(),
         },
     )
 
