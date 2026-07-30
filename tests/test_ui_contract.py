@@ -107,3 +107,20 @@ def test_stream_output_uses_shared_api_error_handling() -> None:
 
     assert "Streaming Output konnte nicht gestartet werden." not in api
     assert "/stream-output/${encodeURIComponent(name)}/start" in api
+
+
+def test_rtmp_input_views_use_available_html_escaping() -> None:
+    index = (
+        ROOT / "templates" / "index.html"
+    ).read_text(encoding="utf-8")
+    ui = (
+        ROOT / "static" / "js" / "ui.js"
+    ).read_text(encoding="utf-8")
+
+    assert "function escapeHTML(value)" in ui
+    assert index.index("/static/js/ui.js") < index.index(
+        "/static/js/config_rtmp_inputs.js"
+    )
+    assert index.index("/static/js/ui.js") < index.index(
+        "/static/js/multi_source.js"
+    )
