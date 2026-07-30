@@ -15,11 +15,11 @@ input:
   format: mjpeg
 sources: []
 rtmp_inputs:
-- id: quelle-1
-  name: Quelle 1
-  path: live/drohne
-  viewer_path: null
-  enabled: true
+  - id: quelle-1
+    name: Quelle 1
+    path: live/drohne
+    viewer_path: null
+    enabled: true
 encoder:
   codec: copy
   bitrate: 8M
@@ -42,21 +42,9 @@ stream:
     size: 24
     color: white
     x: w-tw-20
-    y: '20'
+    y: "20"
 map:
   source: mbtiles
   path: /home/streampi/open-bos-stream/mapdata
   default: stade
-stream_outputs:
-- type: rtmp
-  name: Owncast
-  enabled: true
-  url: rtmp://stream.mg-stade.de:1935/live/NNsNPHwcB6nHreCyIMviD9MrTDxhzf
-  audio:
-    source: input
-- type: srt
-  name: SRT Stream
-  enabled: true
-  url: srt://server.nordwestbund.de:8890
-  audio:
-    source: input
+stream_outputs: []

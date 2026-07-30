@@ -7,6 +7,17 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.9.1] - 2026-07-30
+
+### Fixed
+
+- Die lokale Laufzeitkonfiguration `config/stream.yaml` wird nicht mehr von
+  Git verwaltet und kann Updates daher nicht mehr blockieren.
+- Neuinstallationen erzeugen die Laufzeitkonfiguration einmalig aus
+  `config/stream.example.yaml`; vorhandene Einstellungen bleiben unangetastet.
+- Die mitgelieferte Beispielkonfiguration enthält keine Zieladressen oder
+  Zugangsdaten für externe Streaming-Ausgänge.
+
 ## [0.9.0] - 2026-07-30
 
 ### Added

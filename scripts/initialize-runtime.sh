@@ -20,15 +20,22 @@ for dir in "${RUNTIME_DIRS[@]}"; do
 done
 
 #
-# Standard-Konfiguration nur bei Neuinstallation übernehmen
+# Standard-Konfiguration nur bei Neuinstallation übernehmen.
+# stream.yaml ist eine lokale Laufzeitdatei und wird nicht von Git verwaltet.
 #
-if [ -d "${PROJECT_DIR}/config" ]; then
+DEFAULT_CONFIG="${PROJECT_DIR}/config/stream.example.yaml"
+RUNTIME_CONFIG="${TARGET_DIR}/config/stream.yaml"
 
-    sudo rsync \
-        --archive \
-        --ignore-existing \
-        "${PROJECT_DIR}/config/" \
-        "${TARGET_DIR}/config/"
+if [ ! -e "${RUNTIME_CONFIG}" ]; then
+    if [ ! -f "${DEFAULT_CONFIG}" ]; then
+        echo "FEHLER: Standard-Konfiguration fehlt: ${DEFAULT_CONFIG}" >&2
+        exit 1
+    fi
+
+    sudo install \
+        --mode=0640 \
+        "${DEFAULT_CONFIG}" \
+        "${RUNTIME_CONFIG}"
 fi
 
 #

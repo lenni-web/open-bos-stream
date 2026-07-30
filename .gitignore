@@ -1,6 +1,8 @@
 __pycache__/
 *.pyc
 .env
+config/stream.yaml
+config/stream.last-known-good.yaml
 recordings/*
 logs/*
 *.log
