@@ -121,18 +121,6 @@ def chromium_command(
         )
     )
 
-    if config.disable_power_saving:
-        inhibitor = shutil.which("systemd-inhibit")
-        if inhibitor:
-            command = [
-                inhibitor,
-                "--what=idle:sleep",
-                "--who=Open BOS Display",
-                "--why=Lokale Streamanzeige aktiv",
-                "--mode=block",
-                *command,
-            ]
-
     return command
 
 

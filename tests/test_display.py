@@ -6,6 +6,7 @@ from pydantic import ValidationError
 from open_bos_stream.display.config import DisplayConfig
 from open_bos_stream.display.runner import (
     base_environment,
+    chromium_command,
     display_url,
     wayland_environment,
 )
@@ -68,3 +69,29 @@ def test_base_environment_prepares_private_runtime_directory(
     assert runtime_dir.stat().st_mode & 0o777 == 0o700
     assert environment["XDG_SESSION_TYPE"] == "wayland"
     assert environment["XDG_CURRENT_DESKTOP"] == "labwc"
+
+
+def test_chromium_starts_without_privileged_inhibitor(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "open_bos_stream.display.runner.shutil.which",
+        lambda command: f"/usr/bin/{command}",
+    )
+    monkeypatch.setattr(
+        "open_bos_stream.display.runner.ConfigLoader.load",
+        lambda _loader: type(
+            "Config",
+            (),
+            {
+                "display": DisplayConfig(
+                    disable_power_saving=True,
+                )
+            },
+        )(),
+    )
+
+    command = chromium_command()
+
+    assert command[0] == "/usr/bin/chromium"
+    assert "systemd-inhibit" not in command
