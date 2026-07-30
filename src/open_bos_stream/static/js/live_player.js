@@ -1,6 +1,6 @@
 class LivePlayer {
 
-    constructor() {
+    constructor(videoElement = null) {
 
         this.mode = null;
 		this.resetting = false;
@@ -22,9 +22,16 @@ class LivePlayer {
         };
         this.previousTransportSample = null;
 		this.video =
+            videoElement ??
             document.getElementById(
                 "live-video"
             );
+
+        if (!this.video) {
+            throw new Error(
+                "LivePlayer benötigt ein Videoelement."
+            );
+        }
 			
 		this.video.addEventListener(
 		    "playing",
@@ -466,7 +473,19 @@ class LivePlayer {
         this.transportDiagnostics.connection_state = "idle";
 
 	}
+
+    destroy() {
+        this.stop();
+        if (this.diagnosticsTimer !== null) {
+            window.clearInterval(
+                this.diagnosticsTimer
+            );
+            this.diagnosticsTimer = null;
+        }
+        this.stateListeners = [];
+    }
 }
 
 window.livePlayer =
     new LivePlayer();
+window.LivePlayer = LivePlayer;

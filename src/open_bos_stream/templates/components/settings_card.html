@@ -49,6 +49,32 @@
             </div>
         </section>
 
+        <section class="bos-card settings-section settings-section-rtmp-inputs">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">▦</span>
+                <div>
+                    <span class="section-kicker">Mehrquellenempfang</span>
+                    <h2>RTMP-Eingänge</h2>
+                    <p>Bis zu acht gleichzeitig erreichbare Empfangsadressen.</p>
+                </div>
+            </div>
+
+            <div id="rtmp-input-settings"></div>
+
+            <button
+                id="rtmp-input-add-button"
+                class="bos-button"
+                type="button"
+                onclick="addRTMPInput()">
+                + RTMP-Eingang hinzufügen
+            </button>
+
+            <div class="info-note">
+                Ein Video wird im Dashboard erst geöffnet, wenn MediaMTX
+                am jeweiligen Pfad einen aktiven Publisher erkannt hat.
+            </div>
+        </section>
+
         <section class="bos-card settings-section">
             <div class="settings-section-header">
                 <span class="settings-icon" aria-hidden="true">◉</span>

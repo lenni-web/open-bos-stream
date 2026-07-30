@@ -86,9 +86,26 @@ class DashboardService:
 
         system_info = self._system_info.info()
 
-        mediamtx = self._mediamtx.status(
-            self._config.stream.name
+        enabled_inputs = [
+            item
+            for item in self._config.rtmp_inputs
+            if item.enabled
+        ]
+        requested_paths = [
+            self._config.stream.name,
+            *(item.path for item in enabled_inputs),
+            *(
+                item.viewer_path
+                for item in enabled_inputs
+                if item.viewer_path
+            ),
+        ]
+        mediamtx_statuses = self._mediamtx.statuses(
+            requested_paths
         )
+        mediamtx = mediamtx_statuses[
+            self._config.stream.name
+        ]
 
         recording = self._recording.status
 
@@ -246,6 +263,43 @@ class DashboardService:
                 "diagnostics": diagnostics,
 
             },
+
+            "rtmp_inputs": [
+                {
+                    "id": item.id,
+                    "name": item.name,
+                    "path": item.path,
+                    "viewer_path": item.viewer_path or item.path,
+                    "publish_url": (
+                        "rtmp://"
+                        f"{system_info.network.ipv4}:1935/"
+                        f"{item.path}"
+                    ),
+                    "online": mediamtx_statuses[item.path].publisher,
+                    "ready": (
+                        mediamtx_statuses[item.path].ready
+                        and mediamtx_statuses[
+                            item.viewer_path or item.path
+                        ].ready
+                    ),
+                    "viewers": mediamtx_statuses[
+                        item.viewer_path or item.path
+                    ].readers,
+                    "codec": mediamtx_statuses[
+                        item.viewer_path or item.path
+                    ].codec,
+                    "width": mediamtx_statuses[
+                        item.viewer_path or item.path
+                    ].width,
+                    "height": mediamtx_statuses[
+                        item.viewer_path or item.path
+                    ].height,
+                    "tracks": mediamtx_statuses[
+                        item.viewer_path or item.path
+                    ].tracks,
+                }
+                for item in enabled_inputs
+            ],
 
             # -------------------------------------------------
             # Aufnahme

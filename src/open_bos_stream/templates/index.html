@@ -92,6 +92,8 @@
                     </div>
                 </header>
 
+                {% include "components/multi_source_panel.html" %}
+
                 {% include "components/video_panel.html" %}
 
                 <div class="dashboard-bottom">
@@ -174,6 +176,8 @@
 
 <script src="/static/js/config_stream_outputs.js?v={{ version }}"></script>
 
+<script src="/static/js/config_rtmp_inputs.js?v={{ version }}"></script>
+
 <script src="/static/js/config.js?v={{ version }}"></script>
 
 <script src="/static/js/display.js?v={{ version }}"></script>
@@ -207,6 +211,8 @@
 <script src="/static/js/live_player.js?v={{ version }}"></script>
 
 <script src="/static/js/dashboard_stream.js?v={{ version }}"></script>
+
+<script src="/static/js/multi_source.js?v={{ version }}"></script>
 
 <script src="/static/js/dashboard_events.js?v={{ version }}"></script>
 

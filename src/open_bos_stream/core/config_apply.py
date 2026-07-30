@@ -85,11 +85,35 @@ class ConfigApplyService:
         if self._probe is not None:
             self._probe.reload(self._runtime)
 
+    @staticmethod
+    def _only_rtmp_inputs_changed(
+        previous: AppConfig,
+        candidate: AppConfig,
+    ) -> bool:
+        previous_data = previous.model_dump()
+        candidate_data = candidate.model_dump()
+        previous_data.pop("rtmp_inputs", None)
+        candidate_data.pop("rtmp_inputs", None)
+        return previous_data == candidate_data
+
     def apply(self, candidate: AppConfig) -> str:
         checks = self.test(candidate)
 
         previous = self._runtime.model_copy(deep=True)
         previous_managed = self._stream.managed
+
+        if self._only_rtmp_inputs_changed(
+            previous,
+            candidate,
+        ):
+            self._loader.save(candidate)
+            self._replace_runtime(candidate)
+            self._loader.save_last_known_good(candidate)
+            return (
+                f"Vorabprüfung erfolgreich ({len(checks)} Prüfungen). "
+                f"{len(candidate.rtmp_inputs)} RTMP-Eingänge "
+                "ohne Streamer-Neustart übernommen."
+            )
 
         try:
             if previous_managed and candidate.passthrough_active:

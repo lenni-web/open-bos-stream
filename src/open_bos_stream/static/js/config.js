@@ -108,6 +108,8 @@ async function refreshConfig() {
 
         renderStreamOutputs();
 
+        renderRTMPInputs();
+
         setConfigDirty(false);
         setConfigSaveStatus("");
 
@@ -148,6 +150,7 @@ async function saveConfig() {
         saveStreamConfig();
 
         saveStreamOutputs();
+        saveRTMPInputs();
 
         const result = await api.saveConfig(
             currentConfig
@@ -200,6 +203,7 @@ function collectConfigForm() {
     saveEncoderConfig();
     saveStreamConfig();
     saveStreamOutputs();
+    saveRTMPInputs();
 }
 
 async function testConfig() {
