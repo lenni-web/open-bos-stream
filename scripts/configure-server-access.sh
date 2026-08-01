@@ -15,6 +15,14 @@ WEBRTC_EXPLICIT=false
 FIREWALL_MODE=""
 INTERACTIVE=false
 
+normalize_domain() {
+    local value="$1"
+    value="${value#http://}"
+    value="${value#https://}"
+    value="${value%/}"
+    printf '%s\n' "${value}" | tr '[:upper:]' '[:lower:]'
+}
+
 read_setting() {
     local key="$1"
     local fallback="$2"
@@ -80,7 +88,7 @@ if [ ! -f "${SERVER_CONFIG_FILE}" ] && [ -t 0 ]; then
 fi
 
 if [ "${INTERACTIVE}" = true ]; then
-    read -r -p "Öffentliche Domain (leer = kein HTTPS) [${DOMAIN}]: " answer
+    read -r -p "Öffentliche Domain, z. B. ffw-stream.de (leer = kein HTTPS) [${DOMAIN}]: " answer
     DOMAIN="${answer:-${DOMAIN}}"
 
     if [ -n "${DOMAIN}" ]; then
@@ -111,6 +119,10 @@ if [ "${INTERACTIVE}" = true ]; then
     esac
 fi
 
+# Bedienfreundlich sowohl einen Hostnamen als auch eine kopierte Webadresse
+# akzeptieren. Pfade, Ports und Zugangsdaten bleiben bewusst unzulässig.
+DOMAIN="$(normalize_domain "${DOMAIN}")"
+
 case "${HTTPS_MODE}" in yes|no) ;; *) fail "HTTPS muss yes oder no sein." ;; esac
 case "${WEBRTC_MODE}" in public|local) ;; *) fail "WebRTC muss public oder local sein." ;; esac
 case "${FIREWALL_MODE}" in configure|off) ;; *) fail "Firewall muss configure oder off sein." ;; esac
@@ -127,7 +139,7 @@ fi
 if [ "${HTTPS_MODE}" = "yes" ] || [ "${WEBRTC_MODE}" = "public" ]; then
     if ! [[ "${DOMAIN}" =~ ^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$ ]] ||
         [[ "${DOMAIN}" != *.* ]]; then
-        fail "Für HTTPS/WebRTC wird eine gültige öffentliche Domain benötigt."
+        fail "Für HTTPS/WebRTC wird eine gültige öffentliche Domain ohne Pfad oder Port benötigt (z. B. ffw-stream.de)."
     fi
 fi
 

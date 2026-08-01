@@ -167,6 +167,15 @@ def test_caddy_routes_application_whep_and_hls() -> None:
     assert "reverse_proxy 127.0.0.1:8000" in caddy
 
 
+def test_server_access_accepts_domain_or_https_url() -> None:
+    script = read("scripts/configure-server-access.sh")
+
+    assert 'value="${value#http://}"' in script
+    assert 'value="${value#https://}"' in script
+    assert 'DOMAIN="$(normalize_domain "${DOMAIN}")"' in script
+    assert "z. B. ffw-stream.de" in script
+
+
 def test_https_player_uses_same_origin_routes() -> None:
     player = read(
         "src/open_bos_stream/static/js/live_player.js"
