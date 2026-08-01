@@ -26,7 +26,7 @@ class RecordingService:
 
         self._recorder = Recorder()
 
-        self._manager = RecordingManager(config)
+        self._manager = RecordingManager()
 
         self._status = RecordingStatus()
 
@@ -55,13 +55,12 @@ class RecordingService:
         if self._manager.running:
             return
 
-        path = self._mediamtx.path(
-            self._config.stream.name
-        )
+        source = self._selected_source()
+        path = self._mediamtx.path(source.viewer_path)
 
         if path is None:
             raise RuntimeError(
-                f"Stream '{self._config.stream.name}' ist nicht verfügbar."
+                f"Quelle '{source.name}' ist nicht verfügbar."
             )
 
         if not path.get("ready", False):
@@ -69,15 +68,18 @@ class RecordingService:
                 "Stream läuft nicht. Bitte zuerst den Stream starten."
             )
 
-        filename = self._recorder.next_filename()
+        filename = self._recorder.next_filename(source.id)
+        input_url = f"rtsp://127.0.0.1:8554/{source.viewer_path}"
 
-        self._manager.start(filename)
+        self._manager.start(filename, input_url)
 
         self._status.filename = str(filename)
         self._status.started_at = time.time()
         self._status.duration = 0
         self._status.recording = True
         self._status.pid = self._manager.pid
+        self._status.source_id = source.id
+        self._status.source_name = source.name
 
     def stop(self) -> None:
         """Aufnahme stoppen."""
@@ -88,3 +90,22 @@ class RecordingService:
         self._status.started_at = None
         self._status.duration = 0
         self._status.pid = None
+
+    def _selected_source(self):
+        selected_id = self._config.media_capture.source_id
+        source = next(
+            (
+                item
+                for item in self._config.sources
+                if item.enabled and item.id == selected_id
+            ),
+            None,
+        )
+        if source is None:
+            source = next(
+                (item for item in self._config.sources if item.enabled),
+                None,
+            )
+        if source is None:
+            raise RuntimeError("Keine aktive Medienquelle konfiguriert.")
+        return source

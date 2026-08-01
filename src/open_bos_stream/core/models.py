@@ -294,6 +294,12 @@ class StreamOutputConfig(BaseModel):
         default_factory=StreamOutputAudioConfig,
     )
 
+
+class MediaCaptureConfig(BaseModel):
+    """Superadmin-Auswahl für Snapshots und Aufzeichnungen."""
+
+    source_id: str | None = None
+
 class AppConfig(BaseModel):
 
     source_profile: Literal[
@@ -309,6 +315,10 @@ class AppConfig(BaseModel):
 
     web_access: WebAccessConfig = Field(
         default_factory=WebAccessConfig,
+    )
+
+    media_capture: MediaCaptureConfig = Field(
+        default_factory=MediaCaptureConfig,
     )
 
     capture: CaptureConfig

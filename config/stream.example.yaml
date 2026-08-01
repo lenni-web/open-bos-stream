@@ -29,6 +29,8 @@ sources:
     transport: tcp
     codec: null
     audio_mode: copy
+media_capture:
+  source_id: quelle-1
 rtmp_inputs:
   - id: quelle-1
     name: Quelle 1

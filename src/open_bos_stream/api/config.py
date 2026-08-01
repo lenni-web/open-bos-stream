@@ -59,6 +59,11 @@ async def save_config(config: AppConfig, request: Request):
             ("stream_outputs", config.stream_outputs, current.stream_outputs),
             ("display", config.display, current.display),
             ("web_access", config.web_access, current.web_access),
+            (
+                "media_capture",
+                config.media_capture,
+                current.media_capture,
+            ),
         )
         changed = [
             name

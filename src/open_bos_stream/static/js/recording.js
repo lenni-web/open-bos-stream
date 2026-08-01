@@ -111,6 +111,12 @@ lastRecordingState =
             pid:
                 recording.pid,
 
+            source_id:
+                recording.source_id,
+
+            source_name:
+                recording.source_name,
+
         };
 
     }
@@ -221,6 +227,29 @@ lastRecordingState =
         );
 
     }
+
+    const mediaToggle = document.getElementById(
+        "media-recording-toggle"
+    );
+    if (mediaToggle) {
+        mediaToggle.textContent = active
+            ? "⏹ Aufnahme stoppen"
+            : "⏺ Aufnahme starten";
+        mediaToggle.classList.toggle("bos-button-red", active);
+    }
+
+    updateValue(
+        "media-recording-duration",
+        active ? duration : ""
+    );
+
+    const selectedName = active
+        ? recording.source_name
+        : window.dashboard?.media_capture?.source_name;
+    updateValue(
+        "media-capture-source-name",
+        selectedName || "Keine Quelle ausgewählt"
+    );
 
     const startButton =
         document.getElementById(

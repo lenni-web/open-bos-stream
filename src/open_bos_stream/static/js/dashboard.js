@@ -99,10 +99,30 @@ function updateDashboard(data) {
         data.recording
     );
 
+    updateMediaCaptureBar(data.media_capture);
+
     updateStreamOutputs(
         data.stream_outputs
     );
 
+}
+
+function updateMediaCaptureBar(mediaCapture) {
+    const bar = document.getElementById("media-capture-bar");
+    if (!bar) {
+        return;
+    }
+    bar.hidden = false;
+    updateValue(
+        "media-capture-source-name",
+        mediaCapture?.source_name || "Keine Quelle ausgewählt"
+    );
+    const snapshot = document.getElementById("media-snapshot-button");
+    const recording = document.getElementById("media-recording-toggle");
+    if (snapshot) snapshot.disabled = !mediaCapture?.ready;
+    if (recording && !window.dashboard?.recording?.active) {
+        recording.disabled = !mediaCapture?.ready;
+    }
 }
 
 function updateStreamDiagnostics(stream, storage, sources = []) {

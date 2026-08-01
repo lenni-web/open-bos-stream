@@ -9,6 +9,7 @@ from pathlib import Path
 
 from open_bos_stream.core.models import AppConfig
 from open_bos_stream.core.process import ProcessRunner
+from open_bos_stream.mediamtx.client import MediaMTXClient
 
 
 class SnapshotService:
@@ -17,12 +18,14 @@ class SnapshotService:
     def __init__(
         self,
         config: AppConfig,
+        mediamtx: MediaMTXClient,
         directory: str = "snapshots",
         runner: ProcessRunner | None = None,
     ) -> None:
 
         self._config = config
         self._runner = runner or ProcessRunner()
+        self._mediamtx = mediamtx
 
         self.directory = Path(directory)
         self.directory.mkdir(exist_ok=True)
@@ -63,7 +66,7 @@ class SnapshotService:
             "count": self.count,
         }
 
-    def next_filename(self) -> Path:
+    def next_filename(self, source_id: str) -> Path:
         """Nächsten Dateinamen erzeugen."""
 
         timestamp = datetime.now().strftime(
@@ -72,7 +75,7 @@ class SnapshotService:
 
         return (
             self.directory
-            / f"snapshot_{timestamp}.jpg"
+            / f"snapshot_{source_id}_{timestamp}.jpg"
         )
 
     def latest_snapshot(self) -> Path | None:
@@ -91,7 +94,13 @@ class SnapshotService:
     def create(self) -> Path:
         """Neuen Snapshot erzeugen."""
 
-        filename = self.next_filename()
+        source = self._selected_source()
+        path = self._mediamtx.path(source.viewer_path)
+        if path is None or not path.get("ready", False):
+            raise RuntimeError(
+                f"Quelle '{source.name}' ist nicht verfügbar."
+            )
+        filename = self.next_filename(source.id)
 
         self._runner.run(
             [
@@ -100,7 +109,7 @@ class SnapshotService:
                 "-rtsp_transport",
                 "tcp",
                 "-i",
-                self._config.stream.rtsp_url,
+                f"rtsp://127.0.0.1:8554/{source.viewer_path}",
                 "-frames:v",
                 "1",
                 str(filename),
@@ -112,3 +121,22 @@ class SnapshotService:
         self._last_snapshot = filename
 
         return filename
+
+    def _selected_source(self):
+        selected_id = self._config.media_capture.source_id
+        source = next(
+            (
+                item
+                for item in self._config.sources
+                if item.enabled and item.id == selected_id
+            ),
+            None,
+        )
+        if source is None:
+            source = next(
+                (item for item in self._config.sources if item.enabled),
+                None,
+            )
+        if source is None:
+            raise RuntimeError("Keine aktive Medienquelle konfiguriert.")
+        return source

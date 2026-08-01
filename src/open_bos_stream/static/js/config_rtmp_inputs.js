@@ -457,6 +457,9 @@ function renderSources() {
     if (addButton) {
         addButton.disabled = sources.length >= 8;
     }
+    if (typeof renderMediaCaptureConfig === "function") {
+        renderMediaCaptureConfig();
+    }
 }
 
 function saveSources() {

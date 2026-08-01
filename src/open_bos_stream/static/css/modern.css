@@ -1063,6 +1063,44 @@ body {
     margin: 0;
 }
 
+.media-capture-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 8px 10px;
+    border: 1px solid var(--bos-gray);
+    border-radius: 10px;
+    background: var(--bos-gray-soft);
+}
+
+.media-capture-bar[hidden] {
+    display: none;
+}
+
+.media-capture-selection,
+.media-capture-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.media-recording-duration {
+    min-width: 68px;
+    color: var(--bos-red);
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+}
+
+@media (max-width: 700px) {
+    .media-capture-bar,
+    .media-capture-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
+
 .source-diagnostic-item dd {
     text-align: right;
     overflow-wrap: anywhere;

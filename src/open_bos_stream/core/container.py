@@ -116,6 +116,7 @@ recording_service = RecordingService(
 
 snapshot_service = SnapshotService(
     config,
+    mediamtx_client,
     runner=process_runner,
 )
 

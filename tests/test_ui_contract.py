@@ -285,6 +285,27 @@ def test_media_page_is_visible_only_to_superadmins() -> None:
     )
 
 
+def test_superadmin_media_source_controls_are_present() -> None:
+    settings = (
+        ROOT / "templates" / "components" / "settings_card.html"
+    ).read_text(encoding="utf-8")
+    panel = (
+        ROOT / "templates" / "components" / "multi_source_panel.html"
+    ).read_text(encoding="utf-8")
+    config = (
+        ROOT / "static" / "js" / "config.js"
+    ).read_text(encoding="utf-8")
+
+    assert 'id="cfg-media-source"' in settings
+    assert "Snapshot- und Aufnahmequelle" in settings
+    assert '{% if user.role == "superadmin" %}' in panel
+    assert 'id="media-capture-bar"' in panel
+    assert 'id="media-snapshot-button"' in panel
+    assert 'id="media-recording-toggle"' in panel
+    assert "function renderMediaCaptureConfig()" in config
+    assert "function saveMediaCaptureConfig()" in config
+
+
 def test_admin_initialization_does_not_call_superadmin_media_functions() -> None:
     app = (
         ROOT / "static" / "js" / "app.js"

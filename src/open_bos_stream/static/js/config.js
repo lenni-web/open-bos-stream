@@ -110,6 +110,8 @@ async function refreshConfig() {
 
         renderSources();
 
+        renderMediaCaptureConfig();
+
         setConfigDirty(false);
         setConfigSaveStatus("");
 
@@ -148,6 +150,7 @@ async function saveConfig() {
 
         saveStreamOutputs();
         saveSources();
+        saveMediaCaptureConfig();
 
         const result = window.currentUser?.role === "superadmin"
             ? await api.saveConfig(currentConfig)
@@ -199,6 +202,41 @@ function collectConfigForm() {
     saveStreamConfig();
     saveStreamOutputs();
     saveSources();
+    saveMediaCaptureConfig();
+}
+
+function renderMediaCaptureConfig() {
+    const select = document.getElementById("cfg-media-source");
+    if (!select || !currentConfig) {
+        return;
+    }
+    const sources = (currentConfig.sources ?? []).filter(
+        source => source.enabled
+    );
+    select.innerHTML = sources.length
+        ? sources.map(source => `
+            <option value="${escapeHTML(source.id)}">
+                ${escapeHTML(source.name)}
+            </option>
+        `).join("")
+        : '<option value="">Keine aktive Quelle</option>';
+
+    const selected = currentConfig.media_capture?.source_id;
+    if (selected && sources.some(source => source.id === selected)) {
+        select.value = selected;
+    } else {
+        select.value = sources[0]?.id ?? "";
+    }
+}
+
+function saveMediaCaptureConfig() {
+    const select = document.getElementById("cfg-media-source");
+    if (!select || !currentConfig) {
+        return;
+    }
+    currentConfig.media_capture = {
+        source_id: select.value || null,
+    };
 }
 
 async function testConfig() {

@@ -37,6 +37,22 @@
         {% if user.role == "superadmin" %}
         <section class="bos-card settings-section">
             <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">●</span>
+                <div>
+                    <span class="section-kicker">Mediathek</span>
+                    <h2>Snapshot- und Aufnahmequelle</h2>
+                    <p>Legt fest, welche Livequelle für neue Medien verwendet wird.</p>
+                </div>
+            </div>
+            <label class="form-field">
+                <span>Ausgewählte Quelle</span>
+                <select id="cfg-media-source" class="bos-input"></select>
+                <small>Die Auswahl kann nur ein Superadmin ändern.</small>
+            </label>
+        </section>
+
+        <section class="bos-card settings-section">
+            <div class="settings-section-header">
                 <span class="settings-icon" aria-hidden="true">⇥</span>
                 <div>
                     <span class="section-kicker">Weiterleitung</span>

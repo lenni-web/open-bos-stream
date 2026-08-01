@@ -11,6 +11,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ### Added
 
+- Superadmins können eine aktive Quelle als Snapshot- und Aufnahmequelle
+  festlegen. Ein kompakter Balken über den Livebildern bietet Snapshot sowie
+  Aufnahme Start/Stopp mit laufendem Timer; neue Dateien erscheinen weiterhin
+  in der bestehenden Mediathek und tragen die Quellen-ID im Dateinamen.
 - Die Systemseite zeigt einen leichtgewichtigen Mehrquellenstatus mit Profil,
   Signal, Codec, Auflösung, Viewerzahl und optionalem Drohnen-Typ für jede
   aktive Quelle.

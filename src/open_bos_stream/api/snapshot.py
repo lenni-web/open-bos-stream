@@ -2,7 +2,7 @@
 Snapshot API
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
 from open_bos_stream.core.container import (
@@ -27,7 +27,16 @@ async def status():
 async def create():
     """Neuen Snapshot erstellen."""
 
-    filename = snapshot_service.create()
+    try:
+        filename = snapshot_service.create()
+    except (RuntimeError, TimeoutError) as exc:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "snapshot_creation_failed",
+                "message": str(exc),
+            },
+        ) from exc
 
     return {
         "success": True,
@@ -89,4 +98,3 @@ async def delete(filename: str):
     return {
         "success": success,
     }
-

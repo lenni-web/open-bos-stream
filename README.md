@@ -472,6 +472,26 @@ wenn Einstellungen bedient werden sollen.
 Eine vorübergehend nicht erreichbare Quelle wird unabhängig mit begrenztem
 Backoff neu verbunden und unterbricht die übrigen Quellen nicht.
 
+### Snapshots und Aufnahmen einer ausgewählten Quelle
+
+Superadmins können in den Einstellungen eine aktive Quelle als Medienquelle
+festlegen. Über den kompakten Balken oberhalb der Livebilder lassen sich für
+diese Quelle Snapshots erstellen sowie Aufnahmen starten und stoppen. Während
+einer Aufnahme zeigt der Balken die laufende Dauer; die beim Start verwendete
+Quelle bleibt für diese Aufnahme fest gebunden.
+
+Neue Dateien enthalten die Quellen-ID und einen Zeitstempel:
+
+```text
+snapshots/snapshot_quelle-1_20260801_201530.jpg
+recordings/recording_quelle-1_20260801_201530.mp4
+```
+
+Die Dateien erscheinen automatisch in der vorhandenen Mediathek. Die
+Bedienung, Medienseite sowie Snapshot- und Aufnahme-API bleiben ausschließlich
+für Superadmins verfügbar. Ist die ausgewählte Quelle offline, bleiben die
+Schaltflächen deaktiviert.
+
 ## Webzugriff im lokalen Profil
 
 Die Oberfläche bleibt immer unter `http://<geraet>:8000` erreichbar.

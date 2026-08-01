@@ -121,6 +121,14 @@ class DashboardService:
         )
 
         recording = self._recording.status
+        selected_media_source = next(
+            (
+                item
+                for item in enabled_sources
+                if item.id == self._config.media_capture.source_id
+            ),
+            enabled_sources[0] if enabled_sources else None,
+        )
 
         stream_running = self._stream.running
         diagnostics = self._stream.diagnostics()
@@ -328,6 +336,30 @@ class DashboardService:
 
                 "pid": recording.pid,
 
+                "source_id": recording.source_id,
+
+                "source_name": recording.source_name,
+
+            },
+
+            "media_capture": {
+                "source_id": (
+                    selected_media_source.id
+                    if selected_media_source
+                    else None
+                ),
+                "source_name": (
+                    selected_media_source.name
+                    if selected_media_source
+                    else None
+                ),
+                "ready": (
+                    mediamtx_statuses[
+                        selected_media_source.viewer_path
+                    ].ready
+                    if selected_media_source
+                    else False
+                ),
             },
 
             # -------------------------------------------------

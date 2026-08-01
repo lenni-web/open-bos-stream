@@ -2,6 +2,31 @@
     id="multi-source-panel"
     class="bos-card multi-source-panel"
     hidden>
+    {% if user.role == "superadmin" %}
+    <div id="media-capture-bar" class="media-capture-bar" hidden>
+        <div class="media-capture-selection">
+            <span class="section-kicker">Medienquelle</span>
+            <strong id="media-capture-source-name">Keine Quelle ausgewählt</strong>
+        </div>
+        <div class="media-capture-actions">
+            <span id="media-recording-duration" class="media-recording-duration"></span>
+            <button
+                id="media-snapshot-button"
+                class="bos-button bos-button-small"
+                type="button"
+                onclick="createSnapshot()">
+                📸 Snapshot
+            </button>
+            <button
+                id="media-recording-toggle"
+                class="bos-button bos-button-small"
+                type="button"
+                onclick="toggleRecording()">
+                ⏺ Aufnahme starten
+            </button>
+        </div>
+    </div>
+    {% endif %}
     <div class="multi-source-header">
         <div>
             <span class="section-kicker">Livequellen</span>
