@@ -310,6 +310,13 @@ function renderSources() {
                         value="${escapeHTML(source.name)}">
                 </div>
                 <div class="form-field">
+                    <label>Drohnen-Typ</label>
+                    <input class="bos-input" data-field="drone_type"
+                        maxlength="100"
+                        value="${escapeHTML(source.drone_type ?? "")}"
+                        placeholder="z. B. DJI Matrice 350 RTK">
+                </div>
+                <div class="form-field">
                     <label>ID</label>
                     <input class="bos-input" data-field="id"
                         pattern="[a-z0-9][a-z0-9_-]{0,31}"
@@ -465,6 +472,7 @@ function saveSources() {
         return {
             id: value("id", "").trim().toLowerCase(),
             name: value("name", "").trim(),
+            drone_type: value("drone_type", "").trim(),
             type: value("type", "rtmp"),
             profile: value("profile", "direct"),
             enabled: card.querySelector('[data-field="enabled"]').checked,
@@ -504,6 +512,7 @@ function addSource() {
     currentConfig.sources.push({
         id: `quelle-${number}`,
         name: `Quelle ${number}`,
+        drone_type: "",
         type: "rtmp",
         profile: "direct",
         enabled: true,

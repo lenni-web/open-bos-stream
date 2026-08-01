@@ -49,6 +49,7 @@ class SourceConfig(BaseModel):
 
     id: str
     name: str = "Quelle"
+    drone_type: str = Field(default="", max_length=100)
     type: str
     profile: Literal[
         "direct",
@@ -95,6 +96,11 @@ class SourceConfig(BaseModel):
         if not value:
             raise ValueError("Quellenname darf nicht leer sein.")
         return value
+
+    @field_validator("drone_type")
+    @classmethod
+    def normalize_drone_type(cls, value: str) -> str:
+        return value.strip()
 
     @field_validator("publish_token", mode="before")
     @classmethod
