@@ -272,6 +272,18 @@ def test_installation_check_uses_public_auth_status() -> None:
     assert "/auth/status" in content
 
 
+def test_login_page_has_product_identity_and_description() -> None:
+    login = (
+        ROOT / "templates" / "login.html"
+    ).read_text(encoding="utf-8")
+
+    assert "🚒" in login
+    assert "Open BOS Stream" in login
+    assert "Empfangen, Überwachen und Anzeigen" in login
+    assert 'id="auth-title"' in login
+    assert 'id="auth-form"' in login
+
+
 def test_hidden_superadmin_outputs_are_not_cleared_by_admin_save() -> None:
     outputs = (
         ROOT / "static" / "js" / "config_stream_outputs.js"

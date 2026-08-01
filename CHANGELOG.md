@@ -20,6 +20,9 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 - Der Installer verwaltet und prüft die MediaMTX-Konfiguration in beiden
   Installationsprofilen.
 - Publisher-URL und Token sind auch im lokalen Profil standardmäßig verdeckt.
+- Die Login- und Ersteinrichtungsseite zeigt die Produktidentität mit
+  Feuerwehr-Icon, Anwendungsname und einer kurzen Beschreibung deutlicher und
+  ist für kleine Bildschirme kompakter gestaltet.
 
 ### Security
 
