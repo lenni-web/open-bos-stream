@@ -90,7 +90,8 @@ def test_installer_manages_mediamtx_in_both_profiles() -> None:
     assert "sudo systemctl restart mediamtx.service" in installer
     assert "/usr/local/bin/mediamtx" in installer
     assert "/home/streampi/mediamtx" in installer
-    assert '"/home/${SERVICE_USER}/mediamtx"' in installer
+    assert 'getent passwd "${SERVICE_USER}"' in installer
+    assert '"${SERVICE_HOME:-/home/${SERVICE_USER}}/mediamtx"' in installer
     assert "/usr/local/bin/mediamtx.new" in installer
     assert "mediamtx_v${MEDIAMTX_VERSION}_linux_${architecture}" in (
         dependency_installer
@@ -118,6 +119,37 @@ def test_install_and_update_expose_mediamtx_options() -> None:
     dependencies = read("scripts/install-dependencies.sh")
     assert "curl" in dependencies
     assert "tar" in dependencies
+
+
+def test_installer_creates_and_persists_service_identity() -> None:
+    common = read("scripts/common.sh")
+    ensure_user = read("scripts/ensure-service-user.sh")
+    installer = read("scripts/install-service.sh")
+    install = read("scripts/install.sh")
+    update = read("scripts/update.sh")
+
+    assert 'INSTALL_CONFIG_FILE="${PROFILE_DIR}/install.env"' in common
+    assert "OPEN_BOS_SERVICE_USER" in common
+    assert "OPEN_BOS_SERVICE_GROUP" in common
+    assert "validate_service_identity" in common
+    assert "runuser -u" in common
+    assert "sudo groupadd --system" in ensure_user
+    assert "sudo useradd" in ensure_user
+    assert "--create-home" in ensure_user
+    assert '"${INSTALL_CONFIG_FILE}"' in ensure_user
+    assert 's/^User=.*/User=${SERVICE_USER}/' in installer
+    assert 's/^Group=.*/Group=${SERVICE_GROUP}/' in installer
+    assert 's/^streampi /${SERVICE_USER} /' in installer
+    assert 'sudo -H -u "${SERVICE_USER}"' in installer
+    assert 'chown -R "${SERVICE_USER}:${SERVICE_GROUP}" "${VENV_DIR}"' in (
+        installer
+    )
+    for script in (install, update):
+        assert "--service-user" in script
+        assert "--service-group" in script
+        assert '"${SCRIPT_DIR}/ensure-service-user.sh"' in script
+    dependencies = read("scripts/install-dependencies.sh")
+    assert "sudo" in dependencies
 
 
 def test_caddy_routes_application_whep_and_hls() -> None:

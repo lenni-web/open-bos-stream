@@ -22,6 +22,7 @@ PACKAGES=(
     ffmpeg
     curl
     git
+    sudo
     tar
 )
 

@@ -2,7 +2,7 @@
 
 set -e
 
-cd /home/streampi/open-bos-stream
+cd /opt/open-bos-stream
 
 exec ffmpeg \
     -hide_banner \

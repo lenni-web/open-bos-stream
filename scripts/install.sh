@@ -9,6 +9,8 @@ SERVER_ARGS=()
 MEDIAMTX_MODE="auto"
 MEDIAMTX_VERSION=""
 MEDIAMTX_ARCHIVE=""
+SERVICE_USER_OVERRIDE=""
+SERVICE_GROUP_OVERRIDE=""
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --profile)
@@ -39,8 +41,16 @@ while [ "$#" -gt 0 ]; do
             MEDIAMTX_ARCHIVE="${2:-}"
             shift 2
             ;;
+        --service-user)
+            SERVICE_USER_OVERRIDE="${2:-}"
+            shift 2
+            ;;
+        --service-group)
+            SERVICE_GROUP_OVERRIDE="${2:-}"
+            shift 2
+            ;;
         *)
-            echo "Verwendung: $0 [--profile local|server] [--install-mediamtx|--no-install-mediamtx] [--mediamtx-version VERSION] [--mediamtx-archive DATEI] [Serveroptionen]" >&2
+            echo "Verwendung: $0 [--profile local|server] [--service-user USER] [--service-group GRUPPE] [MediaMTX-Optionen] [Serveroptionen]" >&2
             exit 2
             ;;
     esac
@@ -60,6 +70,15 @@ fi
 PROFILE="${PROFILE:-local}"
 validate_installation_profile "${PROFILE}"
 export OPEN_BOS_PROFILE="${PROFILE}"
+if [ -n "${SERVICE_USER_OVERRIDE}" ]; then
+    export OPEN_BOS_SERVICE_USER="${SERVICE_USER_OVERRIDE}"
+fi
+if [ -n "${SERVICE_GROUP_OVERRIDE}" ]; then
+    export OPEN_BOS_SERVICE_GROUP="${SERVICE_GROUP_OVERRIDE}"
+fi
+validate_service_identity \
+    "${OPEN_BOS_SERVICE_USER:-${SERVICE_USER}}" \
+    "${OPEN_BOS_SERVICE_GROUP:-${SERVICE_GROUP}}"
 
 sudo install -d -m 0755 "${PROFILE_DIR}"
 printf '%s\n' "${PROFILE}" | sudo tee "${PROFILE_FILE}" >/dev/null
@@ -71,13 +90,20 @@ echo " Open BOS Stream Installer"
 echo "========================================"
 echo
 echo "Profil: ${PROFILE}"
+if [ "$(id -u)" -eq 0 ]; then
+    echo "Installer läuft als root; Dienste verwenden ein unprivilegiertes Konto."
+fi
 echo
 
-echo "[1/8] Systemabhängigkeiten"
+echo "[1/9] Systemabhängigkeiten"
 "${SCRIPT_DIR}/install-dependencies.sh"
 
 echo
-echo "[2/8] MediaMTX"
+echo "[2/9] Dienstbenutzer"
+"${SCRIPT_DIR}/ensure-service-user.sh"
+
+echo
+echo "[3/9] MediaMTX"
 MEDIAMTX_ARGS=(--mode "${MEDIAMTX_MODE}")
 if [ -n "${MEDIAMTX_VERSION}" ]; then
     MEDIAMTX_ARGS+=(--version "${MEDIAMTX_VERSION}")
@@ -93,24 +119,24 @@ fi
 "${SCRIPT_DIR}/install-mediamtx.sh" "${MEDIAMTX_ARGS[@]}"
 
 echo
-echo "[3/8] Deployment"
+echo "[4/9] Deployment"
 "${SCRIPT_DIR}/deploy.sh"
 
 echo
-echo "[4/8] Deployment-Information"
+echo "[5/9] Deployment-Information"
 
 "${SCRIPT_DIR}/write-deployment-info.sh"
 
 echo
-echo "[5/8] Laufzeitumgebung"
+echo "[6/9] Laufzeitumgebung"
 "${SCRIPT_DIR}/initialize-runtime.sh"
 
 echo
-echo "[6/8] Service"
+echo "[7/9] Service"
 "${SCRIPT_DIR}/install-service.sh"
 
 echo
-echo "[7/8] Serverzugriff"
+echo "[8/9] Serverzugriff"
 if [ "${PROFILE}" = "server" ]; then
     "${SCRIPT_DIR}/configure-server-access.sh" "${SERVER_ARGS[@]}"
 else
@@ -118,7 +144,7 @@ else
 fi
 
 echo
-echo "[8/8] Installation prüfen"
+echo "[9/9] Installation prüfen"
 "${SCRIPT_DIR}/verify-installation.sh"
 
 echo

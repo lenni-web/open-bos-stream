@@ -10,6 +10,8 @@ SERVER_ARGS=()
 MEDIAMTX_MODE="auto"
 MEDIAMTX_VERSION=""
 MEDIAMTX_ARCHIVE=""
+SERVICE_USER_OVERRIDE=""
+SERVICE_GROUP_OVERRIDE=""
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -42,12 +44,29 @@ while [ "$#" -gt 0 ]; do
             MEDIAMTX_ARCHIVE="${2:-}"
             shift 2
             ;;
+        --service-user)
+            SERVICE_USER_OVERRIDE="${2:-}"
+            shift 2
+            ;;
+        --service-group)
+            SERVICE_GROUP_OVERRIDE="${2:-}"
+            shift 2
+            ;;
         *)
-            echo "Verwendung: $0 [--skip-git] [--profile local|server] [--install-mediamtx|--no-install-mediamtx] [--mediamtx-version VERSION] [--mediamtx-archive DATEI] [Serveroptionen]" >&2
+            echo "Verwendung: $0 [--skip-git] [--profile local|server] [--service-user USER] [--service-group GRUPPE] [MediaMTX-Optionen] [Serveroptionen]" >&2
             exit 2
             ;;
     esac
 done
+if [ -n "${SERVICE_USER_OVERRIDE}" ]; then
+    export OPEN_BOS_SERVICE_USER="${SERVICE_USER_OVERRIDE}"
+fi
+if [ -n "${SERVICE_GROUP_OVERRIDE}" ]; then
+    export OPEN_BOS_SERVICE_GROUP="${SERVICE_GROUP_OVERRIDE}"
+fi
+validate_service_identity \
+    "${OPEN_BOS_SERVICE_USER:-${SERVICE_USER}}" \
+    "${OPEN_BOS_SERVICE_GROUP:-${SERVICE_GROUP}}"
 if [ -n "${PROFILE_OVERRIDE}" ]; then
     validate_installation_profile "${PROFILE_OVERRIDE}"
     export OPEN_BOS_PROFILE="${PROFILE_OVERRIDE}"
@@ -65,11 +84,11 @@ echo
 
 if [ "${SKIP_GIT}" = true ]; then
 
-    echo "[1/9] Git-Aktualisierung übersprungen."
+    echo "[1/10] Git-Aktualisierung übersprungen."
 
 elif git -C "${PROJECT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 
-    echo "[1/9] Aktualisiere Git-Repository ..."
+    echo "[1/10] Aktualisiere Git-Repository ..."
 
     if [ "$(id -u)" -eq 0 ]; then
         PROJECT_OWNER="$(
@@ -97,11 +116,15 @@ else
 fi
 
 echo
-echo "[2/9] Systemabhängigkeiten ..."
+echo "[2/10] Systemabhängigkeiten ..."
 "${SCRIPT_DIR}/install-dependencies.sh"
 
 echo
-echo "[3/9] MediaMTX ..."
+echo "[3/10] Dienstbenutzer ..."
+"${SCRIPT_DIR}/ensure-service-user.sh"
+
+echo
+echo "[4/10] MediaMTX ..."
 MEDIAMTX_ARGS=(--mode "${MEDIAMTX_MODE}" --non-interactive)
 if [ -n "${MEDIAMTX_VERSION}" ]; then
     MEDIAMTX_ARGS+=(--version "${MEDIAMTX_VERSION}")
@@ -112,23 +135,23 @@ fi
 "${SCRIPT_DIR}/install-mediamtx.sh" "${MEDIAMTX_ARGS[@]}"
 
 echo
-echo "[4/9] Deployment ..."
+echo "[5/10] Deployment ..."
 "${SCRIPT_DIR}/deploy.sh"
 
 echo
-echo "[5/9] Deployment-Information ..."
+echo "[6/10] Deployment-Information ..."
 "${SCRIPT_DIR}/write-deployment-info.sh"
 
 echo
-echo "[6/9] Laufzeitumgebung ..."
+echo "[7/10] Laufzeitumgebung ..."
 "${SCRIPT_DIR}/initialize-runtime.sh"
 
 echo
-echo "[7/9] Service aktualisieren ..."
+echo "[8/10] Service aktualisieren ..."
 "${SCRIPT_DIR}/install-service.sh"
 
 echo
-echo "[8/9] Serverzugriff aktualisieren ..."
+echo "[9/10] Serverzugriff aktualisieren ..."
 if [ "$(installation_profile)" = "server" ]; then
     "${SCRIPT_DIR}/configure-server-access.sh" \
         --non-interactive \
@@ -138,7 +161,7 @@ else
 fi
 
 echo
-echo "[9/9] Installation prüfen ..."
+echo "[10/10] Installation prüfen ..."
 "${SCRIPT_DIR}/verify-installation.sh"
 
 echo
