@@ -149,9 +149,9 @@ async function saveConfig() {
         saveStreamOutputs();
         saveSources();
 
-        const result = await api.saveConfig(
-            currentConfig
-        );
+        const result = window.currentUser?.role === "superadmin"
+            ? await api.saveConfig(currentConfig)
+            : await api.saveSources(currentConfig.sources);
 
         await refreshConfig();
 

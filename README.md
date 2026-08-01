@@ -1,21 +1,22 @@
 # Open BOS Stream
 
-Open BOS Stream ist eine webbasierte Streaming- und Kartenplattform für BOS-Anwendungen (Behörden und Organisationen mit Sicherheitsaufgaben). Sie kombiniert Live-Video, Kartenansicht und einsatzrelevante Overlays in einer leichtgewichtigen Anwendung für Raspberry Pi und Linux.
+Open BOS Stream ist eine webbasierte Streaming- und Kartenplattform für BOS-Anwendungen (Behörden und Organisationen mit Sicherheitsaufgaben). Sie kombiniert Live-Video, Kartenansicht und einsatzrelevante Overlays in einer leichtgewichtigen Anwendung für Raspberry Pi und Debian-Server.
 
 ---
 
 ## Features
 
-- Live-Streaming über FastAPI
-- Kartenansicht mit Leaflet
-- Dynamisches Overlay-System
-- Mobile Fullscreen-Unterstützung
-- Lokales Wayland/labwc-Display mit Chromium
-- Wasserentnahmestellen als Karten-Overlay
-- Produktionsbetrieb über systemd
-- Automatischer Installer
-- Update-Mechanismus
-- Automatische Installationsprüfung
+- Bis zu acht gleichwertige Live-Quellen mit RTMP, RTSP, SRT, UDP, HTTP,
+  HLS oder lokaler Capture Card
+- WebRTC-Wiedergabe mit optionalem Stream Copy, Zeitstempel-Reparatur oder
+  Transcoding je Quelle
+- Individuelle RTMP-Empfangspfade mit Publisher-Token
+- Rollenbasierter Zugriff für Viewer, Admins und Superadmins
+- Offline-Kartenansicht mit MapLibre und MBTiles
+- Raspberry-Pi-Profil mit optionalem Wayland/labwc-Display
+- Debian-Serverprofil mit optionalem Caddy/HTTPS, WebRTC und UFW
+- Produktionsbetrieb über systemd sowie automatische Installationsprüfung
+- Wiederholbarer Installer und Update-Mechanismus
 
 ---
 
@@ -153,6 +154,12 @@ das Repository root, führt auch das Update den Git-Abruf als root aus. Bei
 privaten Repositories müssen deshalb die passenden Zugangsdaten für diesen
 Repository-Eigentümer vorhanden sein.
 
+Die Installation wurde sowohl als lokales Raspberry-Pi-Profil als auch als
+Serverprofil auf einem frischen Debian-System vorgesehen. Abgebrochene
+Installationen können nach Behebung der Ursache erneut mit denselben Optionen
+gestartet werden; vorhandene Laufzeitdaten und Konfigurationen bleiben dabei
+erhalten.
+
 ## Öffentliches Serverprofil: HTTPS, WebRTC und Firewall
 
 Bei einer interaktiven Serverinstallation fragt der Installer zusätzlich:
@@ -195,7 +202,7 @@ Verfügbare Optionen:
 
 | Option | Wirkung |
 |---|---|
-| `--domain NAME` | öffentliche DNS-Domain |
+| `--domain NAME` | öffentliche DNS-Domain; Hostname oder `https://`-Adresse |
 | `--https` | Caddy installieren und HTTPS aktivieren |
 | `--no-https` | verwalteten Caddy-Zugriff deaktivieren |
 | `--webrtc public` | Domain als öffentlichen WebRTC-/ICE-Host eintragen |
@@ -412,6 +419,8 @@ verwenden.
 
 Die Quellen lassen sich mit den Pfeilschaltflächen umsortieren. Diese
 Reihenfolge wird gespeichert und ebenso im Livebildraster verwendet.
+Das optionale Feld „Drohnen-Typ“ hält je Quelle das eingesetzte Modell fest,
+ohne die technische Verarbeitung oder Empfangsadresse zu beeinflussen.
 
 Bei RTMP wird der Empfangspfad automatisch aus der ID erzeugt und kann nicht
 separat verändert werden. In beiden Installationsprofilen hängt die
@@ -449,7 +458,9 @@ lokale Sitzungsschlüssel werden nicht in Git übernommen.
 
 Die Rechte werden sowohl in der Oberfläche als auch an den API-Endpunkten
 geprüft. Ein Admin kann geschützte Superadmin-Felder daher nicht über einen
-direkten API-Aufruf verändern.
+direkten API-Aufruf verändern. Quellenänderungen von Admins werden über einen
+eigenen Endpunkt gespeichert, der die übrige Systemkonfiguration unverändert
+vom Server übernimmt.
 
 Superadmins können bestehende Konten in den Einstellungen aufklappen, deren
 Rolle ändern oder ein neues Passwort vergeben. Mindestens ein Superadmin muss

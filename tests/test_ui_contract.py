@@ -299,6 +299,15 @@ def test_hidden_superadmin_outputs_are_not_cleared_by_admin_save() -> None:
     assert '"stream-output-settings"' in save_function
     assert "if (!container)" in outputs
 
+    config = (
+        ROOT / "static" / "js" / "config.js"
+    ).read_text(encoding="utf-8")
+    api = (
+        ROOT / "static" / "js" / "api.js"
+    ).read_text(encoding="utf-8")
+    assert 'api.saveSources(currentConfig.sources)' in config
+    assert '"/config/sources"' in api
+
 
 def test_outdated_delivery_card_is_removed() -> None:
     settings = (
