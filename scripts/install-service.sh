@@ -48,7 +48,29 @@ echo
 echo "Installationsprofil: ${PROFILE}"
 
 if [ ! -x "/usr/local/bin/mediamtx" ]; then
-    fail "MediaMTX fehlt unter /usr/local/bin/mediamtx. Bitte install-mediamtx.sh ausführen."
+    LEGACY_MEDIAMTX=""
+    for candidate in \
+        /home/streampi/mediamtx \
+        "/home/${SERVICE_USER}/mediamtx"
+    do
+        if [ -x "${candidate}" ]; then
+            LEGACY_MEDIAMTX="${candidate}"
+            break
+        fi
+    done
+
+    if [ -n "${LEGACY_MEDIAMTX}" ]; then
+        echo "Übernehme bestehendes MediaMTX aus ${LEGACY_MEDIAMTX} ..."
+        sudo install -d -m 0755 /usr/local/bin
+        sudo install -o root -g root -m 0755 \
+            "${LEGACY_MEDIAMTX}" \
+            /usr/local/bin/mediamtx.new
+        sudo mv -f \
+            /usr/local/bin/mediamtx.new \
+            /usr/local/bin/mediamtx
+    else
+        fail "MediaMTX fehlt unter /usr/local/bin/mediamtx und /home/streampi/mediamtx. Bitte install-mediamtx.sh ausführen."
+    fi
 fi
 
 DISPLAY_GROUPS=()

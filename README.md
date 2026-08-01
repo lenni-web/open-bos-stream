@@ -69,6 +69,8 @@ MediaMTX wird in beiden Profilen als Systemkomponente unter
 `PATH` oder aus `/home/<service-user>/mediamtx`. Fehlt MediaMTX vollständig,
 lädt er die zum System passende offizielle Version für `amd64`, `arm64`,
 `armv7` oder `armv6`, prüft deren SHA256-Summe und installiert sie.
+Der frühere Standardpfad `/home/streampi/mediamtx` wird dabei ausdrücklich
+auch dann erkannt, wenn `install-service.sh` direkt aufgerufen wird.
 
 Bei einer interaktiven Erstinstallation wird der Download bestätigt. Für
 automatisierte Installationen stehen folgende Optionen zur Verfügung:
