@@ -14,8 +14,8 @@ def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_release_version_is_0_10_10() -> None:
-    assert VERSION == "0.11.0"
+def test_release_version_is_0_11_1() -> None:
+    assert VERSION == "0.11.1"
 
 
 def test_server_profile_can_be_selected_from_environment(
@@ -50,6 +50,13 @@ def test_server_access_settings_are_read(
         "webrtc_mode": "public",
         "firewall_mode": "configure",
     }
+
+
+def test_dashboard_uses_runtime_installation_metadata() -> None:
+    dashboard = read("src/open_bos_stream/dashboard/service.py")
+
+    assert 'system_info_data["installation_profile"]' in dashboard
+    assert 'system_info_data["server_access"]' in dashboard
 
 
 def test_server_mediamtx_authenticates_rtmp_publishers() -> None:

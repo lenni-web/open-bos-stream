@@ -79,17 +79,30 @@
             </article>
         </section>
 
+        <section class="bos-card stream-diagnostics source-diagnostics">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">Quellen</span>
+                    <h2>Mehrquellenstatus</h2>
+                </div>
+            </div>
+            <div id="source-diagnostic-list" class="source-diagnostic-list">
+                <p class="empty-state">Quellenstatus wird geladen …</p>
+            </div>
+        </section>
+
         <section class="bos-card stream-diagnostics">
             <div class="section-heading">
                 <div>
                     <span class="section-kicker">Streaming</span>
-                    <h2>Laufzeitdiagnose</h2>
+                    <h2>Primärquelle & Laufzeit</h2>
                 </div>
                 <span id="stream-diagnostic-state" class="diagnostic-state">
                     Wird geladen …
                 </span>
             </div>
             <dl class="diagnostic-grid">
+                <div><dt>Diagnosequelle</dt><dd id="stream-diagnostic-primary">—</dd></div>
                 <div><dt>Modus</dt><dd id="stream-diagnostic-mode">—</dd></div>
                 <div><dt>Eingang</dt><dd id="stream-diagnostic-input">—</dd></div>
                 <div><dt>Signal</dt><dd id="stream-diagnostic-signal">—</dd></div>

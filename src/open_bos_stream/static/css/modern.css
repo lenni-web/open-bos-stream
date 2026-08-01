@@ -1021,6 +1021,53 @@ body {
     font-weight: 750;
 }
 
+.source-diagnostic-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+.source-diagnostic-item {
+    padding: 14px;
+    border: 1px solid var(--bos-gray);
+    border-radius: 12px;
+    background: var(--bos-gray-soft);
+}
+
+.source-diagnostic-item > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 10px;
+}
+
+.source-diagnostic-item small,
+.source-diagnostic-item dt {
+    color: var(--bos-muted);
+}
+
+.source-diagnostic-item dl {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+}
+
+.source-diagnostic-item dl > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.source-diagnostic-item dt,
+.source-diagnostic-item dd {
+    margin: 0;
+}
+
+.source-diagnostic-item dd {
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
 .diagnostic-error {
     margin-top: 12px;
     padding: 10px 12px;

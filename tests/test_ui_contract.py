@@ -69,6 +69,8 @@ def test_system_diagnostics_controls_remain_available() -> None:
 
     assert {
         "stream-diagnostic-state",
+        "stream-diagnostic-primary",
+        "source-diagnostic-list",
         "stream-diagnostic-mode",
         "stream-diagnostic-input",
         "stream-diagnostic-restarts",
@@ -87,6 +89,14 @@ def test_system_diagnostics_controls_remain_available() -> None:
         "viewer-dropped-frames",
         "stream-stable-for",
     } <= ids
+
+    dashboard = (
+        ROOT / "static" / "js" / "dashboard.js"
+    ).read_text(encoding="utf-8")
+    assert "function updateSourceDiagnostics(sources)" in dashboard
+    assert "Mehrquellenstatus" in (
+        ROOT / "templates" / "components" / "system_card.html"
+    ).read_text(encoding="utf-8")
 
 
 def test_compact_header_keeps_responsive_system_summary() -> None:

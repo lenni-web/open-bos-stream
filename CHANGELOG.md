@@ -7,6 +7,28 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.11.1] - 2026-08-01
+
+### Added
+
+- Die Systemseite zeigt einen leichtgewichtigen Mehrquellenstatus mit Profil,
+  Signal, Codec, Auflösung, Viewerzahl und optionalem Drohnen-Typ für jede
+  aktive Quelle.
+
+### Changed
+
+- Die tiefe Prozess-, Zeitstempel- und Playerdiagnose ist eindeutig als
+  Diagnose der namentlich angezeigten Primärquelle gekennzeichnet.
+
+### Fixed
+
+- Installationsprofil, öffentliche Domain, HTTPS-, WebRTC- und Firewall-Modus
+  stammen auf der Systemseite nun aus demselben Host-Metadatenpfad wie in der
+  System-API; Serverinstallationen werden korrekt dargestellt.
+- Die Admin-Oberfläche ruft beim Start keine ausschließlich für Superadmins
+  geladenen Medien- und Snapshot-Funktionen mehr auf. Dadurch wird die
+  Quellenkonfiguration für Admins vollständig initialisiert.
+
 ## [0.11.0] - 2026-08-01
 
 ### Added
@@ -36,9 +58,6 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ### Fixed
 
-- Die Admin-Oberfläche ruft beim Start keine ausschließlich für Superadmins
-  geladenen Medien- und Snapshot-Funktionen mehr auf. Dadurch wird die
-  Quellenkonfiguration für Admins wieder vollständig initialisiert.
 - Admins können neue und bestehende Quellen bearbeiten, speichern, sortieren
   und entfernen, ohne geschützte Superadmin-Einstellungen mitzusenden.
 - Der Service-Installer erkennt den historischen Pfad
