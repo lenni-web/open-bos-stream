@@ -268,6 +268,22 @@ def test_media_page_is_visible_only_to_superadmins() -> None:
     )
 
 
+def test_admin_initialization_does_not_call_superadmin_media_functions() -> None:
+    app = (
+        ROOT / "static" / "js" / "app.js"
+    ).read_text(encoding="utf-8")
+
+    superadmin_block = app.split(
+        'if (window.currentUser?.role === "superadmin") {',
+        1,
+    )[1].split("}", 1)[0]
+    assert "refreshSnapshot();" in superadmin_block
+    assert "refreshMediaLibrary();" in superadmin_block
+    assert app.index('role !== "viewer"') < app.index(
+        "refreshSnapshot();"
+    )
+
+
 def test_installation_check_uses_public_auth_status() -> None:
     verify = Path(__file__).parents[1] / "scripts" / "verify-installation.sh"
     content = verify.read_text(encoding="utf-8")
