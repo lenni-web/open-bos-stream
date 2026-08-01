@@ -226,6 +226,9 @@ def test_source_settings_are_compact_and_urls_can_be_revealed() -> None:
     assert 'maxlength="12"' in source_js
     assert "Das Feld ist bearbeitbar" in source_js
     assert "window.installationProfile" not in source_js
+    assert "Drohnen-Typ" in source_js
+    assert 'data-field="drone_type"' in source_js
+    assert 'drone_type: value("drone_type", "").trim()' in source_js
 
 
 def test_offline_sources_and_role_ui_are_present() -> None:

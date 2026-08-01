@@ -51,6 +51,22 @@ def test_new_source_defaults_to_disabled_audio() -> None:
     assert source.audio_mode == "none"
 
 
+def test_source_drone_type_is_optional_and_normalized() -> None:
+    source = SourceConfig(
+        id="drohne-1",
+        name="Drohne 1",
+        drone_type="  DJI Matrice 350 RTK  ",
+        type="rtmp",
+    )
+
+    assert source.drone_type == "DJI Matrice 350 RTK"
+    assert SourceConfig(
+        id="drohne-2",
+        name="Drohne 2",
+        type="rtmp",
+    ).drone_type == ""
+
+
 def test_up_to_eight_unique_rtmp_inputs_are_valid() -> None:
     data = ConfigLoader().load().model_dump()
     data["rtmp_inputs"] = [

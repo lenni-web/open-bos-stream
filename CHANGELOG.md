@@ -11,6 +11,8 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ### Added
 
+- Jede Quelle besitzt in den Einstellungen das optionale Textfeld
+  „Drohnen-Typ“ für die spätere Dokumentation des eingesetzten Modells.
 - Der Installer kann MediaMTX optional aus den offiziellen Release-Archiven
   installieren und unterstützt `amd64`, `arm64`, `armv7` und `armv6`.
 - Heruntergeladene und lokal bereitgestellte Archive werden vor der

@@ -16,6 +16,7 @@ input:
 sources:
   - id: quelle-1
     name: Quelle 1
+    drone_type: ""
     type: rtmp
     profile: direct
     enabled: true
