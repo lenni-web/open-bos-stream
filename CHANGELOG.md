@@ -36,6 +36,9 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ### Fixed
 
+- Die Admin-Oberfläche ruft beim Start keine ausschließlich für Superadmins
+  geladenen Medien- und Snapshot-Funktionen mehr auf. Dadurch wird die
+  Quellenkonfiguration für Admins wieder vollständig initialisiert.
 - Admins können neue und bestehende Quellen bearbeiten, speichern, sortieren
   und entfernen, ohne geschützte Superadmin-Einstellungen mitzusenden.
 - Der Service-Installer erkennt den historischen Pfad

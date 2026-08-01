@@ -43,14 +43,12 @@ window.addEventListener("load", async () => {
         `📡 ${initialOnline} von ${initialSources.length} Quellen online`
     );
 
-    refreshSnapshot();
-
-    refreshMediaLibrary();
-
     if (window.currentUser?.role !== "viewer") {
         await refreshConfig();
     }
     if (window.currentUser?.role === "superadmin") {
+        refreshSnapshot();
+        refreshMediaLibrary();
         await loadDisplayConfig();
         await loadWebAccessConfig();
         await loadUsers();
