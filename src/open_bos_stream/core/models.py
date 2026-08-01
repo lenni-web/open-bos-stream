@@ -522,7 +522,7 @@ class StreamStatus(BaseModel):
 class SystemStatus(BaseModel):
     cpu: float = 0
     ram: float = 0
-    temperature: float = 0
+    temperature: float | None = None
 
 
 class MediaMTXStatus(BaseModel):

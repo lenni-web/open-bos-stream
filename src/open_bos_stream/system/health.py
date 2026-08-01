@@ -35,6 +35,10 @@ class HealthService:
         self._config = config
         self._stream = stream_service
         self._mediamtx = mediamtx_service
+        # Die erste nicht blockierende Abfrage initialisiert psutils
+        # Vergleichswert. Folgende Aufrufe messen das Intervall zwischen den
+        # Dashboard-Aktualisierungen statt jeweils nur ein kurzes 200-ms-Fenster.
+        psutil.cpu_percent(interval=None)
 
     @property
     def ffmpeg_available(self) -> bool:
@@ -78,7 +82,7 @@ class HealthService:
         """CPU-Auslastung in Prozent."""
 
         return round(
-            psutil.cpu_percent(interval=0.2),
+            psutil.cpu_percent(interval=None),
             1,
         )
 
@@ -92,21 +96,31 @@ class HealthService:
         )
 
     @property
-    def temperature(self) -> float:
+    def temperature(self) -> float | None:
         """CPU-Temperatur."""
 
         try:
             temperatures = psutil.sensors_temperatures()
-
-            cpu = temperatures.get("cpu_thermal")
-
-            if cpu:
-                return round(cpu[0].current, 1)
+            preferred = (
+                "cpu_thermal",
+                "coretemp",
+                "k10temp",
+                "acpitz",
+            )
+            for name in preferred:
+                readings = temperatures.get(name) or []
+                valid = [
+                    item.current
+                    for item in readings
+                    if item.current is not None
+                ]
+                if valid:
+                    return round(max(valid), 1)
 
         except Exception:
             pass
 
-        return 0.0
+        return None
 
     def health(self) -> HealthStatus:
         """Gesamten Systemstatus erzeugen."""

@@ -97,6 +97,13 @@ def test_system_diagnostics_controls_remain_available() -> None:
     assert "Mehrquellenstatus" in (
         ROOT / "templates" / "components" / "system_card.html"
     ).read_text(encoding="utf-8")
+    health = (
+        ROOT / "static" / "js" / "dashboard_health.js"
+    ).read_text(encoding="utf-8")
+    assert "Temperatur n/v" in health
+    assert '"Nicht verfügbar"' in health
+    assert "function updateSystemWebAccess(info)" in dashboard
+    assert "HTTPS erreichbar" in dashboard
 
 
 def test_compact_header_keeps_responsive_system_summary() -> None:

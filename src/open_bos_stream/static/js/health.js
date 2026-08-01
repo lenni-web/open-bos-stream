@@ -38,8 +38,9 @@ function updateSystemCard(health) {
     document.getElementById(
         "system-cpu"
     ).textContent =
-        health.system.cpu +
-        " %";
+        health.system.cpu > 0
+            ? health.system.cpu + " %"
+            : "< 0,1 %";
 
     document.getElementById(
         "system-ram"
@@ -50,8 +51,9 @@ function updateSystemCard(health) {
     document.getElementById(
         "system-temp"
     ).textContent =
-        health.system.temperature +
-        " °C";
+        Number.isFinite(health.system.temperature)
+            ? health.system.temperature + " °C"
+            : "Nicht verfügbar";
 
 }
 
@@ -85,8 +87,9 @@ function updateStatusCard(health) {
     document.getElementById(
         "status-temp"
     ).textContent =
-        health.system.temperature +
-        " °C";
+        Number.isFinite(health.system.temperature)
+            ? health.system.temperature + " °C"
+            : "Nicht verfügbar";
 
 }
 
