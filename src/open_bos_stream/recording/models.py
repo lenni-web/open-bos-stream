@@ -19,3 +19,7 @@ class RecordingStatus(BaseModel):
     duration: int = 0
 
     started_at: float | None = None
+
+    source_id: str | None = None
+
+    source_name: str | None = None

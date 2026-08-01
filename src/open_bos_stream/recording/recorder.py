@@ -15,8 +15,8 @@ class Recorder:
         self.directory = Path(directory)
         self.directory.mkdir(exist_ok=True)
 
-    def next_filename(self) -> Path:
+    def next_filename(self, source_id: str) -> Path:
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        return self.directory / f"recording_{timestamp}.mp4"
+        return self.directory / f"recording_{source_id}_{timestamp}.mp4"

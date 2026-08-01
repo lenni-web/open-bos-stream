@@ -6,18 +6,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from open_bos_stream.core.models import AppConfig
-
-
 class RecordingCommandBuilder:
-
-    def __init__(self, config: AppConfig) -> None:
-
-        self._config = config
-
-    def build(self, filename: Path) -> list[str]:
-
-        stream = self._config.stream
+    def build(self, filename: Path, input_url: str) -> list[str]:
 
         return [
 
@@ -28,7 +18,7 @@ class RecordingCommandBuilder:
             "-rtsp_transport", "tcp",
 
             "-i",
-            stream.rtsp_url,
+            input_url,
 
             "-c", "copy",
 

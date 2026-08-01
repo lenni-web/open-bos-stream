@@ -10,16 +10,11 @@ from pathlib import Path
 
 from open_bos_stream.recording.command import RecordingCommandBuilder
 from open_bos_stream.recording.process import RecordingProcess
-from open_bos_stream.core.models import AppConfig
-
 class RecordingManager:
 
-    def __init__(
-        self,
-        config: AppConfig,
-    ) -> None:
+    def __init__(self) -> None:
 
-        self._builder = RecordingCommandBuilder(config)
+        self._builder = RecordingCommandBuilder()
 
         self._process = RecordingProcess()
 
@@ -33,12 +28,12 @@ class RecordingManager:
 
         return self._process.pid
 
-    def start(self, filename: Path) -> bool:
+    def start(self, filename: Path, input_url: str) -> bool:
 
         if self.running:
             return True
 
-        command = self._builder.build(filename)
+        command = self._builder.build(filename, input_url)
 
         self._process.start(command)
 
@@ -49,4 +44,3 @@ class RecordingManager:
         self._process.stop()
 
         return not self.running
-

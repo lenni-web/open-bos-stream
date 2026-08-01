@@ -65,6 +65,9 @@ async function createSnapshot() {
 
     try {
 
+        const button = document.getElementById("media-snapshot-button");
+        if (button) button.disabled = true;
+
         await api.createSnapshot();
 
         await refreshSnapshot();
@@ -80,6 +83,8 @@ async function createSnapshot() {
             "📸 Snapshot erstellt"
         );
 
+        if (button) button.disabled = false;
+
     } catch (err) {
 
         console.error("Snapshot:", err);
@@ -89,7 +94,9 @@ async function createSnapshot() {
             "❌ Snapshot fehlgeschlagen"
         );
 
+        const button = document.getElementById("media-snapshot-button");
+        if (button) button.disabled = false;
+
     }
 
 }
-
