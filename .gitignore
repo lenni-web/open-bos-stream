@@ -1,5 +1,6 @@
 __pycache__/
 *.pyc
+*.egg-info/
 .env
 config/stream.yaml
 config/stream.last-known-good.yaml

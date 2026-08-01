@@ -66,6 +66,9 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   Home-Verzeichnis; Root- oder sudo-Aufrufe vererben kein falsches Home mehr.
 - Bei einem Wechsel des Dienstbenutzers werden vorhandene Virtualenv-Dateien
   vor dem Paketupdate auf die neue Identität übertragen.
+- Der Python-Paketbau erfolgt in einer temporären, beschreibbaren Quellkopie.
+  Neuinstallationen scheitern dadurch nicht mehr an root-eigenen
+  `egg-info`-Metadaten unter `/opt/open-bos-stream`.
 
 ## [0.10.9] - 2026-07-30
 
