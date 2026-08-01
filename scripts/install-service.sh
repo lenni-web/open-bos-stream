@@ -147,11 +147,28 @@ sudo -H -u "${SERVICE_USER}" \
     -m pip install \
     --requirement "${TARGET_DIR}/requirements.txt"
 
+# Setuptools erzeugt beim Wheel-Bau egg-info im Quellbaum. Der deployte
+# Anwendungscode bleibt absichtlich root-owned; gebaut wird daher in einer
+# kurzlebigen, dem Dienstbenutzer gehörenden Kopie.
+PACKAGE_BUILD_DIR="$(mktemp -d)"
+cleanup_package_build() {
+    sudo rm -rf -- "${PACKAGE_BUILD_DIR}"
+}
+trap cleanup_package_build EXIT
+sudo chown "${SERVICE_USER}:${SERVICE_GROUP}" "${PACKAGE_BUILD_DIR}"
+sudo -H -u "${SERVICE_USER}" \
+    cp "${TARGET_DIR}/pyproject.toml" "${PACKAGE_BUILD_DIR}/"
+sudo -H -u "${SERVICE_USER}" \
+    cp -R "${TARGET_DIR}/src" "${PACKAGE_BUILD_DIR}/src"
+
 sudo -H -u "${SERVICE_USER}" \
     "${VENV_DIR}/bin/python" \
     -m pip install \
     --no-deps \
-    "${TARGET_DIR}"
+    "${PACKAGE_BUILD_DIR}"
+
+cleanup_package_build
+trap - EXIT
 
 echo
 echo "Installiere systemd-Service ..."

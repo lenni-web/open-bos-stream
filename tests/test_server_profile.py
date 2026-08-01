@@ -144,6 +144,10 @@ def test_installer_creates_and_persists_service_identity() -> None:
     assert 'chown -R "${SERVICE_USER}:${SERVICE_GROUP}" "${VENV_DIR}"' in (
         installer
     )
+    assert 'PACKAGE_BUILD_DIR="$(mktemp -d)"' in installer
+    assert 'cp -R "${TARGET_DIR}/src"' in installer
+    assert '"${PACKAGE_BUILD_DIR}"' in installer
+    assert '--exclude "*.egg-info/"' in read("scripts/deploy.sh")
     for script in (install, update):
         assert "--service-user" in script
         assert "--service-group" in script

@@ -27,6 +27,7 @@ sudo rsync \
     --exclude ".git/" \
     --exclude ".github/" \
     --exclude ".venv/" \
+    --exclude "*.egg-info/" \
     --exclude "__pycache__/" \
     --exclude "*.pyc" \
     \
