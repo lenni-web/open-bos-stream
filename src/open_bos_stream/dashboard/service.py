@@ -7,7 +7,10 @@ Stellt alle Informationen für das Web-Dashboard zentral bereit.
 from __future__ import annotations
 
 from open_bos_stream.core.models import AppConfig
-from open_bos_stream.core.installation import server_access_settings
+from open_bos_stream.core.installation import (
+    installation_profile,
+    server_access_settings,
+)
 from open_bos_stream.mediamtx.service import MediaMTXService
 from open_bos_stream.media.storage import MediaStorageService
 from open_bos_stream.recording.service import RecordingService
@@ -86,6 +89,9 @@ class DashboardService:
         health = self._health.health()
 
         system_info = self._system_info.info()
+        system_info_data = system_info.model_dump()
+        system_info_data["installation_profile"] = installation_profile()
+        system_info_data["server_access"] = server_access_settings()
         public_host = (
             server_access_settings()["public_domain"]
             or system_info.network.ipv4
@@ -209,7 +215,7 @@ class DashboardService:
 
             },
 
-            "system_info": system_info.model_dump(),
+            "system_info": system_info_data,
 
             "media_storage": self._media_storage.status(),
 
@@ -275,6 +281,7 @@ class DashboardService:
                 {
                     "id": item.id,
                     "name": item.name,
+                    "drone_type": item.drone_type,
                     "type": item.type,
                     "profile": item.profile,
                     "path": item.publish_path,

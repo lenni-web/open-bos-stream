@@ -71,8 +71,11 @@ function updateDashboard(data) {
 
     updateStreamDiagnostics(
         data.stream,
-        data.media_storage
+        data.media_storage,
+        data.sources ?? []
     );
+
+    updateSourceDiagnostics(data.sources ?? []);
 
     updateViewerDiagnostics();
 
@@ -102,8 +105,13 @@ function updateDashboard(data) {
 
 }
 
-function updateStreamDiagnostics(stream, storage) {
+function updateStreamDiagnostics(stream, storage, sources = []) {
     const diagnostics = stream?.diagnostics;
+
+    updateValue(
+        "stream-diagnostic-primary",
+        sources[0]?.name || "Keine aktive Quelle"
+    );
 
     if (diagnostics) {
         updateValue(
@@ -315,6 +323,44 @@ function updateStreamDiagnostics(stream, storage) {
         alertBox.hidden = alerts.length === 0;
         alertBox.textContent = alerts.join(" ");
     }
+}
+
+function updateSourceDiagnostics(sources) {
+    const container = document.getElementById(
+        "source-diagnostic-list"
+    );
+    if (!container) {
+        return;
+    }
+    if (!sources.length) {
+        container.innerHTML =
+            '<p class="empty-state">Keine aktive Quelle konfiguriert.</p>';
+        return;
+    }
+
+    container.innerHTML = sources.map(source => {
+        const state = source.ready
+            ? "Bereit"
+            : (source.online ? "Signal erkannt" : "Offline");
+        const signal = source.ready
+            ? `${source.codec || "Stream"} · ` +
+              `${source.width || "?"}×${source.height || "?"}`
+            : "Kein ausgabefähiges Signal";
+        return `
+            <article class="source-diagnostic-item">
+                <div>
+                    <strong>${escapeHTML(source.name)}</strong>
+                    <small>${escapeHTML(source.drone_type || "Drohnen-Typ nicht angegeben")}</small>
+                </div>
+                <dl>
+                    <div><dt>Status</dt><dd>${escapeHTML(state)}</dd></div>
+                    <div><dt>Typ / Profil</dt><dd>${escapeHTML(source.type)} · ${escapeHTML(source.profile)}</dd></div>
+                    <div><dt>Signal</dt><dd>${escapeHTML(signal)}</dd></div>
+                    <div><dt>Viewer</dt><dd>${Number(source.viewers || 0)}</dd></div>
+                </dl>
+            </article>
+        `;
+    }).join("");
 }
 
 function updateViewerDiagnostics() {
