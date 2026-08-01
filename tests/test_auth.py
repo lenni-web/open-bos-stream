@@ -133,3 +133,4 @@ def test_superadmin_only_routes_cover_sensitive_features() -> None:
     assert "/recording" in SUPERADMIN_PREFIXES
     assert "/snapshot" in SUPERADMIN_PREFIXES
     assert "/config/restore" in SUPERADMIN_PATHS
+    assert "/config/sources" not in SUPERADMIN_PATHS

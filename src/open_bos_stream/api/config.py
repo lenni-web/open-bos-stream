@@ -3,7 +3,7 @@ from starlette.concurrency import run_in_threadpool
 
 from open_bos_stream.core.config import ConfigLoader
 from open_bos_stream.core.config_apply import ConfigApplyError
-from open_bos_stream.core.models import AppConfig
+from open_bos_stream.core.models import AppConfig, SourceConfig
 
 from open_bos_stream.core.container import (
     config_apply_service,
@@ -15,6 +15,29 @@ router = APIRouter(
 )
 
 loader = ConfigLoader()
+
+
+async def apply_config(config: AppConfig) -> dict:
+    try:
+        # systemctl und die anschließende Bereitschaftsprüfung sind blockierend.
+        # Sie dürfen den FastAPI-Eventloop nicht anhalten.
+        message = await run_in_threadpool(
+            config_apply_service.apply,
+            config,
+        )
+    except ConfigApplyError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "configuration_activation_failed",
+                "message": str(exc),
+            },
+        ) from exc
+
+    return {
+        "success": True,
+        "message": message,
+    }
 
 
 @router.get("/")
@@ -53,26 +76,23 @@ async def save_config(config: AppConfig, request: Request):
                     ),
                 },
             )
-    try:
-        # systemctl und die anschließende Bereitschaftsprüfung sind blockierend.
-        # Sie dürfen den FastAPI-Eventloop nicht anhalten.
-        message = await run_in_threadpool(
-            config_apply_service.apply,
-            config,
-        )
-    except ConfigApplyError as exc:
-        raise HTTPException(
-            status_code=409,
-            detail={
-                "code": "configuration_activation_failed",
-                "message": str(exc),
-            },
-        ) from exc
+    return await apply_config(config)
 
-    return {
-        "success": True,
-        "message": message,
-    }
+
+@router.put("/sources")
+async def save_sources(sources: list[SourceConfig], request: Request):
+    if request.state.user["role"] == "viewer":
+        raise HTTPException(
+            status_code=403,
+            detail="Für Quellenänderungen ist die Rolle Admin erforderlich.",
+        )
+
+    # Admins bearbeiten nur die Quellen. Alle ausschließlich für Superadmins
+    # bestimmten Konfigurationsbereiche stammen unverändert vom Server.
+    current = loader.load().model_dump()
+    current["sources"] = [source.model_dump() for source in sources]
+    candidate = AppConfig.model_validate(current)
+    return await apply_config(candidate)
 
 
 @router.post("/test")

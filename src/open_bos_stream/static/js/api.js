@@ -305,6 +305,16 @@ class OBSApi {
 
     }
 
+    async saveSources(sources) {
+
+        return await this.put(
+            "/config/sources",
+            sources,
+            {timeoutMs: 35000}
+        );
+
+    }
+
     async encoders(source) {
 
 	    return await this.post(
