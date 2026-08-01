@@ -22,6 +22,12 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ### Fixed
 
+- Der Webzugriffsstatus auf der Systemseite verwendet im Serverprofil die
+  Caddy-/HTTPS-Konfiguration statt der lokalen, privilegierten Port-80-API.
+- Die CPU-Auslastung wird fortlaufend zwischen Dashboard-Aktualisierungen
+  gemessen. Fehlende Temperatursensoren auf vServern erscheinen als „nicht
+  verfügbar“ statt als irreführende `0 °C`; weitere Linux-Sensornamen werden
+  unterstützt.
 - Installationsprofil, öffentliche Domain, HTTPS-, WebRTC- und Firewall-Modus
   stammen auf der Systemseite nun aus demselben Host-Metadatenpfad wie in der
   System-API; Serverinstallationen werden korrekt dargestellt.

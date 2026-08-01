@@ -59,6 +59,16 @@ def test_dashboard_uses_runtime_installation_metadata() -> None:
     assert 'system_info_data["server_access"]' in dashboard
 
 
+def test_health_uses_rolling_cpu_and_optional_temperature() -> None:
+    health = read("src/open_bos_stream/system/health.py")
+    models = read("src/open_bos_stream/core/models.py")
+
+    assert health.count("psutil.cpu_percent(interval=None)") == 2
+    assert '"coretemp"' in health
+    assert "return None" in health
+    assert "temperature: float | None = None" in models
+
+
 def test_server_mediamtx_authenticates_rtmp_publishers() -> None:
     config = yaml.safe_load(
         read("config/mediamtx.server.yml")

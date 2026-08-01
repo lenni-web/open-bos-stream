@@ -39,6 +39,10 @@ function updateDashboardHeader(
             : "status-dot status-red"
     );
 
+    const temperature = Number.isFinite(system.temperature)
+        ? `${system.temperature.toFixed(1)} °C`
+        : "Temperatur n/v";
+
     updateValue(
         "mediamtx-text",
         services.mediamtx.online
@@ -62,8 +66,7 @@ function updateDashboardHeader(
 
     updateValue(
         "header-temp",
-        system.temperature.toFixed(1) +
-        " °C"
+        temperature
     );
 
     updateValue(
@@ -73,8 +76,7 @@ function updateDashboardHeader(
         " % · RAM " +
         system.ram.toFixed(1) +
         " % · " +
-        system.temperature.toFixed(1) +
-        " °C"
+        temperature
     );
 
 }
@@ -154,8 +156,9 @@ function updateDashboardSystem(
 
     updateValue(
         "system-cpu",
-        system.cpu.toFixed(1) +
-        " %"
+        system.cpu > 0
+            ? `${system.cpu.toFixed(1)} %`
+            : "< 0,1 %"
     );
 
     updateValue(
@@ -166,8 +169,9 @@ function updateDashboardSystem(
 
     updateValue(
         "system-temp",
-        system.temperature.toFixed(1) +
-        " °C"
+        Number.isFinite(system.temperature)
+            ? `${system.temperature.toFixed(1)} °C`
+            : "Nicht verfügbar"
     );
 
 }

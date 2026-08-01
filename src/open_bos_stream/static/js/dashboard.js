@@ -287,7 +287,7 @@ function updateStreamDiagnostics(stream, storage, sources = []) {
             `${diagnostics.restart_count} Dienstneustarts erkannt.`
         );
     }
-    if ((window.dashboard?.system?.temperature || 0) >= 75) {
+    if ((window.dashboard?.system?.temperature ?? 0) >= 75) {
         alerts.push("Systemtemperatur ist kritisch hoch.");
     }
     if ((storage?.used_percent || 0) >= 85) {
@@ -425,6 +425,8 @@ function updateDashboardSystemInfo(info) {
             ? "Durch Open BOS verwaltet"
             : "Extern / unverändert";
 
+    updateSystemWebAccess(info);
+
     document.getElementById("system-hardware-model").textContent =
         info.hardware.model;
 
@@ -457,4 +459,25 @@ function updateDashboardSystemInfo(info) {
 
 	document.getElementById("system-network-mac").textContent =
 	    info.network.mac;
+}
+
+function updateSystemWebAccess(info) {
+    const card = document.getElementById("service-card-web-access");
+    const serverAccess = info.server_access ?? {};
+    const isServer = info.installation_profile === "server";
+    const https = serverAccess.https_enabled === "yes";
+    const host = serverAccess.public_domain || info.network?.ipv4;
+    const text = isServer
+        ? (
+            https
+                ? `HTTPS erreichbar · ${host || "Domain nicht konfiguriert"}`
+                : `HTTP erreichbar · ${host || "Server-IP"}:8000`
+        )
+        : `HTTP erreichbar · ${host || "Geräte-IP"}:8000`;
+
+    updateValue("system-web-access", text);
+    if (card) {
+        card.classList.remove("is-offline");
+        card.classList.add("is-online");
+    }
 }
