@@ -14,8 +14,8 @@ def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_release_version_is_0_10_9() -> None:
-    assert VERSION == "0.10.9"
+def test_release_version_is_0_10_10() -> None:
+    assert VERSION == "0.10.10"
 
 
 def test_server_profile_can_be_selected_from_environment(
@@ -82,10 +82,39 @@ def test_local_mediamtx_authenticates_rtmp_publishers() -> None:
 
 def test_installer_manages_mediamtx_in_both_profiles() -> None:
     installer = read("scripts/install-service.sh")
+    dependency_installer = read("scripts/install-mediamtx.sh")
+    service = read("scripts/mediamtx.service")
 
     assert 'mediamtx.${PROFILE}.yml' in installer
     assert "sudo systemctl enable mediamtx.service" in installer
     assert "sudo systemctl restart mediamtx.service" in installer
+    assert "/usr/local/bin/mediamtx" in installer
+    assert "mediamtx_v${MEDIAMTX_VERSION}_linux_${architecture}" in (
+        dependency_installer
+    )
+    assert "sha256sum" in dependency_installer
+    assert "x86_64|amd64" in dependency_installer
+    assert "aarch64|arm64" in dependency_installer
+    assert "armv7l|armv7" in dependency_installer
+    assert "armv6l|armv6" in dependency_installer
+    assert "ExecStart=/usr/local/bin/mediamtx" in service
+    assert "WorkingDirectory=/var/lib/open-bos-stream" in service
+
+
+def test_install_and_update_expose_mediamtx_options() -> None:
+    install = read("scripts/install.sh")
+    update = read("scripts/update.sh")
+
+    for script in (install, update):
+        assert "--install-mediamtx" in script
+        assert "--no-install-mediamtx" in script
+        assert "--mediamtx-version" in script
+        assert "--mediamtx-archive" in script
+        assert '"${SCRIPT_DIR}/install-mediamtx.sh"' in script
+
+    dependencies = read("scripts/install-dependencies.sh")
+    assert "curl" in dependencies
+    assert "tar" in dependencies
 
 
 def test_caddy_routes_application_whep_and_hls() -> None:

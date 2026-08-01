@@ -22,6 +22,7 @@ PACKAGES=(
     ffmpeg
     curl
     git
+    tar
 )
 
 if [ "${PROFILE}" = "local" ]; then

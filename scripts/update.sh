@@ -7,6 +7,9 @@ source "$(cd "$(dirname "$0")" && pwd)/common.sh"
 SKIP_GIT=false
 PROFILE_OVERRIDE=""
 SERVER_ARGS=()
+MEDIAMTX_MODE="auto"
+MEDIAMTX_VERSION=""
+MEDIAMTX_ARCHIVE=""
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -23,8 +26,24 @@ while [ "$#" -gt 0 ]; do
             SERVER_ARGS+=("$1")
             shift
             ;;
+        --install-mediamtx)
+            MEDIAMTX_MODE="install"
+            shift
+            ;;
+        --no-install-mediamtx)
+            MEDIAMTX_MODE="external"
+            shift
+            ;;
+        --mediamtx-version)
+            MEDIAMTX_VERSION="${2:-}"
+            shift 2
+            ;;
+        --mediamtx-archive)
+            MEDIAMTX_ARCHIVE="${2:-}"
+            shift 2
+            ;;
         *)
-            echo "Verwendung: $0 [--skip-git] [--profile local|server] [Serveroptionen]" >&2
+            echo "Verwendung: $0 [--skip-git] [--profile local|server] [--install-mediamtx|--no-install-mediamtx] [--mediamtx-version VERSION] [--mediamtx-archive DATEI] [Serveroptionen]" >&2
             exit 2
             ;;
     esac
@@ -46,11 +65,11 @@ echo
 
 if [ "${SKIP_GIT}" = true ]; then
 
-    echo "[1/8] Git-Aktualisierung übersprungen."
+    echo "[1/9] Git-Aktualisierung übersprungen."
 
 elif git -C "${PROJECT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
 
-    echo "[1/8] Aktualisiere Git-Repository ..."
+    echo "[1/9] Aktualisiere Git-Repository ..."
 
     if [ "$(id -u)" -eq 0 ]; then
         PROJECT_OWNER="$(
@@ -78,27 +97,38 @@ else
 fi
 
 echo
-echo "[2/8] Systemabhängigkeiten ..."
+echo "[2/9] Systemabhängigkeiten ..."
 "${SCRIPT_DIR}/install-dependencies.sh"
 
 echo
-echo "[3/8] Deployment ..."
+echo "[3/9] MediaMTX ..."
+MEDIAMTX_ARGS=(--mode "${MEDIAMTX_MODE}" --non-interactive)
+if [ -n "${MEDIAMTX_VERSION}" ]; then
+    MEDIAMTX_ARGS+=(--version "${MEDIAMTX_VERSION}")
+fi
+if [ -n "${MEDIAMTX_ARCHIVE}" ]; then
+    MEDIAMTX_ARGS+=(--archive "${MEDIAMTX_ARCHIVE}")
+fi
+"${SCRIPT_DIR}/install-mediamtx.sh" "${MEDIAMTX_ARGS[@]}"
+
+echo
+echo "[4/9] Deployment ..."
 "${SCRIPT_DIR}/deploy.sh"
 
 echo
-echo "[4/8] Deployment-Information ..."
+echo "[5/9] Deployment-Information ..."
 "${SCRIPT_DIR}/write-deployment-info.sh"
 
 echo
-echo "[5/8] Laufzeitumgebung ..."
+echo "[6/9] Laufzeitumgebung ..."
 "${SCRIPT_DIR}/initialize-runtime.sh"
 
 echo
-echo "[6/8] Service aktualisieren ..."
+echo "[7/9] Service aktualisieren ..."
 "${SCRIPT_DIR}/install-service.sh"
 
 echo
-echo "[7/8] Serverzugriff aktualisieren ..."
+echo "[8/9] Serverzugriff aktualisieren ..."
 if [ "$(installation_profile)" = "server" ]; then
     "${SCRIPT_DIR}/configure-server-access.sh" \
         --non-interactive \
@@ -108,7 +138,7 @@ else
 fi
 
 echo
-echo "[8/8] Installation prüfen ..."
+echo "[9/9] Installation prüfen ..."
 "${SCRIPT_DIR}/verify-installation.sh"
 
 echo

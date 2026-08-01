@@ -6,6 +6,9 @@ source "$(cd "$(dirname "$0")" && pwd)/common.sh"
 
 PROFILE=""
 SERVER_ARGS=()
+MEDIAMTX_MODE="auto"
+MEDIAMTX_VERSION=""
+MEDIAMTX_ARCHIVE=""
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --profile)
@@ -20,8 +23,24 @@ while [ "$#" -gt 0 ]; do
             SERVER_ARGS+=("$1")
             shift
             ;;
+        --install-mediamtx)
+            MEDIAMTX_MODE="install"
+            shift
+            ;;
+        --no-install-mediamtx)
+            MEDIAMTX_MODE="external"
+            shift
+            ;;
+        --mediamtx-version)
+            MEDIAMTX_VERSION="${2:-}"
+            shift 2
+            ;;
+        --mediamtx-archive)
+            MEDIAMTX_ARCHIVE="${2:-}"
+            shift 2
+            ;;
         *)
-            echo "Verwendung: $0 [--profile local|server] [--domain NAME] [--https|--no-https] [--webrtc public|local] [--firewall configure|off]" >&2
+            echo "Verwendung: $0 [--profile local|server] [--install-mediamtx|--no-install-mediamtx] [--mediamtx-version VERSION] [--mediamtx-archive DATEI] [Serveroptionen]" >&2
             exit 2
             ;;
     esac
@@ -54,28 +73,44 @@ echo
 echo "Profil: ${PROFILE}"
 echo
 
-echo "[1/7] Systemabhängigkeiten"
+echo "[1/8] Systemabhängigkeiten"
 "${SCRIPT_DIR}/install-dependencies.sh"
 
 echo
-echo "[2/7] Deployment"
+echo "[2/8] MediaMTX"
+MEDIAMTX_ARGS=(--mode "${MEDIAMTX_MODE}")
+if [ -n "${MEDIAMTX_VERSION}" ]; then
+    MEDIAMTX_ARGS+=(--version "${MEDIAMTX_VERSION}")
+fi
+if [ -n "${MEDIAMTX_ARCHIVE}" ]; then
+    MEDIAMTX_ARGS+=(--archive "${MEDIAMTX_ARCHIVE}")
+fi
+if [ -t 0 ]; then
+    MEDIAMTX_ARGS+=(--interactive)
+else
+    MEDIAMTX_ARGS+=(--non-interactive)
+fi
+"${SCRIPT_DIR}/install-mediamtx.sh" "${MEDIAMTX_ARGS[@]}"
+
+echo
+echo "[3/8] Deployment"
 "${SCRIPT_DIR}/deploy.sh"
 
 echo
-echo "[3/7] Deployment-Information"
+echo "[4/8] Deployment-Information"
 
 "${SCRIPT_DIR}/write-deployment-info.sh"
 
 echo
-echo "[4/7] Laufzeitumgebung"
+echo "[5/8] Laufzeitumgebung"
 "${SCRIPT_DIR}/initialize-runtime.sh"
 
 echo
-echo "[5/7] Service"
+echo "[6/8] Service"
 "${SCRIPT_DIR}/install-service.sh"
 
 echo
-echo "[6/7] Serverzugriff"
+echo "[7/8] Serverzugriff"
 if [ "${PROFILE}" = "server" ]; then
     "${SCRIPT_DIR}/configure-server-access.sh" "${SERVER_ARGS[@]}"
 else
@@ -83,7 +118,7 @@ else
 fi
 
 echo
-echo "[7/7] Installation prüfen"
+echo "[8/8] Installation prüfen"
 "${SCRIPT_DIR}/verify-installation.sh"
 
 echo
