@@ -63,14 +63,48 @@ Die Auswahl wird in `/etc/open-bos-stream/profile` gespeichert. Ein Update
 verwendet automatisch das vorhandene Profil. Ein bewusster Profilwechsel ist
 mit `./scripts/update.sh --profile local|server` möglich.
 
-In beiden Profilen muss MediaMTX wie bei der bisherigen Installation als
-`/home/streampi/mediamtx` vorhanden sein. Der Installer richtet die passende,
-von Open BOS Stream verwaltete MediaMTX-Konfiguration ein. Im Serverprofil
-installiert er weder den Display-Dienst noch dessen Systemabhängigkeiten.
+MediaMTX wird in beiden Profilen als Systemkomponente unter
+`/usr/local/bin/mediamtx` verwaltet. Ist dort noch keine Binärdatei vorhanden,
+übernimmt der Installer zunächst eine vorhandene Altinstallation aus dem
+`PATH` oder aus `/home/<service-user>/mediamtx`. Fehlt MediaMTX vollständig,
+lädt er die zum System passende offizielle Version für `amd64`, `arm64`,
+`armv7` oder `armv6`, prüft deren SHA256-Summe und installiert sie.
+
+Bei einer interaktiven Erstinstallation wird der Download bestätigt. Für
+automatisierte Installationen stehen folgende Optionen zur Verfügung:
+
+```bash
+# Fehlende Installation automatisch ergänzen (Standard)
+./scripts/install.sh --profile local
+
+# Die im Projekt festgelegte Version bewusst neu installieren
+./scripts/install.sh --profile server --install-mediamtx
+
+# Eine bestimmte kompatible Version installieren
+./scripts/install.sh --install-mediamtx --mediamtx-version 1.19.3
+
+# Bereits heruntergeladenes offizielles Archiv verwenden
+./scripts/install.sh \
+  --mediamtx-version 1.19.3 \
+  --mediamtx-archive /pfad/mediamtx_v1.19.3_linux_arm64.tar.gz
+
+# Download deaktivieren und eine vorhandene Installation verlangen
+./scripts/install.sh --no-install-mediamtx
+```
+
+Liegt neben einem lokalen Archiv eine Datei mit der Endung `.sha256`, wird
+diese Prüfsumme verwendet. Andernfalls lädt der Installer die offizielle
+Prüfsummendatei des gewählten Releases. Normale Updates behalten eine bereits
+installierte MediaMTX-Version bei; ein Versionswechsel erfolgt nur mit
+`--install-mediamtx`.
+
+Bezugsquelle und Release-Artefakte:
+[offizielle MediaMTX-Releases](https://github.com/bluenviron/mediamtx/releases).
 
 Der Installer übernimmt automatisch:
 
 - Installation der Systemabhängigkeiten
+- Installation oder Migration von MediaMTX
 - Deployment nach `/opt/open-bos-stream`
 - Einrichtung der Produktionsumgebung
 - Erstellung der Python-Virtualenv

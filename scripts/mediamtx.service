@@ -1,17 +1,18 @@
 [Unit]
 Description=MediaMTX
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
 
 User=streampi
-WorkingDirectory=/home/streampi
+WorkingDirectory=/var/lib/open-bos-stream
 
-ExecStart=/home/streampi/mediamtx /etc/open-bos-stream/mediamtx.yml
+ExecStart=/usr/local/bin/mediamtx /etc/open-bos-stream/mediamtx.yml
 
-Restart=always
-RestartSec=5
+Restart=on-failure
+RestartSec=3
 
 StandardOutput=journal
 StandardError=journal

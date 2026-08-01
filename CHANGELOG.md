@@ -7,7 +7,17 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
-## [Unreleased]
+## [0.10.10] - 2026-08-01
+
+### Added
+
+- Der Installer kann MediaMTX optional aus den offiziellen Release-Archiven
+  installieren und unterstützt `amd64`, `arm64`, `armv7` und `armv6`.
+- Heruntergeladene und lokal bereitgestellte Archive werden vor der
+  Installation per SHA256 geprüft.
+- Neue Installeroptionen erlauben eine erzwungene Installation, eine
+  bestimmte Version, ein lokales Archiv oder ausschließlich extern
+  bereitgestelltes MediaMTX.
 
 ### Changed
 
@@ -20,6 +30,11 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 - Der Installer verwaltet und prüft die MediaMTX-Konfiguration in beiden
   Installationsprofilen.
 - Publisher-URL und Token sind auch im lokalen Profil standardmäßig verdeckt.
+- MediaMTX wird unabhängig vom Home-Verzeichnis unter
+  `/usr/local/bin/mediamtx` betrieben. Bestehende Altinstallationen werden
+  automatisch dorthin migriert.
+- Die systemd-Unit verwendet ein eigenes Arbeitsverzeichnis unter
+  `/var/lib/open-bos-stream` und startet nur nach Fehlern automatisch neu.
 - Die Login- und Ersteinrichtungsseite zeigt die Produktidentität mit
   Feuerwehr-Icon, Anwendungsname und einer kurzen Beschreibung deutlicher und
   ist für kleine Bildschirme kompakter gestaltet.

@@ -47,8 +47,8 @@ echo
 
 echo "Installationsprofil: ${PROFILE}"
 
-if [ ! -x "/home/${SERVICE_USER}/mediamtx" ]; then
-    fail "MediaMTX fehlt unter /home/${SERVICE_USER}/mediamtx."
+if [ ! -x "/usr/local/bin/mediamtx" ]; then
+    fail "MediaMTX fehlt unter /usr/local/bin/mediamtx. Bitte install-mediamtx.sh ausführen."
 fi
 
 DISPLAY_GROUPS=()
@@ -132,6 +132,8 @@ else
 fi
 
 sudo install -d -m 0755 "${PROFILE_DIR}"
+sudo install -d -o "${SERVICE_USER}" -g "${SERVICE_GROUP}" -m 0755 \
+    /var/lib/open-bos-stream
 sudo install -m 0644 \
     "${SOURCE_MEDIAMTX_CONFIG}" \
     "${TARGET_MEDIAMTX_CONFIG}"

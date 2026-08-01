@@ -186,6 +186,13 @@ if [ "${PROFILE}" = "local" ]; then
     fi
 fi
 
+if [ -x /usr/local/bin/mediamtx ]; then
+    check_success "MediaMTX-Binärdatei unter /usr/local/bin vorhanden"
+    check_success "MediaMTX-Version: $(/usr/local/bin/mediamtx --version 2>&1 | head -n 1)"
+else
+    check_failure "MediaMTX-Binärdatei fehlt unter /usr/local/bin"
+fi
+
 if systemctl is-active mediamtx.service >/dev/null 2>&1; then
     check_success "MediaMTX läuft"
 else
