@@ -69,6 +69,9 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 - Der Python-Paketbau erfolgt in einer temporären, beschreibbaren Quellkopie.
   Neuinstallationen scheitern dadurch nicht mehr an root-eigenen
   `egg-info`-Metadaten unter `/opt/open-bos-stream`.
+- Die Serverkonfiguration akzeptiert bei der Domain-Eingabe neben dem reinen
+  Hostnamen auch kopierte `http://`- und `https://`-Adressen und normalisiert
+  sie automatisch.
 
 ## [0.10.9] - 2026-07-30
 
