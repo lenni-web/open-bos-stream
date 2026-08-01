@@ -9,9 +9,28 @@
 </head>
 <body class="auth-page">
     <main class="auth-card bos-card">
-        <span class="page-eyebrow">Open BOS Stream</span>
-        <h1 id="auth-title">Anmelden</h1>
-        <p id="auth-description">Mit einem lokalen Benutzerkonto fortfahren.</p>
+        <header class="auth-brand">
+            <span class="auth-brand-icon" aria-hidden="true">🚒</span>
+            <div>
+                <strong>Open BOS Stream</strong>
+                <span>BOS Streaming Suite</span>
+            </div>
+        </header>
+
+        <p class="auth-product-description">
+            Die zentrale Oberfläche zum Empfangen, Überwachen und Anzeigen
+            mehrerer Einsatz- und Kamerastreams.
+        </p>
+
+        <div class="auth-divider" aria-hidden="true"></div>
+
+        <section class="auth-heading">
+            <span class="page-eyebrow">Sicherer Zugang</span>
+            <h1 id="auth-title">Anmelden</h1>
+            <p id="auth-description">
+                Mit einem lokalen Benutzerkonto fortfahren.
+            </p>
+        </section>
         <form id="auth-form">
             <label class="form-field">
                 <span>Benutzername</span>
@@ -27,6 +46,7 @@
             </button>
             <p id="auth-error" class="save-status is-error"></p>
         </form>
+        <footer class="auth-footer">Version {{ version }}</footer>
     </main>
     <script>
         const params = new URLSearchParams(location.search);
