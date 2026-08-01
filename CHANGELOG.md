@@ -44,6 +44,12 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 - Externe RTMP-Publisher müssen unabhängig vom Installationsprofil die
   passende Kombination aus Quellen-ID und Token verwenden.
 
+### Fixed
+
+- Der Service-Installer erkennt den historischen Pfad
+  `/home/streampi/mediamtx` auch bei direktem Aufruf und übernimmt die
+  vorhandene Binärdatei atomar nach `/usr/local/bin/mediamtx`.
+
 ## [0.10.9] - 2026-07-30
 
 ### Added

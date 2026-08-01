@@ -89,6 +89,9 @@ def test_installer_manages_mediamtx_in_both_profiles() -> None:
     assert "sudo systemctl enable mediamtx.service" in installer
     assert "sudo systemctl restart mediamtx.service" in installer
     assert "/usr/local/bin/mediamtx" in installer
+    assert "/home/streampi/mediamtx" in installer
+    assert '"/home/${SERVICE_USER}/mediamtx"' in installer
+    assert "/usr/local/bin/mediamtx.new" in installer
     assert "mediamtx_v${MEDIAMTX_VERSION}_linux_${architecture}" in (
         dependency_installer
     )
