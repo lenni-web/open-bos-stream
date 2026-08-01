@@ -24,9 +24,26 @@ SOURCE_SUDOERS_FILE="${SCRIPT_DIR}/open-bos-stream-sudoers"
 SOURCE_SERVER_SUDOERS_FILE="${SCRIPT_DIR}/open-bos-stream-server-sudoers"
 TARGET_SUDOERS_FILE="/etc/sudoers.d/open-bos-stream"
 
+install_service_unit() {
+    local source_file="$1"
+    local target_file="$2"
+    local temporary
+    temporary="$(mktemp)"
+    sed \
+        -e "s/^User=.*/User=${SERVICE_USER}/" \
+        -e "s/^Group=.*/Group=${SERVICE_GROUP}/" \
+        "${source_file}" > "${temporary}"
+    sudo install --mode=0644 "${temporary}" "${target_file}"
+    rm -f "${temporary}"
+}
+
 if [ -z "${SERVICE_USER}" ] || [ -z "${SERVICE_GROUP}" ]; then
     echo "FEHLER: User oder Group konnte nicht aus der Service-Datei gelesen werden."
     exit 1
+fi
+validate_service_identity "${SERVICE_USER}" "${SERVICE_GROUP}"
+if ! id "${SERVICE_USER}" >/dev/null 2>&1; then
+    fail "Dienstbenutzer ${SERVICE_USER} fehlt. Bitte ensure-service-user.sh ausführen."
 fi
 
 if [ ! -f "${TARGET_DIR}/requirements.txt" ]; then
@@ -49,9 +66,13 @@ echo "Installationsprofil: ${PROFILE}"
 
 if [ ! -x "/usr/local/bin/mediamtx" ]; then
     LEGACY_MEDIAMTX=""
+    SERVICE_HOME="$(
+        getent passwd "${SERVICE_USER}" |
+            awk -F: '{print $6; exit}'
+    )"
     for candidate in \
         /home/streampi/mediamtx \
-        "/home/${SERVICE_USER}/mediamtx"
+        "${SERVICE_HOME:-/home/${SERVICE_USER}}/mediamtx"
     do
         if [ -x "${candidate}" ]; then
             LEGACY_MEDIAMTX="${candidate}"
@@ -101,16 +122,19 @@ fi
 echo "Stelle Besitzrechte des Installationsverzeichnisses sicher ..."
 
 sudo chown "${SERVICE_USER}:${SERVICE_GROUP}" "${TARGET_DIR}"
+if [ -d "${VENV_DIR}" ]; then
+    sudo chown -R "${SERVICE_USER}:${SERVICE_GROUP}" "${VENV_DIR}"
+fi
 
 echo
 echo "Erstelle oder aktualisiere Produktions-Venv ..."
 
 if [ ! -x "${VENV_DIR}/bin/python" ]; then
-    sudo -u "${SERVICE_USER}" \
+    sudo -H -u "${SERVICE_USER}" \
         python3 -m venv "${VENV_DIR}"
 fi
 
-sudo -u "${SERVICE_USER}" \
+sudo -H -u "${SERVICE_USER}" \
     "${VENV_DIR}/bin/python" \
     -m pip install \
     --upgrade \
@@ -118,12 +142,12 @@ sudo -u "${SERVICE_USER}" \
     setuptools \
     wheel
 
-sudo -u "${SERVICE_USER}" \
+sudo -H -u "${SERVICE_USER}" \
     "${VENV_DIR}/bin/python" \
     -m pip install \
     --requirement "${TARGET_DIR}/requirements.txt"
 
-sudo -u "${SERVICE_USER}" \
+sudo -H -u "${SERVICE_USER}" \
     "${VENV_DIR}/bin/python" \
     -m pip install \
     --no-deps \
@@ -132,14 +156,10 @@ sudo -u "${SERVICE_USER}" \
 echo
 echo "Installiere systemd-Service ..."
 
-sudo install \
-    --mode=0644 \
-    "${SOURCE_SERVICE_FILE}" \
-    "${TARGET_SERVICE_FILE}"
+install_service_unit "${SOURCE_SERVICE_FILE}" "${TARGET_SERVICE_FILE}"
 
 if [ "${PROFILE}" = "local" ]; then
-    sudo install \
-        --mode=0644 \
+    install_service_unit \
         "${SOURCE_DISPLAY_SERVICE_FILE}" \
         "${TARGET_DISPLAY_SERVICE_FILE}"
     if [ -f "${SERVER_CONFIG_FILE}" ]; then
@@ -159,12 +179,11 @@ sudo install -d -o "${SERVICE_USER}" -g "${SERVICE_GROUP}" -m 0755 \
 sudo install -m 0644 \
     "${SOURCE_MEDIAMTX_CONFIG}" \
     "${TARGET_MEDIAMTX_CONFIG}"
-sudo install -m 0644 \
+install_service_unit \
     "${SOURCE_MEDIAMTX_SERVICE_FILE}" \
     "${TARGET_MEDIAMTX_SERVICE_FILE}"
 
-sudo install \
-    --mode=0644 \
+install_service_unit \
     "${SOURCE_STREAMER_SERVICE_FILE}" \
     "${TARGET_STREAMER_SERVICE_FILE}"
 
@@ -184,16 +203,16 @@ else
         "${TARGET_WEB_PROXY_SERVICE_FILE}"
 fi
 
-sudo install \
-    --mode=0440 \
-    "$(
-        if [ "${PROFILE}" = "server" ]; then
-            printf '%s' "${SOURCE_SERVER_SUDOERS_FILE}"
-        else
-            printf '%s' "${SOURCE_SUDOERS_FILE}"
-        fi
-    )" \
-    "${TARGET_SUDOERS_FILE}"
+SUDOERS_SOURCE="${SOURCE_SUDOERS_FILE}"
+if [ "${PROFILE}" = "server" ]; then
+    SUDOERS_SOURCE="${SOURCE_SERVER_SUDOERS_FILE}"
+fi
+SUDOERS_TEMPORARY="$(mktemp)"
+sed "s/^streampi /${SERVICE_USER} /" \
+    "${SUDOERS_SOURCE}" > "${SUDOERS_TEMPORARY}"
+sudo install --mode=0440 \
+    "${SUDOERS_TEMPORARY}" "${TARGET_SUDOERS_FILE}"
+rm -f "${SUDOERS_TEMPORARY}"
 
 sudo visudo \
     --check \
@@ -209,7 +228,7 @@ sudo systemctl disable \
     >/dev/null 2>&1 || true
 
 WEB_ACCESS_ENABLED="$(
-    sudo -u "${SERVICE_USER}" \
+    sudo -H -u "${SERVICE_USER}" \
         "${VENV_DIR}/bin/python" \
         -c '
 import sys
@@ -243,7 +262,7 @@ else
 fi
 
 PASSTHROUGH_ENABLED="$(
-    sudo -u "${SERVICE_USER}" \
+    sudo -H -u "${SERVICE_USER}" \
         "${VENV_DIR}/bin/python" \
         -c '
 import sys

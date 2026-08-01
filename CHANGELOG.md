@@ -18,6 +18,11 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 - Neue Installeroptionen erlauben eine erzwungene Installation, eine
   bestimmte Version, ein lokales Archiv oder ausschließlich extern
   bereitgestelltes MediaMTX.
+- Der Installer legt einen fehlenden unprivilegierten Dienstbenutzer und seine
+  Gruppe bei Neuinstallationen automatisch an.
+- Dienstbenutzer und Gruppe können mit `--service-user` und
+  `--service-group` gewählt werden und werden in
+  `/etc/open-bos-stream/install.env` gespeichert.
 
 ### Changed
 
@@ -38,6 +43,14 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 - Die Login- und Ersteinrichtungsseite zeigt die Produktidentität mit
   Feuerwehr-Icon, Anwendungsname und einer kurzen Beschreibung deutlicher und
   ist für kleine Bildschirme kompakter gestaltet.
+- systemd-Units, sudoers-Regeln und Laufzeitverzeichnisse werden mit der
+  persistenten Dienstidentität erzeugt und sind nicht mehr fest an
+  `streampi:video` gebunden.
+- Ein direkter Root-Aufruf wird unterstützt und weist sichtbar auf den
+  weiterhin unprivilegierten Dienstbetrieb hin.
+- Auf minimalen Root-Systemen funktioniert die Installation bereits vor der
+  Paketinstallation ohne vorhandenes `sudo`; Benutzerwechsel erfolgen dort
+  vorübergehend über `runuser`.
 
 ### Security
 
@@ -49,6 +62,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 - Der Service-Installer erkennt den historischen Pfad
   `/home/streampi/mediamtx` auch bei direktem Aufruf und übernimmt die
   vorhandene Binärdatei atomar nach `/usr/local/bin/mediamtx`.
+- Python-Paketinstallationen als Dienstbenutzer verwenden dessen tatsächliches
+  Home-Verzeichnis; Root- oder sudo-Aufrufe vererben kein falsches Home mehr.
+- Bei einem Wechsel des Dienstbenutzers werden vorhandene Virtualenv-Dateien
+  vor dem Paketupdate auf die neue Identität übertragen.
 
 ## [0.10.9] - 2026-07-30
 

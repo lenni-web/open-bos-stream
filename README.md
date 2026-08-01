@@ -113,6 +113,46 @@ Der Installer übernimmt automatisch:
 - Installation des systemd-Dienstes
 - Funktionsprüfung
 
+## Installation als root und Dienstbenutzer
+
+Der Installer kann sowohl als normaler Benutzer mit `sudo` als auch direkt
+als `root` ausgeführt werden. Die Anwendung selbst läuft unabhängig davon
+immer unter einem unprivilegierten Dienstkonto. Standardmäßig verwendet Open
+BOS Stream weiterhin `streampi:video`, damit bestehende Raspberry-Pi-Systeme
+kompatibel bleiben.
+
+Fehlen Benutzer oder Gruppe auf einem frischen Debian-System, legt der
+Installer sie automatisch an. Der Benutzer erhält ein Home-Verzeichnis und
+eine gesperrte Passwortanmeldung; er wird nicht in die Gruppe `sudo`
+aufgenommen. Die gewählte Identität wird dauerhaft in
+`/etc/open-bos-stream/install.env` gespeichert und bei Updates wiederverwendet.
+
+Für eine abweichende Dienstidentität:
+
+```bash
+./scripts/install.sh \
+  --profile server \
+  --service-user openbos \
+  --service-group openbos
+```
+
+Auch ein späterer bewusster Wechsel ist möglich:
+
+```bash
+./scripts/update.sh \
+  --service-user openbos \
+  --service-group openbos
+```
+
+Die systemd-Units, Laufzeitverzeichnisse und notwendigen sudoers-Regeln werden
+dabei neu erzeugt. Bei einem Root-Aufruf weist der Installer ausdrücklich
+darauf hin, dass die Dienste trotzdem unprivilegiert gestartet werden.
+
+Für Git bleibt der Eigentümer des geklonten Repositorys maßgeblich. Gehört
+das Repository root, führt auch das Update den Git-Abruf als root aus. Bei
+privaten Repositories müssen deshalb die passenden Zugangsdaten für diesen
+Repository-Eigentümer vorhanden sein.
+
 ## Öffentliches Serverprofil: HTTPS, WebRTC und Firewall
 
 Bei einer interaktiven Serverinstallation fragt der Installer zusätzlich:

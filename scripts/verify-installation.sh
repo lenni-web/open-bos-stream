@@ -27,7 +27,24 @@ echo " Open BOS Stream Installationsprüfung"
 echo "========================================"
 echo
 echo "Profil: ${PROFILE}"
+echo "Dienstidentität: ${SERVICE_USER}:${SERVICE_GROUP}"
 echo
+
+if id "${SERVICE_USER}" >/dev/null 2>&1; then
+    check_success "Dienstbenutzer ${SERVICE_USER} vorhanden"
+else
+    check_failure "Dienstbenutzer ${SERVICE_USER} fehlt"
+fi
+if getent group "${SERVICE_GROUP}" >/dev/null 2>&1; then
+    check_success "Dienstgruppe ${SERVICE_GROUP} vorhanden"
+else
+    check_failure "Dienstgruppe ${SERVICE_GROUP} fehlt"
+fi
+if [ -f "${INSTALL_CONFIG_FILE}" ]; then
+    check_success "Installationsparameter persistent gespeichert"
+else
+    check_failure "${INSTALL_CONFIG_FILE} fehlt"
+fi
 
 echo "Prüfe Verzeichnisstruktur ..."
 
@@ -84,6 +101,15 @@ else
 
     echo
     systemctl status "${SERVICE_NAME}" --no-pager || true
+fi
+
+UNIT_USER="$(systemctl show "${SERVICE_NAME}" -p User --value 2>/dev/null || true)"
+UNIT_GROUP="$(systemctl show "${SERVICE_NAME}" -p Group --value 2>/dev/null || true)"
+if [ "${UNIT_USER}" = "${SERVICE_USER}" ] &&
+    [ "${UNIT_GROUP}" = "${SERVICE_GROUP}" ]; then
+    check_success "Service verwendet ${SERVICE_USER}:${SERVICE_GROUP}"
+else
+    check_failure "Service verwendet ${UNIT_USER:-?}:${UNIT_GROUP:-?} statt ${SERVICE_USER}:${SERVICE_GROUP}"
 fi
 
 echo

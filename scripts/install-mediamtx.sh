@@ -59,6 +59,7 @@ fi
 
 find_existing_mediamtx() {
     local candidate=""
+    local service_home=""
     if [ -x "${TARGET_BINARY}" ]; then
         printf '%s\n' "${TARGET_BINARY}"
         return
@@ -70,10 +71,19 @@ find_existing_mediamtx() {
             return
         fi
     fi
-    candidate="/home/${SERVICE_USER}/mediamtx"
-    if [ -x "${candidate}" ]; then
-        printf '%s\n' "${candidate}"
-    fi
+    service_home="$(
+        getent passwd "${SERVICE_USER}" 2>/dev/null |
+            awk -F: '{print $6; exit}'
+    )"
+    for candidate in \
+        /home/streampi/mediamtx \
+        "${service_home:-/home/${SERVICE_USER}}/mediamtx"
+    do
+        if [ -x "${candidate}" ]; then
+            printf '%s\n' "${candidate}"
+            return
+        fi
+    done
     return 0
 }
 
@@ -154,7 +164,7 @@ if [ "${MODE}" = "install" ]; then
 elif [ -n "${existing}" ]; then
     install_existing_binary "${existing}"
 elif [ "${MODE}" = "external" ]; then
-    fail "MediaMTX fehlt. Ohne automatische Installation muss es im PATH oder unter /home/${SERVICE_USER}/mediamtx vorhanden sein."
+    fail "MediaMTX fehlt. Ohne automatische Installation muss es im PATH, unter /home/streampi/mediamtx oder im Home des Dienstbenutzers vorhanden sein."
 else
     if [ "${INTERACTIVE}" = true ] && [ -t 0 ]; then
         read -r -p "MediaMTX v${MEDIAMTX_VERSION} automatisch installieren? [J/n]: " answer
