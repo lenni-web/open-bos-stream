@@ -1082,6 +1082,23 @@ body {
     font-size: 0.72rem;
 }
 
+.source-health.is-stable {
+    color: var(--bos-green);
+}
+
+.source-health.is-under_load,
+.source-health.is-timing_issue,
+.source-health.is-connecting,
+.source-health.is-recovering {
+    color: var(--bos-yellow);
+}
+
+.source-health.is-stalled,
+.source-health.is-restart_loop,
+.source-health.is-offline {
+    color: var(--bos-red);
+}
+
 .source-runtime-summary span {
     padding: 2px 6px;
     border-radius: 999px;

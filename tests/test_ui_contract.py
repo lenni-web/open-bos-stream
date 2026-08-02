@@ -100,6 +100,8 @@ def test_system_diagnostics_controls_remain_available() -> None:
     assert "runtime.last_progress_at" in dashboard
     assert "runtime.cpu_percent" in dashboard
     assert "runtime.memory_bytes" in dashboard
+    assert "source.health" in dashboard
+    assert "runtime.restart_count" in dashboard
     assert "Mehrquellenstatus" in (
         ROOT / "templates" / "components" / "system_card.html"
     ).read_text(encoding="utf-8")

@@ -17,6 +17,7 @@ from open_bos_stream.recording.service import RecordingService
 from open_bos_stream.stream.service import StreamService
 from open_bos_stream.stream.probe import StreamProbeService
 from open_bos_stream.stream.runtime_status import StreamRuntimeStatusStore
+from open_bos_stream.stream.source_health import source_health
 import time
 from open_bos_stream.system.health import HealthService
 from open_bos_stream.system.info import SystemInfoService
@@ -326,6 +327,16 @@ class DashboardService:
                     "tracks": mediamtx_statuses[item.viewer_path].tracks,
                     "runtime": runtime_statuses.get(item.id),
                     "managed": item.requires_process,
+                    "health": source_health(
+                        ready=mediamtx_statuses[item.viewer_path].ready,
+                        online=(
+                            mediamtx_statuses[item.publish_path].publisher
+                            if item.type == "rtmp"
+                            else mediamtx_statuses[item.viewer_path].publisher
+                        ),
+                        managed=item.requires_process,
+                        runtime=runtime_statuses.get(item.id),
+                    ),
                 }
                 for item in enabled_sources
             ],

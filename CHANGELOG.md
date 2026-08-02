@@ -7,6 +7,26 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.11.3] - 2026-08-02
+
+### Added
+
+- Jede Quelle erhält aus Signalzustand und FFmpeg-Laufzeitwerten eine
+  gemeinsame Gesundheitsbewertung: stabil, verbindet, Verarbeitung zu
+  langsam, auffällige Bildfolge, hängend, Wiederherstellung oder
+  Neustartschleife.
+- Laufzeitstatus und Systemseite zeigen je Quelle die Neustartanzahl sowie
+  die letzte Neustartursache und den Zeitpunkt des letzten Neustarts.
+
+### Changed
+
+- Gleichzeitige Reconnects mehrerer ausgefallener Quellen werden anhand der
+  Quellen-ID reproduzierbar um bis zu 20 Prozent versetzt. Das vermeidet
+  CPU-, Netzwerk- und Kamera-Lastspitzen, ohne den Backoff unkontrolliert zu
+  verlängern.
+
+---
+
 ## [0.11.2] - 2026-08-02
 
 ### Added

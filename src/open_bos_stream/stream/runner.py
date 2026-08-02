@@ -7,6 +7,7 @@ import subprocess
 import sys
 import threading
 import time
+import zlib
 from dataclasses import dataclass, field
 from urllib.parse import urlsplit, urlunsplit
 
@@ -34,6 +35,10 @@ class SourceProcess:
     cpu_percent: float = 0.0
     memory_bytes: int = 0
     resource_process: psutil.Process | None = None
+    previous_drop_frames: int = 0
+    previous_dup_frames: int = 0
+    last_drop_at: float | None = None
+    last_dup_at: float | None = None
 
     def sample_resources(self) -> None:
         try:
@@ -47,6 +52,33 @@ class SourceProcess:
             self.memory_bytes = self.resource_process.memory_info().rss
         except (psutil.Error, OSError):
             self.resource_process = None
+
+    def sample_timing_events(self, *, wall_now: float) -> None:
+        if self.progress.dropped_frames > self.previous_drop_frames:
+            self.last_drop_at = wall_now
+        if self.progress.duplicated_frames > self.previous_dup_frames:
+            self.last_dup_at = wall_now
+        self.previous_drop_frames = self.progress.dropped_frames
+        self.previous_dup_frames = self.progress.duplicated_frames
+
+
+@dataclass
+class RestartState:
+    count: int = 0
+    last_reason: str | None = None
+    last_at: float | None = None
+
+    def record(self, reason: str) -> None:
+        self.count += 1
+        self.last_reason = reason
+        self.last_at = time.time()
+
+
+def _staggered_delay(source_id: str, base_delay: float) -> float:
+    """Verteilt gleichzeitige Reconnects reproduzierbar um bis zu 20 %."""
+
+    bucket = zlib.crc32(source_id.encode("utf-8")) % 21
+    return min(36.0, base_delay * (1.0 + bucket / 100.0))
 
 
 def _read_progress(runtime: SourceProcess) -> None:
@@ -75,6 +107,7 @@ def _runtime_snapshot(
     source_ids: list[str],
     processes: dict[str, SourceProcess],
     restart_at: dict[str, float],
+    restart_states: dict[str, RestartState],
     *,
     now: float,
 ) -> dict[str, dict]:
@@ -82,10 +115,14 @@ def _runtime_snapshot(
     wall_now = time.time()
     for source_id in source_ids:
         runtime = processes.get(source_id)
+        restart = restart_states[source_id]
         if runtime is None:
             snapshot[source_id] = {
                 "state": "waiting_restart",
                 "restart_in": max(0.0, restart_at[source_id] - now),
+                "restart_count": restart.count,
+                "last_restart_reason": restart.last_reason,
+                "last_restart_at": restart.last_at,
             }
             continue
 
@@ -107,6 +144,15 @@ def _runtime_snapshot(
             "dup_frames": progress.duplicated_frames,
             "cpu_percent": runtime.cpu_percent,
             "memory_bytes": runtime.memory_bytes,
+            "last_drop_at": runtime.last_drop_at,
+            "last_dup_at": runtime.last_dup_at,
+            "restart_count": restart.count,
+            "last_restart_reason": (
+                "stale"
+                if runtime.stale_since is not None
+                else restart.last_reason
+            ),
+            "last_restart_at": restart.last_at,
             "last_progress_at": (
                 wall_now - max(0.0, now - progress.last_advance)
                 if progress.last_advance is not None
@@ -164,6 +210,7 @@ def main() -> int:
     processes: dict[str, SourceProcess] = {}
     restart_at: dict[str, float] = {}
     backoff: dict[str, float] = {}
+    restart_states: dict[str, RestartState] = {}
     status_store = StreamRuntimeStatusStore()
     last_status_write = 0.0
     stopping = False
@@ -184,6 +231,7 @@ def main() -> int:
             commands[source.id] = command
             backoff[source.id] = 1.0
             restart_at[source.id] = 0.0
+            restart_states[source.id] = RestartState()
             print("=" * 48, flush=True)
             print(
                 f"Quelle {source.id}: {source.name} "
@@ -232,13 +280,16 @@ def main() -> int:
                         ).start()
                     except OSError as exc:
                         delay = backoff[source_id]
+                        actual_delay = _staggered_delay(source_id, delay)
+                        restart_states[source_id].record("start_failed")
                         print(
                             f"Quelle {source_id} konnte nicht gestartet "
-                            f"werden: {exc}; neuer Versuch in {delay:.0f}s.",
+                            f"werden: {exc}; neuer Versuch in "
+                            f"{actual_delay:.1f}s.",
                             file=sys.stderr,
                             flush=True,
                         )
-                        restart_at[source_id] = now + delay
+                        restart_at[source_id] = now + actual_delay
                         backoff[source_id] = min(delay * 2, 30)
                     continue
 
@@ -246,15 +297,22 @@ def main() -> int:
                 returncode = process.poll()
                 if returncode is not None:
                     delay = backoff[source_id]
+                    actual_delay = _staggered_delay(source_id, delay)
+                    reason = (
+                        "stale"
+                        if runtime.stale_since is not None
+                        else f"exit_{returncode}"
+                    )
+                    restart_states[source_id].record(reason)
                     print(
                         f"Quelle {source_id} beendet "
                         f"(Exit {returncode}); neuer Versuch "
-                        f"in {delay:.0f}s.",
+                        f"in {actual_delay:.1f}s.",
                         file=sys.stderr,
                         flush=True,
                     )
                     processes.pop(source_id, None)
-                    restart_at[source_id] = now + delay
+                    restart_at[source_id] = now + actual_delay
                     backoff[source_id] = min(delay * 2, 30)
                     continue
 
@@ -291,10 +349,12 @@ def main() -> int:
             if now - last_status_write >= 1.0:
                 for runtime in processes.values():
                     runtime.sample_resources()
+                    runtime.sample_timing_events(wall_now=time.time())
                 status_store.write(_runtime_snapshot(
                     list(commands),
                     processes,
                     restart_at,
+                    restart_states,
                     now=now,
                 ))
                 last_status_write = now
