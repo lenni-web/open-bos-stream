@@ -418,11 +418,11 @@ def test_rtmp_preview_profile_scales_without_upscaling() -> None:
     assert source.viewer_path == "drohne-preview-view"
     assert source.fullscreen_viewer_path == "drohne-preview"
     assert source.requires_process is True
-    assert "min(960\\,iw)" in video_filter
-    assert "min(540\\,ih)" in video_filter
+    assert "min(640\\,iw)" in video_filter
+    assert "min(360\\,ih)" in video_filter
     assert "force_original_aspect_ratio=decrease" in video_filter
     assert "force_divisible_by=2" in video_filter
-    assert "fps=15" in video_filter
+    assert "fps=12" in video_filter
     assert ["-c:v", "libx264"] == command[
         command.index("-c:v"):command.index("-c:v") + 2
     ]
@@ -432,11 +432,20 @@ def test_rtmp_preview_profile_scales_without_upscaling() -> None:
     assert ["-preset", "ultrafast"] == command[
         command.index("-preset"):command.index("-preset") + 2
     ]
-    assert ["-b:v", "1400k"] == command[
+    assert ["-g", "24"] == command[
+        command.index("-g"):command.index("-g") + 2
+    ]
+    assert ["-keyint_min", "24"] == command[
+        command.index("-keyint_min"):command.index("-keyint_min") + 2
+    ]
+    assert ["-b:v", "800k"] == command[
         command.index("-b:v"):command.index("-b:v") + 2
     ]
-    assert ["-maxrate", "1600k"] == command[
+    assert ["-maxrate", "1000k"] == command[
         command.index("-maxrate"):command.index("-maxrate") + 2
+    ]
+    assert ["-bufsize", "1000k"] == command[
+        command.index("-bufsize"):command.index("-bufsize") + 2
     ]
     assert "-fps_mode" not in command
     assert "-an" in command

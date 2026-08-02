@@ -321,10 +321,10 @@ class FFmpegCommandBuilder:
                 "-an",
                 "-vf",
                 (
-                    "scale=w=min(960\\,iw):h=min(540\\,ih):"
+                    "scale=w=min(640\\,iw):h=min(360\\,ih):"
                     "force_original_aspect_ratio=decrease:"
                     "force_divisible_by=2:flags=fast_bilinear,"
-                    "fps=15"
+                    "fps=12"
                 ),
                 "-c:v", "libx264",
                 "-preset", "ultrafast",
@@ -333,12 +333,12 @@ class FFmpegCommandBuilder:
                 "-level:v", "3.1",
                 "-pix_fmt", "yuv420p",
                 "-bf", "0",
-                "-g", "30",
-                "-keyint_min", "30",
+                "-g", "24",
+                "-keyint_min", "24",
                 "-sc_threshold", "0",
-                "-b:v", "1400k",
-                "-maxrate", "1600k",
-                "-bufsize", "1600k",
+                "-b:v", "800k",
+                "-maxrate", "1000k",
+                "-bufsize", "1000k",
                 "-rtsp_transport", "tcp",
                 "-f", "rtsp",
                 f"rtsp://127.0.0.1:8554/{output_path}",

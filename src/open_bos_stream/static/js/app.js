@@ -62,7 +62,7 @@ window.addEventListener("load", async () => {
 
     setInterval(
         refreshDashboard,
-        1000
+        2000
     );
 
 	setInterval(
