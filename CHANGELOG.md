@@ -7,6 +7,35 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.11.2] - 2026-08-02
+
+### Added
+
+- Verwaltete FFmpeg-Quellen liefern maschinenlesbare Fortschrittsdaten an den
+  Runner. Ein quellenbezogener Watchdog erkennt Prozesse, deren Bild- und
+  Medienzeit trotz laufender PID stehen bleiben, und startet ausschließlich
+  die betroffene Quelle neu.
+- Der Mehrquellenstatus auf der Systemseite zeigt je verwalteter Quelle
+  kompakt FPS, Verarbeitungsgeschwindigkeit, Drop-/Dup-Frames sowie das Alter
+  des letzten tatsächlichen Medienfortschritts. Direkte Passthrough-Quellen
+  werden eindeutig als MediaMTX-Empfang gekennzeichnet.
+
+### Changed
+
+- Nach 30 Sekunden stabiler Laufzeit wird der exponentielle Neustart-Backoff
+  einer Quelle zurückgesetzt. Kurzzeitige alte Fehler führen dadurch nicht
+  dauerhaft zu langen Wiederanlaufzeiten.
+- FFmpeg läuft ohne interaktive Standardeingabe, Banner und normale
+  Informationsmeldungen; Warnungen und Fehler bleiben im Journal erhalten.
+  Das senkt insbesondere bei mehreren Quellen unnötige Log- und I/O-Last.
+- Die passive Paketdiagnose der Primärquelle verwendet ein zweisekündiges
+  Messfenster und wird für 60 Sekunden zwischengespeichert. Dadurch ist sie
+  wesentlich seltener als zusätzlicher MediaMTX-Leser aktiv.
+- Die kompakte Quellendiagnose zeigt zusätzlich CPU-Auslastung und
+  Arbeitsspeicher des jeweiligen FFmpeg-Prozesses.
+
+---
+
 ## [0.11.1] - 2026-08-01
 
 ### Added

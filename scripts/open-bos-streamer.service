@@ -10,6 +10,8 @@ Type=simple
 User=streampi
 Group=video
 WorkingDirectory=/opt/open-bos-stream
+RuntimeDirectory=open-bos-stream
+RuntimeDirectoryMode=0755
 Environment=PYTHONUNBUFFERED=1
 ExecStart=/opt/open-bos-stream/.venv/bin/python -m open_bos_stream.stream.runner
 Restart=on-failure

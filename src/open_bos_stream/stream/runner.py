@@ -5,12 +5,115 @@ from __future__ import annotations
 import signal
 import subprocess
 import sys
+import threading
 import time
+from dataclasses import dataclass, field
 from urllib.parse import urlsplit, urlunsplit
+
+import psutil
 
 from open_bos_stream.core.config import ConfigLoader
 from open_bos_stream.stream.command import FFmpegCommandBuilder
 from open_bos_stream.stream.exceptions import ConfigurationError
+from open_bos_stream.stream.progress import FFmpegProgress
+from open_bos_stream.stream.runtime_status import StreamRuntimeStatusStore
+
+
+STARTUP_GRACE_SECONDS = 20.0
+STALE_TIMEOUT_SECONDS = 12.0
+STABLE_RESET_SECONDS = 30.0
+FORCE_KILL_SECONDS = 5.0
+
+
+@dataclass
+class SourceProcess:
+    process: subprocess.Popen[str]
+    started_at: float
+    progress: FFmpegProgress = field(default_factory=FFmpegProgress)
+    stale_since: float | None = None
+    cpu_percent: float = 0.0
+    memory_bytes: int = 0
+    resource_process: psutil.Process | None = None
+
+    def sample_resources(self) -> None:
+        try:
+            if self.resource_process is None:
+                self.resource_process = psutil.Process(self.process.pid)
+                self.resource_process.cpu_percent(interval=None)
+            else:
+                self.cpu_percent = self.resource_process.cpu_percent(
+                    interval=None
+                )
+            self.memory_bytes = self.resource_process.memory_info().rss
+        except (psutil.Error, OSError):
+            self.resource_process = None
+
+
+def _read_progress(runtime: SourceProcess) -> None:
+    """Leert die FFmpeg-Pipe und aktualisiert den Medienfortschritt."""
+
+    stdout = runtime.process.stdout
+    if stdout is None:
+        return
+    for line in stdout:
+        runtime.progress.feed(line)
+
+
+def _signal_process(
+    process: subprocess.Popen[str],
+    signal_number: int,
+) -> None:
+    """Signalisiert ohne Race-Fehler, falls FFmpeg gerade selbst endet."""
+
+    try:
+        process.send_signal(signal_number)
+    except ProcessLookupError:
+        pass
+
+
+def _runtime_snapshot(
+    source_ids: list[str],
+    processes: dict[str, SourceProcess],
+    restart_at: dict[str, float],
+    *,
+    now: float,
+) -> dict[str, dict]:
+    snapshot: dict[str, dict] = {}
+    wall_now = time.time()
+    for source_id in source_ids:
+        runtime = processes.get(source_id)
+        if runtime is None:
+            snapshot[source_id] = {
+                "state": "waiting_restart",
+                "restart_in": max(0.0, restart_at[source_id] - now),
+            }
+            continue
+
+        progress = runtime.progress
+        snapshot[source_id] = {
+            "state": (
+                "restarting"
+                if runtime.stale_since is not None
+                else (
+                    "running"
+                    if progress.last_advance is not None
+                    else "starting"
+                )
+            ),
+            "frame": progress.frame,
+            "fps": progress.fps,
+            "speed": progress.speed,
+            "drop_frames": progress.dropped_frames,
+            "dup_frames": progress.duplicated_frames,
+            "cpu_percent": runtime.cpu_percent,
+            "memory_bytes": runtime.memory_bytes,
+            "last_progress_at": (
+                wall_now - max(0.0, now - progress.last_advance)
+                if progress.last_advance is not None
+                else None
+            ),
+        }
+    return snapshot
 
 
 def _redact(argument: str) -> str:
@@ -58,17 +161,19 @@ def main() -> int:
 
     builder = FFmpegCommandBuilder(config)
     commands: dict[str, list[str]] = {}
-    processes: dict[str, subprocess.Popen] = {}
+    processes: dict[str, SourceProcess] = {}
     restart_at: dict[str, float] = {}
     backoff: dict[str, float] = {}
+    status_store = StreamRuntimeStatusStore()
+    last_status_write = 0.0
     stopping = False
 
     def stop_children(*_: object) -> None:
         nonlocal stopping
         stopping = True
-        for process in processes.values():
-            if process.poll() is None:
-                process.send_signal(signal.SIGINT)
+        for runtime in processes.values():
+            if runtime.process.poll() is None:
+                _signal_process(runtime.process, signal.SIGINT)
 
     signal.signal(signal.SIGINT, stop_children)
     signal.signal(signal.SIGTERM, stop_children)
@@ -90,12 +195,41 @@ def main() -> int:
         while not stopping:
             now = time.monotonic()
             for source_id, command in commands.items():
-                process = processes.get(source_id)
-                if process is None:
+                runtime = processes.get(source_id)
+                if runtime is None:
                     if now < restart_at[source_id]:
                         continue
                     try:
-                        processes[source_id] = subprocess.Popen(command)
+                        monitored_command = [
+                            command[0],
+                            "-hide_banner",
+                            "-loglevel",
+                            "warning",
+                            "-nostdin",
+                            "-nostats",
+                            "-progress",
+                            "pipe:1",
+                            "-stats_period",
+                            "1",
+                            *command[1:],
+                        ]
+                        process = subprocess.Popen(
+                            monitored_command,
+                            stdout=subprocess.PIPE,
+                            text=True,
+                            bufsize=1,
+                        )
+                        runtime = SourceProcess(
+                            process=process,
+                            started_at=now,
+                        )
+                        processes[source_id] = runtime
+                        threading.Thread(
+                            target=_read_progress,
+                            args=(runtime,),
+                            name=f"progress-{source_id}",
+                            daemon=True,
+                        ).start()
                     except OSError as exc:
                         delay = backoff[source_id]
                         print(
@@ -108,6 +242,7 @@ def main() -> int:
                         backoff[source_id] = min(delay * 2, 30)
                     continue
 
+                process = runtime.process
                 returncode = process.poll()
                 if returncode is not None:
                     delay = backoff[source_id]
@@ -121,6 +256,48 @@ def main() -> int:
                     processes.pop(source_id, None)
                     restart_at[source_id] = now + delay
                     backoff[source_id] = min(delay * 2, 30)
+                    continue
+
+                running_for = now - runtime.started_at
+                if running_for >= STABLE_RESET_SECONDS:
+                    backoff[source_id] = 1.0
+
+                if runtime.stale_since is not None:
+                    if now - runtime.stale_since >= FORCE_KILL_SECONDS:
+                        print(
+                            f"Quelle {source_id}: FFmpeg reagiert nicht; "
+                            "Prozess wird beendet.",
+                            file=sys.stderr,
+                            flush=True,
+                        )
+                        _signal_process(process, signal.SIGKILL)
+                    continue
+
+                if runtime.progress.stale(
+                    now=now,
+                    started_at=runtime.started_at,
+                    startup_grace=STARTUP_GRACE_SECONDS,
+                    timeout=STALE_TIMEOUT_SECONDS,
+                ):
+                    runtime.stale_since = now
+                    print(
+                        f"Quelle {source_id}: kein Medienfortschritt "
+                        f"seit mindestens {STALE_TIMEOUT_SECONDS:.0f}s; "
+                        "FFmpeg wird neu gestartet.",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+                    _signal_process(process, signal.SIGINT)
+            if now - last_status_write >= 1.0:
+                for runtime in processes.values():
+                    runtime.sample_resources()
+                status_store.write(_runtime_snapshot(
+                    list(commands),
+                    processes,
+                    restart_at,
+                    now=now,
+                ))
+                last_status_write = now
             time.sleep(0.25)
     except (ConfigurationError, OSError, RuntimeError) as exc:
         print(
@@ -131,8 +308,10 @@ def main() -> int:
         stop_children()
         return 2
     finally:
+        status_store.clear()
         deadline = time.monotonic() + 8
-        for process in list(processes.values()):
+        for runtime in list(processes.values()):
+            process = runtime.process
             remaining = max(0, deadline - time.monotonic())
             try:
                 process.wait(timeout=remaining)

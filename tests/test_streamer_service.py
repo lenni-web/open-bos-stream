@@ -21,3 +21,19 @@ def test_streamer_service_uses_bounded_restart_backoff() -> None:
         in unit
     )
     assert "SOURCE_STREAMER_SERVICE_FILE" in installer
+    assert "RuntimeDirectory=open-bos-stream" in unit
+
+
+def test_runner_monitors_real_ffmpeg_progress() -> None:
+    runner = (
+        ROOT / "src" / "open_bos_stream" / "stream" / "runner.py"
+    ).read_text(encoding="utf-8")
+
+    assert '"-progress"' in runner
+    assert '"pipe:1"' in runner
+    assert '"-loglevel"' in runner
+    assert '"warning"' in runner
+    assert '"-nostdin"' in runner
+    assert "STALE_TIMEOUT_SECONDS" in runner
+    assert "runtime.progress.stale" in runner
+    assert "StreamRuntimeStatusStore" in runner

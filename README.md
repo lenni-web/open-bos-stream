@@ -443,6 +443,31 @@ rtsp://admin:PASSWORT@192.168.1.50:554/Preview_01_main
 
 Zugangsdaten werden in der Oberfläche maskiert und in Streamer-Protokollen
 redigiert. Verwaltete Quellen werden durch einen systemd-Dienst überwacht.
+Der Mehrquellen-Runner wertet zusätzlich den maschinenlesbaren
+FFmpeg-Fortschritt aus. Bleiben Bildzähler und Medienzeit trotz laufendem
+Prozess stehen, beendet der Watchdog nach einer Starttoleranz nur den
+betroffenen FFmpeg-Prozess und verbindet diese Quelle mit begrenztem Backoff
+neu. Die übrigen Quellen laufen dabei weiter. Im Journal ist dieser Fall an
+`kein Medienfortschritt` erkennbar:
+
+```bash
+sudo journalctl -u open-bos-streamer.service -f
+```
+
+Auf der Systemseite erscheint derselbe Zustand direkt an jeder Quelle. Für
+verwaltete FFmpeg-Quellen werden FPS, Geschwindigkeit, seit dem Prozessstart
+verworfene und duplizierte Frames sowie der Zeitpunkt des letzten echten
+Medienfortschritts, CPU-Auslastung und Arbeitsspeicher in einer kompakten
+Diagnosezeile angezeigt. Direkte
+RTMP-Passthrough-Quellen haben keinen FFmpeg-Prozess und werden entsprechend
+als MediaMTX-Empfang ausgewiesen.
+
+Die tiefergehende ffprobe-Paketdiagnose öffnet kurzzeitig einen zusätzlichen
+Leser ausschließlich an der Primärquelle. Sie misst zwei Sekunden und wird
+eine Minute zwischengespeichert, damit mehrere geöffnete Browser nicht
+fortlaufend zusätzliche Probeprozesse verursachen. FFmpeg selbst läuft ohne
+interaktive Eingabe und protokolliert im Normalbetrieb nur Warnungen und
+Fehler; die maschinenlesbaren Fortschrittsdaten bleiben davon unberührt.
 
 ## Benutzer und Rollen
 

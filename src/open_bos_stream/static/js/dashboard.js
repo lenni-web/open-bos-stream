@@ -366,6 +366,39 @@ function updateSourceDiagnostics(sources) {
             ? `${source.codec || "Stream"} · ` +
               `${source.width || "?"}×${source.height || "?"}`
             : "Kein ausgabefähiges Signal";
+        const runtime = source.runtime;
+        let runtimeState = "FFmpeg-Daten nicht verfügbar";
+        let runtimeMetrics = "";
+        if (!source.managed) {
+            runtimeState = "Direkter MediaMTX-Empfang";
+        } else if (runtime) {
+            const states = {
+                running: "FFmpeg verarbeitet",
+                starting: "FFmpeg startet",
+                restarting: "FFmpeg wird neu gestartet",
+                waiting_restart: "Wartet auf Neustart",
+            };
+            runtimeState = states[runtime.state] || "FFmpeg-Status unbekannt";
+            if (runtime.state === "running" || runtime.state === "restarting") {
+                const lastProgress = Number(runtime.last_progress_at);
+                const age = Number.isFinite(lastProgress) && lastProgress > 0
+                    ? Math.max(0, Math.round(Date.now() / 1000 - lastProgress))
+                    : null;
+                runtimeMetrics = `
+                    <span title="Von FFmpeg gemeldete Bildrate">${Number(runtime.fps || 0).toFixed(1)} FPS</span>
+                    <span title="FFmpeg-Verarbeitungsgeschwindigkeit">${Number(runtime.speed || 0).toFixed(2)}×</span>
+                    <span title="Seit Prozessstart verworfene Frames">Drop ${Number(runtime.drop_frames || 0)}</span>
+                    <span title="Seit Prozessstart duplizierte Frames">Dup ${Number(runtime.dup_frames || 0)}</span>
+                    <span title="CPU-Auslastung dieses FFmpeg-Prozesses">CPU ${Number(runtime.cpu_percent || 0).toFixed(1)} %</span>
+                    <span title="Arbeitsspeicher dieses FFmpeg-Prozesses">RAM ${formatBytes(Number(runtime.memory_bytes || 0))}</span>
+                    <span title="Letzter tatsächlicher Medienfortschritt">${age === null ? "Fortschritt —" : `vor ${age} s`}</span>
+                `;
+            } else if (runtime.state === "waiting_restart") {
+                runtimeMetrics = `
+                    <span>Neustart in ${Math.ceil(Number(runtime.restart_in || 0))} s</span>
+                `;
+            }
+        }
         return `
             <article class="source-diagnostic-item">
                 <div>
@@ -378,6 +411,10 @@ function updateSourceDiagnostics(sources) {
                     <div><dt>Signal</dt><dd>${escapeHTML(signal)}</dd></div>
                     <div><dt>Viewer</dt><dd>${Number(source.viewers || 0)}</dd></div>
                 </dl>
+                <div class="source-runtime-summary">
+                    <strong>${escapeHTML(runtimeState)}</strong>
+                    ${runtimeMetrics}
+                </div>
             </article>
         `;
     }).join("");

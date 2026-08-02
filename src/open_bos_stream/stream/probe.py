@@ -13,7 +13,10 @@ from open_bos_stream.stream.inputs.rtmp import repair_input_url
 
 
 class StreamProbeService:
-    CACHE_SECONDS = 15.0
+    # Die Diagnose öffnet einen zusätzlichen Leser. Ein längerer Cache und
+    # ein kurzes Messfenster halten diese Last bei mehreren Browsern klein.
+    CACHE_SECONDS = 60.0
+    SAMPLE_SECONDS = 2
 
     def __init__(
         self,
@@ -82,7 +85,7 @@ class StreamProbeService:
             command.extend(["-rtsp_transport", "tcp"])
         command.extend([
             "-read_intervals",
-            "%+3",
+            f"%+{self.SAMPLE_SECONDS}",
             "-show_streams",
             "-show_packets",
             "-select_streams",
