@@ -11,6 +11,13 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ### Added
 
+- Jeder Quellenplayer überwacht seine WebRTC-Verbindung und den tatsächlichen
+  Bildfortschritt im Browser. Empfängt der Browser weiter Pakete, dekodiert
+  aber acht Sekunden lang kein neues Bild, wird nur dieser Player neu
+  verbunden.
+- Nach einem erkannten Quellenprozess-Neustart oder einer erfolgreichen
+  serverseitigen Wiederherstellung baut der betroffene Browserplayer seine
+  Verbindung gezielt neu auf.
 - Jede aktive Quelle kann auf der Systemseite ausdrücklich mit einer
   zweisekündigen ffprobe-Tiefendiagnose untersucht werden. Das kompakte
   Ergebnis zeigt tatsächliche Bildrate, Bitrate, Paketanzahl,
@@ -20,6 +27,9 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ### Changed
 
+- Player-Neuverbindungen verwenden pro Quelle einen begrenzten exponentiellen
+  Backoff. Kurze Signalstatus-Schwankungen sowie ein aktiver Vollbildmodus
+  lösen keinen störenden Neuaufbau aus.
 - Die frühere automatische Paketdiagnose der Primärquelle wurde aus dem
   Dashboard-Polling entfernt. Eine Probe läuft nur noch nach einem bewussten
   Klick und systemweit höchstens einmal gleichzeitig.

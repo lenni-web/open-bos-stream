@@ -1,4 +1,151 @@
 const multiSourcePlayers = new Map();
+const PLAYER_RECOVERY_STATES = new Set([
+    "offline",
+    "connecting",
+    "recovering",
+    "restart_loop",
+    "stalled",
+]);
+const PLAYER_HEALTHY_STATES = new Set([
+    "stable",
+    "under_load",
+    "timing_issue",
+]);
+const PLAYER_STALL_TIMEOUT_MS = 8000;
+const PLAYER_STABLE_RESET_MS = 10000;
+const PLAYER_RECONNECT_MAX_MS = 15000;
+
+function sourceCardIsFullscreen(entry) {
+    return (
+        document.fullscreenElement === entry.card ||
+        entry.card.contains(document.fullscreenElement) ||
+        entry.card.querySelector("video")?.webkitDisplayingFullscreen === true
+    );
+}
+
+function playerRecoveryState() {
+    return {
+        attempts: 0,
+        nextReconnectAt: 0,
+        lastHealth: null,
+        lastRestartCount: null,
+        lastFramesDecoded: 0,
+        lastPacketsReceived: 0,
+        lastFrameProgressAt: null,
+        playingSince: null,
+        reconnectingUntil: 0,
+        pendingReason: null,
+    };
+}
+
+function reconnectDelay(attempts) {
+    return Math.min(
+        1000 * (2 ** Math.max(0, attempts - 1)),
+        PLAYER_RECONNECT_MAX_MS
+    );
+}
+
+function playerRecoveryReason(entry, input, now) {
+    const recovery = entry.recovery;
+    const health = input.health?.code ?? (
+        input.ready ? "stable" : "offline"
+    );
+    const restartCount = Number(
+        input.runtime?.restart_count ?? 0
+    );
+    const diagnostics = entry.player.diagnostics();
+    let reason = null;
+    const frameAdvanced = Number(
+        diagnostics.frames_decoded || 0
+    ) > recovery.lastFramesDecoded;
+
+    if (
+        input.ready &&
+        recovery.lastHealth !== null &&
+        PLAYER_RECOVERY_STATES.has(recovery.lastHealth) &&
+        PLAYER_HEALTHY_STATES.has(health) &&
+        entry.player.state !== "playing"
+    ) {
+        reason = "Quelle wieder verfügbar";
+    }
+    if (
+        input.ready &&
+        recovery.lastRestartCount !== null &&
+        restartCount > recovery.lastRestartCount
+    ) {
+        reason = "Quellenprozess neu gestartet";
+    }
+
+    const frames = Number(diagnostics.frames_decoded || 0);
+    const packets = Number(diagnostics.packets_received || 0);
+    if (frameAdvanced) {
+        recovery.lastFrameProgressAt = now;
+    } else if (
+        input.ready &&
+        packets > recovery.lastPacketsReceived &&
+        recovery.lastFrameProgressAt !== null &&
+        now - recovery.lastFrameProgressAt >= PLAYER_STALL_TIMEOUT_MS
+    ) {
+        reason = "Browser-Decoder ohne Bildfortschritt";
+    }
+    recovery.lastFramesDecoded = frames;
+    recovery.lastPacketsReceived = packets;
+    recovery.lastHealth = health;
+    recovery.lastRestartCount = restartCount;
+
+    const connectionFailed = [
+        "failed",
+        "disconnected",
+        "closed",
+    ].includes(diagnostics.connection_state);
+    if (
+        input.ready &&
+        (entry.player.state === "error" || connectionFailed)
+    ) {
+        reason = "WebRTC-Verbindung unterbrochen";
+    }
+
+    if (entry.player.state === "playing") {
+        recovery.playingSince ??= now;
+        if (
+            now - recovery.playingSince >= PLAYER_STABLE_RESET_MS &&
+            frameAdvanced
+        ) {
+            recovery.attempts = 0;
+            recovery.nextReconnectAt = 0;
+        }
+    } else {
+        recovery.playingSince = null;
+    }
+
+    return reason;
+}
+
+function recoverSourcePlayer(entry, input, now) {
+    const detectedReason = playerRecoveryReason(entry, input, now);
+    const reason = detectedReason ?? entry.recovery.pendingReason;
+    if (reason && sourceCardIsFullscreen(entry)) {
+        entry.recovery.pendingReason = reason;
+        return false;
+    }
+    if (
+        !reason ||
+        !input.ready ||
+        now < entry.recovery.nextReconnectAt
+    ) {
+        return false;
+    }
+
+    entry.recovery.attempts += 1;
+    entry.recovery.nextReconnectAt =
+        now + reconnectDelay(entry.recovery.attempts);
+    entry.recovery.reconnectingUntil = now + 4000;
+    entry.recovery.lastFrameProgressAt = now;
+    entry.recovery.lastFramesDecoded = 0;
+    entry.recovery.lastPacketsReceived = 0;
+    entry.recovery.pendingReason = null;
+    return entry.player.reconnect(reason);
+}
 
 async function openSourceFullscreen(card, video) {
     if (typeof card.requestFullscreen === "function") {
@@ -153,6 +300,7 @@ function updateMultiSources(inputs = []) {
                 card,
                 player: new window.LivePlayer(video),
                 viewerPath: input.viewer_path,
+                recovery: playerRecoveryState(),
             };
             multiSourcePlayers.set(input.id, entry);
         }
@@ -191,10 +339,26 @@ function updateMultiSources(inputs = []) {
             onlineCount += 1;
             placeholder.hidden = true;
             video.hidden = false;
+            const playerNeedsStart =
+                entry.player.mode !== "webrtc" ||
+                entry.player.currentStream !== input.viewer_path;
             entry.player.play(
                 input.viewer_path,
                 "webrtc"
             );
+            const recoveryNow = Date.now();
+            if (playerNeedsStart) {
+                // Den neuen Playerzustand erfassen, ohne die gerade
+                // aufgebaute Verbindung sofort ein zweites Mal zu öffnen.
+                playerRecoveryReason(entry, input, recoveryNow);
+            } else {
+                recoverSourcePlayer(entry, input, recoveryNow);
+            }
+            if (
+                recoveryNow < entry.recovery.reconnectingUntil
+            ) {
+                state.textContent = "Player verbindet neu";
+            }
         } else {
             const awaitingSignal =
                 entry.player.deferUnavailableStop(4000);
