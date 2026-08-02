@@ -71,7 +71,7 @@ class DashboardService:
             now = time.monotonic()
             if (
                 self._cached_status is not None
-                and now - self._cached_status_at < 0.75
+                and now - self._cached_status_at < 1.5
             ):
                 return self._cached_status
             result = self._build_status()

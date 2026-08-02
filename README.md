@@ -416,8 +416,8 @@ ID sowie ein Verarbeitungsprofil:
 - `Copy mit Zeitstempel-Korrektur`: Originalvideo mit reparierten Zeitstempeln
 - `Copy-Reparatur · geringe Latenz`: kleinere Eingangsqueue und eng begrenzter
   RTSP-Puffer für bereits weitgehend stabile Quellen
-- `Mehrquellen-Vorschau · max. 540p` (nur RTMP): transkodierte H.264-Vorschau
-  mit maximal 960×540 Pixeln und 15 fps für das Raster; das Original bleibt
+- `Mehrquellen-Vorschau · max. 360p` (nur RTMP): transkodierte H.264-Vorschau
+  mit maximal 640×360 Pixeln und 12 fps für das Raster; das Original bleibt
   für den Vollbildmodus erhalten
 - `Transcodieren`: den pro Quelle gewählten Encoder verwenden
 
@@ -444,11 +444,11 @@ der Substream verwendet. Eine leere Vorschau-URL verwendet weiterhin den
 Hauptstream.
 
 Liefert ein RTMP-Publisher nur einen einzelnen Stream, kann das Profil
-`Mehrquellen-Vorschau · max. 540p` daraus eine leichtere Browserausgabe
+`Mehrquellen-Vorschau · max. 360p` daraus eine leichtere Browserausgabe
 erzeugen. Die Skalierung behält das Seitenverhältnis bei und begrenzt Breite
-und Höhe auf 960×540; 720p-, 1080p-, 4K- und abweichende Formate funktionieren
+und Höhe auf 640×360; 720p-, 1080p-, 4K- und abweichende Formate funktionieren
 damit gleichermaßen. Kleinere Quellen werden nicht vergrößert. Die Vorschau
-läuft ohne Audio mit 15 fps und etwa 1,4 Mbit/s. Das CPU-sparende
+läuft ohne Audio mit 12 fps und etwa 800 kbit/s. Das CPU-sparende
 `ultrafast`-Preset hält mehrere parallele Vorschauen leichter in Echtzeit.
 Beim Vollbild wechselt der
 Browser auf den unveränderten RTMP-Eingang. Da die Vorschau per Software

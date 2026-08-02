@@ -22,7 +22,7 @@ function sourceProfileOptions(selected, sourceType) {
         ],
         [
             "preview_transcode",
-            "Mehrquellen-Vorschau · max. 540p",
+            "Mehrquellen-Vorschau · max. 360p",
         ],
         ["transcode", "Transcodieren"],
     ];
@@ -133,7 +133,7 @@ function sourcePreviewProfileHint(source) {
         <div class="form-field form-field-wide source-profile-hint">
             <small>
                 Die Übersicht nutzt eine H.264-Vorschau mit maximal
-                960×540, 15 fps und ohne Audio. Kleinere Quellen werden
+                640×360, 12 fps und ohne Audio. Kleinere Quellen werden
                 nicht hochskaliert; Vollbild zeigt den Originalstream.
             </small>
         </div>

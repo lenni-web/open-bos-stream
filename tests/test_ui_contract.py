@@ -258,9 +258,18 @@ def test_rtmp_multi_source_preview_profile_is_selectable() -> None:
     ).read_text(encoding="utf-8")
 
     assert '"preview_transcode"' in source_js
-    assert "Mehrquellen-Vorschau · max. 540p" in source_js
-    assert "maximal\n                960×540, 15 fps" in source_js
+    assert "Mehrquellen-Vorschau · max. 360p" in source_js
+    assert "maximal\n                640×360, 12 fps" in source_js
     assert "Vollbild zeigt den Originalstream" in source_js
+
+
+def test_dashboard_polling_uses_two_second_interval() -> None:
+    app_js = (ROOT / "static" / "js" / "app.js").read_text(
+        encoding="utf-8"
+    )
+
+    assert "refreshDashboard,\n        2000" in app_js
+    assert "updateClock,\n        1000" in app_js
 
 
 def test_mobile_web_app_manifest_and_icons_are_linked() -> None:
