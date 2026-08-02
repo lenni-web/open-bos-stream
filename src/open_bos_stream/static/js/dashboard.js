@@ -2,6 +2,9 @@
 // Dashboard Refresh
 // ==========================================================
 
+const sourceProbeResults = new Map();
+let sourceProbeRunning = null;
+
 async function refreshDashboard() {
 
     try {
@@ -372,6 +375,7 @@ function updateSourceDiagnostics(sources) {
             label: "Status unbekannt",
             message: "Keine Gesundheitsbewertung verfügbar.",
         };
+        const probeState = sourceProbeResults.get(source.id);
         let runtimeState = "FFmpeg-Daten nicht verfügbar";
         let runtimeMetrics = "";
         let restartMetric = "";
@@ -446,9 +450,93 @@ function updateSourceDiagnostics(sources) {
                     ${runtimeMetrics}
                     ${restartMetric}
                 </div>
+                <div class="source-probe-actions">
+                    <button
+                        class="bos-button bos-button-small source-probe-button"
+                        type="button"
+                        data-source-probe="${escapeHTML(source.id)}"
+                        ${!source.ready || sourceProbeRunning !== null ? "disabled" : ""}>
+                        ${sourceProbeRunning === source.id ? "Messung läuft …" : "Tiefendiagnose"}
+                    </button>
+                    <small>${source.ready ? "2 Sekunden · Ergebnis 60 Sekunden gecacht" : "Erst bei verfügbarem Signal möglich"}</small>
+                </div>
+                ${sourceProbeResultMarkup(source, probeState)}
             </article>
         `;
     }).join("");
+
+    for (const button of container.querySelectorAll("[data-source-probe]")) {
+        button.addEventListener("click", () => {
+            runSourceProbe(button.dataset.sourceProbe);
+        });
+    }
+}
+
+function sourceProbeResultMarkup(source, state) {
+    if (!state) {
+        return "";
+    }
+    if (state.loading) {
+        return '<div class="source-probe-result is-loading">Paket- und Zeitstempel werden gemessen …</div>';
+    }
+    if (state.error) {
+        return `<div class="source-probe-result is-error">${escapeHTML(state.error)}</div>`;
+    }
+
+    const result = state.result;
+    if (!result?.available) {
+        return `<div class="source-probe-result is-error">${escapeHTML(result?.error || "Keine Messdaten verfügbar.")}</div>`;
+    }
+    const measured = result.measured_at
+        ? new Date(result.measured_at).toLocaleTimeString("de-DE")
+        : "—";
+    const warningCodes = new Set(
+        (result.warnings || []).map(warning => warning.code)
+    );
+    const recommendation = warningCodes.size > 0 && source.profile !== "copy_repair"
+        ? '<strong>Empfehlung: Profil „Copy mit Zeitstempel-Korrektur“ prüfen.</strong>'
+        : "";
+    const warnings = (result.warnings || []).length
+        ? `<ul>${result.warnings.map(warning => `<li>${escapeHTML(warning.message)}</li>`).join("")}</ul>`
+        : "<p>Keine Zeitstempelwarnung im Messfenster.</p>";
+
+    return `
+        <div class="source-probe-result">
+            <header>
+                <strong>Messung ${escapeHTML(measured)}</strong>
+                <span>${result.cached ? `Cache · ${Number(result.cache_age_seconds || 0)} s alt` : "Neu gemessen"}</span>
+            </header>
+            <dl>
+                <div><dt>Bildrate</dt><dd>${Number(result.average_fps || 0).toFixed(2)} FPS</dd></div>
+                <div><dt>Bitrate</dt><dd>${formatBitsPerSecond(Number(result.bitrate_bps || 0))}</dd></div>
+                <div><dt>Pakete / DTS</dt><dd>${Number(result.packets_checked || 0)} / ${Number(result.backwards_dts || 0)} rückwärts</dd></div>
+                <div><dt>Timing</dt><dd>${Number(result.timing_jitter_ms || 0).toFixed(1)} ms Jitter · max. ${Number(result.max_gap_ms || 0).toFixed(0)} ms</dd></div>
+            </dl>
+            ${warnings}
+            ${recommendation}
+        </div>
+    `;
+}
+
+async function runSourceProbe(sourceId) {
+    if (!sourceId || sourceProbeRunning !== null) {
+        return;
+    }
+    sourceProbeRunning = sourceId;
+    sourceProbeResults.set(sourceId, {loading: true});
+    updateSourceDiagnostics(window.dashboard?.sources ?? []);
+
+    try {
+        const result = await api.probeSource(sourceId);
+        sourceProbeResults.set(sourceId, {result});
+    } catch (error) {
+        sourceProbeResults.set(sourceId, {
+            error: error.message || "Tiefendiagnose ist fehlgeschlagen.",
+        });
+    } finally {
+        sourceProbeRunning = null;
+        updateSourceDiagnostics(window.dashboard?.sources ?? []);
+    }
 }
 
 function updateViewerDiagnostics() {

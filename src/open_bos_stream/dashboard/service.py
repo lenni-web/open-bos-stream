@@ -139,7 +139,10 @@ class DashboardService:
 
         stream_running = self._stream.running
         diagnostics = self._stream.diagnostics()
-        probe = self._probe.status(mediamtx.ready)
+        probe = self._probe.cached_source_status(
+            primary.id if primary else None,
+            mediamtx.ready,
+        )
         timestamp_warning = any(
             warning.get("code") in {
                 "non_monotonic_dts",
@@ -393,3 +396,20 @@ class DashboardService:
             ],
 
         }
+
+    def probe_source(self, source_id: str) -> dict:
+        source = next(
+            (
+                item
+                for item in self._config.sources
+                if item.enabled and item.id == source_id
+            ),
+            None,
+        )
+        if source is None:
+            raise KeyError(source_id)
+        if not self._mediamtx.status(source.viewer_path).ready:
+            raise RuntimeError(
+                "Die Quelle liefert momentan kein ausgabefähiges Signal."
+            )
+        return self._probe.probe_source(source)

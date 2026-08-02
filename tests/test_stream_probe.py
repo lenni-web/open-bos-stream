@@ -1,8 +1,10 @@
 import json
 
+import pytest
+
 from open_bos_stream.core.config import ConfigLoader
 from open_bos_stream.core.process import ProcessResult
-from open_bos_stream.stream.probe import StreamProbeService
+from open_bos_stream.stream.probe import ProbeBusyError, StreamProbeService
 
 
 class ProbeRunner:
@@ -39,13 +41,10 @@ def test_probe_detects_implausible_fps_and_backwards_dts() -> None:
             {"dts_time": "0.9", "size": "1000"},
         ],
     })
-    probe = StreamProbeService(
-        ConfigLoader().load(),
-        runner,
-        background=False,
-    )
+    config = ConfigLoader().load()
+    probe = StreamProbeService(config, runner)
 
-    status = probe.status(source_ready=True)
+    status = probe.probe_source(config.sources[0])
 
     assert status["available"] is True
     assert status["average_fps"] == 30
@@ -74,13 +73,10 @@ def test_probe_calculates_bitrate_and_packet_timing() -> None:
             {"dts_time": "0.08", "size": "1000"},
         ],
     })
-    probe = StreamProbeService(
-        ConfigLoader().load(),
-        runner,
-        background=False,
-    )
+    config = ConfigLoader().load()
+    probe = StreamProbeService(config, runner)
 
-    status = probe.status(source_ready=True)
+    status = probe.probe_source(config.sources[0])
 
     assert status["bitrate_bps"] == 300_000
     assert status["packet_gaps"] == 0
@@ -90,15 +86,44 @@ def test_probe_calculates_bitrate_and_packet_timing() -> None:
 
 def test_probe_result_is_cached() -> None:
     runner = ProbeRunner({"streams": [], "packets": []})
-    probe = StreamProbeService(
-        ConfigLoader().load(),
-        runner,
-        background=False,
-    )
+    config = ConfigLoader().load()
+    probe = StreamProbeService(config, runner)
 
-    probe.status(source_ready=True)
-    probe.status(source_ready=True)
+    source = config.sources[0]
+    first = probe.probe_source(source)
+    second = probe.probe_source(source)
 
     assert runner.calls == 1
     assert "%+2" in runner.commands[0]
+    assert (
+        f"rtsp://127.0.0.1:8554/{source.viewer_path}"
+        in runner.commands[0]
+    )
+    assert first["cached"] is False
+    assert second["cached"] is True
     assert StreamProbeService.CACHE_SECONDS == 60.0
+
+
+def test_only_one_explicit_probe_can_run_at_a_time() -> None:
+    config = ConfigLoader().load()
+    probe = StreamProbeService(
+        config,
+        ProbeRunner({"streams": [], "packets": []}),
+    )
+    probe._probe_lock.acquire()
+    try:
+        with pytest.raises(ProbeBusyError):
+            probe.probe_source(config.sources[0])
+    finally:
+        probe._probe_lock.release()
+
+
+def test_cached_status_never_starts_a_probe() -> None:
+    config = ConfigLoader().load()
+    runner = ProbeRunner({"streams": [], "packets": []})
+    probe = StreamProbeService(config, runner)
+
+    status = probe.cached_source_status(config.sources[0].id, True)
+
+    assert status["manual"] is True
+    assert runner.calls == 0

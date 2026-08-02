@@ -5,11 +5,11 @@ from __future__ import annotations
 import json
 import threading
 import time
+from datetime import datetime, timezone
 from fractions import Fraction
 
-from open_bos_stream.core.models import AppConfig
+from open_bos_stream.core.models import AppConfig, SourceConfig
 from open_bos_stream.core.process import ProcessRunner
-from open_bos_stream.stream.inputs.rtmp import repair_input_url
 
 
 class StreamProbeService:
@@ -22,30 +22,19 @@ class StreamProbeService:
         self,
         config: AppConfig,
         runner: ProcessRunner | None = None,
-        background: bool = True,
     ) -> None:
         self._config = config
         self._runner = runner or ProcessRunner()
-        self._background = background
-        self._cached: dict | None = None
-        self._cached_at = 0.0
-        self._probing = False
-        self._lock = threading.Lock()
+        self._probe_lock = threading.Lock()
+        self._cache_lock = threading.Lock()
+        self._source_cache: dict[str, tuple[float, dict]] = {}
         self._generation = 0
 
     def reload(self, config: AppConfig) -> None:
         self._config = config
-        self._cached = None
-        self._cached_at = 0.0
-        self._generation += 1
-
-    def _refresh(self, generation: int) -> None:
-        result = self._probe()
-        with self._lock:
-            if generation == self._generation:
-                self._cached = result
-                self._cached_at = time.monotonic()
-            self._probing = False
+        with self._cache_lock:
+            self._source_cache.clear()
+            self._generation += 1
 
     @staticmethod
     def _rate(value: str | None) -> float:
@@ -56,19 +45,7 @@ class StreamProbeService:
         except (ValueError, ZeroDivisionError):
             return 0.0
 
-    def _target(self) -> str:
-        if (
-            self._config.passthrough_active
-            or self._config.input.mode == "copy_repair"
-        ):
-            target = self._config.input.url or ""
-            if self._config.input.mode == "copy_repair":
-                target, _ = repair_input_url(target)
-            return target
-        return self._config.stream.rtsp_url
-
-    def _probe(self) -> dict:
-        target = self._target()
+    def _probe_target(self, target: str) -> dict:
         if not target:
             return {
                 "available": False,
@@ -260,38 +237,79 @@ class StreamProbeService:
             "error": None,
         }
 
-    def status(self, source_ready: bool) -> dict:
+    @staticmethod
+    def _source_target(source: SourceConfig) -> str:
+        # Gemessen wird das von MediaMTX bereitgestellte Ergebnis. Dadurch
+        # wird eine Capture Card nicht doppelt geöffnet und die Diagnose
+        # entspricht dem Signal, das die Browser tatsächlich empfangen.
+        return f"rtsp://127.0.0.1:8554/{source.viewer_path}"
+
+    def probe_source(self, source: SourceConfig) -> dict:
+        """Misst explizit eine Quelle; systemweit läuft höchstens eine Probe."""
+
         now = time.monotonic()
-        if not source_ready:
+        with self._cache_lock:
+            cached = self._source_cache.get(source.id)
+            generation = self._generation
+        if cached and now - cached[0] < self.CACHE_SECONDS:
+            return {
+                **cached[1],
+                "cached": True,
+                "cache_age_seconds": int(now - cached[0]),
+            }
+
+        if not self._probe_lock.acquire(blocking=False):
+            raise ProbeBusyError(
+                "Eine andere Quellenmessung läuft bereits."
+            )
+
+        try:
+            result = {
+                **self._probe_target(self._source_target(source)),
+                "source_id": source.id,
+                "source_name": source.name,
+                "measured_at": datetime.now(timezone.utc).isoformat(),
+                "cached": False,
+                "cache_age_seconds": 0,
+            }
+            # Auch Fehler werden kurz gecacht, damit eine unerreichbare Quelle
+            # nicht durch wiederholtes Klicken belastet wird.
+            with self._cache_lock:
+                if generation == self._generation:
+                    self._source_cache[source.id] = (
+                        time.monotonic(),
+                        result,
+                    )
+            return result
+        finally:
+            self._probe_lock.release()
+
+    def cached_source_status(
+        self,
+        source_id: str | None,
+        source_ready: bool,
+    ) -> dict:
+        if not source_ready or not source_id:
             return {
                 "available": False,
                 "error": "Quelle ist noch nicht online.",
                 "warnings": [],
             }
-        if (
-            self._cached is not None
-            and now - self._cached_at < self.CACHE_SECONDS
-        ):
-            return self._cached
-
-        if not self._background:
-            self._refresh(self._generation)
-            assert self._cached is not None
-            return self._cached
-
-        with self._lock:
-            if not self._probing:
-                self._probing = True
-                threading.Thread(
-                    target=self._refresh,
-                    args=(self._generation,),
-                    name="open-bos-stream-probe",
-                    daemon=True,
-                ).start()
-
-        return self._cached or {
-            "available": False,
-            "pending": True,
-            "error": "Messung läuft.",
-            "warnings": [],
+        with self._cache_lock:
+            cached = self._source_cache.get(source_id)
+        if cached is None:
+            return {
+                "available": False,
+                "manual": True,
+                "error": "Noch keine manuelle Messung durchgeführt.",
+                "warnings": [],
+            }
+        return {
+            **cached[1],
+            "cached": True,
+            "cache_age_seconds": int(time.monotonic() - cached[0]),
         }
+
+
+class ProbeBusyError(RuntimeError):
+    """Es läuft bereits eine ressourcenbegrenzte Quellenmessung."""
