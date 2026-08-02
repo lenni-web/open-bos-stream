@@ -2,6 +2,10 @@
 
 Open BOS Stream ist eine webbasierte Streaming- und Kartenplattform für BOS-Anwendungen (Behörden und Organisationen mit Sicherheitsaufgaben). Sie kombiniert Live-Video, Kartenansicht und einsatzrelevante Overlays in einer leichtgewichtigen Anwendung für Raspberry Pi und Debian-Server.
 
+Die HTTPS-Oberfläche kann auf iOS über „Zum Home-Bildschirm“ und auf Android
+über „App installieren“ beziehungsweise „Zum Startbildschirm hinzufügen“ als
+eigenständige Web-App mit Open-BOS-Stream-Icon abgelegt werden.
+
 ---
 
 ## Features
@@ -429,7 +433,11 @@ sie gesetzt, nutzt die Liveübersicht diesen Stream anstelle der Haupt-URL.
 Für 4K-/H.265-Kameras empfiehlt sich hier ein H.264-Substream mit 720p oder
 1080p. Das reduziert Decoder- und WebRTC-Last deutlich. Beim Öffnen des
 Vollbildmodus wechselt nur der gewählte Player auf einen separaten Viewerpfad
-des Hauptstreams; beim Schließen wird wieder der Substream verwendet. Eine
+des Hauptstreams. Dieser Relay wird erst bei Bedarf gestartet, von mehreren
+gleichzeitigen Vollbildnutzern gemeinsam verwendet und nach dem letzten Nutzer
+mit zehn Sekunden Nachlaufzeit wieder beendet. Während des Starts und bei einem
+Fehler bleibt der Substream sichtbar; beim Schließen wird ebenfalls wieder
+der Substream verwendet. Eine
 leere Vorschau-URL verwendet weiterhin den Hauptstream. Snapshots und Aufnahmen der
 Quelle folgen derzeit ebenfalls dem in der Oberfläche wiedergegebenen
 Viewerpfad und verwenden damit bei gesetzter Vorschau-URL den Substream.

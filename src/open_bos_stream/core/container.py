@@ -19,6 +19,7 @@ from open_bos_stream.recording.service import RecordingService
 from open_bos_stream.snapshot.library import SnapshotLibrary
 from open_bos_stream.snapshot.service import SnapshotService
 from open_bos_stream.stream.service import StreamService
+from open_bos_stream.stream.fullscreen_relay import FullscreenRelayManager
 from open_bos_stream.stream.probe import StreamProbeService
 from open_bos_stream.system.health import HealthService
 from open_bos_stream.stream_output.manager import (
@@ -64,6 +65,11 @@ stream_service = StreamService(
     config=config,
     mediamtx_service=mediamtx_service,
     runner=process_runner,
+)
+
+fullscreen_relay_manager = FullscreenRelayManager(
+    config=config,
+    mediamtx=mediamtx_client,
 )
 
 stream_output_manager = StreamOutputManager(

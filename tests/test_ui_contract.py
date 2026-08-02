@@ -241,8 +241,26 @@ def test_each_source_player_has_fullscreen_control() -> None:
     assert "resumeSourcePlayback" in source_js
     assert "switchSourceFullscreenStream" in source_js
     assert "fullscreenViewerPath" in source_js
+    assert "prepareFullscreenStream" in source_js
+    assert "releaseFullscreenStream" in source_js
+    assert "Hauptstream wird geladen" in source_js
     assert '"fullscreenchange"' in source_js
     assert "deferUnavailableStop(4000)" in source_js
+
+
+def test_mobile_web_app_manifest_and_icons_are_linked() -> None:
+    index = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
+    login = (ROOT / "templates" / "login.html").read_text(encoding="utf-8")
+    manifest = (ROOT / "static" / "manifest.webmanifest").read_text(
+        encoding="utf-8"
+    )
+
+    for template in (index, login):
+        assert 'rel="manifest"' in template
+        assert 'rel="apple-touch-icon"' in template
+        assert 'name="theme-color"' in template
+    assert '"display": "standalone"' in manifest
+    assert '"purpose": "any maskable"' in manifest
 
 
 def test_each_source_player_recovers_independently() -> None:

@@ -46,7 +46,11 @@ function resumeSourcePlayback(entry, reason) {
 function resumePlayersAfterFullscreen() {
     for (const entry of multiSourcePlayers.values()) {
         const fullscreen = sourceCardIsFullscreen(entry);
-        switchSourceFullscreenStream(entry, fullscreen);
+        if (fullscreen) {
+            prepareFullscreenStream(entry);
+        } else {
+            releaseFullscreenStream(entry);
+        }
         if (fullscreen) {
             continue;
         }
@@ -243,10 +247,89 @@ function switchSourceFullscreenStream(entry, fullscreen) {
     entry.player.play(target, "webrtc");
 }
 
+function fullscreenRelayUrl(entry) {
+    const sourceId = encodeURIComponent(entry.lastInput.id);
+    const lease = entry.fullscreenLease
+        ? `/${encodeURIComponent(entry.fullscreenLease)}`
+        : "";
+    return `/dashboard/sources/${sourceId}/fullscreen${lease}`;
+}
+
+async function fullscreenRelayRequest(entry, method) {
+    const response = await fetch(fullscreenRelayUrl(entry), {method});
+    if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.detail ?? `HTTP ${response.status}`);
+    }
+    return response.json();
+}
+
+async function prepareFullscreenStream(entry) {
+    if (
+        entry.fullscreenViewerPath === entry.viewerPath ||
+        entry.fullscreenMainReady ||
+        entry.fullscreenPreparing
+    ) {
+        if (entry.fullscreenMainReady) {
+            switchSourceFullscreenStream(entry, true);
+        }
+        return;
+    }
+    entry.fullscreenPreparing = true;
+    try {
+        let status = entry.fullscreenLease
+            ? await fullscreenRelayRequest(entry, "GET")
+            : await fullscreenRelayRequest(entry, "POST");
+        entry.fullscreenLease = status.lease_id;
+        for (let attempt = 0; attempt < 20; attempt += 1) {
+            if (!sourceCardIsFullscreen(entry)) {
+                return;
+            }
+            if (status.ready) {
+                entry.fullscreenMainReady = true;
+                switchSourceFullscreenStream(entry, true);
+                entry.fullscreenHeartbeat ??= window.setInterval(
+                    () => fullscreenRelayRequest(entry, "GET").catch(
+                        () => releaseFullscreenStream(entry)
+                    ),
+                    10000
+                );
+                return;
+            }
+            await new Promise(resolve => window.setTimeout(resolve, 400));
+            status = await fullscreenRelayRequest(entry, "GET");
+        }
+        throw new Error("Hauptstream ist nicht rechtzeitig bereit.");
+    } catch (error) {
+        console.warn("Hauptstream nicht verfügbar, Vorschau bleibt aktiv:", error);
+        entry.fullscreenMainReady = false;
+        entry.fullscreenErrorUntil = Date.now() + 5000;
+        switchSourceFullscreenStream(entry, false);
+    } finally {
+        entry.fullscreenPreparing = false;
+    }
+}
+
+function releaseFullscreenStream(entry) {
+    if (entry.fullscreenHeartbeat) {
+        window.clearInterval(entry.fullscreenHeartbeat);
+        entry.fullscreenHeartbeat = null;
+    }
+    if (entry.fullscreenLease) {
+        fetch(fullscreenRelayUrl(entry), {
+            method: "DELETE",
+            keepalive: true,
+        }).catch(() => {});
+    }
+    entry.fullscreenLease = null;
+    entry.fullscreenMainReady = false;
+    switchSourceFullscreenStream(entry, false);
+}
+
 async function openSourceFullscreen(entry) {
     const {card} = entry;
     const video = card.querySelector("video");
-    switchSourceFullscreenStream(entry, true);
+    prepareFullscreenStream(entry);
     if (typeof card.requestFullscreen === "function") {
         try {
             await card.requestFullscreen();
@@ -286,7 +369,7 @@ async function openSourceFullscreen(entry) {
     console.error(
         "Quellen-Vollbild wird von diesem Browser nicht unterstützt."
     );
-    switchSourceFullscreenStream(entry, false);
+    releaseFullscreenStream(entry);
 }
 
 function multiSourceCard(input) {
@@ -336,6 +419,7 @@ function removeStaleMultiSources(activeIds) {
         if (activeIds.has(id)) {
             continue;
         }
+        releaseFullscreenStream(entry);
         entry.player.destroy();
         entry.card.remove();
         multiSourcePlayers.delete(id);
@@ -396,6 +480,11 @@ function updateMultiSources(inputs = []) {
                 viewerPath: input.viewer_path,
                 fullscreenViewerPath:
                     input.fullscreen_viewer_path ?? input.viewer_path,
+                fullscreenLease: null,
+                fullscreenMainReady: false,
+                fullscreenPreparing: false,
+                fullscreenHeartbeat: null,
+                fullscreenErrorUntil: 0,
                 recovery: playerRecoveryState(),
                 lastInput: input,
             };
@@ -407,12 +496,12 @@ function updateMultiSources(inputs = []) {
             );
             video.addEventListener(
                 "webkitbeginfullscreen",
-                () => switchSourceFullscreenStream(entry, true)
+                () => prepareFullscreenStream(entry)
             );
             video.addEventListener(
                 "webkitendfullscreen",
                 () => {
-                    switchSourceFullscreenStream(entry, false);
+                    releaseFullscreenStream(entry);
                     resumeSourcePlayback(
                         entry,
                         "Safari-Vollbildmodus beendet"
@@ -455,6 +544,13 @@ function updateMultiSources(inputs = []) {
         );
         state.textContent =
             input.ready ? "Online" : "Offline";
+        if (entry.fullscreenPreparing) {
+            state.textContent = "Hauptstream wird geladen";
+        } else if (Date.now() < entry.fullscreenErrorUntil) {
+            state.textContent = "Vorschau aktiv · Hauptstream nicht verfügbar";
+        } else if (entry.fullscreenMainReady) {
+            state.textContent = "Hauptstream aktiv";
+        }
 
         let displayedOnline = input.ready;
         if (input.ready) {
@@ -462,6 +558,7 @@ function updateMultiSources(inputs = []) {
             placeholder.hidden = true;
             video.hidden = false;
             const desiredViewerPath = sourceCardIsFullscreen(entry)
+                && entry.fullscreenMainReady
                 ? entry.fullscreenViewerPath
                 : entry.viewerPath;
             const playerNeedsStart =

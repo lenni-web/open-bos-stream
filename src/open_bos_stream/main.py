@@ -12,6 +12,7 @@ from open_bos_stream.version import VERSION
 
 from open_bos_stream.core.container import stream_service
 from open_bos_stream.core.container import auth_service
+from open_bos_stream.core.container import fullscreen_relay_manager
 from open_bos_stream.auth.middleware import AuthMiddleware
 from open_bos_stream.api.auth import router as auth_router
 from open_bos_stream.api.input import (
@@ -69,6 +70,8 @@ async def lifespan(app: FastAPI):
             )
 
     yield
+
+    fullscreen_relay_manager.close()
 
     if stream_service.managed:
         try:
