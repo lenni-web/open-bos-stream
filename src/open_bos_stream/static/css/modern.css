@@ -981,6 +981,35 @@ body {
     padding: 20px;
 }
 
+.test-session-panel {
+    padding: 20px;
+}
+
+.test-session-panel > p {
+    margin: 0 0 12px;
+    color: var(--bos-muted);
+    font-size: 0.8rem;
+}
+
+.test-session-summary,
+.test-session-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+}
+
+.test-session-summary {
+    margin-bottom: 12px;
+    color: var(--bos-muted);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.diagnostic-state.is-recording {
+    color: var(--bos-red);
+}
+
 .diagnostic-state {
     color: var(--bos-green);
     font-size: 0.76rem;

@@ -378,6 +378,58 @@ def test_installation_check_uses_public_auth_status() -> None:
     assert "/auth/status" in content
 
 
+def test_multi_source_test_tools_are_documented_and_keep_tokens_local() -> None:
+    project = Path(__file__).parents[1]
+    generator = (
+        project / "scripts" / "generate-test-video.sh"
+    ).read_text(encoding="utf-8")
+    publisher = (
+        project / "scripts" / "multi-source-test.sh"
+    ).read_text(encoding="utf-8")
+    readme = (project / "README.md").read_text(encoding="utf-8")
+    ignore = (project / ".gitignore").read_text(encoding="utf-8")
+
+    assert "testsrc2=size=1280x720:rate=25" in generator
+    assert "-c:v libx264" in generator
+    assert "--tokens-file" in publisher
+    assert "chmod 600" in publisher
+    assert "-stream_loop -1" in publisher
+    assert "-c copy" in publisher
+    assert "1|4|8" in publisher
+    assert "Reproduzierbarer Mehrquellen-Dauertest" in readme
+    assert "testdata/*.mp4" in ignore
+    assert "test-results/" in ignore
+    assert "test-tokens.env" in ignore
+
+
+def test_persistent_browser_and_server_test_logging_are_available() -> None:
+    project = Path(__file__).parents[1]
+    index = (ROOT / "templates" / "index.html").read_text(
+        encoding="utf-8"
+    )
+    system = (
+        ROOT / "templates" / "components" / "system_card.html"
+    ).read_text(encoding="utf-8")
+    logging_js = (
+        ROOT / "static" / "js" / "test_logging.js"
+    ).read_text(encoding="utf-8")
+    monitor = (
+        project / "scripts" / "server-test-monitor.sh"
+    ).read_text(encoding="utf-8")
+
+    assert "/static/js/test_logging.js" in index
+    assert 'id="test-session-start"' in system
+    assert 'id="test-session-download"' in system
+    assert "TEST_LOG_SAMPLE_INTERVAL_MS = 5000" in logging_js
+    assert "TEST_LOG_PERSIST_INTERVAL_MS = 30000" in logging_js
+    assert "window.localStorage" in logging_js
+    assert "sourcePlayerDiagnostics" in logging_js
+    assert "player_reconnect" in logging_js
+    assert "journalctl" in monitor
+    assert "open-bos-streamer.service" in monitor
+    assert "/proc/net/dev" in monitor
+
+
 def test_login_page_has_product_identity_and_description() -> None:
     login = (
         ROOT / "templates" / "login.html"

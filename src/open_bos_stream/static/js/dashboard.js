@@ -86,6 +86,8 @@ function updateDashboard(data) {
 
     updateViewerDiagnostics();
 
+    updateTestLogging(data);
+
 	checkServiceEvents(
 	    data.services
 	);

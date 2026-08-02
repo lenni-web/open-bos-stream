@@ -91,6 +91,44 @@
             </div>
         </section>
 
+        {% if user.role == "superadmin" %}
+        <section class="bos-card test-session-panel">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">Dauertest</span>
+                    <h2>Browser-Testprotokoll</h2>
+                </div>
+                <span id="test-session-state" class="diagnostic-state">
+                    Nicht gestartet
+                </span>
+            </div>
+            <p>
+                Speichert System-, Quellen- und WebRTC-Werte dieses Browsers
+                alle fünf Sekunden. Die Sitzung bleibt bei einem Reload erhalten.
+            </p>
+            <div class="test-session-summary">
+                <span id="test-session-duration">Laufzeit —</span>
+                <span id="test-session-samples">0 Messpunkte</span>
+                <span id="test-session-events">0 Ereignisse</span>
+            </div>
+            <div class="test-session-actions">
+                <button id="test-session-start" class="bos-button" type="button">
+                    Testprotokoll starten
+                </button>
+                <button id="test-session-stop" class="bos-button" type="button" disabled>
+                    Stoppen
+                </button>
+                <button id="test-session-download" class="bos-button" type="button" disabled>
+                    JSON herunterladen
+                </button>
+                <button id="test-session-clear" class="bos-button" type="button" disabled>
+                    Verwerfen
+                </button>
+            </div>
+            <div id="test-session-feedback" class="system-feedback" aria-live="polite"></div>
+        </section>
+        {% endif %}
+
         <section class="bos-card stream-diagnostics">
             <div class="section-heading">
                 <div>

@@ -11,6 +11,26 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.11.5] - 2026-08-02
+
+### Added
+
+- Ein Generator erstellt lokal einen reproduzierbaren 60-sekündigen
+  H.264/AAC-Testclip mit 720p und 25 FPS, ohne Binärdateien ins Repository
+  aufzunehmen.
+- Ein Mehrquellen-Testwerkzeug veröffentlicht den Testclip wahlweise auf 1, 4
+  oder 8 token-geschützten RTMP-Eingängen, überwacht die Publisher-Prozesse,
+  protokolliert sie getrennt und beendet sie bei Abbruch kontrolliert.
+- Superadmins können auf der Systemseite eine persistente Browser-Testsitzung
+  starten, stoppen und als JSON exportieren. Sie erfasst alle fünf Sekunden
+  System-, Quellen-, FFmpeg- und WebRTC-Werte sowie relevante Ereignisse und
+  bleibt bei einem Seitenreload erhalten.
+- Ein VServer-Monitor sammelt während desselben Testfensters regelmäßig
+  Systemlast, FFmpeg-Prozesse und Netzwerkzähler und exportiert anschließend
+  die Journale von Anwendung, Streamer, MediaMTX, Caddy und Kernel.
+
+---
+
 ## [0.11.4] - 2026-08-02
 
 ### Added
