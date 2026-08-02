@@ -63,13 +63,25 @@ class RTMPInputBuilder(InputBuilder):
         command = []
 
         if (
-            getattr(source, "mode", None) == "copy_repair"
-            or getattr(source, "profile", None) == "copy_repair"
+            getattr(source, "mode", None) in {
+                "copy_repair",
+                "copy_repair_low_latency",
+            }
+            or getattr(source, "profile", None) in {
+                "copy_repair",
+                "copy_repair_low_latency",
+            }
         ):
             input_url, use_rtsp = repair_input_url(source.url)
+            low_latency = (
+                getattr(source, "mode", None)
+                == "copy_repair_low_latency"
+                or getattr(source, "profile", None)
+                == "copy_repair_low_latency"
+            )
             command.extend([
                 "-thread_queue_size",
-                "512",
+                "128" if low_latency else "512",
                 "-fflags",
                 "+genpts+discardcorrupt+nobuffer",
                 "-flags",
@@ -82,7 +94,7 @@ class RTMPInputBuilder(InputBuilder):
                     "-rtsp_transport",
                     "tcp",
                     "-max_delay",
-                    "0",
+                    "100000" if low_latency else "0",
                 ])
         else:
             input_url = source.url

@@ -410,6 +410,8 @@ ID sowie ein Verarbeitungsprofil:
 
 - `Direkt / Stream Copy`: Video ohne Neukodierung übernehmen
 - `Copy mit Zeitstempel-Korrektur`: Originalvideo mit reparierten Zeitstempeln
+- `Copy-Reparatur · geringe Latenz`: kleinere Eingangsqueue und eng begrenzter
+  RTSP-Puffer für bereits weitgehend stabile Quellen
 - `Transcodieren`: den pro Quelle gewählten Encoder verwenden
 
 Bei `Transcodieren` erscheinen Encoder, Bitrate, Pixelformat, GOP, Preset und
@@ -651,6 +653,13 @@ Stabilisierte Ausgabe: rtsp://127.0.0.1:8554/drohne
 
 Die Systemseite zeigt zusätzlich die gemessene Eingangsbitrate,
 Paketabstände sowie lokale WebRTC-Statistiken des aktuellen Browsers.
+
+Als zusätzliche Abstimmung steht `Copy-Reparatur · geringe Latenz` bereit.
+Sie behält Stream Copy, Zeitstempelkorrektur und RTSP/TCP bei, reduziert aber
+die Eingangsqueue von 512 auf 128 Pakete und begrenzt die RTSP-Verzögerung auf
+100 ms. Das Profil eignet sich zum Vergleich bei nur leicht ruckelnden,
+ansonsten stabilen Quellen. Bei stärkeren Paketlücken oder Bildaussetzern ist
+`Copy mit Zeitstempel-Korrektur` weiterhin die robustere Einstellung.
 
 ---
 

@@ -300,8 +300,16 @@ class StreamService:
 
         return {
             "mode": (
-                "rtmp_copy_repair"
-                if self._config.input.mode == "copy_repair"
+                (
+                    "rtmp_copy_repair_low_latency"
+                    if self._config.input.mode
+                    == "copy_repair_low_latency"
+                    else "rtmp_copy_repair"
+                )
+                if self._config.input.mode in {
+                    "copy_repair",
+                    "copy_repair_low_latency",
+                }
                 else (
                     "managed_ffmpeg"
                     if self.managed

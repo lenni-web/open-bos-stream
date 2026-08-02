@@ -143,7 +143,9 @@ function updateStreamDiagnostics(stream, storage, sources = []) {
     if (diagnostics) {
         updateValue(
             "stream-diagnostic-mode",
-            diagnostics.mode === "rtmp_copy_repair"
+            diagnostics.mode === "rtmp_copy_repair_low_latency"
+                ? "RTMP Copy-Reparatur · geringe Latenz"
+                : diagnostics.mode === "rtmp_copy_repair"
                 ? "RTMP Copy mit Zeitstempel-Reparatur"
                 : (
                     diagnostics.mode === "managed_ffmpeg"
@@ -337,7 +339,10 @@ function updateStreamDiagnostics(stream, storage, sources = []) {
         );
     if (
         timestampProblem &&
-        diagnostics?.mode !== "rtmp_copy_repair"
+        ![
+            "rtmp_copy_repair",
+            "rtmp_copy_repair_low_latency",
+        ].includes(diagnostics?.mode)
     ) {
         alerts.push(
             "Empfehlung: Quellenprofil „RTMP Copy mit " +
@@ -537,7 +542,10 @@ function sourceProbeResultMarkup(source, state) {
     const warningCodes = new Set(
         (result.warnings || []).map(warning => warning.code)
     );
-    const recommendation = warningCodes.size > 0 && source.profile !== "copy_repair"
+    const recommendation = warningCodes.size > 0 && ![
+        "copy_repair",
+        "copy_repair_low_latency",
+    ].includes(source.profile)
         ? '<strong>Empfehlung: Profil „Copy mit Zeitstempel-Korrektur“ prüfen.</strong>'
         : "";
     const warnings = (result.warnings || []).length
