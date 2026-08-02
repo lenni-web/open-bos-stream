@@ -287,6 +287,7 @@ class FFmpegCommandBuilder:
         """Erzeugt den unabhängigen FFmpeg-Befehl einer Quelle."""
 
         runtime_source = source.model_copy(deep=True)
+        runtime_source.url = source.effective_url
         runtime_source.mode = (
             source.profile
             if source.profile in {

@@ -400,6 +400,7 @@ function updateSourceDiagnostics(sources) {
                 starting: "FFmpeg startet",
                 restarting: "FFmpeg wird neu gestartet",
                 waiting_restart: "Wartet auf Neustart",
+                waiting_source: "Wartet auf Eingangssignal",
             };
             runtimeState = states[runtime.state] || "FFmpeg-Status unbekannt";
             if (runtime.state === "running" || runtime.state === "restarting") {

@@ -57,6 +57,11 @@ def source_health(
     )
     reason = str(runtime.get("last_restart_reason") or "")
 
+    if state == "waiting_source":
+        return _result(
+            "offline",
+            "MediaMTX wartet auf den RTMP-Publisher.",
+        )
     if restarts >= 3 and restart_recent:
         return _result(
             "restart_loop",

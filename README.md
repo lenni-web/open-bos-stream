@@ -424,6 +424,14 @@ Reihenfolge wird gespeichert und ebenso im Livebildraster verwendet.
 Das optionale Feld „Drohnen-Typ“ hält je Quelle das eingesetzte Modell fest,
 ohne die technische Verarbeitung oder Empfangsadresse zu beeinflussen.
 
+RTSP-Quellen können zusätzlich eine maskierte `Vorschau-URL` erhalten. Ist
+sie gesetzt, nutzt die Liveübersicht diesen Stream anstelle der Haupt-URL.
+Für 4K-/H.265-Kameras empfiehlt sich hier ein H.264-Substream mit 720p oder
+1080p. Das reduziert Decoder-, Netzwerk- und WebRTC-Last deutlich. Eine leere
+Vorschau-URL verwendet weiterhin den Hauptstream. Snapshots und Aufnahmen der
+Quelle folgen derzeit ebenfalls dem in der Oberfläche wiedergegebenen
+Viewerpfad und verwenden damit bei gesetzter Vorschau-URL den Substream.
+
 Bei RTMP wird der Empfangspfad automatisch aus der ID erzeugt und kann nicht
 separat verändert werden. In beiden Installationsprofilen hängt die
 Oberfläche den individuellen, standardmäßig verdeckten Publisher-Token an:
@@ -475,6 +483,12 @@ Fallen mehrere verwaltete Quellen gleichzeitig aus, bleiben ihre
 exponentiellen Backoffs unabhängig. Der konkrete Wiederanlauf wird je
 Quellen-ID leicht versetzt, damit nicht bis zu acht FFmpeg-Prozesse und
 Netzwerkverbindungen im selben Moment neu aufgebaut werden.
+
+Bei verwalteten RTMP-Quellen startet FFmpeg erst, nachdem MediaMTX den
+Publisherpfad als verfügbar meldet. Eine ausgeschaltete Drohne oder ein noch
+nicht gestarteter Testpublisher wird deshalb als „Wartet auf Eingangssignal“
+angezeigt und erzeugt keine FFmpeg-Neustartschleife. Nach Eintreffen des
+Signals beginnt die Verarbeitung typischerweise innerhalb einer Sekunde.
 
 Die tiefergehende ffprobe-Paketdiagnose öffnet kurzzeitig einen zusätzlichen
 Leser am Viewerpfad der ausgewählten Quelle. Sie wird ausschließlich über den
@@ -559,7 +573,8 @@ sudo ./scripts/server-test-monitor.sh \
 Das Ziel enthält `system.log`, `services.log`, `kernel.log` und
 `metadata.txt`. Ohne `--duration` läuft die Sammlung bis `Strg+C`. Damit sind
 Publisher-, Server- und Browserseite eines Testlaufs getrennt und dauerhaft
-auswertbar.
+auswertbar. Prozessargumente und Journale werden vor dem Speichern auf
+URL-Passwörter und bekannte Token-/Passphrase-Parameter geprüft und maskiert.
 
 Bei RTSP-Netzwerkkameras ist TCP die robuste Voreinstellung. Liefert die
 Kamera trotz stabiler LAN-Verbindung kurze Aussetzer oder auffällige

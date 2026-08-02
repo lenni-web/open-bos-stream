@@ -7,9 +7,12 @@ from open_bos_stream.stream.runner import (
     RestartState,
     SourceProcess,
     _runtime_snapshot,
+    _ready_paths,
+    _waiting_for_publisher,
     _staggered_delay,
 )
 from open_bos_stream.stream.runtime_status import StreamRuntimeStatusStore
+from open_bos_stream.core.models import SourceConfig
 
 
 def test_runtime_status_roundtrip_is_atomic(tmp_path: Path) -> None:
@@ -91,3 +94,41 @@ def test_reconnect_delay_is_bounded_and_staggered_per_source() -> None:
     assert 30.0 <= first <= 36.0
     assert 30.0 <= second <= 36.0
     assert first != second
+
+
+def test_only_ready_mediamtx_paths_start_rtmp_relays() -> None:
+    assert _ready_paths([
+        {"name": "quelle-1", "ready": True},
+        {"name": "quelle-2", "ready": False},
+        {"ready": True},
+    ]) == {"quelle-1"}
+
+    rtmp = SourceConfig(
+        id="quelle-1",
+        name="Quelle 1",
+        type="rtmp",
+        profile="copy_repair",
+    )
+    rtsp = SourceConfig(
+        id="kamera-1",
+        name="Kamera 1",
+        type="rtsp",
+        url="rtsp://camera/main",
+    )
+    assert _waiting_for_publisher(rtmp, set()) is True
+    assert _waiting_for_publisher(rtmp, {"quelle-1"}) is False
+    assert _waiting_for_publisher(rtsp, set()) is False
+
+
+def test_runtime_snapshot_distinguishes_waiting_for_publisher() -> None:
+    snapshot = _runtime_snapshot(
+        ["quelle-1"],
+        {},
+        {"quelle-1": 50.0},
+        {"quelle-1": RestartState()},
+        {"quelle-1"},
+        now=50.0,
+    )
+
+    assert snapshot["quelle-1"]["state"] == "waiting_source"
+    assert snapshot["quelle-1"]["restart_count"] == 0

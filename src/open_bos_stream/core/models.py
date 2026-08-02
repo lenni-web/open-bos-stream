@@ -60,6 +60,7 @@ class SourceConfig(BaseModel):
     enabled: bool = True
     priority: int = 0
     url: str | None = None
+    preview_url: str | None = None
     device: str | None = "/dev/video0"
     width: int = 1280
     height: int = 720
@@ -103,6 +104,17 @@ class SourceConfig(BaseModel):
     def normalize_drone_type(cls, value: str) -> str:
         return value.strip()
 
+    @field_validator("preview_url", mode="before")
+    @classmethod
+    def normalize_preview_url(
+        cls,
+        value: str | None,
+    ) -> str | None:
+        if value is None:
+            return None
+        normalized = str(value).strip()
+        return normalized or None
+
     @field_validator("publish_token", mode="before")
     @classmethod
     def normalize_publish_token(
@@ -131,6 +143,17 @@ class SourceConfig(BaseModel):
                 raise ValueError(
                     f"Für die {self.type.upper()}-Quelle fehlt die URL."
                 )
+        if self.preview_url:
+            if self.type != "rtsp":
+                raise ValueError(
+                    "Eine separate Vorschau-URL wird derzeit nur für "
+                    "RTSP-Quellen unterstützt."
+                )
+            if not self.preview_url.startswith("rtsp://"):
+                raise ValueError(
+                    "Die Vorschau-URL einer RTSP-Quelle muss mit "
+                    "rtsp:// beginnen."
+                )
         if self.type == "rtmp":
             # Lokale RTMP-Publisher verwenden immer die unveränderliche ID.
             self.url = f"rtmp://127.0.0.1:1935/{self.id}"
@@ -146,6 +169,12 @@ class SourceConfig(BaseModel):
     @property
     def publish_path(self) -> str:
         return self.id
+
+    @property
+    def effective_url(self) -> str | None:
+        """Für die Browserausgabe bevorzugte, ressourcenschonende URL."""
+
+        return self.preview_url or self.url
 
     @property
     def viewer_path(self) -> str:

@@ -9,8 +9,20 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.11.7] - 2026-08-02
+
 ### Fixed
 
+- Verwaltete RTMP-Quellen warten ohne FFmpeg-Neustartschleife auf einen
+  tatsächlichen Publisher und starten nach dessen Erkennung zeitnah. Ein
+  fehlendes Eingangssignal erhöht weder Backoff noch Neustartzähler.
+- Safari und iOS setzen ein beim Verlassen des nativen Vollbildmodus pausiertes
+  Quellenvideo automatisch fort; nur bei einem fehlgeschlagenen Play-Aufruf
+  wird die einzelne WebRTC-Verbindung neu aufgebaut.
+- Der Server-Testmonitor maskiert Zugangsdaten in Prozesslisten und Journalen,
+  bevor sie in das Testarchiv geschrieben werden.
 - Die RTMP-Publisher-Authentifizierung akzeptiert Tokens sowohl im separaten
   MediaMTX-Feld als auch im Query-String älterer MediaMTX-Versionen. Ein am
   Pfad übermittelter Query-String wird vor dem Quellenvergleich entfernt;
@@ -18,12 +30,13 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ### Added
 
+- RTSP-Quellen können eine maskierte, optionale Vorschau-URL erhalten. Für die
+  Browserausgabe wird dann beispielsweise ein H.264-Substream mit 720p oder
+  1080p statt des 4K-Hauptstreams verwendet.
 - Quellen können das zusätzliche Profil „Copy-Reparatur · geringe Latenz“
   verwenden. Es behält die Zeitstempelkorrektur bei, reduziert den
   Eingangspuffer und begrenzt die RTSP-Verzögerung auf 100 ms. Das bestehende
   Reparaturprofil bleibt unverändert als robustere Alternative erhalten.
-
----
 
 ## [0.11.6] - 2026-08-02
 

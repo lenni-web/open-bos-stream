@@ -298,6 +298,35 @@ def test_rtsp_direct_copy_uses_independent_viewer_path() -> None:
     )
 
 
+def test_rtsp_preview_url_is_used_for_browser_output() -> None:
+    config = ConfigLoader().load()
+    source = SourceConfig(
+        id="reolink-preview",
+        name="Reolink Vorschau",
+        type="rtsp",
+        profile="copy_repair",
+        url="rtsp://camera/Preview_01_main",
+        preview_url="rtsp://camera/Preview_01_sub",
+    )
+
+    command = FFmpegCommandBuilder(config).build_source(source)
+
+    assert source.preview_url in command
+    assert source.url not in command
+    assert source.effective_url == source.preview_url
+
+
+def test_preview_url_is_restricted_to_rtsp_sources() -> None:
+    with pytest.raises(ValidationError):
+        SourceConfig(
+            id="http-preview",
+            name="HTTP Vorschau",
+            type="http",
+            url="https://example.test/main.m3u8",
+            preview_url="rtsp://camera/substream",
+        )
+
+
 def test_each_source_can_select_timestamp_repair() -> None:
     config = ConfigLoader().load()
     source = SourceConfig(

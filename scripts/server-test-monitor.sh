@@ -29,6 +29,12 @@ fail() {
     exit 1
 }
 
+redact_stream() {
+    sed -E \
+        -e 's#(://[^/@[:space:]]*:)[^@/[:space:]]+@#\1***@#g' \
+        -e 's#([?&](token|passphrase|password|pass)=)[^&[:space:]]+#\1***#g'
+}
+
 finish() {
     [ "${FINISHED}" = false ] || return
     FINISHED=true
@@ -47,9 +53,10 @@ finish() {
         -u open-bos-streamer.service \
         -u mediamtx.service \
         -u caddy.service \
-        >"${OUTPUT}/services.log" 2>&1 || true
+        2>&1 | redact_stream >"${OUTPUT}/services.log" || true
     journalctl --since "${STARTED_AT}" --until "${ended_at}" \
-        -k --no-pager >"${OUTPUT}/kernel.log" 2>&1 || true
+        -k --no-pager 2>&1 | redact_stream \
+        >"${OUTPUT}/kernel.log" || true
     echo "Server-Testprotokoll abgeschlossen: ${OUTPUT}"
 }
 trap finish INT TERM EXIT
@@ -82,7 +89,8 @@ echo "Ziel: ${OUTPUT}"
         uptime
         free -m
         ps -eo pid,pcpu,pmem,rss,etime,comm,args --sort=-pcpu |
-            awk 'NR == 1 || /open_bos_stream|uvicorn|ffmpeg|mediamtx|caddy/'
+            awk 'NR == 1 || /open_bos_stream|uvicorn|ffmpeg|mediamtx|caddy/' |
+            redact_stream
         echo "--- Netzwerk ---"
         cat /proc/net/dev
         echo

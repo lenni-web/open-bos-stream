@@ -188,6 +188,28 @@ function sourceSpecificFields(source) {
                 </button>
                 <small>Die Adresse bleibt bis zum bewussten Einblenden maskiert.</small>
             </div>
+            <div class="form-field form-field-wide">
+                <label>Vorschau-URL (optional)</label>
+                <input
+                    class="bos-input"
+                    data-field="preview_url"
+                    type="password"
+                    autocomplete="off"
+                    value="${escapeHTML(source.preview_url ?? "")}"
+                    placeholder="rtsp://benutzer:passwort@kamera/substream">
+                <button
+                    class="bos-button bos-button-small source-url-toggle"
+                    type="button"
+                    data-role="toggle-preview-url"
+                    aria-pressed="false">
+                    URL anzeigen und bearbeiten
+                </button>
+                <small>
+                    Wird für Livebild und Browserwiedergabe bevorzugt. Leer
+                    bedeutet: Hauptstream verwenden. Ein H.264-Substream mit
+                    720p oder 1080p entlastet Netzwerk und Browser deutlich.
+                </small>
+            </div>
             <div class="form-field">
                 <label>Transport</label>
                 <select class="bos-input" data-field="transport">
@@ -461,6 +483,24 @@ function renderSources() {
                 }
             }
         );
+        card.querySelector('[data-role="toggle-preview-url"]')?.addEventListener(
+            "click",
+            event => {
+                const input = card.querySelector('[data-field="preview_url"]');
+                const visible = input.type === "text";
+                input.type = visible ? "password" : "text";
+                event.currentTarget.textContent = visible
+                    ? "URL anzeigen und bearbeiten"
+                    : "URL wieder ausblenden";
+                event.currentTarget.setAttribute(
+                    "aria-pressed",
+                    String(!visible)
+                );
+                if (!visible) {
+                    input.focus();
+                }
+            }
+        );
     });
 
     const addButton = document.getElementById("source-add-button");
@@ -490,6 +530,7 @@ function saveSources() {
             profile: value("profile", "direct"),
             enabled: card.querySelector('[data-field="enabled"]').checked,
             url: value("url"),
+            preview_url: value("preview_url"),
             device: value("device"),
             width: Number(value("width", 1280)),
             height: Number(value("height", 720)),
@@ -530,6 +571,7 @@ function addSource() {
         profile: "direct",
         enabled: true,
         url: null,
+        preview_url: null,
         device: "/dev/video0",
         width: 1280,
         height: 720,
