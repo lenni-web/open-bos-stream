@@ -9,12 +9,19 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Die Oberfläche lässt sich auf iOS und Android als eigenständige Web-App zum
+  Home-Bildschirm hinzufügen. Manifest, App-Metadaten und Feuerwehr-Icons sind
+  für Browser, Apple Touch Icon und maskierbare Android-Icons hinterlegt.
+
 ### Fixed
 
 - RTSP-Quellen mit Vorschau-URL stellen Haupt- und Substream über getrennte
-  Viewerpfade bereit. Der Player wechselt im Vollbild auf den Hauptstream und
-  nach dem Verlassen des Vollbildmodus wieder auf die ressourcenschonende
-  Vorschau.
+  Viewerpfade bereit. Der Hauptstream-Relay startet erst beim Vollbildaufruf,
+  wird zwischen mehreren Nutzern geteilt und nach einer Nachlaufzeit wieder
+  beendet. Während des Starts oder bei einem Fehler bleibt die Vorschau aktiv;
+  nach dem Vollbild wechselt der Player zuverlässig dorthin zurück.
 
 ---
 
