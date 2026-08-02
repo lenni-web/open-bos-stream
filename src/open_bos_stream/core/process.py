@@ -130,7 +130,11 @@ class ProcessRunner:
             duration=time.monotonic() - started,
         )
         logger.log(
-            logging.DEBUG if result.ok else logging.WARNING,
+            (
+                logging.DEBUG
+                if result.ok or not check
+                else logging.WARNING
+            ),
             "Prozess beendet: command=%s code=%s duration=%.2fs",
             args[0],
             result.returncode,

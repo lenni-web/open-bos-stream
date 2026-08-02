@@ -241,7 +241,7 @@ lässt ihn geöffnet. Anschließend verwaltet er folgende Open-BOS-Regeln:
 | 80 | TCP | HTTP und ACME-Prüfung |
 | 443 | TCP | HTTPS, WHEP und HLS |
 | 1935 | TCP | RTMP-Publisher |
-| 8189 | UDP | WebRTC-Medien |
+| 8189 | UDP und TCP | WebRTC-Medien mit TCP-Rückfallweg |
 
 Ohne HTTPS werden statt 80/443 die direkten Ports 8000, 8888 und 8889
 freigegeben. Eine zusätzliche Firewall des vServer-Anbieters kann der
@@ -500,7 +500,10 @@ ein synthetischer H.264/AAC-Clip erzeugt werden:
 
 Die erzeugte Datei liegt unter `testdata/open-bos-test-720p.mp4`, wird wegen
 ihrer Größe nicht in Git aufgenommen und enthält 60 Sekunden 720p/25 FPS mit
-einem synthetischen Tonsignal. Anschließend werden die in den Einstellungen
+einem synthetischen Tonsignal. Das H.264-Baseline-Signal wird ausdrücklich
+ohne B-Frames erzeugt, da diese in WebRTC nicht unterstützt werden. Das
+Publisher-Skript lehnt fremde Testclips mit erkannten B-Frames vor dem Start
+ab. Anschließend werden die in den Einstellungen
 angezeigten zwölfstelligen Publisher-Tokens in eine lokale Datei geschrieben:
 
 ```text
@@ -555,6 +558,15 @@ Das Ziel enthält `system.log`, `services.log`, `kernel.log` und
 `metadata.txt`. Ohne `--duration` läuft die Sammlung bis `Strg+C`. Damit sind
 Publisher-, Server- und Browserseite eines Testlaufs getrennt und dauerhaft
 auswertbar.
+
+Bei RTSP-Netzwerkkameras ist TCP die robuste Voreinstellung. Liefert die
+Kamera trotz stabiler LAN-Verbindung kurze Aussetzer oder auffällige
+Zeitstempel, kann pro Quelle „Copy mit Zeitstempel-Korrektur“ gewählt werden.
+Für RTSP bleibt dabei – anders als beim aggressiven RTMP-Latenzmodus – ein
+moderater FFmpeg-Eingangspuffer erhalten. Das glättet kleine Schwankungen,
+kann die Latenz aber geringfügig erhöhen. Erst wenn die Systemdiagnose danach
+weiterhin Drop-/Dup-Frames oder fehlenden Fortschritt meldet, sollte ein
+Transcoding-Profil oder der Kamera-Substream geprüft werden.
 
 ## Benutzer und Rollen
 

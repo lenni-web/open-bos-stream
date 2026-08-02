@@ -14,8 +14,8 @@ def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_release_version_is_0_11_5() -> None:
-    assert VERSION == "0.11.5"
+def test_release_version_is_0_11_6() -> None:
+    assert VERSION == "0.11.6"
 
 
 def test_server_profile_can_be_selected_from_environment(
@@ -208,4 +208,7 @@ def test_firewall_preserves_ssh_and_warns_about_rtmp() -> None:
     assert 'sudo sshd -T' in script
     assert 'sudo ufw allow "${ssh_port}/tcp"' in script
     assert 'sudo ufw allow 1935/tcp comment "RTMP Publisher Token"' in script
+    assert "webrtcLocalTCPAddress: :8189" in script
+    assert 'sudo ufw allow 8189/tcp comment "MediaMTX WebRTC TCP fallback"' in script
+    assert 'sudo ufw allow 8189/udp comment "MediaMTX WebRTC"' in script
     assert "Publisher benötigen aber einen Token" in script

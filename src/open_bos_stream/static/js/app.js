@@ -49,8 +49,10 @@ window.addEventListener("load", async () => {
     if (window.currentUser?.role === "superadmin") {
         refreshSnapshot();
         refreshMediaLibrary();
-        await loadDisplayConfig();
-        await loadWebAccessConfig();
+        if (window.installationProfile === "local") {
+            await loadDisplayConfig();
+            await loadWebAccessConfig();
+        }
         await loadUsers();
     }
 
@@ -76,7 +78,10 @@ window.addEventListener("load", async () => {
 	    2000
 	);
 
-    if (window.currentUser?.role === "superadmin") {
+    if (
+        window.currentUser?.role === "superadmin" &&
+        window.installationProfile === "local"
+    ) {
         setInterval(refreshDisplayStatus, 3000);
         setInterval(refreshWebAccessStatus, 3000);
     }

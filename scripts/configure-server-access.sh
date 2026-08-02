@@ -210,6 +210,7 @@ if [ "${WEBRTC_MODE}" = "public" ]; then
         echo
         printf 'webrtcAdditionalHosts: [%s]\n' "${DOMAIN}"
         echo 'webrtcLocalUDPAddress: :8189'
+        echo 'webrtcLocalTCPAddress: :8189'
     } >> "${mediamtx_tmp}"
 fi
 sudo install -m 0644 "${mediamtx_tmp}" "${PROFILE_DIR}/mediamtx.yml"
@@ -237,6 +238,7 @@ if [ "${FIREWALL_MODE}" = "configure" ]; then
         8888/tcp \
         8889/tcp \
         1935/tcp \
+        8189/tcp \
         8189/udp
     do
         sudo ufw --force delete allow "${rule}" >/dev/null 2>&1 || true
@@ -251,6 +253,7 @@ if [ "${FIREWALL_MODE}" = "configure" ]; then
         sudo ufw allow 8889/tcp comment "MediaMTX WHEP"
     fi
     sudo ufw allow 1935/tcp comment "RTMP Publisher Token"
+    sudo ufw allow 8189/tcp comment "MediaMTX WebRTC TCP fallback"
     sudo ufw allow 8189/udp comment "MediaMTX WebRTC"
     sudo ufw --force enable
     sudo ufw status verbose

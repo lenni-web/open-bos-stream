@@ -391,6 +391,10 @@ def test_multi_source_test_tools_are_documented_and_keep_tokens_local() -> None:
 
     assert "testsrc2=size=1280x720:rate=25" in generator
     assert "-c:v libx264" in generator
+    assert "-profile:v baseline" in generator
+    assert "-bf 0" in generator
+    assert "has_b_frames" in publisher
+    assert "type:B" in publisher
     assert "--tokens-file" in publisher
     assert "chmod 600" in publisher
     assert "-stream_loop -1" in publisher
@@ -428,6 +432,20 @@ def test_persistent_browser_and_server_test_logging_are_available() -> None:
     assert "journalctl" in monitor
     assert "open-bos-streamer.service" in monitor
     assert "/proc/net/dev" in monitor
+
+
+def test_server_profile_skips_local_display_and_web_proxy_polling() -> None:
+    index = (ROOT / "templates" / "index.html").read_text(
+        encoding="utf-8"
+    )
+    app = (ROOT / "static" / "js" / "app.js").read_text(
+        encoding="utf-8"
+    )
+    web = (ROOT / "api" / "web.py").read_text(encoding="utf-8")
+
+    assert "window.installationProfile" in index
+    assert 'window.installationProfile === "local"' in app
+    assert '"installation_profile": installation_profile()' in web
 
 
 def test_login_page_has_product_identity_and_description() -> None:

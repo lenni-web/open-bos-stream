@@ -11,6 +11,31 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.11.6] - 2026-08-02
+
+### Fixed
+
+- Der synthetische Testclip verwendet H.264 Baseline ohne B-Frames und ist
+  damit für die WebRTC-Ausgabe geeignet. Das Publisher-Skript lehnt erkannte
+  B-Frames vor einem Testlauf ab.
+- Statische Software-, Betriebssystem- und Hardwareinformationen werden nur
+  einmal je Anwendungslauf ermittelt. Dashboard-Polling startet daher nicht
+  mehr sekündlich `ffmpeg -version` und `lsb_release`.
+- Das Serverprofil fragt weder lokalen Displaydienst noch lokalen
+  Port-80-Socketproxy regelmäßig ab. Erwartete negative Statusprüfungen werden
+  außerdem nicht mehr als Prozesswarnung protokolliert.
+
+### Changed
+
+- Das RTSP-Reparaturprofil erhält einen moderaten Eingangspuffer und repariert
+  Zeitstempel, ohne mit `nobuffer` und `max_delay 0` sämtliche Glättung zu
+  deaktivieren.
+- Öffentliches WebRTC bietet neben UDP 8189 einen TCP-Rückfallweg auf
+  demselben Port. Der verwaltete UFW-Regelsatz berücksichtigt beide
+  Transportprotokolle.
+
+---
+
 ## [0.11.5] - 2026-08-02
 
 ### Added
