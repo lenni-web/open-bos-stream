@@ -75,13 +75,9 @@ class RTSPInputBuilder(InputBuilder):
                 "-thread_queue_size",
                 "512",
                 "-fflags",
-                "+genpts+discardcorrupt+nobuffer",
-                "-flags",
-                "low_delay",
+                "+genpts+discardcorrupt",
                 "-use_wallclock_as_timestamps",
                 "1",
-                "-max_delay",
-                "0",
             ])
 
         command.extend([

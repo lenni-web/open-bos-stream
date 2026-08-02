@@ -190,6 +190,12 @@ function sourceSpecificFields(source) {
                     <option value="tcp" ${source.transport !== "udp" ? "selected" : ""}>TCP</option>
                     <option value="udp" ${source.transport === "udp" ? "selected" : ""}>UDP</option>
                 </select>
+                <small>
+                    TCP ist in normalen Netzwerken robuster. Bei kurzen
+                    Aussetzern kann zusätzlich das Profil „Copy mit
+                    Zeitstempel-Korrektur“ einen moderaten Eingangspuffer
+                    verwenden; die Latenz steigt dabei geringfügig.
+                </small>
             </div>
         `;
     }

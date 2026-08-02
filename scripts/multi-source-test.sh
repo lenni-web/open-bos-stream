@@ -117,11 +117,20 @@ if command -v "${FFPROBE_BIN}" >/dev/null 2>&1; then
         -show_entries stream=codec_name -of csv=p=0 "${VIDEO}")"
     [ "${video_codec}" = "h264" ] ||
         fail "Das Testvideo muss H.264 enthalten (gefunden: ${video_codec:-nichts})."
+    has_b_frames="$("${FFPROBE_BIN}" -v error -select_streams v:0 \
+        -show_entries stream=has_b_frames -of csv=p=0 "${VIDEO}")"
+    [ "${has_b_frames}" = "0" ] ||
+        fail "Das Testvideo enthält B-Frames und ist nicht WebRTC-kompatibel."
 else
     video_info="$("${FFMPEG_BIN}" -hide_banner -i "${VIDEO}" \
         -t 0 -f null - 2>&1 || true)"
     grep -q 'Video: h264' <<<"${video_info}" ||
         fail "Das Testvideo enthält keinen erkennbaren H.264-Stream."
+    frame_info="$("${FFMPEG_BIN}" -hide_banner -loglevel info \
+        -i "${VIDEO}" -an -t 5 -vf showinfo -f null - 2>&1 || true)"
+    if grep -q 'type:B' <<<"${frame_info}"; then
+        fail "Das Testvideo enthält B-Frames und ist nicht WebRTC-kompatibel."
+    fi
 fi
 
 token_for() {

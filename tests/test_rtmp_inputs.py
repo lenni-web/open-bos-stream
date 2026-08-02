@@ -314,6 +314,29 @@ def test_each_source_can_select_timestamp_repair() -> None:
     assert "rtsp://127.0.0.1:8554/drohne-2-view" in command
 
 
+def test_rtsp_repair_keeps_a_moderate_input_buffer() -> None:
+    config = ConfigLoader().load()
+    source = SourceConfig(
+        id="kamera-2",
+        name="Kamera 2",
+        type="rtsp",
+        profile="copy_repair",
+        url="rtsp://192.0.2.20/stream",
+        transport="tcp",
+    )
+
+    command = FFmpegCommandBuilder(config).build_source(source)
+
+    assert "+genpts+discardcorrupt" in command
+    assert "+genpts+discardcorrupt+nobuffer" not in command
+    assert "low_delay" not in command
+    assert "-max_delay" not in command
+    assert ["-thread_queue_size", "512"] == command[
+        command.index("-thread_queue_size"):
+        command.index("-thread_queue_size") + 2
+    ]
+
+
 def test_network_credentials_are_redacted_from_runner_logs() -> None:
     assert _redact(
         "rtsp://admin:secret@192.168.1.50:554/stream"

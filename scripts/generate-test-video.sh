@@ -64,10 +64,10 @@ echo "Erzeuge ${DURATION} Sekunden synthetisches 720p-Testvideo ..."
     -f lavfi -i "sine=frequency=1000:sample_rate=48000" \
     -t "${DURATION}" \
     -map 0:v:0 -map 1:a:0 \
-    -c:v libx264 -preset veryfast \
-    -profile:v high -level:v 3.1 -pix_fmt yuv420p \
+    -c:v libx264 -preset veryfast -tune zerolatency \
+    -profile:v baseline -level:v 3.1 -pix_fmt yuv420p \
     -b:v 2M -maxrate 2M -bufsize 4M \
-    -g 50 -keyint_min 50 -sc_threshold 0 \
+    -g 50 -keyint_min 50 -sc_threshold 0 -bf 0 \
     -c:a aac -b:a 96k -ar 48000 -ac 1 \
     -movflags +faststart \
     -f mp4 \

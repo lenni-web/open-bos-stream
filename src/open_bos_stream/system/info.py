@@ -26,6 +26,7 @@ from open_bos_stream.core.models import (
 class SystemInfoService:
     def __init__(self, runner: ProcessRunner | None = None) -> None:
         self._runner = runner or ProcessRunner()
+        self._cached: SystemInfo | None = None
 
     def _distribution(self) -> str:
 
@@ -154,9 +155,12 @@ class SystemInfoService:
 
     def info(self) -> SystemInfo:
 
+        if self._cached is not None:
+            return self._cached
+
         interface = self._interface()
 
-        return SystemInfo(
+        self._cached = SystemInfo(
 
             application=ApplicationInfo(
                 name=APP_NAME,
@@ -187,3 +191,5 @@ class SystemInfoService:
             ),
 
         )
+
+        return self._cached
