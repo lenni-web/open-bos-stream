@@ -17,9 +17,11 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 - RTMP-Quellen können testweise das Profil „Mehrquellen-Vorschau“ verwenden.
   Es erzeugt für die Übersicht eine WebRTC-freundliche H.264-Vorschau mit
-  maximal 960×540 Pixeln, 15 fps, 1,2 Mbit/s und ohne Audio. Das Seitenverhältnis
+  maximal 960×540 Pixeln, 15 fps, 1,4 Mbit/s und ohne Audio. Das Seitenverhältnis
   bleibt erhalten, kleinere Eingangsbilder werden nicht hochskaliert und im
   Vollbild wird automatisch auf den unveränderten Originalstream gewechselt.
+  Das `ultrafast`-Preset und eine einzelne FPS-Normalisierung reduzieren die
+  CPU-Last gegenüber dem ersten Testprofil.
 
 ### Fixed
 

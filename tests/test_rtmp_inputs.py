@@ -429,6 +429,16 @@ def test_rtmp_preview_profile_scales_without_upscaling() -> None:
     assert ["-bf", "0"] == command[
         command.index("-bf"):command.index("-bf") + 2
     ]
+    assert ["-preset", "ultrafast"] == command[
+        command.index("-preset"):command.index("-preset") + 2
+    ]
+    assert ["-b:v", "1400k"] == command[
+        command.index("-b:v"):command.index("-b:v") + 2
+    ]
+    assert ["-maxrate", "1600k"] == command[
+        command.index("-maxrate"):command.index("-maxrate") + 2
+    ]
+    assert "-fps_mode" not in command
     assert "-an" in command
     assert "-c:a" not in command
     assert command[-1] == (
