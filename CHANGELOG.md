@@ -9,6 +9,13 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Quellen können das zusätzliche Profil „Copy-Reparatur · geringe Latenz“
+  verwenden. Es behält die Zeitstempelkorrektur bei, reduziert den
+  Eingangspuffer und begrenzt die RTSP-Verzögerung auf 100 ms. Das bestehende
+  Reparaturprofil bleibt unverändert als robustere Alternative erhalten.
+
 ---
 
 ## [0.11.6] - 2026-08-02

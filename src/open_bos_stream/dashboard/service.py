@@ -164,7 +164,10 @@ class DashboardService:
             stream_running
             and mediamtx.ready
             and timestamp_warning
-            and self._config.input.mode == "copy_repair"
+            and self._config.input.mode in {
+                "copy_repair",
+                "copy_repair_low_latency",
+            }
         ):
             stream_state = "repairing"
             stream_message = (

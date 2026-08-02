@@ -16,6 +16,10 @@ function sourceProfileOptions(selected) {
     const profiles = [
         ["direct", "Direkt / Stream Copy"],
         ["copy_repair", "Copy mit Zeitstempel-Korrektur"],
+        [
+            "copy_repair_low_latency",
+            "Copy-Reparatur · geringe Latenz",
+        ],
         ["transcode", "Transcodieren"],
     ];
     return profiles.map(([value, label]) => `

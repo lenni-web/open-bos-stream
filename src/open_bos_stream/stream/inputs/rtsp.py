@@ -70,7 +70,21 @@ class RTSPInputBuilder(InputBuilder):
             transport,
         ]
 
-        if getattr(source, "profile", None) == "copy_repair":
+        profile = getattr(source, "profile", None)
+        if profile == "copy_repair_low_latency":
+            command.extend([
+                "-thread_queue_size",
+                "128",
+                "-fflags",
+                "+genpts+discardcorrupt+nobuffer",
+                "-flags",
+                "low_delay",
+                "-use_wallclock_as_timestamps",
+                "1",
+                "-max_delay",
+                "100000",
+            ])
+        elif profile == "copy_repair":
             command.extend([
                 "-thread_queue_size",
                 "512",

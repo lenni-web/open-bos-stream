@@ -88,7 +88,11 @@ class FFmpegCommandBuilder:
         stream = self._config.stream.model_copy(deep=True)
 
         if source_override is not None:
-            if source.profile in {"direct", "copy_repair"}:
+            if source.profile in {
+                "direct",
+                "copy_repair",
+                "copy_repair_low_latency",
+            }:
                 encoder.codec = "copy"
             elif source.codec:
                 encoder.codec = source.codec
@@ -203,7 +207,10 @@ class FFmpegCommandBuilder:
                     ),
                 ])
 
-        if getattr(source, "profile", None) == "copy_repair":
+        if getattr(source, "profile", None) in {
+            "copy_repair",
+            "copy_repair_low_latency",
+        }:
             command.extend([
                 "-fps_mode",
                 "passthrough",
@@ -281,8 +288,11 @@ class FFmpegCommandBuilder:
 
         runtime_source = source.model_copy(deep=True)
         runtime_source.mode = (
-            "copy_repair"
-            if source.profile == "copy_repair"
+            source.profile
+            if source.profile in {
+                "copy_repair",
+                "copy_repair_low_latency",
+            }
             else "copy"
         )
         return self.build(source_override=runtime_source)

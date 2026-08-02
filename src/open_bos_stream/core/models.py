@@ -54,6 +54,7 @@ class SourceConfig(BaseModel):
     profile: Literal[
         "direct",
         "copy_repair",
+        "copy_repair_low_latency",
         "transcode",
     ] = "direct"
     enabled: bool = True
@@ -456,8 +457,11 @@ class AppConfig(BaseModel):
             )
             self.input.type = primary.type
             self.input.mode = (
-                "copy_repair"
-                if primary.profile == "copy_repair"
+                primary.profile
+                if primary.profile in {
+                    "copy_repair",
+                    "copy_repair_low_latency",
+                }
                 else (
                     "transcode"
                     if primary.profile == "transcode"

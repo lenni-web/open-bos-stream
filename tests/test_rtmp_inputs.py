@@ -337,6 +337,54 @@ def test_rtsp_repair_keeps_a_moderate_input_buffer() -> None:
     ]
 
 
+def test_rtmp_low_latency_repair_reduces_input_queue() -> None:
+    config = ConfigLoader().load()
+    source = SourceConfig(
+        id="drohne-low",
+        name="Drohne Low Latency",
+        type="rtmp",
+        profile="copy_repair_low_latency",
+    )
+
+    command = FFmpegCommandBuilder(config).build_source(source)
+
+    assert ["-thread_queue_size", "128"] == command[
+        command.index("-thread_queue_size"):
+        command.index("-thread_queue_size") + 2
+    ]
+    assert "+genpts+discardcorrupt+nobuffer" in command
+    assert ["-max_delay", "100000"] == command[
+        command.index("-max_delay"):command.index("-max_delay") + 2
+    ]
+    assert ["-c:v", "copy"] == command[
+        command.index("-c:v"):command.index("-c:v") + 2
+    ]
+
+
+def test_rtsp_low_latency_repair_uses_bounded_delay() -> None:
+    config = ConfigLoader().load()
+    source = SourceConfig(
+        id="kamera-low",
+        name="Kamera Low Latency",
+        type="rtsp",
+        profile="copy_repair_low_latency",
+        url="rtsp://192.0.2.21/stream",
+        transport="tcp",
+    )
+
+    command = FFmpegCommandBuilder(config).build_source(source)
+
+    assert ["-thread_queue_size", "128"] == command[
+        command.index("-thread_queue_size"):
+        command.index("-thread_queue_size") + 2
+    ]
+    assert "+genpts+discardcorrupt+nobuffer" in command
+    assert "low_delay" in command
+    assert ["-max_delay", "100000"] == command[
+        command.index("-max_delay"):command.index("-max_delay") + 2
+    ]
+
+
 def test_network_credentials_are_redacted_from_runner_logs() -> None:
     assert _redact(
         "rtsp://admin:secret@192.168.1.50:554/stream"
