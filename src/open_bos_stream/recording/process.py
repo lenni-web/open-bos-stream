@@ -7,6 +7,7 @@ Verwaltet den Lebenszyklus eines FFmpeg-Aufnahmeprozesses.
 from __future__ import annotations
 
 import logging
+import signal
 import subprocess
 import time
 
@@ -18,6 +19,7 @@ class RecordingProcess:
 
     def __init__(self) -> None:
         self._process: subprocess.Popen | None = None
+        self.last_error = ""
 
     @property
     def running(self) -> bool:
@@ -82,18 +84,19 @@ class RecordingProcess:
                 f"Recording konnte nicht gestartet werden: {exc}"
             ) from exc
 
-    def stop(self) -> None:
-        """Beendet den Aufnahmeprozess."""
+    def stop(self) -> int:
+        """Beendet FFmpeg kontrolliert und liefert dessen Exit-Code."""
 
-        if not self.running:
-            return
+        if self._process is None:
+            return 0
 
         logger.info("Stopping recording process")
 
-        self._process.terminate()
+        if self._process.poll() is None:
+            self._process.send_signal(signal.SIGINT)
 
         try:
-            self._process.wait(timeout=5)
+            _, stderr = self._process.communicate(timeout=10)
 
         except subprocess.TimeoutExpired:
 
@@ -102,6 +105,9 @@ class RecordingProcess:
             )
 
             self._process.kill()
-            self._process.wait()
+            _, stderr = self._process.communicate()
 
+        returncode = int(self._process.returncode or 0)
+        self.last_error = (stderr or "").strip()
         self._process = None
+        return returncode

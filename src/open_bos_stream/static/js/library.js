@@ -49,7 +49,7 @@ function playRecording(filename) {
 
         "🎬 " + filename,
 
-        "/recording/play/" + filename
+        "/recording/play-compatible/" + filename
 
     );
 

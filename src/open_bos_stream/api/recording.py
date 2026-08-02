@@ -4,20 +4,24 @@ Recording API
 
 from __future__ import annotations
 
-import subprocess
-
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse
+from starlette.concurrency import run_in_threadpool
 
 from open_bos_stream.core.container import (
     recording_library,
     recording_service,
+)
+from open_bos_stream.recording.playback import (
+    PlaybackPreparationError,
+    RecordingPlaybackCache,
 )
 
 router = APIRouter(
     prefix="/recording",
     tags=["Recording"],
 )
+playback_cache = RecordingPlaybackCache(recording_library.directory)
 
 
 @router.get("/status")
@@ -110,7 +114,7 @@ async def play(filename: str):
 
 @router.get("/play-compatible/{filename}")
 async def play_compatible(filename: str):
-    """Transkodiert ältere oder browserfremde Aufnahmen beim Abspielen."""
+    """Liefert eine vollständig abgeschlossene, browserkompatible MP4-Datei."""
 
     file = recording_library.get_file(filename)
     if file is None:
@@ -119,51 +123,28 @@ async def play_compatible(filename: str):
             detail="Aufnahme nicht gefunden.",
         )
 
-    def stream():
-        process = subprocess.Popen(
-            [
-                "ffmpeg",
-                "-hide_banner",
-                "-loglevel", "error",
-                "-nostdin",
-                "-i", str(file),
-                "-map", "0:v:0",
-                "-map", "0:a:0?",
-                "-c:v", "libx264",
-                "-preset", "ultrafast",
-                "-tune", "zerolatency",
-                "-pix_fmt", "yuv420p",
-                "-c:a", "aac",
-                "-movflags", "frag_keyframe+empty_moov+default_base_moof",
-                "-f", "mp4",
-                "pipe:1",
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL,
-        )
-        try:
-            assert process.stdout is not None
-            while chunk := process.stdout.read(64 * 1024):
-                yield chunk
-        finally:
-            if process.poll() is None:
-                process.terminate()
-            try:
-                process.wait(timeout=3)
-            except subprocess.TimeoutExpired:
-                process.kill()
+    try:
+        compatible = await run_in_threadpool(playback_cache.prepare, file)
+    except PlaybackPreparationError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Aufnahme konnte nicht aufbereitet werden: {exc}",
+        ) from exc
 
-    return StreamingResponse(
-        stream(),
+    return FileResponse(
+        path=compatible,
         media_type="video/mp4",
-        headers={"Cache-Control": "no-store"},
+        filename=None,
     )
 
 
 @router.delete("/{filename}")
 async def delete(filename: str):
-
+    file = recording_library.get_file(filename)
     success = recording_library.delete(filename)
+
+    if success and file is not None:
+        await run_in_threadpool(playback_cache.remove, file)
 
     return {
         "success": success,

@@ -265,10 +265,18 @@ function showVideo(title, src) {
     }
 
     if (placeholder) {
-        placeholder.style.display = "none";
+        placeholder.style.display = "flex";
+        placeholder.innerHTML = `
+            <span class="empty-state-icon" aria-hidden="true">…</span>
+            <strong>Video wird vorbereitet</strong>
+            <span>
+                Die browserkompatible Wiedergabedatei wird geladen. Bei der
+                ersten Wiedergabe kann dies einen Moment dauern.
+            </span>
+        `;
     }
 
-    video.style.display = "block";
+    video.style.display = "none";
     video.setAttribute(
         "aria-label",
         title
@@ -350,6 +358,13 @@ function bindMediaVideoErrors() {
     }
     video.dataset.errorBound = "true";
     video.addEventListener("error", () => tryCompatibleMediaPlayback(video));
+    video.addEventListener("canplay", () => {
+        video.style.display = "block";
+        const placeholder = document.getElementById("media-placeholder");
+        if (placeholder) {
+            placeholder.style.display = "none";
+        }
+    });
 }
 
 function showImage(title, src) {

@@ -103,12 +103,13 @@ class RecordingService:
     def stop(self) -> None:
         """Aufnahme stoppen."""
 
-        self._manager.stop()
-
-        self._status.recording = False
-        self._status.started_at = None
-        self._status.duration = 0
-        self._status.pid = None
+        try:
+            self._manager.stop()
+        finally:
+            self._status.recording = False
+            self._status.started_at = None
+            self._status.duration = 0
+            self._status.pid = None
 
     def _selected_source(self):
         selected_id = self._config.media_capture.source_id
