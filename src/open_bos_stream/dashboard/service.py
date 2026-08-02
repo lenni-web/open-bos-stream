@@ -305,6 +305,7 @@ class DashboardService:
                     "drone_type": item.drone_type,
                     "type": item.type,
                     "profile": item.profile,
+                    "preview_active": bool(item.preview_url),
                     "path": item.publish_path,
                     "viewer_path": item.viewer_path,
                     "publish_url": (

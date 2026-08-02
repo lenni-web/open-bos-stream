@@ -14,4 +14,4 @@ logs/*
 mapdata/*
 testdata/*.mp4
 test-results/
-test-tokens.env
+test-tokens.env*

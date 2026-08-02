@@ -236,6 +236,9 @@ def test_each_source_player_has_fullscreen_control() -> None:
     assert "multi-source-fullscreen" in source_js
     assert "card.requestFullscreen()" in source_js
     assert "video.webkitEnterFullscreen()" in source_js
+    assert '"webkitendfullscreen"' in source_js
+    assert "resumeSourcePlayback" in source_js
+    assert '"fullscreenchange"' in source_js
     assert "deferUnavailableStop(4000)" in source_js
 
 
@@ -437,7 +440,7 @@ def test_multi_source_test_tools_are_documented_and_keep_tokens_local() -> None:
     assert "Reproduzierbarer Mehrquellen-Dauertest" in readme
     assert "testdata/*.mp4" in ignore
     assert "test-results/" in ignore
-    assert "test-tokens.env" in ignore
+    assert "test-tokens.env*" in ignore
 
 
 def test_persistent_browser_and_server_test_logging_are_available() -> None:
@@ -466,6 +469,18 @@ def test_persistent_browser_and_server_test_logging_are_available() -> None:
     assert "journalctl" in monitor
     assert "open-bos-streamer.service" in monitor
     assert "/proc/net/dev" in monitor
+    assert "redact_stream" in monitor
+    assert "passphrase|password|pass" in monitor
+
+
+def test_rtsp_sources_offer_a_masked_preview_url() -> None:
+    source_js = (
+        ROOT / "static" / "js" / "config_rtmp_inputs.js"
+    ).read_text(encoding="utf-8")
+
+    assert 'data-field="preview_url"' in source_js
+    assert 'data-role="toggle-preview-url"' in source_js
+    assert "H.264-Substream" in source_js
 
 
 def test_server_profile_skips_local_display_and_web_proxy_polling() -> None:

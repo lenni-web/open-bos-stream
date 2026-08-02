@@ -23,6 +23,49 @@ function sourceCardIsFullscreen(entry) {
     );
 }
 
+function resumeSourcePlayback(entry, reason) {
+    const video = entry?.card?.querySelector("video");
+    if (
+        !video ||
+        !entry.lastInput?.ready ||
+        !entry.player.currentStream ||
+        !video.paused
+    ) {
+        return;
+    }
+    window.setTimeout(() => {
+        if (!video.paused || !entry.lastInput?.ready) {
+            return;
+        }
+        video.play().catch(() => {
+            entry.player.reconnect(reason);
+        });
+    }, 100);
+}
+
+function resumePlayersAfterFullscreen() {
+    if (document.fullscreenElement) {
+        return;
+    }
+    for (const entry of multiSourcePlayers.values()) {
+        resumeSourcePlayback(entry, "Vollbildmodus beendet");
+    }
+}
+
+document.addEventListener(
+    "fullscreenchange",
+    resumePlayersAfterFullscreen
+);
+document.addEventListener(
+    "webkitfullscreenchange",
+    resumePlayersAfterFullscreen
+);
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+        resumePlayersAfterFullscreen();
+    }
+});
+
 function playerRecoveryState() {
     return {
         attempts: 0,
@@ -338,9 +381,19 @@ function updateMultiSources(inputs = []) {
                 player: new window.LivePlayer(video),
                 viewerPath: input.viewer_path,
                 recovery: playerRecoveryState(),
+                lastInput: input,
             };
+            video.addEventListener(
+                "webkitendfullscreen",
+                () => resumeSourcePlayback(
+                    entry,
+                    "Safari-Vollbildmodus beendet"
+                )
+            );
             multiSourcePlayers.set(input.id, entry);
         }
+
+        entry.lastInput = input;
 
         entry.card.querySelector(
             ".multi-source-card-header strong"
@@ -348,7 +401,8 @@ function updateMultiSources(inputs = []) {
         entry.card.querySelector(
             ".multi-source-card-header small"
         ).textContent =
-            `${input.type} · ${input.profile}`;
+            `${input.type} · ${input.profile}` +
+            (input.preview_active ? " · Vorschau" : "");
         entry.card.querySelector(
             ".multi-source-placeholder small"
         ).textContent = input.publish_url;

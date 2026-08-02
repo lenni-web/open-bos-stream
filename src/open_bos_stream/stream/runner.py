@@ -14,6 +14,8 @@ from urllib.parse import urlsplit, urlunsplit
 import psutil
 
 from open_bos_stream.core.config import ConfigLoader
+from open_bos_stream.core.models import SourceConfig
+from open_bos_stream.mediamtx.client import MediaMTXClient
 from open_bos_stream.stream.command import FFmpegCommandBuilder
 from open_bos_stream.stream.exceptions import ConfigurationError
 from open_bos_stream.stream.progress import FFmpegProgress
@@ -81,6 +83,26 @@ def _staggered_delay(source_id: str, base_delay: float) -> float:
     return min(36.0, base_delay * (1.0 + bucket / 100.0))
 
 
+def _ready_paths(items: list[dict]) -> set[str]:
+    """Extrahiert tatsächlich verfügbare Publisherpfade aus MediaMTX."""
+
+    return {
+        str(item.get("name"))
+        for item in items
+        if item.get("name") and item.get("ready")
+    }
+
+
+def _waiting_for_publisher(
+    source: SourceConfig,
+    ready_paths: set[str],
+) -> bool:
+    return (
+        source.type == "rtmp"
+        and source.publish_path not in ready_paths
+    )
+
+
 def _read_progress(runtime: SourceProcess) -> None:
     """Leert die FFmpeg-Pipe und aktualisiert den Medienfortschritt."""
 
@@ -108,17 +130,23 @@ def _runtime_snapshot(
     processes: dict[str, SourceProcess],
     restart_at: dict[str, float],
     restart_states: dict[str, RestartState],
+    waiting_for_source: set[str] | None = None,
     *,
     now: float,
 ) -> dict[str, dict]:
     snapshot: dict[str, dict] = {}
+    waiting_for_source = waiting_for_source or set()
     wall_now = time.time()
     for source_id in source_ids:
         runtime = processes.get(source_id)
         restart = restart_states[source_id]
         if runtime is None:
             snapshot[source_id] = {
-                "state": "waiting_restart",
+                "state": (
+                    "waiting_source"
+                    if source_id in waiting_for_source
+                    else "waiting_restart"
+                ),
                 "restart_in": max(0.0, restart_at[source_id] - now),
                 "restart_count": restart.count,
                 "last_restart_reason": restart.last_reason,
@@ -206,11 +234,16 @@ def main() -> int:
         return 0
 
     builder = FFmpegCommandBuilder(config)
+    sources_by_id = {source.id: source for source in sources}
+    mediamtx = MediaMTXClient(timeout=0.75)
     commands: dict[str, list[str]] = {}
     processes: dict[str, SourceProcess] = {}
     restart_at: dict[str, float] = {}
     backoff: dict[str, float] = {}
     restart_states: dict[str, RestartState] = {}
+    waiting_for_source: set[str] = set()
+    available_rtmp_paths: set[str] = set()
+    last_path_check = 0.0
     status_store = StreamRuntimeStatusStore()
     last_status_write = 0.0
     stopping = False
@@ -242,9 +275,34 @@ def main() -> int:
 
         while not stopping:
             now = time.monotonic()
+            if now - last_path_check >= 0.75:
+                available_rtmp_paths = _ready_paths(mediamtx.paths())
+                last_path_check = now
             for source_id, command in commands.items():
+                source = sources_by_id[source_id]
                 runtime = processes.get(source_id)
                 if runtime is None:
+                    if _waiting_for_publisher(
+                        source,
+                        available_rtmp_paths,
+                    ):
+                        if source_id not in waiting_for_source:
+                            print(
+                                f"Quelle {source_id}: warte auf "
+                                "RTMP-Publisher.",
+                                flush=True,
+                            )
+                        waiting_for_source.add(source_id)
+                        restart_at[source_id] = now
+                        backoff[source_id] = 1.0
+                        continue
+                    if source_id in waiting_for_source:
+                        print(
+                            f"Quelle {source_id}: RTMP-Publisher erkannt; "
+                            "Verarbeitung startet.",
+                            flush=True,
+                        )
+                        waiting_for_source.discard(source_id)
                     if now < restart_at[source_id]:
                         continue
                     try:
@@ -296,6 +354,20 @@ def main() -> int:
                 process = runtime.process
                 returncode = process.poll()
                 if returncode is not None:
+                    if _waiting_for_publisher(
+                        source,
+                        available_rtmp_paths,
+                    ):
+                        processes.pop(source_id, None)
+                        waiting_for_source.add(source_id)
+                        restart_at[source_id] = now
+                        backoff[source_id] = 1.0
+                        print(
+                            f"Quelle {source_id}: RTMP-Publisher nicht "
+                            "mehr verfügbar; warte auf neues Signal.",
+                            flush=True,
+                        )
+                        continue
                     delay = backoff[source_id]
                     actual_delay = _staggered_delay(source_id, delay)
                     reason = (
@@ -355,6 +427,7 @@ def main() -> int:
                     processes,
                     restart_at,
                     restart_states,
+                    waiting_for_source,
                     now=now,
                 ))
                 last_status_write = now

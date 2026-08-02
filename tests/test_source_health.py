@@ -24,6 +24,14 @@ def test_restart_loop_has_priority_over_other_runtime_warnings() -> None:
     }) == "restart_loop"
 
 
+def test_waiting_for_rtmp_publisher_is_not_a_restart_loop() -> None:
+    assert health({
+        "state": "waiting_source",
+        "restart_count": 20,
+        "last_restart_at": 990,
+    }, ready=False, online=False) == "offline"
+
+
 def test_stalled_and_slow_sources_are_distinguished() -> None:
     assert health({
         "state": "restarting",
