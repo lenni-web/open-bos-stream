@@ -78,6 +78,10 @@ function updateDashboard(data) {
         data.sources ?? []
     );
 
+    updateMultiSources(
+        data.sources ?? []
+    );
+
     updateSourceDiagnostics(data.sources ?? []);
 
     updateViewerDiagnostics();
@@ -85,10 +89,6 @@ function updateDashboard(data) {
 	checkServiceEvents(
 	    data.services
 	);
-
-    updateMultiSources(
-        data.sources ?? []
-    );
 
     checkSourceEvents(
         data.sources ?? []
@@ -361,6 +361,8 @@ function updateSourceDiagnostics(sources) {
         return;
     }
 
+    const playerDiagnostics =
+        window.sourcePlayerDiagnostics?.() ?? {};
     container.innerHTML = sources.map(source => {
         const state = source.ready
             ? "Bereit"
@@ -376,9 +378,11 @@ function updateSourceDiagnostics(sources) {
             message: "Keine Gesundheitsbewertung verfügbar.",
         };
         const probeState = sourceProbeResults.get(source.id);
+        const player = playerDiagnostics[source.id];
         let runtimeState = "FFmpeg-Daten nicht verfügbar";
         let runtimeMetrics = "";
         let restartMetric = "";
+        let playerMetrics = "";
         if (!source.managed) {
             runtimeState = "Direkter MediaMTX-Empfang";
         } else if (runtime) {
@@ -429,6 +433,41 @@ function updateSourceDiagnostics(sources) {
                 `;
             }
         }
+        if (player?.protocol === "webrtc") {
+            const received = Number(player.packets_received || 0);
+            const lost = Number(player.packets_lost || 0);
+            const totalPackets = received + lost;
+            const lossPercent = totalPackets > 0
+                ? lost / totalPackets * 100
+                : 0;
+            const frameProgressAge = player.last_frame_progress_at
+                ? Math.max(
+                    0,
+                    Math.round(
+                        (Date.now() - player.last_frame_progress_at) / 1000
+                    )
+                )
+                : null;
+            const reconnectAge = player.last_reconnect_at
+                ? Math.max(
+                    0,
+                    Math.round(
+                        (Date.now() - player.last_reconnect_at) / 1000
+                    )
+                )
+                : null;
+            playerMetrics = `
+                <div class="source-player-summary">
+                    <strong>Browserplayer · ${escapeHTML(player.connection_state || player.player_state || "unbekannt")}</strong>
+                    <span title="Im Browser empfangene WebRTC-Bitrate">${formatBitsPerSecond(Number(player.bitrate_bps || 0))}</span>
+                    <span title="Verlorene WebRTC-Pakete">Verlust ${lossPercent.toFixed(2)} % (${lost})</span>
+                    <span title="Vom Browser verworfene Videoframes">Drop ${Number(player.frames_dropped || 0)}</span>
+                    <span title="Letzter dekodierter Bildfortschritt">${frameProgressAge === null ? "Bildfortschritt —" : `Bild vor ${frameProgressAge} s`}</span>
+                    <span title="Automatische Neuverbindungen dieses Browserplayers">Reconnects ${Number(player.reconnect_count || 0)}</span>
+                    ${player.last_reconnect_reason ? `<span title="Letzte automatische Neuverbindung">${escapeHTML(player.last_reconnect_reason)}${reconnectAge === null ? "" : ` · vor ${reconnectAge} s`}</span>` : ""}
+                </div>
+            `;
+        }
         return `
             <article class="source-diagnostic-item">
                 <div>
@@ -450,6 +489,7 @@ function updateSourceDiagnostics(sources) {
                     ${runtimeMetrics}
                     ${restartMetric}
                 </div>
+                ${playerMetrics}
                 <div class="source-probe-actions">
                     <button
                         class="bos-button bos-button-small source-probe-button"

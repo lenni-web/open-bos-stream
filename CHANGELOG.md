@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.11.4] - 2026-08-02
+
 ### Added
 
 - Jeder Quellenplayer überwacht seine WebRTC-Verbindung und den tatsächlichen
@@ -18,6 +22,11 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 - Nach einem erkannten Quellenprozess-Neustart oder einer erfolgreichen
   serverseitigen Wiederherstellung baut der betroffene Browserplayer seine
   Verbindung gezielt neu auf.
+- Die Systemseite zeigt pro Quelle die Browser-Verbindung, WebRTC-Bitrate,
+  Paketverlustrate, verworfene Frames, letzten Bildfortschritt sowie Anzahl,
+  Zeitpunkt und Ursache automatischer Player-Neuverbindungen.
+- Automatische Player-Neuverbindungen werden im lokalen Ereignisprotokoll des
+  Browsers der jeweiligen Quelle zugeordnet.
 - Jede aktive Quelle kann auf der Systemseite ausdrücklich mit einer
   zweisekündigen ffprobe-Tiefendiagnose untersucht werden. Das kompakte
   Ergebnis zeigt tatsächliche Bildrate, Bitrate, Paketanzahl,

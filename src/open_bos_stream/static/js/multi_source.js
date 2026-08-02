@@ -35,6 +35,9 @@ function playerRecoveryState() {
         playingSince: null,
         reconnectingUntil: 0,
         pendingReason: null,
+        reconnectCount: 0,
+        lastReconnectAt: null,
+        lastReconnectReason: null,
     };
 }
 
@@ -144,7 +147,41 @@ function recoverSourcePlayer(entry, input, now) {
     entry.recovery.lastFramesDecoded = 0;
     entry.recovery.lastPacketsReceived = 0;
     entry.recovery.pendingReason = null;
-    return entry.player.reconnect(reason);
+    const reconnected = entry.player.reconnect(reason);
+    if (reconnected) {
+        entry.recovery.reconnectCount += 1;
+        entry.recovery.lastReconnectAt = now;
+        entry.recovery.lastReconnectReason = reason;
+        window.dispatchEvent(new CustomEvent(
+            "open-bos:player-reconnect",
+            {
+                detail: {
+                    sourceId: input.id,
+                    sourceName: input.name,
+                    reason,
+                    count: entry.recovery.reconnectCount,
+                },
+            }
+        ));
+    }
+    return reconnected;
+}
+
+function sourcePlayerDiagnostics() {
+    const result = Object.create(null);
+    for (const [sourceId, entry] of multiSourcePlayers) {
+        result[sourceId] = {
+            ...entry.player.diagnostics(),
+            player_state: entry.player.state,
+            last_frame_progress_at:
+                entry.recovery.lastFrameProgressAt,
+            reconnect_count: entry.recovery.reconnectCount,
+            last_reconnect_at: entry.recovery.lastReconnectAt,
+            last_reconnect_reason:
+                entry.recovery.lastReconnectReason,
+        };
+    }
+    return result;
 }
 
 async function openSourceFullscreen(card, video) {
@@ -426,3 +463,4 @@ function updateMultiSources(inputs = []) {
 }
 
 window.updateMultiSources = updateMultiSources;
+window.sourcePlayerDiagnostics = sourcePlayerDiagnostics;
