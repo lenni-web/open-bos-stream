@@ -489,6 +489,73 @@ FFmpeg selbst läuft ohne interaktive Eingabe und protokolliert im
 Normalbetrieb nur Warnungen und Fehler; die maschinenlesbaren
 Fortschrittsdaten bleiben davon unberührt.
 
+### Reproduzierbarer Mehrquellen-Dauertest
+
+Für einen Test ohne mehrere Kameras kann auf einem separaten Rechner einmalig
+ein synthetischer H.264/AAC-Clip erzeugt werden:
+
+```bash
+./scripts/generate-test-video.sh
+```
+
+Die erzeugte Datei liegt unter `testdata/open-bos-test-720p.mp4`, wird wegen
+ihrer Größe nicht in Git aufgenommen und enthält 60 Sekunden 720p/25 FPS mit
+einem synthetischen Tonsignal. Anschließend werden die in den Einstellungen
+angezeigten zwölfstelligen Publisher-Tokens in eine lokale Datei geschrieben:
+
+```text
+quelle-1=AbCdEf123456
+quelle-2=GhIjKl789012
+```
+
+Die Datei muss vor dem Test geschützt werden. Sie wird weder vom Skript
+verändert noch in das Projekt kopiert:
+
+```bash
+chmod 600 test-tokens.env
+./scripts/multi-source-test.sh \
+  --server ffw-stream.de \
+  --tokens-file test-tokens.env \
+  --count 4 \
+  --duration 1800
+```
+
+Erlaubt sind 1, 4 oder 8 parallele Publisher. Jeder FFmpeg-Prozess liest den
+Clip in Echtzeit und sendet ihn per Stream Copy, sodass der Testsender nur
+wenig CPU benötigt. Die Starts werden um jeweils eine Sekunde versetzt.
+`--duration 0` läuft bis `Strg+C`; Protokolle landen in `test-results/`.
+Für einen aussagekräftigen Netzwerk- und Servertest sollte das Skript nicht
+auf dem Open-BOS-Server, sondern auf einem Laptop oder zweiten Rechner laufen.
+Die komplette Hilfe zeigt `./scripts/multi-source-test.sh --help`.
+Ein abweichender FFmpeg-Pfad kann für portable oder isolierte Installationen
+über `FFMPEG_BIN=/pfad/zu/ffmpeg` angegeben werden; ffprobe ist für die
+Metadatenprüfung optional.
+
+Vor einem längeren Lauf kann ein Superadmin auf der Systemseite das
+„Browser-Testprotokoll“ starten. Es speichert alle fünf Sekunden CPU, RAM,
+Temperatur, Signal- und Laufzeitstatus jeder Quelle sowie WebRTC-Bitrate,
+Paketverlust, Jitter, Drop-Frames, letzten Bildfortschritt und automatische
+Player-Reconnects. Die laufende Sitzung liegt ohne Publisher-Tokens im lokalen
+Browserspeicher, übersteht einen Reload und kann anschließend als JSON
+heruntergeladen werden. Nach spätestens 1000 Messpunkten werden die ältesten
+Werte verworfen, damit der Browser nicht unkontrolliert Speicher belegt. Die
+dauerhafte Speicherung erfolgt gebündelt alle 30 Sekunden, damit der Testmodus
+selbst insbesondere auf Tablets möglichst wenig zusätzliche Last erzeugt.
+
+Parallel sammelt auf dem VServer ein zweites Skript Ressourcenwerte und die
+relevanten systemd-Journale im gleichen Zeitfenster:
+
+```bash
+sudo ./scripts/server-test-monitor.sh \
+  --duration 3600 \
+  --output /var/tmp/open-bos-test-8-quellen
+```
+
+Das Ziel enthält `system.log`, `services.log`, `kernel.log` und
+`metadata.txt`. Ohne `--duration` läuft die Sammlung bis `Strg+C`. Damit sind
+Publisher-, Server- und Browserseite eines Testlaufs getrennt und dauerhaft
+auswertbar.
+
 ## Benutzer und Rollen
 
 Beim ersten Aufruf nach Installation oder Update fordert Open BOS Stream dazu
