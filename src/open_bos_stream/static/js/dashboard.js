@@ -68,25 +68,27 @@ function updateDashboard(data) {
         data
     );
 
-	updateDashboardSystemInfo(
-	    data.system_info
-	);
-
-    updateStreamDiagnostics(
-        data.stream,
-        data.media_storage,
-        data.sources ?? []
-    );
-
     updateMultiSources(
         data.sources ?? []
     );
 
-    updateSourceDiagnostics(data.sources ?? []);
+    // Systemdiagnosen existieren für Viewer absichtlich nicht im DOM.
+    // Die Streamplayer müssen unabhängig davon immer aktualisiert werden.
+    if (document.getElementById("page-system")) {
+        updateDashboardSystemInfo(
+            data.system_info
+        );
 
-    updateViewerDiagnostics();
+        updateStreamDiagnostics(
+            data.stream,
+            data.media_storage,
+            data.sources ?? []
+        );
 
-    updateTestLogging(data);
+        updateSourceDiagnostics(data.sources ?? []);
+        updateViewerDiagnostics();
+        updateTestLogging(data);
+    }
 
 	checkServiceEvents(
 	    data.services
@@ -616,7 +618,7 @@ function updateViewerDiagnostics() {
 
 function updateDashboardSystemInfo(info) {
 
-    if (!info) {
+    if (!info || !document.getElementById("system-app-name")) {
         return;
     }
 

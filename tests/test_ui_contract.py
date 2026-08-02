@@ -352,6 +352,22 @@ def test_system_page_is_hidden_from_viewers() -> None:
     ) != -1
 
 
+def test_viewer_streams_update_without_system_page() -> None:
+    dashboard = (
+        ROOT / "static" / "js" / "dashboard.js"
+    ).read_text(encoding="utf-8")
+
+    update = dashboard.split("function updateDashboard(data)", 1)[1].split(
+        "function updateMediaCaptureBar", 1
+    )[0]
+    assert update.index("updateMultiSources(") < update.index(
+        'document.getElementById("page-system")'
+    )
+    assert 'if (!info || !document.getElementById("system-app-name"))' in (
+        dashboard
+    )
+
+
 def test_superadmin_media_source_controls_are_present() -> None:
     settings = (
         ROOT / "templates" / "components" / "settings_card.html"
