@@ -2,6 +2,18 @@
 // Stream Events
 // ==========================================================
 
+window.addEventListener(
+    "open-bos:player-reconnect",
+    event => {
+        const detail = event.detail ?? {};
+        addEvent(
+            "warning",
+            `🔄 ${detail.sourceName || detail.sourceId}: ` +
+            `Player neu verbunden · ${detail.reason || "unbekannt"}`
+        );
+    }
+);
+
 function checkSourceEvents(sources = []) {
     const currentIds = new Set();
 

@@ -255,6 +255,25 @@ def test_each_source_player_recovers_independently() -> None:
     assert "recovery: playerRecoveryState()" in source_js
     assert 'reconnect(reason = "manual")' in player_js
     assert "this.play(streamName, protocol, true)" in player_js
+    assert "function sourcePlayerDiagnostics()" in source_js
+    assert "last_frame_progress_at" in source_js
+    assert "reconnect_count" in source_js
+
+
+def test_system_page_shows_per_source_browser_diagnostics() -> None:
+    dashboard = (
+        ROOT / "static" / "js" / "dashboard.js"
+    ).read_text(encoding="utf-8")
+    events = (
+        ROOT / "static" / "js" / "dashboard_events.js"
+    ).read_text(encoding="utf-8")
+
+    assert "window.sourcePlayerDiagnostics?.()" in dashboard
+    assert "source-player-summary" in dashboard
+    assert "player.packets_lost" in dashboard
+    assert "player.frames_dropped" in dashboard
+    assert "player.reconnect_count" in dashboard
+    assert '"open-bos:player-reconnect"' in events
 
 
 def test_source_settings_are_compact_and_urls_can_be_revealed() -> None:
