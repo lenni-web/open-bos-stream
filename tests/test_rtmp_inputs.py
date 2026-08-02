@@ -402,6 +402,51 @@ def test_rtmp_low_latency_repair_reduces_input_queue() -> None:
     ]
 
 
+def test_rtmp_preview_profile_scales_without_upscaling() -> None:
+    config = ConfigLoader().load()
+    source = SourceConfig(
+        id="drohne-preview",
+        name="Drohne Vorschau",
+        type="rtmp",
+        profile="preview_transcode",
+        audio_mode="copy",
+    )
+
+    command = FFmpegCommandBuilder(config).build_source(source)
+    video_filter = command[command.index("-vf") + 1]
+
+    assert source.viewer_path == "drohne-preview-view"
+    assert source.fullscreen_viewer_path == "drohne-preview"
+    assert source.requires_process is True
+    assert "min(960\\,iw)" in video_filter
+    assert "min(540\\,ih)" in video_filter
+    assert "force_original_aspect_ratio=decrease" in video_filter
+    assert "force_divisible_by=2" in video_filter
+    assert "fps=15" in video_filter
+    assert ["-c:v", "libx264"] == command[
+        command.index("-c:v"):command.index("-c:v") + 2
+    ]
+    assert ["-bf", "0"] == command[
+        command.index("-bf"):command.index("-bf") + 2
+    ]
+    assert "-an" in command
+    assert "-c:a" not in command
+    assert command[-1] == (
+        "rtsp://127.0.0.1:8554/drohne-preview-view"
+    )
+
+
+def test_preview_profile_is_restricted_to_rtmp() -> None:
+    with pytest.raises(ValidationError):
+        SourceConfig(
+            id="kamera-preview",
+            name="Kamera Vorschau",
+            type="rtsp",
+            profile="preview_transcode",
+            url="rtsp://192.0.2.50/stream",
+        )
+
+
 def test_rtsp_low_latency_repair_uses_bounded_delay() -> None:
     config = ConfigLoader().load()
     source = SourceConfig(

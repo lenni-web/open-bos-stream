@@ -306,8 +306,44 @@ class FFmpegCommandBuilder:
                 "copy_repair",
                 "copy_repair_low_latency",
             }
-            else "copy"
+            else (
+                "copy_repair_low_latency"
+                if source.profile == "preview_transcode"
+                else "copy"
+            )
         )
+        if source.profile == "preview_transcode":
+            output_path = viewer_path or source.viewer_path
+            return [
+                "ffmpeg",
+                *self._build_input(runtime_source),
+                "-map", "0:v:0",
+                "-an",
+                "-vf",
+                (
+                    "scale=w=min(960\\,iw):h=min(540\\,ih):"
+                    "force_original_aspect_ratio=decrease:"
+                    "force_divisible_by=2:flags=fast_bilinear,"
+                    "fps=15"
+                ),
+                "-c:v", "libx264",
+                "-preset", "veryfast",
+                "-tune", "zerolatency",
+                "-profile:v", "baseline",
+                "-level:v", "3.1",
+                "-pix_fmt", "yuv420p",
+                "-bf", "0",
+                "-g", "30",
+                "-keyint_min", "30",
+                "-sc_threshold", "0",
+                "-b:v", "1200k",
+                "-maxrate", "1500k",
+                "-bufsize", "1500k",
+                "-fps_mode", "cfr",
+                "-rtsp_transport", "tcp",
+                "-f", "rtsp",
+                f"rtsp://127.0.0.1:8554/{output_path}",
+            ]
         return self.build(
             source_override=runtime_source,
             viewer_path_override=viewer_path,

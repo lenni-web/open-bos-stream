@@ -416,6 +416,9 @@ ID sowie ein Verarbeitungsprofil:
 - `Copy mit Zeitstempel-Korrektur`: Originalvideo mit reparierten Zeitstempeln
 - `Copy-Reparatur · geringe Latenz`: kleinere Eingangsqueue und eng begrenzter
   RTSP-Puffer für bereits weitgehend stabile Quellen
+- `Mehrquellen-Vorschau · max. 540p` (nur RTMP): transkodierte H.264-Vorschau
+  mit maximal 960×540 Pixeln und 15 fps für das Raster; das Original bleibt
+  für den Vollbildmodus erhalten
 - `Transcodieren`: den pro Quelle gewählten Encoder verwenden
 
 Bei `Transcodieren` erscheinen Encoder, Bitrate, Pixelformat, GOP, Preset und
@@ -437,10 +440,22 @@ des Hauptstreams. Dieser Relay wird erst bei Bedarf gestartet, von mehreren
 gleichzeitigen Vollbildnutzern gemeinsam verwendet und nach dem letzten Nutzer
 mit zehn Sekunden Nachlaufzeit wieder beendet. Während des Starts und bei einem
 Fehler bleibt der Substream sichtbar; beim Schließen wird ebenfalls wieder
-der Substream verwendet. Eine
-leere Vorschau-URL verwendet weiterhin den Hauptstream. Snapshots und Aufnahmen der
-Quelle folgen derzeit ebenfalls dem in der Oberfläche wiedergegebenen
-Viewerpfad und verwenden damit bei gesetzter Vorschau-URL den Substream.
+der Substream verwendet. Eine leere Vorschau-URL verwendet weiterhin den
+Hauptstream.
+
+Liefert ein RTMP-Publisher nur einen einzelnen Stream, kann das Profil
+`Mehrquellen-Vorschau · max. 540p` daraus eine leichtere Browserausgabe
+erzeugen. Die Skalierung behält das Seitenverhältnis bei und begrenzt Breite
+und Höhe auf 960×540; 720p-, 1080p-, 4K- und abweichende Formate funktionieren
+damit gleichermaßen. Kleinere Quellen werden nicht vergrößert. Die Vorschau
+läuft ohne Audio mit 15 fps und etwa 1,2 Mbit/s. Beim Vollbild wechselt der
+Browser auf den unveränderten RTMP-Eingang. Da die Vorschau per Software
+kodiert wird, sollte ihre CPU-Auslastung vor einem breiten Einsatz mit realen
+Quellen geprüft werden.
+
+Snapshots und Aufnahmen einer Quelle folgen derzeit ebenfalls dem in der
+Oberfläche wiedergegebenen Viewerpfad und verwenden damit bei einer Vorschau
+deren reduzierte Auflösung.
 
 Aufnahmen werden nach Möglichkeit ohne erneute Videokodierung gespeichert.
 H.265-Video oder browserfremdes Audio wird für neue Aufnahmen automatisch nach
