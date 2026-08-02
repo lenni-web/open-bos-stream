@@ -43,6 +43,47 @@ function resumeSourcePlayback(entry, reason) {
     }, 100);
 }
 
+function recoverPlaybackAfterFullscreen(entry, reason) {
+    const video = entry?.card?.querySelector("video");
+    if (!video) {
+        return;
+    }
+
+    entry.fullscreenRecoveryId =
+        Number(entry.fullscreenRecoveryId || 0) + 1;
+    const recoveryId = entry.fullscreenRecoveryId;
+    entry.fullscreenRecoveryUntil = Date.now() + 2600;
+
+    // iOS pausiert das Video teilweise erst einige hundert Millisekunden
+    // nach webkitendfullscreen. Mehrere idempotente Versuche fangen diesen
+    // verspäteten Lifecycle-Event ab, ohne den WebRTC-Stream neu aufzubauen.
+    for (const delay of [0, 100, 300, 700, 1400, 2400]) {
+        window.setTimeout(() => {
+            if (
+                entry.fullscreenRecoveryId !== recoveryId ||
+                sourceCardIsFullscreen(entry) ||
+                !entry.lastInput?.ready ||
+                !entry.player.currentStream ||
+                !video.paused
+            ) {
+                return;
+            }
+            video.muted = true;
+            video.defaultMuted = true;
+            video.autoplay = true;
+            video.play().catch(error => {
+                // Safari kann einen einzelnen Versuch während seines
+                // Vollbild-Übergangs ablehnen. Die folgenden Versuche laufen
+                // weiter; die normale Player-Überwachung übernimmt danach.
+                console.debug(
+                    `${reason}: Wiedergabe noch blockiert`,
+                    error
+                );
+            });
+        }, delay);
+    }
+}
+
 function resumePlayersAfterFullscreen() {
     for (const entry of multiSourcePlayers.values()) {
         const fullscreen = sourceCardIsFullscreen(entry);
@@ -55,7 +96,10 @@ function resumePlayersAfterFullscreen() {
         if (fullscreen) {
             continue;
         }
-        resumeSourcePlayback(entry, "Vollbildmodus beendet");
+        recoverPlaybackAfterFullscreen(
+            entry,
+            "Vollbildmodus beendet"
+        );
     }
 }
 
@@ -527,6 +571,8 @@ function updateMultiSources(inputs = []) {
                 fullscreenHeartbeat: null,
                 fullscreenErrorUntil: 0,
                 fullscreenFormat: null,
+                fullscreenRecoveryId: 0,
+                fullscreenRecoveryUntil: 0,
                 recovery: playerRecoveryState(),
                 lastInput: input,
             };
@@ -544,12 +590,23 @@ function updateMultiSources(inputs = []) {
                 "webkitendfullscreen",
                 () => {
                     releaseFullscreenStream(entry);
-                    resumeSourcePlayback(
+                    recoverPlaybackAfterFullscreen(
                         entry,
                         "Safari-Vollbildmodus beendet"
                     );
                 }
             );
+            video.addEventListener("pause", () => {
+                if (
+                    Date.now() < entry.fullscreenRecoveryUntil &&
+                    !sourceCardIsFullscreen(entry)
+                ) {
+                    resumeSourcePlayback(
+                        entry,
+                        "Verspätete Safari-Pause nach Vollbild"
+                    );
+                }
+            });
             multiSourcePlayers.set(input.id, entry);
         }
 

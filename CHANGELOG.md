@@ -11,6 +11,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ### Fixed
 
+- Safari auf dem iPhone setzt die stummgeschaltete Wiedergabe nach dem
+  Verlassen des nativen Video-Vollbilds automatisch fort. Eine kurze,
+  begrenzte Wiederanlaufsequenz fängt auch den von iOS verspätet ausgelösten
+  Pause-Event ab, ohne die WebRTC-Verbindung unnötig neu aufzubauen.
 - Blockierende Dashboard- und MediaMTX-Abfragen laufen nicht mehr im
   FastAPI-Eventloop. Gleichzeitige Browser-Polls werden kurz gebündelt und die
   Publisher-Authentifizierung nutzt die geladene Laufzeitkonfiguration. Dadurch

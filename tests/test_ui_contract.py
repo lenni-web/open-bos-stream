@@ -239,6 +239,10 @@ def test_each_source_player_has_fullscreen_control() -> None:
     assert '"webkitendfullscreen"' in source_js
     assert '"webkitbeginfullscreen"' in source_js
     assert "resumeSourcePlayback" in source_js
+    assert "recoverPlaybackAfterFullscreen" in source_js
+    assert "fullscreenRecoveryUntil" in source_js
+    assert 'video.addEventListener("pause"' in source_js
+    assert "[0, 100, 300, 700, 1400, 2400]" in source_js
     assert "switchSourceFullscreenStream" in source_js
     assert "fullscreenViewerPath" in source_js
     assert "prepareFullscreenStream" in source_js
