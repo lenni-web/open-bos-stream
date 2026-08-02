@@ -94,6 +94,12 @@ def test_system_diagnostics_controls_remain_available() -> None:
         ROOT / "static" / "js" / "dashboard.js"
     ).read_text(encoding="utf-8")
     assert "function updateSourceDiagnostics(sources)" in dashboard
+    assert "source-runtime-summary" in dashboard
+    assert "runtime.drop_frames" in dashboard
+    assert "runtime.dup_frames" in dashboard
+    assert "runtime.last_progress_at" in dashboard
+    assert "runtime.cpu_percent" in dashboard
+    assert "runtime.memory_bytes" in dashboard
     assert "Mehrquellenstatus" in (
         ROOT / "templates" / "components" / "system_card.html"
     ).read_text(encoding="utf-8")

@@ -9,9 +9,11 @@ class ProbeRunner:
     def __init__(self, payload: dict) -> None:
         self.payload = payload
         self.calls = 0
+        self.commands = []
 
     def run(self, command, **kwargs):
         self.calls += 1
+        self.commands.append(command)
         return ProcessResult(
             command=tuple(command),
             returncode=0,
@@ -98,3 +100,5 @@ def test_probe_result_is_cached() -> None:
     probe.status(source_ready=True)
 
     assert runner.calls == 1
+    assert "%+2" in runner.commands[0]
+    assert StreamProbeService.CACHE_SECONDS == 60.0

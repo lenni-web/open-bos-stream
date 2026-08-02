@@ -16,6 +16,7 @@ from open_bos_stream.media.storage import MediaStorageService
 from open_bos_stream.recording.service import RecordingService
 from open_bos_stream.stream.service import StreamService
 from open_bos_stream.stream.probe import StreamProbeService
+from open_bos_stream.stream.runtime_status import StreamRuntimeStatusStore
 import time
 from open_bos_stream.system.health import HealthService
 from open_bos_stream.system.info import SystemInfoService
@@ -37,6 +38,7 @@ class DashboardService:
         system_info_service: SystemInfoService,
         media_storage_service: MediaStorageService,
         stream_probe_service: StreamProbeService,
+        runtime_status_store: StreamRuntimeStatusStore | None = None,
     ) -> None:
 
         self._config = config
@@ -48,6 +50,9 @@ class DashboardService:
         self._system_info = system_info_service
         self._media_storage = media_storage_service
         self._probe = stream_probe_service
+        self._runtime_status = (
+            runtime_status_store or StreamRuntimeStatusStore()
+        )
         self._stream_state: str | None = None
         self._state_since = time.monotonic()
         self._stable_since: float | None = None
@@ -113,6 +118,7 @@ class DashboardService:
         mediamtx_statuses = self._mediamtx.statuses(
             requested_paths
         )
+        runtime_statuses = self._runtime_status.read()
         primary = enabled_sources[0] if enabled_sources else None
         mediamtx = (
             mediamtx_statuses[primary.viewer_path]
@@ -318,6 +324,8 @@ class DashboardService:
                     "width": mediamtx_statuses[item.viewer_path].width,
                     "height": mediamtx_statuses[item.viewer_path].height,
                     "tracks": mediamtx_statuses[item.viewer_path].tracks,
+                    "runtime": runtime_statuses.get(item.id),
+                    "managed": item.requires_process,
                 }
                 for item in enabled_sources
             ],
