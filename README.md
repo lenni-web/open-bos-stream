@@ -442,6 +442,12 @@ leere Vorschau-URL verwendet weiterhin den Hauptstream. Snapshots und Aufnahmen 
 Quelle folgen derzeit ebenfalls dem in der Oberfläche wiedergegebenen
 Viewerpfad und verwenden damit bei gesetzter Vorschau-URL den Substream.
 
+Aufnahmen werden nach Möglichkeit ohne erneute Videokodierung gespeichert.
+H.265-Video oder browserfremdes Audio wird für neue Aufnahmen automatisch nach
+H.264/AAC konvertiert. Erkennt der Mediathek-Player bei einer älteren Aufnahme
+ein nicht unterstütztes Format, stellt der Server beim Abspielen automatisch
+einen kompatiblen Stream bereit; die Originaldatei bleibt unverändert.
+
 Bei RTMP wird der Empfangspfad automatisch aus der ID erzeugt und kann nicht
 separat verändert werden. In beiden Installationsprofilen hängt die
 Oberfläche den individuellen, standardmäßig verdeckten Publisher-Token an:

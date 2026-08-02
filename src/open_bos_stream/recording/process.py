@@ -48,7 +48,14 @@ class RecordingProcess:
         try:
 
             self._process = subprocess.Popen(
-                command,
+                [
+                    command[0],
+                    "-hide_banner",
+                    "-loglevel",
+                    "error",
+                    "-nostats",
+                    *command[1:],
+                ],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.PIPE,
                 text=True,

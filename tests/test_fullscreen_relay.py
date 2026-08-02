@@ -28,7 +28,16 @@ class FakeProcess:
 
 class FakeMediaMTX:
     def path(self, name: str):
-        return {"name": name, "ready": True}
+        return {
+            "name": name,
+            "ready": True,
+            "tracks2": [
+                {
+                    "codec": "H264",
+                    "codecProps": {"width": 3840, "height": 2160},
+                }
+            ],
+        }
 
 
 def test_fullscreen_relay_is_shared_and_uses_main_url(monkeypatch) -> None:
@@ -63,6 +72,9 @@ def test_fullscreen_relay_is_shared_and_uses_main_url(monkeypatch) -> None:
         assert source.preview_url not in starts[0]
         assert first["viewer_path"] == "camera-1-main"
         assert first["ready"] is True
+        assert first["width"] == 3840
+        assert first["height"] == 2160
+        assert first["codec"] == "H264"
         assert first["lease_id"] != second["lease_id"]
 
         manager.release(source.id, first["lease_id"])

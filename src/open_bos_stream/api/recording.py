@@ -2,8 +2,12 @@
 Recording API
 """
 
+from __future__ import annotations
+
+import subprocess
+
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 
 from open_bos_stream.core.container import (
     recording_library,
@@ -101,6 +105,58 @@ async def play(filename: str):
     return FileResponse(
         path=file,
         media_type="video/mp4",
+    )
+
+
+@router.get("/play-compatible/{filename}")
+async def play_compatible(filename: str):
+    """Transkodiert ältere oder browserfremde Aufnahmen beim Abspielen."""
+
+    file = recording_library.get_file(filename)
+    if file is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Aufnahme nicht gefunden.",
+        )
+
+    def stream():
+        process = subprocess.Popen(
+            [
+                "ffmpeg",
+                "-hide_banner",
+                "-loglevel", "error",
+                "-nostdin",
+                "-i", str(file),
+                "-map", "0:v:0",
+                "-map", "0:a:0?",
+                "-c:v", "libx264",
+                "-preset", "ultrafast",
+                "-tune", "zerolatency",
+                "-pix_fmt", "yuv420p",
+                "-c:a", "aac",
+                "-movflags", "frag_keyframe+empty_moov+default_base_moof",
+                "-f", "mp4",
+                "pipe:1",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+        try:
+            assert process.stdout is not None
+            while chunk := process.stdout.read(64 * 1024):
+                yield chunk
+        finally:
+            if process.poll() is None:
+                process.terminate()
+            try:
+                process.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                process.kill()
+
+    return StreamingResponse(
+        stream(),
+        media_type="video/mp4",
+        headers={"Cache-Control": "no-store"},
     )
 
 

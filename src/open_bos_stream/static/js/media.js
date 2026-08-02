@@ -274,13 +274,15 @@ function showVideo(title, src) {
         title
     );
 
+    video.dataset.originalSrc = src;
+    video.dataset.compatibilityAttempted = "false";
     video.src = src;
 
     video.load();
 
     video.play().catch(error => {
 
-        if (error.name === "AbortError") {
+        if (["AbortError", "NotAllowedError"].includes(error.name)) {
             return;
         }
 
@@ -289,22 +291,65 @@ function showVideo(title, src) {
             error
         );
 
-        video.style.display = "none";
-
-        if (placeholder) {
-            placeholder.style.display = "flex";
-            placeholder.innerHTML = `
-                <span class="empty-state-icon" aria-hidden="true">!</span>
-                <strong>Video kann nicht wiedergegeben werden</strong>
-                <span>
-                    Die Datei ist nicht verfügbar oder verwendet
-                    einen nicht unterstützten Codec.
-                </span>
-            `;
+        if (error.name === "NotSupportedError") {
+            tryCompatibleMediaPlayback(video);
         }
 
     });
 
+}
+
+function showMediaPlaybackError(video) {
+    video.style.display = "none";
+    const placeholder = document.getElementById("media-placeholder");
+    if (placeholder) {
+        placeholder.style.display = "flex";
+        placeholder.innerHTML = `
+            <span class="empty-state-icon" aria-hidden="true">!</span>
+            <strong>Video kann nicht wiedergegeben werden</strong>
+            <span>
+                Die Datei ist nicht verfügbar, beschädigt oder konnte nicht
+                in ein browserkompatibles Format umgewandelt werden.
+            </span>
+        `;
+    }
+}
+
+function tryCompatibleMediaPlayback(video) {
+    const original = video.dataset.originalSrc ?? "";
+    if (
+        !original.startsWith("/recording/play/")
+    ) {
+        showMediaPlaybackError(video);
+        return;
+    }
+    if (video.dataset.compatibilityAttempted === "true") {
+        // Ein verspätetes Fehler-/Promise-Ereignis der Originalquelle darf
+        // den gerade gestarteten Kompatibilitätsstream nicht überdecken.
+        if (!video.error) {
+            return;
+        }
+        showMediaPlaybackError(video);
+        return;
+    }
+    video.dataset.compatibilityAttempted = "true";
+    const filename = original.slice("/recording/play/".length);
+    video.src = `/recording/play-compatible/${filename}`;
+    video.load();
+    video.play().catch(error => {
+        if (!["AbortError", "NotAllowedError"].includes(error.name)) {
+            console.error("Kompatible Medienwiedergabe:", error);
+        }
+    });
+}
+
+function bindMediaVideoErrors() {
+    const video = document.getElementById("media-video");
+    if (!video || video.dataset.errorBound) {
+        return;
+    }
+    video.dataset.errorBound = "true";
+    video.addEventListener("error", () => tryCompatibleMediaPlayback(video));
 }
 
 function showImage(title, src) {
@@ -443,3 +488,4 @@ function bindMediaPreviewErrors() {
 }
 
 bindMediaPreviewErrors();
+bindMediaVideoErrors();

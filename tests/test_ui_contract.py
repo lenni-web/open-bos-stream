@@ -263,6 +263,18 @@ def test_mobile_web_app_manifest_and_icons_are_linked() -> None:
     assert '"purpose": "any maskable"' in manifest
 
 
+def test_media_player_has_compatibility_fallback() -> None:
+    media = (ROOT / "static" / "js" / "media.js").read_text(
+        encoding="utf-8"
+    )
+    recording = (ROOT / "api" / "recording.py").read_text(encoding="utf-8")
+
+    assert "tryCompatibleMediaPlayback" in media
+    assert "/recording/play-compatible/" in media
+    assert '@router.get("/play-compatible/{filename}")' in recording
+    assert "frag_keyframe+empty_moov+default_base_moof" in recording
+
+
 def test_each_source_player_recovers_independently() -> None:
     source_js = (
         ROOT / "static" / "js" / "multi_source.js"

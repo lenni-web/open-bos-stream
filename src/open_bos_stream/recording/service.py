@@ -71,7 +71,26 @@ class RecordingService:
         filename = self._recorder.next_filename(source.id)
         input_url = f"rtsp://127.0.0.1:8554/{source.viewer_path}"
 
-        self._manager.start(filename, input_url)
+        tracks = [str(item).lower() for item in path.get("tracks", [])]
+        video_codec = str(path.get("codec") or "").lower()
+        browser_video = video_codec in {"h264", "avc"} or any(
+            "h264" in item for item in tracks
+        )
+        audio_tracks = [
+            item for item in tracks
+            if not any(video in item for video in ("h264", "h265", "avc", "hevc"))
+        ]
+        browser_audio = not audio_tracks or any(
+            "aac" in item or "mpeg-4 audio" in item
+            for item in audio_tracks
+        )
+
+        self._manager.start(
+            filename,
+            input_url,
+            transcode_video=not browser_video,
+            transcode_audio=not browser_audio,
+        )
 
         self._status.filename = str(filename)
         self._status.started_at = time.time()

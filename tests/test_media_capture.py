@@ -7,7 +7,12 @@ from open_bos_stream.snapshot.service import SnapshotService
 
 class FakeMediaMTX:
     def path(self, name: str):
-        return {"name": name, "ready": True}
+        return {
+            "name": name,
+            "ready": True,
+            "codec": "H264",
+            "tracks": ["H264", "MPEG-4 Audio"],
+        }
 
 
 class FakeRunner:
@@ -24,9 +29,20 @@ class FakeRecordingManager:
 
     def __init__(self) -> None:
         self.input_url: str | None = None
+        self.transcode_video: bool | None = None
+        self.transcode_audio: bool | None = None
 
-    def start(self, _filename: Path, input_url: str) -> bool:
+    def start(
+        self,
+        _filename: Path,
+        input_url: str,
+        *,
+        transcode_video: bool = False,
+        transcode_audio: bool = False,
+    ) -> bool:
         self.input_url = input_url
+        self.transcode_video = transcode_video
+        self.transcode_audio = transcode_audio
         self.running = True
         return True
 
@@ -91,6 +107,8 @@ def test_recording_uses_and_remembers_selected_source(
     assert service.status.source_id == source.id
     assert service.status.source_name == source.name
     assert source.id in (service.status.filename or "")
+    assert manager.transcode_video is False
+    assert manager.transcode_audio is False
 
 
 def test_media_source_falls_back_to_first_enabled_source(
@@ -114,3 +132,26 @@ def test_media_source_falls_back_to_first_enabled_source(
         f"rtsp://127.0.0.1:8554/{first.viewer_path}"
         in runner.command
     )
+
+
+def test_h265_recording_is_transcoded_for_browser(tmp_path: Path) -> None:
+    config, source = selected_second_source()
+
+    class H265MediaMTX:
+        def path(self, name: str):
+            return {
+                "name": name,
+                "ready": True,
+                "codec": "H265",
+                "tracks": ["H265", "G711"],
+            }
+
+    service = RecordingService(config, H265MediaMTX())
+    manager = FakeRecordingManager()
+    service._manager = manager
+    service._recorder = FakeRecorder(tmp_path)
+
+    service.start()
+
+    assert manager.transcode_video is True
+    assert manager.transcode_audio is True
