@@ -15,6 +15,8 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ### Fixed
 
+- Viewer sehen weder die Systemseite noch deren Navigation und können die
+  zugehörigen System- und Diagnose-Endpunkte nicht direkt aufrufen.
 - Der synthetische Testclip verwendet H.264 Baseline ohne B-Frames und ist
   damit für die WebRTC-Ausgabe geeignet. Das Publisher-Skript lehnt erkannte
   B-Frames vor einem Testlauf ab.

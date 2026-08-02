@@ -334,6 +334,24 @@ def test_media_page_is_visible_only_to_superadmins() -> None:
     )
 
 
+def test_system_page_is_hidden_from_viewers() -> None:
+    index = (
+        ROOT / "templates" / "index.html"
+    ).read_text(encoding="utf-8")
+    sidebar = (
+        ROOT / "templates" / "components" / "sidebar.html"
+    ).read_text(encoding="utf-8")
+
+    system_page = index.index('id="page-system"')
+    system_nav = sidebar.index('id="nav-system"')
+    assert index.rfind(
+        '{% if user.role != "viewer" %}', 0, system_page
+    ) != -1
+    assert sidebar.rfind(
+        '{% if user.role != "viewer" %}', 0, system_nav
+    ) != -1
+
+
 def test_superadmin_media_source_controls_are_present() -> None:
     settings = (
         ROOT / "templates" / "components" / "settings_card.html"

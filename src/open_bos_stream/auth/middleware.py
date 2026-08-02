@@ -27,6 +27,12 @@ SUPERADMIN_PREFIXES = (
 SUPERADMIN_PATHS = {
     "/config/restore",
 }
+ADMIN_PREFIXES = (
+    "/system",
+)
+ADMIN_PATHS = {
+    "/dashboard/diagnostics",
+}
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -84,7 +90,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
             )
 
         mutation = request.method not in {"GET", "HEAD", "OPTIONS"}
-        if mutation and not self.service.has_role(user, "admin"):
+        admin_only = (
+            mutation
+            or path.startswith(ADMIN_PREFIXES)
+            or path in ADMIN_PATHS
+        )
+        if admin_only and not self.service.has_role(user, "admin"):
             return JSONResponse(
                 {"detail": "Für diese Aktion ist die Rolle Admin erforderlich."},
                 status_code=403,

@@ -142,6 +142,7 @@
             </div>
             {% endif %}
 
+            {% if user.role != "viewer" %}
             <div
                 id="page-system"
                 class="page">
@@ -149,6 +150,7 @@
                 {% include "components/system_card.html" %}
 
             </div>
+            {% endif %}
 
         </div>
 
