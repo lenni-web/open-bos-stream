@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.11.8] - 2026-08-02
+
 ### Added
 
 - Die Oberfläche lässt sich auf iOS und Android als eigenständige Web-App zum
@@ -17,13 +21,18 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ### Fixed
 
+- Quellkarten zeigen im Vollbild die vom Hauptstream gemeldete Auflösung und
+  Codec-Angabe. Der Vollbildknopf wechselt seine Beschriftung und beendet den
+  Modus nun auch ohne Escape-Taste.
+- Der Mediathek-Player unterscheidet blockiertes Autoplay von tatsächlichen
+  Medienfehlern. Browserfremde Bestandsaufnahmen werden beim Abspielen über
+  einen H.264/AAC-Kompatibilitätsstream bereitgestellt; neue H.265- oder
+  inkompatible Audio-Aufnahmen werden bereits bei der Aufnahme konvertiert.
 - RTSP-Quellen mit Vorschau-URL stellen Haupt- und Substream über getrennte
   Viewerpfade bereit. Der Hauptstream-Relay startet erst beim Vollbildaufruf,
   wird zwischen mehreren Nutzern geteilt und nach einer Nachlaufzeit wieder
   beendet. Während des Starts oder bei einem Fehler bleibt die Vorschau aktiv;
   nach dem Vollbild wechselt der Player zuverlässig dorthin zurück.
-
----
 
 ## [0.11.7] - 2026-08-02
 

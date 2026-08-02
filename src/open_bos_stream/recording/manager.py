@@ -28,12 +28,24 @@ class RecordingManager:
 
         return self._process.pid
 
-    def start(self, filename: Path, input_url: str) -> bool:
+    def start(
+        self,
+        filename: Path,
+        input_url: str,
+        *,
+        transcode_video: bool = False,
+        transcode_audio: bool = False,
+    ) -> bool:
 
         if self.running:
             return True
 
-        command = self._builder.build(filename, input_url)
+        command = self._builder.build(
+            filename,
+            input_url,
+            transcode_video=transcode_video,
+            transcode_audio=transcode_audio,
+        )
 
         self._process.start(command)
 

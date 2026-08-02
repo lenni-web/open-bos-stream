@@ -20,6 +20,22 @@ LEASE_SECONDS = 30.0
 STOP_GRACE_SECONDS = 10.0
 
 
+def _video_details(path: dict | None) -> tuple[int, int, str | None]:
+    if not path:
+        return 0, 0, None
+    width = int(path.get("width") or 0)
+    height = int(path.get("height") or 0)
+    codec = path.get("codec")
+    for track in path.get("tracks2") or []:
+        props = track.get("codecProps") or {}
+        if props.get("width") or props.get("height"):
+            width = int(props.get("width") or width)
+            height = int(props.get("height") or height)
+            codec = track.get("codec") or codec
+            break
+    return width, height, codec
+
+
 @dataclass
 class FullscreenRelay:
     source: SourceConfig
@@ -111,12 +127,16 @@ class FullscreenRelayManager:
             running = relay.process.poll() is None
             viewer_path = relay.source.fullscreen_viewer_path
         path = self._mediamtx.path(viewer_path) if running else None
+        width, height, codec = _video_details(path)
         return {
             "source_id": source_id,
             "viewer_path": viewer_path,
             "lease_id": lease_id,
             "running": running,
             "ready": bool(path and path.get("ready")),
+            "width": width,
+            "height": height,
+            "codec": codec,
         }
 
     def release(self, source_id: str, lease_id: str) -> None:

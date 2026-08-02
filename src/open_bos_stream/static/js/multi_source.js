@@ -46,6 +46,7 @@ function resumeSourcePlayback(entry, reason) {
 function resumePlayersAfterFullscreen() {
     for (const entry of multiSourcePlayers.values()) {
         const fullscreen = sourceCardIsFullscreen(entry);
+        updateSourceFullscreenButton(entry);
         if (fullscreen) {
             prepareFullscreenStream(entry);
         } else {
@@ -247,6 +248,19 @@ function switchSourceFullscreenStream(entry, fullscreen) {
     entry.player.play(target, "webrtc");
 }
 
+function updateSourceFullscreenButton(entry) {
+    const button = entry.card.querySelector(".multi-source-fullscreen");
+    if (!button) {
+        return;
+    }
+    const fullscreen = sourceCardIsFullscreen(entry);
+    button.textContent = fullscreen ? "⛶ Vollbild beenden" : "⛶ Vollbild";
+    button.title = fullscreen
+        ? "Vollbildmodus beenden"
+        : "Quelle im Vollbild anzeigen";
+    button.setAttribute("aria-label", button.title);
+}
+
 function fullscreenRelayUrl(entry) {
     const sourceId = encodeURIComponent(entry.lastInput.id);
     const lease = entry.fullscreenLease
@@ -287,6 +301,11 @@ async function prepareFullscreenStream(entry) {
             }
             if (status.ready) {
                 entry.fullscreenMainReady = true;
+                entry.fullscreenFormat = {
+                    width: Number(status.width || 0),
+                    height: Number(status.height || 0),
+                    codec: status.codec ?? null,
+                };
                 switchSourceFullscreenStream(entry, true);
                 entry.fullscreenHeartbeat ??= window.setInterval(
                     () => fullscreenRelayRequest(entry, "GET").catch(
@@ -323,7 +342,19 @@ function releaseFullscreenStream(entry) {
     }
     entry.fullscreenLease = null;
     entry.fullscreenMainReady = false;
+    entry.fullscreenFormat = null;
     switchSourceFullscreenStream(entry, false);
+}
+
+async function closeSourceFullscreen(entry) {
+    const video = entry.card.querySelector("video");
+    if (document.fullscreenElement && document.exitFullscreen) {
+        await document.exitFullscreen();
+        return;
+    }
+    if (video?.webkitDisplayingFullscreen && video.webkitExitFullscreen) {
+        video.webkitExitFullscreen();
+    }
 }
 
 async function openSourceFullscreen(entry) {
@@ -370,6 +401,16 @@ async function openSourceFullscreen(entry) {
         "Quellen-Vollbild wird von diesem Browser nicht unterstützt."
     );
     releaseFullscreenStream(entry);
+}
+
+function toggleSourceFullscreen(entry) {
+    if (sourceCardIsFullscreen(entry)) {
+        closeSourceFullscreen(entry).catch(error => {
+            console.debug("Vollbild konnte nicht beendet werden:", error);
+        });
+        return;
+    }
+    openSourceFullscreen(entry);
 }
 
 function multiSourceCard(input) {
@@ -485,6 +526,7 @@ function updateMultiSources(inputs = []) {
                 fullscreenPreparing: false,
                 fullscreenHeartbeat: null,
                 fullscreenErrorUntil: 0,
+                fullscreenFormat: null,
                 recovery: playerRecoveryState(),
                 lastInput: input,
             };
@@ -492,7 +534,7 @@ function updateMultiSources(inputs = []) {
                 ".multi-source-fullscreen"
             ).addEventListener(
                 "click",
-                () => openSourceFullscreen(entry)
+                () => toggleSourceFullscreen(entry)
             );
             video.addEventListener(
                 "webkitbeginfullscreen",
@@ -514,6 +556,7 @@ function updateMultiSources(inputs = []) {
         entry.lastInput = input;
         entry.fullscreenViewerPath =
             input.fullscreen_viewer_path ?? input.viewer_path;
+        updateSourceFullscreenButton(entry);
 
         entry.card.querySelector(
             ".multi-source-card-header strong"
@@ -597,10 +640,15 @@ function updateMultiSources(inputs = []) {
         );
         (displayedOnline ? onlineOrder : offlineOrder).push(input.id);
 
-        const format =
-            input.width > 0
-                ? `${input.width} × ${input.height} · ${input.codec ?? "Video"}`
-                : (input.codec ?? "—");
+        const visibleFormat = (
+            sourceCardIsFullscreen(entry) &&
+            entry.fullscreenMainReady &&
+            entry.fullscreenFormat
+        ) ? entry.fullscreenFormat : input;
+        const format = visibleFormat.width > 0
+            ? `${visibleFormat.width} × ${visibleFormat.height} · ` +
+                `${visibleFormat.codec ?? "Video"}`
+            : (visibleFormat.codec ?? "—");
         entry.card.querySelector(
             '[data-value="format"]'
         ).textContent = format;
