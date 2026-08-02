@@ -308,6 +308,9 @@ class DashboardService:
                     "preview_active": bool(item.preview_url),
                     "path": item.publish_path,
                     "viewer_path": item.viewer_path,
+                    "fullscreen_viewer_path": (
+                        item.fullscreen_viewer_path
+                    ),
                     "publish_url": (
                         (
                             "rtmp://"

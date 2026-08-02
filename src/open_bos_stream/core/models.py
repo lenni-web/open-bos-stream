@@ -183,6 +183,14 @@ class SourceConfig(BaseModel):
         return f"{self.id}-view"
 
     @property
+    def fullscreen_viewer_path(self) -> str:
+        """Separater Hauptstream-Pfad bei konfigurierter RTSP-Vorschau."""
+
+        if self.type == "rtsp" and self.preview_url:
+            return f"{self.id}-main"
+        return self.viewer_path
+
+    @property
     def requires_process(self) -> bool:
         return not (
             self.type == "rtmp"

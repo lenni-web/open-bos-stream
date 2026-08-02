@@ -9,6 +9,13 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Fixed
+
+- RTSP-Quellen mit Vorschau-URL stellen Haupt- und Substream über getrennte
+  Viewerpfade bereit. Der Player wechselt im Vollbild auf den Hauptstream und
+  nach dem Verlassen des Vollbildmodus wieder auf die ressourcenschonende
+  Vorschau.
+
 ---
 
 ## [0.11.7] - 2026-08-02

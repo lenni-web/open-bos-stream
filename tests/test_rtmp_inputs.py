@@ -310,10 +310,22 @@ def test_rtsp_preview_url_is_used_for_browser_output() -> None:
     )
 
     command = FFmpegCommandBuilder(config).build_source(source)
+    main_command = FFmpegCommandBuilder(config).build_source(
+        source,
+        use_preview=False,
+        viewer_path=source.fullscreen_viewer_path,
+    )
 
     assert source.preview_url in command
     assert source.url not in command
     assert source.effective_url == source.preview_url
+    assert source.fullscreen_viewer_path == "reolink-preview-main"
+    assert source.url in main_command
+    assert source.preview_url not in main_command
+    assert (
+        "rtsp://127.0.0.1:8554/reolink-preview-main"
+        in main_command
+    )
 
 
 def test_preview_url_is_restricted_to_rtsp_sources() -> None:
