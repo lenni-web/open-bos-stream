@@ -272,6 +272,29 @@ def main() -> int:
                 flush=True,
             )
             print(" ".join(_redact(item) for item in command), flush=True)
+            if source.fullscreen_viewer_path != source.viewer_path:
+                main_process_id = f"{source.id}::main"
+                commands[main_process_id] = builder.build_source(
+                    source,
+                    use_preview=False,
+                    viewer_path=source.fullscreen_viewer_path,
+                )
+                sources_by_id[main_process_id] = source
+                backoff[main_process_id] = 1.0
+                restart_at[main_process_id] = 0.0
+                restart_states[main_process_id] = RestartState()
+                print(
+                    f"Quelle {source.id}: separater Hauptstream für "
+                    "Vollbild",
+                    flush=True,
+                )
+                print(
+                    " ".join(
+                        _redact(item)
+                        for item in commands[main_process_id]
+                    ),
+                    flush=True,
+                )
 
         while not stopping:
             now = time.monotonic()

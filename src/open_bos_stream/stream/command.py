@@ -53,6 +53,7 @@ class FFmpegCommandBuilder:
         self,
         recording_file: str | None = None,
         source_override: SourceConfig | None = None,
+        viewer_path_override: str | None = None,
     ) -> list[str]:
 
         if source_override is None:
@@ -107,9 +108,10 @@ class FFmpegCommandBuilder:
                 if value is not None:
                     setattr(encoder, field_name, value)
 
-            stream.name = source.viewer_path
+            output_path = viewer_path_override or source.viewer_path
+            stream.name = output_path
             stream.rtsp_url = (
-                f"rtsp://127.0.0.1:8554/{source.viewer_path}"
+                f"rtsp://127.0.0.1:8554/{output_path}"
             )
 
         print("========================================")
@@ -283,11 +285,21 @@ class FFmpegCommandBuilder:
 
         return command
 
-    def build_source(self, source: SourceConfig) -> list[str]:
+    def build_source(
+        self,
+        source: SourceConfig,
+        *,
+        use_preview: bool = True,
+        viewer_path: str | None = None,
+    ) -> list[str]:
         """Erzeugt den unabhängigen FFmpeg-Befehl einer Quelle."""
 
         runtime_source = source.model_copy(deep=True)
-        runtime_source.url = source.effective_url
+        runtime_source.url = (
+            source.effective_url
+            if use_preview
+            else source.url
+        )
         runtime_source.mode = (
             source.profile
             if source.profile in {
@@ -296,4 +308,7 @@ class FFmpegCommandBuilder:
             }
             else "copy"
         )
-        return self.build(source_override=runtime_source)
+        return self.build(
+            source_override=runtime_source,
+            viewer_path_override=viewer_path,
+        )

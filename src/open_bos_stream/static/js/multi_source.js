@@ -44,10 +44,12 @@ function resumeSourcePlayback(entry, reason) {
 }
 
 function resumePlayersAfterFullscreen() {
-    if (document.fullscreenElement) {
-        return;
-    }
     for (const entry of multiSourcePlayers.values()) {
+        const fullscreen = sourceCardIsFullscreen(entry);
+        switchSourceFullscreenStream(entry, fullscreen);
+        if (fullscreen) {
+            continue;
+        }
         resumeSourcePlayback(entry, "Vollbildmodus beendet");
     }
 }
@@ -227,7 +229,24 @@ function sourcePlayerDiagnostics() {
     return result;
 }
 
-async function openSourceFullscreen(card, video) {
+function switchSourceFullscreenStream(entry, fullscreen) {
+    const target = fullscreen
+        ? entry.fullscreenViewerPath
+        : entry.viewerPath;
+    if (
+        !entry.lastInput?.ready ||
+        !target ||
+        entry.player.currentStream === target
+    ) {
+        return;
+    }
+    entry.player.play(target, "webrtc");
+}
+
+async function openSourceFullscreen(entry) {
+    const {card} = entry;
+    const video = card.querySelector("video");
+    switchSourceFullscreenStream(entry, true);
     if (typeof card.requestFullscreen === "function") {
         try {
             await card.requestFullscreen();
@@ -267,6 +286,7 @@ async function openSourceFullscreen(card, video) {
     console.error(
         "Quellen-Vollbild wird von diesem Browser nicht unterstützt."
     );
+    switchSourceFullscreenStream(entry, false);
 }
 
 function multiSourceCard(input) {
@@ -308,12 +328,6 @@ function multiSourceCard(input) {
     const video = card.querySelector("video");
     video.muted = true;
     video.defaultMuted = true;
-    card.querySelector(
-        ".multi-source-fullscreen"
-    ).addEventListener(
-        "click",
-        () => openSourceFullscreen(card, video)
-    );
     return card;
 }
 
@@ -380,20 +394,37 @@ function updateMultiSources(inputs = []) {
                 card,
                 player: new window.LivePlayer(video),
                 viewerPath: input.viewer_path,
+                fullscreenViewerPath:
+                    input.fullscreen_viewer_path ?? input.viewer_path,
                 recovery: playerRecoveryState(),
                 lastInput: input,
             };
+            card.querySelector(
+                ".multi-source-fullscreen"
+            ).addEventListener(
+                "click",
+                () => openSourceFullscreen(entry)
+            );
+            video.addEventListener(
+                "webkitbeginfullscreen",
+                () => switchSourceFullscreenStream(entry, true)
+            );
             video.addEventListener(
                 "webkitendfullscreen",
-                () => resumeSourcePlayback(
-                    entry,
-                    "Safari-Vollbildmodus beendet"
-                )
+                () => {
+                    switchSourceFullscreenStream(entry, false);
+                    resumeSourcePlayback(
+                        entry,
+                        "Safari-Vollbildmodus beendet"
+                    );
+                }
             );
             multiSourcePlayers.set(input.id, entry);
         }
 
         entry.lastInput = input;
+        entry.fullscreenViewerPath =
+            input.fullscreen_viewer_path ?? input.viewer_path;
 
         entry.card.querySelector(
             ".multi-source-card-header strong"
@@ -430,11 +461,14 @@ function updateMultiSources(inputs = []) {
             onlineCount += 1;
             placeholder.hidden = true;
             video.hidden = false;
+            const desiredViewerPath = sourceCardIsFullscreen(entry)
+                ? entry.fullscreenViewerPath
+                : entry.viewerPath;
             const playerNeedsStart =
                 entry.player.mode !== "webrtc" ||
-                entry.player.currentStream !== input.viewer_path;
+                entry.player.currentStream !== desiredViewerPath;
             entry.player.play(
-                input.viewer_path,
+                desiredViewerPath,
                 "webrtc"
             );
             const recoveryNow = Date.now();

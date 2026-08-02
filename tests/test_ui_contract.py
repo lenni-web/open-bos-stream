@@ -237,7 +237,10 @@ def test_each_source_player_has_fullscreen_control() -> None:
     assert "card.requestFullscreen()" in source_js
     assert "video.webkitEnterFullscreen()" in source_js
     assert '"webkitendfullscreen"' in source_js
+    assert '"webkitbeginfullscreen"' in source_js
     assert "resumeSourcePlayback" in source_js
+    assert "switchSourceFullscreenStream" in source_js
+    assert "fullscreenViewerPath" in source_js
     assert '"fullscreenchange"' in source_js
     assert "deferUnavailableStop(4000)" in source_js
 

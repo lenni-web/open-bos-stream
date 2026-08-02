@@ -427,8 +427,10 @@ ohne die technische Verarbeitung oder Empfangsadresse zu beeinflussen.
 RTSP-Quellen können zusätzlich eine maskierte `Vorschau-URL` erhalten. Ist
 sie gesetzt, nutzt die Liveübersicht diesen Stream anstelle der Haupt-URL.
 Für 4K-/H.265-Kameras empfiehlt sich hier ein H.264-Substream mit 720p oder
-1080p. Das reduziert Decoder-, Netzwerk- und WebRTC-Last deutlich. Eine leere
-Vorschau-URL verwendet weiterhin den Hauptstream. Snapshots und Aufnahmen der
+1080p. Das reduziert Decoder- und WebRTC-Last deutlich. Beim Öffnen des
+Vollbildmodus wechselt nur der gewählte Player auf einen separaten Viewerpfad
+des Hauptstreams; beim Schließen wird wieder der Substream verwendet. Eine
+leere Vorschau-URL verwendet weiterhin den Hauptstream. Snapshots und Aufnahmen der
 Quelle folgen derzeit ebenfalls dem in der Oberfläche wiedergegebenen
 Viewerpfad und verwenden damit bei gesetzter Vorschau-URL den Substream.
 
