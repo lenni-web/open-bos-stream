@@ -130,6 +130,12 @@ class OBSApi {
         );
     }
 
+    async probeSource(sourceId) {
+        return await this.post(
+            `/dashboard/sources/${encodeURIComponent(sourceId)}/probe`
+        );
+    }
+
     async delete(url) {
 
         return await this.request(url, {

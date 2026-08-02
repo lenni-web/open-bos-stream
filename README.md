@@ -475,11 +475,19 @@ Quellen-ID leicht versetzt, damit nicht bis zu acht FFmpeg-Prozesse und
 Netzwerkverbindungen im selben Moment neu aufgebaut werden.
 
 Die tiefergehende ffprobe-Paketdiagnose öffnet kurzzeitig einen zusätzlichen
-Leser ausschließlich an der Primärquelle. Sie misst zwei Sekunden und wird
-eine Minute zwischengespeichert, damit mehrere geöffnete Browser nicht
-fortlaufend zusätzliche Probeprozesse verursachen. FFmpeg selbst läuft ohne
-interaktive Eingabe und protokolliert im Normalbetrieb nur Warnungen und
-Fehler; die maschinenlesbaren Fortschrittsdaten bleiben davon unberührt.
+Leser am Viewerpfad der ausgewählten Quelle. Sie wird ausschließlich über den
+Button „Tiefendiagnose“ in der jeweiligen Quellenkarte gestartet, misst zwei
+Sekunden und wird je Quelle eine Minute zwischengespeichert. Systemweit kann
+nur eine solche Messung gleichzeitig laufen. Normale Dashboard-Aktualisierungen
+und mehrere geöffnete Browser starten keine Probeprozesse mehr.
+
+Das Ergebnis enthält tatsächliche und nominelle Bildrate, Bitrate,
+Paketanzahl, rückwärtslaufende DTS-Zeitstempel, Jitter, maximale Paketlücke
+und daraus abgeleitete Warnungen. Da der MediaMTX-Viewerpfad gemessen wird,
+wird auch bei lokalen Capture Cards keine zweite Geräteverbindung geöffnet.
+FFmpeg selbst läuft ohne interaktive Eingabe und protokolliert im
+Normalbetrieb nur Warnungen und Fehler; die maschinenlesbaren
+Fortschrittsdaten bleiben davon unberührt.
 
 ## Benutzer und Rollen
 

@@ -7,6 +7,28 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- Jede aktive Quelle kann auf der Systemseite ausdrücklich mit einer
+  zweisekündigen ffprobe-Tiefendiagnose untersucht werden. Das kompakte
+  Ergebnis zeigt tatsächliche Bildrate, Bitrate, Paketanzahl,
+  rückwärtslaufende DTS, Jitter, maximale Paketlücke und konkrete Warnungen.
+- Messergebnisse werden je Quelle für 60 Sekunden zwischengespeichert und mit
+  Messzeitpunkt sowie Cachealter gekennzeichnet.
+
+### Changed
+
+- Die frühere automatische Paketdiagnose der Primärquelle wurde aus dem
+  Dashboard-Polling entfernt. Eine Probe läuft nur noch nach einem bewussten
+  Klick und systemweit höchstens einmal gleichzeitig.
+- Die Diagnose liest den jeweiligen MediaMTX-Viewerpfad. Dadurch wird eine
+  Capture Card nicht doppelt geöffnet und gemessen wird genau das Signal, das
+  auch an die Browser ausgegeben wird.
+
+---
+
 ## [0.11.3] - 2026-08-02
 
 ### Added

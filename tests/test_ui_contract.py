@@ -102,6 +102,10 @@ def test_system_diagnostics_controls_remain_available() -> None:
     assert "runtime.memory_bytes" in dashboard
     assert "source.health" in dashboard
     assert "runtime.restart_count" in dashboard
+    assert "function runSourceProbe(sourceId)" in dashboard
+    assert "function sourceProbeResultMarkup(source, state)" in dashboard
+    assert "data-source-probe" in dashboard
+    assert "api.probeSource(sourceId)" in dashboard
     assert "Mehrquellenstatus" in (
         ROOT / "templates" / "components" / "system_card.html"
     ).read_text(encoding="utf-8")

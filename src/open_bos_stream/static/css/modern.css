@@ -1106,6 +1106,68 @@ body {
     white-space: nowrap;
 }
 
+.source-probe-actions {
+    display: flex !important;
+    flex-flow: row wrap !important;
+    align-items: center;
+    gap: 7px !important;
+    margin: 10px 0 0 !important;
+}
+
+.source-probe-actions small {
+    font-size: 0.68rem;
+}
+
+.source-probe-button {
+    min-height: 30px;
+    padding: 4px 10px;
+    font-size: 0.7rem;
+}
+
+.source-probe-result {
+    display: block !important;
+    margin: 10px 0 0 !important;
+    padding: 10px;
+    border: 1px solid var(--bos-gray);
+    border-radius: 9px;
+    background: var(--bos-white);
+    font-size: 0.7rem;
+}
+
+.source-probe-result header,
+.source-probe-result dl > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.source-probe-result header span,
+.source-probe-result dt {
+    color: var(--bos-muted);
+}
+
+.source-probe-result dl {
+    display: grid;
+    gap: 3px;
+    margin: 8px 0;
+}
+
+.source-probe-result dd,
+.source-probe-result dt,
+.source-probe-result p,
+.source-probe-result ul {
+    margin: 0;
+}
+
+.source-probe-result ul {
+    padding-left: 16px;
+}
+
+.source-probe-result.is-error {
+    border-color: rgba(201, 40, 53, 0.3);
+    color: var(--bos-red);
+}
+
 .media-capture-bar {
     display: flex;
     align-items: center;
