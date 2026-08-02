@@ -6,6 +6,8 @@ Stellt alle Informationen für das Web-Dashboard zentral bereit.
 
 from __future__ import annotations
 
+import threading
+
 from open_bos_stream.core.models import AppConfig
 from open_bos_stream.core.installation import (
     installation_profile,
@@ -58,6 +60,24 @@ class DashboardService:
         self._state_since = time.monotonic()
         self._stable_since: float | None = None
         self._restart_baseline = 0
+        self._status_lock = threading.RLock()
+        self._cached_status: dict | None = None
+        self._cached_status_at = 0.0
+
+    def status(self) -> dict:
+        """Bündelt gleichzeitige Browser-Polls in einem kurzen Cache."""
+
+        with self._status_lock:
+            now = time.monotonic()
+            if (
+                self._cached_status is not None
+                and now - self._cached_status_at < 0.75
+            ):
+                return self._cached_status
+            result = self._build_status()
+            self._cached_status = result
+            self._cached_status_at = time.monotonic()
+            return result
 
     def _stability(
         self,
@@ -89,7 +109,7 @@ class DashboardService:
             ),
         }
 
-    def status(self) -> dict:
+    def _build_status(self) -> dict:
         """Aktuellen Dashboard-Status zurückgeben."""
 
         health = self._health.health()

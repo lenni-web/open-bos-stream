@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-from types import SimpleNamespace
 
 import pytest
 import yaml
@@ -51,11 +50,7 @@ def configure_auth(monkeypatch, token: str) -> None:
         type="rtmp",
         publish_token=token,
     )
-    monkeypatch.setattr(
-        mediamtx_auth.ConfigLoader,
-        "load",
-        lambda self: SimpleNamespace(sources=[source]),
-    )
+    monkeypatch.setattr(mediamtx_auth.config, "sources", [source])
 
 
 def authorize(payload: MediaMTXAuthRequest) -> dict[str, bool]:

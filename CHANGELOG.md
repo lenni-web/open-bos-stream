@@ -11,6 +11,11 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ### Fixed
 
+- Blockierende Dashboard- und MediaMTX-Abfragen laufen nicht mehr im
+  FastAPI-Eventloop. Gleichzeitige Browser-Polls werden kurz gebündelt und die
+  Publisher-Authentifizierung nutzt die geladene Laufzeitkonfiguration. Dadurch
+  laufen RTMP-Auth-Anfragen auch unter Mehrquellen- und UI-Last nicht mehr in
+  den MediaMTX-Timeout.
 - Aufnahmen werden zunächst außerhalb der Mediathek in eine temporäre Datei
   geschrieben, mit SIGINT sauber finalisiert und anschließend durch `ffprobe`
   validiert. Nur eine gültige MP4-Datei wird atomar in die Mediathek übernommen;

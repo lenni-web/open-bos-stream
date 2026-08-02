@@ -19,7 +19,7 @@ router = APIRouter(
 
 @router.get("/status")
 async def status():
-    return dashboard_service.status()
+    return await run_in_threadpool(dashboard_service.status)
 
 
 @router.post("/sources/{source_id}/probe")
@@ -96,7 +96,7 @@ async def release_fullscreen_stream(source_id: str, lease_id: str):
 async def diagnostics():
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        **dashboard_service.status(),
+        **await run_in_threadpool(dashboard_service.status),
     }
     return Response(
         content=json.dumps(payload, indent=2, ensure_ascii=False),

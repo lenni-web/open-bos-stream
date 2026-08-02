@@ -276,6 +276,14 @@ def test_media_player_has_compatibility_fallback() -> None:
     assert "run_in_threadpool(playback_cache.prepare" in recording
 
 
+def test_dashboard_polling_does_not_block_event_loop() -> None:
+    dashboard = (ROOT / "api" / "dashboard.py").read_text(encoding="utf-8")
+    system = (ROOT / "api" / "system.py").read_text(encoding="utf-8")
+
+    assert "run_in_threadpool(dashboard_service.status)" in dashboard
+    assert "run_in_threadpool(health_service.health)" in system
+
+
 def test_each_source_player_recovers_independently() -> None:
     source_js = (
         ROOT / "static" / "js" / "multi_source.js"
