@@ -239,6 +239,24 @@ def test_each_source_player_has_fullscreen_control() -> None:
     assert "deferUnavailableStop(4000)" in source_js
 
 
+def test_each_source_player_recovers_independently() -> None:
+    source_js = (
+        ROOT / "static" / "js" / "multi_source.js"
+    ).read_text(encoding="utf-8")
+    player_js = (
+        ROOT / "static" / "js" / "live_player.js"
+    ).read_text(encoding="utf-8")
+
+    assert "function recoverSourcePlayer(entry, input, now)" in source_js
+    assert "Browser-Decoder ohne Bildfortschritt" in source_js
+    assert "PLAYER_STALL_TIMEOUT_MS = 8000" in source_js
+    assert "PLAYER_RECONNECT_MAX_MS = 15000" in source_js
+    assert "sourceCardIsFullscreen(entry)" in source_js
+    assert "recovery: playerRecoveryState()" in source_js
+    assert 'reconnect(reason = "manual")' in player_js
+    assert "this.play(streamName, protocol, true)" in player_js
+
+
 def test_source_settings_are_compact_and_urls_can_be_revealed() -> None:
     source_js = (
         ROOT / "static" / "js" / "config_rtmp_inputs.js"

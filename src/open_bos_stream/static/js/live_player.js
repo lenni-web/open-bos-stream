@@ -71,6 +71,10 @@ class LivePlayer {
 		    "error",
 		    () => {
 
+		        if (this.resetting) {
+		            return;
+		        }
+
 		        console.error(
 		            "Video error:",
 		            this.video.error
@@ -156,11 +160,12 @@ class LivePlayer {
 
 	}
 	
-	play(streamName, protocol = "hls") {
+	play(streamName, protocol = "hls", force = false) {
 
         this.cancelUnavailableStop();
 
 		if (
+		    !force &&
 		    this.mode === protocol &&
 		    this.currentStream === streamName
 		) {
@@ -199,6 +204,20 @@ class LivePlayer {
 	    }
 
 	}
+
+    reconnect(reason = "manual") {
+        if (!this.currentStream || !this.mode) {
+            return false;
+        }
+
+        const streamName = this.currentStream;
+        const protocol = this.mode;
+        console.info(
+            `[LivePlayer] reconnect ${streamName}: ${reason}`
+        );
+        this.play(streamName, protocol, true);
+        return true;
+    }
 	
 	playHls(streamName) {
 
@@ -315,6 +334,12 @@ class LivePlayer {
                     state === "new"
                 ) {
                     this.setState("connecting");
+                } else if (
+                    state === "failed" ||
+                    state === "disconnected" ||
+                    state === "closed"
+                ) {
+                    this.setState("error");
                 }
             },
 
