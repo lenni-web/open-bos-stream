@@ -20,6 +20,7 @@ def auth_request(
     path: str = "quelle-1",
     protocol: str = "rtmp",
     ip: str = "203.0.113.10",
+    query: str = "",
 ) -> MediaMTXAuthRequest:
     return MediaMTXAuthRequest(
         action="publish",
@@ -27,6 +28,7 @@ def auth_request(
         protocol=protocol,
         token=token,
         ip=ip,
+        query=query,
     )
 
 
@@ -69,6 +71,38 @@ def test_matching_source_token_allows_external_rtmp_publisher(
     configure_auth(monkeypatch, token)
 
     assert authorize(auth_request(token=token)) == {"authorized": True}
+
+
+def test_query_token_from_older_mediamtx_is_accepted(monkeypatch) -> None:
+    token = "a" * 12
+    configure_auth(monkeypatch, token)
+
+    assert authorize(
+        auth_request(token="", query=f"token={token}")
+    ) == {"authorized": True}
+
+
+def test_query_appended_to_legacy_path_is_normalized(monkeypatch) -> None:
+    token = "a" * 12
+    configure_auth(monkeypatch, token)
+
+    assert authorize(
+        auth_request(token="", path=f"quelle-1?token={token}")
+    ) == {"authorized": True}
+
+
+def test_rejected_token_is_not_written_to_log(
+    monkeypatch,
+    caplog,
+) -> None:
+    configure_auth(monkeypatch, "a" * 12)
+    rejected_token = "b" * 12
+
+    with pytest.raises(HTTPException):
+        authorize(auth_request(token=rejected_token))
+
+    assert rejected_token not in caplog.text
+    assert "Token vorhanden=True" in caplog.text
 
 
 @pytest.mark.parametrize(
