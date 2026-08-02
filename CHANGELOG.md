@@ -9,6 +9,13 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Fixed
+
+- Die RTMP-Publisher-Authentifizierung akzeptiert Tokens sowohl im separaten
+  MediaMTX-Feld als auch im Query-String älterer MediaMTX-Versionen. Ein am
+  Pfad übermittelter Query-String wird vor dem Quellenvergleich entfernt;
+  Ablehnungen werden ohne Ausgabe des Tokens nachvollziehbar protokolliert.
+
 ### Added
 
 - Quellen können das zusätzliche Profil „Copy-Reparatur · geringe Latenz“
