@@ -9,6 +9,17 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Fixed
+
+- Aufnahmen werden zunächst außerhalb der Mediathek in eine temporäre Datei
+  geschrieben, mit SIGINT sauber finalisiert und anschließend durch `ffprobe`
+  validiert. Nur eine gültige MP4-Datei wird atomar in die Mediathek übernommen;
+  abgebrochene oder beschädigte Aufnahmen werden verworfen.
+- Die Mediathek bereitet Aufnahmen als vollständig abgeschlossene H.264/AAC-
+  MP4-Dateien auf und liefert sie anschließend mit Range-Unterstützung aus.
+  Damit funktioniert die Wiedergabe auch in Safari zuverlässig; während der
+  einmaligen Aufbereitung zeigt der Player einen verständlichen Ladestatus.
+
 ---
 
 ## [0.11.8] - 2026-08-02

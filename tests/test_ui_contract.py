@@ -272,7 +272,8 @@ def test_media_player_has_compatibility_fallback() -> None:
     assert "tryCompatibleMediaPlayback" in media
     assert "/recording/play-compatible/" in media
     assert '@router.get("/play-compatible/{filename}")' in recording
-    assert "frag_keyframe+empty_moov+default_base_moof" in recording
+    assert "RecordingPlaybackCache" in recording
+    assert "run_in_threadpool(playback_cache.prepare" in recording
 
 
 def test_each_source_player_recovers_independently() -> None:

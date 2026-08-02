@@ -446,7 +446,15 @@ Aufnahmen werden nach Möglichkeit ohne erneute Videokodierung gespeichert.
 H.265-Video oder browserfremdes Audio wird für neue Aufnahmen automatisch nach
 H.264/AAC konvertiert. Erkennt der Mediathek-Player bei einer älteren Aufnahme
 ein nicht unterstütztes Format, stellt der Server beim Abspielen automatisch
-einen kompatiblen Stream bereit; die Originaldatei bleibt unverändert.
+eine vollständig abgeschlossene, kompatible MP4-Datei bereit. Sie wird für
+weitere Wiedergaben zwischengespeichert und beim Löschen der Originalaufnahme
+ebenfalls entfernt; die Originaldatei selbst bleibt unverändert.
+
+Während einer laufenden Aufnahme wird noch kein Mediathek-Eintrag veröffentlicht.
+Beim Stoppen beendet die Anwendung FFmpeg kontrolliert, prüft die temporäre Datei
+mit `ffprobe` und übernimmt sie erst danach atomar als sichtbare MP4-Datei. Eine
+abgebrochene oder nicht validierbare Aufnahme wird nicht in der Mediathek
+angeboten.
 
 Bei RTMP wird der Empfangspfad automatisch aus der ID erzeugt und kann nicht
 separat verändert werden. In beiden Installationsprofilen hängt die

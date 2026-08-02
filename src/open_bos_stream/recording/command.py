@@ -37,6 +37,7 @@ class RecordingCommandBuilder:
             ),
             "-c:a", "aac" if transcode_audio else "copy",
             "-movflags", "+faststart",
+            "-f", "mp4",
 
             str(filename),
 
