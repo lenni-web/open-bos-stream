@@ -462,6 +462,18 @@ Diagnosezeile angezeigt. Direkte
 RTMP-Passthrough-Quellen haben keinen FFmpeg-Prozess und werden entsprechend
 als MediaMTX-Empfang ausgewiesen.
 
+Aus diesen Einzelwerten bildet die Systemseite außerdem eine gemeinsame
+Gesundheitsbewertung pro Quelle. Eine zu geringe Echtzeitgeschwindigkeit,
+kürzlich verworfene oder duplizierte Frames, fehlender Medienfortschritt und
+mehrere Neustarts innerhalb kurzer Zeit werden dabei getrennt ausgewiesen.
+Die Detailmeldung steht als Hinweis direkt am Status. Neustartanzahl und
+Reconnect-Zustand gelten seit dem letzten Start des Streamer-Dienstes.
+
+Fallen mehrere verwaltete Quellen gleichzeitig aus, bleiben ihre
+exponentiellen Backoffs unabhängig. Der konkrete Wiederanlauf wird je
+Quellen-ID leicht versetzt, damit nicht bis zu acht FFmpeg-Prozesse und
+Netzwerkverbindungen im selben Moment neu aufgebaut werden.
+
 Die tiefergehende ffprobe-Paketdiagnose öffnet kurzzeitig einen zusätzlichen
 Leser ausschließlich an der Primärquelle. Sie misst zwei Sekunden und wird
 eine Minute zwischengespeichert, damit mehrere geöffnete Browser nicht

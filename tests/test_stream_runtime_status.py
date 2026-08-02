@@ -3,7 +3,12 @@ import time
 from pathlib import Path
 
 from open_bos_stream.stream.progress import FFmpegProgress
-from open_bos_stream.stream.runner import SourceProcess, _runtime_snapshot
+from open_bos_stream.stream.runner import (
+    RestartState,
+    SourceProcess,
+    _runtime_snapshot,
+    _staggered_delay,
+)
 from open_bos_stream.stream.runtime_status import StreamRuntimeStatusStore
 
 
@@ -57,6 +62,7 @@ def test_runtime_snapshot_contains_compact_per_source_metrics(
         ["quelle-1"],
         {"quelle-1": runtime},
         {"quelle-1": 0.0},
+        {"quelle-1": RestartState()},
         now=50.0,
     )["quelle-1"]
 
@@ -69,5 +75,19 @@ def test_runtime_snapshot_contains_compact_per_source_metrics(
         "dup_frames": 1,
         "cpu_percent": 17.5,
         "memory_bytes": 42_000_000,
+        "last_drop_at": None,
+        "last_dup_at": None,
+        "restart_count": 0,
+        "last_restart_reason": None,
+        "last_restart_at": None,
         "last_progress_at": 999.0,
     }
+
+
+def test_reconnect_delay_is_bounded_and_staggered_per_source() -> None:
+    first = _staggered_delay("quelle-1", 30.0)
+    second = _staggered_delay("quelle-2", 30.0)
+
+    assert 30.0 <= first <= 36.0
+    assert 30.0 <= second <= 36.0
+    assert first != second

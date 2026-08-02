@@ -367,8 +367,14 @@ function updateSourceDiagnostics(sources) {
               `${source.width || "?"}×${source.height || "?"}`
             : "Kein ausgabefähiges Signal";
         const runtime = source.runtime;
+        const health = source.health || {
+            code: "unknown",
+            label: "Status unbekannt",
+            message: "Keine Gesundheitsbewertung verfügbar.",
+        };
         let runtimeState = "FFmpeg-Daten nicht verfügbar";
         let runtimeMetrics = "";
+        let restartMetric = "";
         if (!source.managed) {
             runtimeState = "Direkter MediaMTX-Empfang";
         } else if (runtime) {
@@ -398,6 +404,26 @@ function updateSourceDiagnostics(sources) {
                     <span>Neustart in ${Math.ceil(Number(runtime.restart_in || 0))} s</span>
                 `;
             }
+            if (Number(runtime.restart_count || 0) > 0) {
+                const rawReason = String(runtime.last_restart_reason || "");
+                const reason = rawReason === "stale"
+                    ? "kein Fortschritt"
+                    : (rawReason === "start_failed"
+                        ? "Startfehler"
+                        : (rawReason.startsWith("exit_")
+                            ? `Exit ${rawReason.slice(5)}`
+                            : "unbekannt"));
+                const restartAt = Number(runtime.last_restart_at);
+                const restartAge = Number.isFinite(restartAt) && restartAt > 0
+                    ? Math.max(0, Math.round(Date.now() / 1000 - restartAt))
+                    : null;
+                restartMetric = `
+                    <span title="Neustarts seit Start des Streamer-Dienstes">
+                        Neustarts ${Number(runtime.restart_count)} ·
+                        ${escapeHTML(reason)}${restartAge === null ? "" : ` · vor ${restartAge} s`}
+                    </span>
+                `;
+            }
         }
         return `
             <article class="source-diagnostic-item">
@@ -412,8 +438,13 @@ function updateSourceDiagnostics(sources) {
                     <div><dt>Viewer</dt><dd>${Number(source.viewers || 0)}</dd></div>
                 </dl>
                 <div class="source-runtime-summary">
-                    <strong>${escapeHTML(runtimeState)}</strong>
+                    <strong
+                        class="source-health is-${escapeHTML(health.code)}"
+                        title="${escapeHTML(health.message)}">
+                        ● ${escapeHTML(health.label)} · ${escapeHTML(runtimeState)}
+                    </strong>
                     ${runtimeMetrics}
+                    ${restartMetric}
                 </div>
             </article>
         `;
