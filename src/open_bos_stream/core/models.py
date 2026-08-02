@@ -55,6 +55,7 @@ class SourceConfig(BaseModel):
         "direct",
         "copy_repair",
         "copy_repair_low_latency",
+        "preview_transcode",
         "transcode",
     ] = "direct"
     enabled: bool = True
@@ -162,6 +163,11 @@ class SourceConfig(BaseModel):
                     secrets.choice(PUBLISH_TOKEN_ALPHABET)
                     for _ in range(PUBLISH_TOKEN_LENGTH)
                 )
+        if self.profile == "preview_transcode" and self.type != "rtmp":
+            raise ValueError(
+                "Das Mehrquellen-Vorschauprofil ist nur für "
+                "RTMP-Quellen verfügbar."
+            )
         if self.type == "v4l2" and not self.device:
             raise ValueError("Für die Capture Card fehlt das Gerät.")
         return self
@@ -186,6 +192,8 @@ class SourceConfig(BaseModel):
     def fullscreen_viewer_path(self) -> str:
         """Separater Hauptstream-Pfad bei konfigurierter RTSP-Vorschau."""
 
+        if self.type == "rtmp" and self.profile == "preview_transcode":
+            return self.publish_path
         if self.type == "rtsp" and self.preview_url:
             return f"{self.id}-main"
         return self.viewer_path

@@ -12,7 +12,7 @@ function sourceTypeOptions(selected) {
     `).join("");
 }
 
-function sourceProfileOptions(selected) {
+function sourceProfileOptions(selected, sourceType) {
     const profiles = [
         ["direct", "Direkt / Stream Copy"],
         ["copy_repair", "Copy mit Zeitstempel-Korrektur"],
@@ -20,9 +20,17 @@ function sourceProfileOptions(selected) {
             "copy_repair_low_latency",
             "Copy-Reparatur · geringe Latenz",
         ],
+        [
+            "preview_transcode",
+            "Mehrquellen-Vorschau · max. 540p",
+        ],
         ["transcode", "Transcodieren"],
     ];
-    return profiles.map(([value, label]) => `
+    return profiles
+        .filter(([value]) => (
+            value !== "preview_transcode" || sourceType === "rtmp"
+        ))
+        .map(([value, label]) => `
         <option
             value="${value}"
             ${value === selected ? "selected" : ""}>
@@ -114,6 +122,21 @@ function sourceTranscodingFields(source) {
                 </div>
             </div>
         </fieldset>
+    `;
+}
+
+function sourcePreviewProfileHint(source) {
+    if (source.profile !== "preview_transcode") {
+        return "";
+    }
+    return `
+        <div class="form-field form-field-wide source-profile-hint">
+            <small>
+                Die Übersicht nutzt eine H.264-Vorschau mit maximal
+                960×540, 15 fps und ohne Audio. Kleinere Quellen werden
+                nicht hochskaliert; Vollbild zeigt den Originalstream.
+            </small>
+        </div>
     `;
 }
 
@@ -364,7 +387,7 @@ function renderSources() {
                 <div class="form-field">
                     <label>Profil</label>
                     <select class="bos-input" data-field="profile">
-                        ${sourceProfileOptions(source.profile)}
+                        ${sourceProfileOptions(source.profile, source.type)}
                     </select>
                 </div>
                 <div class="form-field">
@@ -376,6 +399,7 @@ function renderSources() {
                     </select>
                 </div>
                 ${sourceTranscodingFields(source)}
+                ${sourcePreviewProfileHint(source)}
                 <div class="source-specific-fields form-grid form-field-wide">
                     ${sourceSpecificFields(source)}
                 </div>
@@ -395,6 +419,12 @@ function renderSources() {
                 currentConfig.sources[index].type = event.target.value;
                 if (event.target.value === "v4l2") {
                     currentConfig.sources[index].profile = "transcode";
+                } else if (
+                    currentConfig.sources[index].profile ===
+                    "preview_transcode" &&
+                    event.target.value !== "rtmp"
+                ) {
+                    currentConfig.sources[index].profile = "direct";
                 }
                 await loadSourceEncoders();
                 renderSources();

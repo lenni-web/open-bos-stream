@@ -120,9 +120,13 @@ class ConfigPreflightValidator:
                 )
 
             codec = (
-                source.codec or config.encoder.codec
-                if source.profile == "transcode"
-                else "copy"
+                "libx264"
+                if source.profile == "preview_transcode"
+                else (
+                    source.codec or config.encoder.codec
+                    if source.profile == "transcode"
+                    else "copy"
+                )
             )
             if codec != "copy":
                 encoders = encoders or self._available_encoders()

@@ -9,6 +9,18 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.11.9] - 2026-08-02
+
+### Added
+
+- RTMP-Quellen können testweise das Profil „Mehrquellen-Vorschau“ verwenden.
+  Es erzeugt für die Übersicht eine WebRTC-freundliche H.264-Vorschau mit
+  maximal 960×540 Pixeln, 15 fps, 1,2 Mbit/s und ohne Audio. Das Seitenverhältnis
+  bleibt erhalten, kleinere Eingangsbilder werden nicht hochskaliert und im
+  Vollbild wird automatisch auf den unveränderten Originalstream gewechselt.
+
 ### Fixed
 
 - Safari auf dem iPhone setzt die stummgeschaltete Wiedergabe nach dem

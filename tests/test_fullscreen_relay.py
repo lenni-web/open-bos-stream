@@ -83,3 +83,34 @@ def test_fullscreen_relay_is_shared_and_uses_main_url(monkeypatch) -> None:
         manager.close()
 
     assert process.returncode == 0
+
+
+def test_rtmp_preview_uses_original_path_without_second_publisher(
+    monkeypatch,
+) -> None:
+    config = ConfigLoader().load()
+    source = SourceConfig(
+        id="drohne-preview",
+        name="Drohne Vorschau",
+        type="rtmp",
+        profile="preview_transcode",
+    )
+    config.sources = [source]
+    mediamtx = FakeMediaMTX()
+
+    def unexpected_popen(*args, **kwargs):
+        raise AssertionError("Direkter RTMP-Hauptpfad braucht kein FFmpeg")
+
+    monkeypatch.setattr(
+        "open_bos_stream.stream.fullscreen_relay.subprocess.Popen",
+        unexpected_popen,
+    )
+    manager = FullscreenRelayManager(config, mediamtx)
+    try:
+        result = manager.acquire(source.id)
+
+        assert result["viewer_path"] == source.id
+        assert result["running"] is True
+        assert result["ready"] is True
+    finally:
+        manager.close()

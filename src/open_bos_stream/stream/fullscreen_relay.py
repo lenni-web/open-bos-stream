@@ -1,4 +1,4 @@
-"""Bedarfsgesteuerte RTSP-Hauptstreams für die Vollbildanzeige."""
+"""Bedarfsgesteuerte Hauptstreams für die Vollbildanzeige."""
 
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ def _video_details(path: dict | None) -> tuple[int, int, str | None]:
 @dataclass
 class FullscreenRelay:
     source: SourceConfig
-    process: subprocess.Popen[bytes]
+    process: subprocess.Popen[bytes] | None
     leases: dict[str, float] = field(default_factory=dict)
     idle_since: float | None = None
 
@@ -88,30 +88,40 @@ class FullscreenRelayManager:
         lease_id = uuid.uuid4().hex
         with self._lock:
             relay = self._relays.get(source_id)
-            if relay is None or relay.process.poll() is not None:
-                command = self._builder.build_source(
-                    source,
-                    use_preview=False,
-                    viewer_path=source.fullscreen_viewer_path,
-                )
-                process = subprocess.Popen(
-                    [
-                        command[0],
-                        "-hide_banner",
-                        "-loglevel",
-                        "warning",
-                        "-nostdin",
-                        *command[1:],
-                    ],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
+            process_ended = (
+                relay is not None
+                and relay.process is not None
+                and relay.process.poll() is not None
+            )
+            if relay is None or process_ended:
+                process: subprocess.Popen[bytes] | None = None
+                if not (
+                    source.type == "rtmp"
+                    and source.profile == "preview_transcode"
+                ):
+                    command = self._builder.build_source(
+                        source,
+                        use_preview=False,
+                        viewer_path=source.fullscreen_viewer_path,
+                    )
+                    process = subprocess.Popen(
+                        [
+                            command[0],
+                            "-hide_banner",
+                            "-loglevel",
+                            "warning",
+                            "-nostdin",
+                            *command[1:],
+                        ],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
                 relay = FullscreenRelay(source=source, process=process)
                 self._relays[source_id] = relay
                 logger.info(
-                    "RTSP-Hauptstream für Quelle %s gestartet (PID %s)",
+                    "Hauptstream für Quelle %s bereitgestellt (PID %s)",
                     source_id,
-                    process.pid,
+                    process.pid if process is not None else "direkt",
                 )
             relay.leases[lease_id] = now + LEASE_SECONDS
             relay.idle_since = None
@@ -124,7 +134,10 @@ class FullscreenRelayManager:
             if relay is None or lease_id not in relay.leases:
                 raise KeyError(lease_id)
             relay.leases[lease_id] = now + LEASE_SECONDS
-            running = relay.process.poll() is None
+            running = (
+                relay.process is None
+                or relay.process.poll() is None
+            )
             viewer_path = relay.source.fullscreen_viewer_path
         path = self._mediamtx.path(viewer_path) if running else None
         width, height, codec = _video_details(path)
@@ -149,7 +162,7 @@ class FullscreenRelayManager:
                 relay.idle_since = time.monotonic()
 
     def _stop_relay(self, source_id: str, relay: FullscreenRelay) -> None:
-        if relay.process.poll() is None:
+        if relay.process is not None and relay.process.poll() is None:
             try:
                 relay.process.send_signal(signal.SIGINT)
                 relay.process.wait(timeout=5)
@@ -158,7 +171,7 @@ class FullscreenRelayManager:
             except ProcessLookupError:
                 pass
         self._relays.pop(source_id, None)
-        logger.info("RTSP-Hauptstream für Quelle %s beendet", source_id)
+        logger.info("Hauptstream für Quelle %s freigegeben", source_id)
 
     def _monitor_relays(self) -> None:
         while not self._stopping.wait(1.0):
@@ -170,7 +183,10 @@ class FullscreenRelayManager:
                         for key, expires in relay.leases.items()
                         if expires > now
                     }
-                    if relay.process.poll() is not None:
+                    if (
+                        relay.process is not None
+                        and relay.process.poll() is not None
+                    ):
                         self._stop_relay(source_id, relay)
                         continue
                     if relay.leases:

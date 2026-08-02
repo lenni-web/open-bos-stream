@@ -252,6 +252,17 @@ def test_each_source_player_has_fullscreen_control() -> None:
     assert "deferUnavailableStop(4000)" in source_js
 
 
+def test_rtmp_multi_source_preview_profile_is_selectable() -> None:
+    source_js = (
+        ROOT / "static" / "js" / "config_rtmp_inputs.js"
+    ).read_text(encoding="utf-8")
+
+    assert '"preview_transcode"' in source_js
+    assert "Mehrquellen-Vorschau · max. 540p" in source_js
+    assert "maximal\n                960×540, 15 fps" in source_js
+    assert "Vollbild zeigt den Originalstream" in source_js
+
+
 def test_mobile_web_app_manifest_and_icons_are_linked() -> None:
     index = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
     login = (ROOT / "templates" / "login.html").read_text(encoding="utf-8")
