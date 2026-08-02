@@ -5,6 +5,7 @@ import pytest
 from open_bos_stream.auth.service import AuthError, AuthService
 from open_bos_stream.auth.middleware import SUPERADMIN_PATHS
 from open_bos_stream.auth.middleware import SUPERADMIN_PREFIXES
+from open_bos_stream.auth.middleware import ADMIN_PATHS, ADMIN_PREFIXES
 
 
 def service(tmp_path: Path) -> AuthService:
@@ -134,3 +135,8 @@ def test_superadmin_only_routes_cover_sensitive_features() -> None:
     assert "/snapshot" in SUPERADMIN_PREFIXES
     assert "/config/restore" in SUPERADMIN_PATHS
     assert "/config/sources" not in SUPERADMIN_PATHS
+
+
+def test_system_diagnostics_require_at_least_admin_role() -> None:
+    assert "/system" in ADMIN_PREFIXES
+    assert "/dashboard/diagnostics" in ADMIN_PATHS

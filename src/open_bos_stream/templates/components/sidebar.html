@@ -80,6 +80,7 @@
             </a>
             {% endif %}
 
+            {% if user.role != "viewer" %}
             <a
                 id="nav-system"
                 class="bos-nav-item"
@@ -90,6 +91,7 @@
                 <span class="nav-label">System</span>
 
             </a>
+            {% endif %}
 
         </nav>
 
