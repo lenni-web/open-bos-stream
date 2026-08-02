@@ -448,7 +448,9 @@ Liefert ein RTMP-Publisher nur einen einzelnen Stream, kann das Profil
 erzeugen. Die Skalierung behält das Seitenverhältnis bei und begrenzt Breite
 und Höhe auf 960×540; 720p-, 1080p-, 4K- und abweichende Formate funktionieren
 damit gleichermaßen. Kleinere Quellen werden nicht vergrößert. Die Vorschau
-läuft ohne Audio mit 15 fps und etwa 1,2 Mbit/s. Beim Vollbild wechselt der
+läuft ohne Audio mit 15 fps und etwa 1,4 Mbit/s. Das CPU-sparende
+`ultrafast`-Preset hält mehrere parallele Vorschauen leichter in Echtzeit.
+Beim Vollbild wechselt der
 Browser auf den unveränderten RTMP-Eingang. Da die Vorschau per Software
 kodiert wird, sollte ihre CPU-Auslastung vor einem breiten Einsatz mit realen
 Quellen geprüft werden.
