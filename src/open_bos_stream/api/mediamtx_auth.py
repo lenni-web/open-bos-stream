@@ -9,7 +9,7 @@ from urllib.parse import parse_qs
 from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel
 
-from open_bos_stream.core.config import ConfigLoader
+from open_bos_stream.core.container import config
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +79,7 @@ async def authorize_mediamtx(
     source = next(
         (
             item
-            for item in ConfigLoader().load().sources
+            for item in config.sources
             if item.enabled
             and item.type == "rtmp"
             and item.publish_path == publish_path
