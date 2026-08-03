@@ -12,6 +12,10 @@ class StreamOutputStatus(BaseModel):
 
     name: str
 
+    source_id: str | None = None
+
+    source_name: str | None = None
+
     enabled: bool
 
     running: bool = False

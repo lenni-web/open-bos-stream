@@ -314,6 +314,28 @@ def test_srt_output_command_is_flat_and_uses_direct_stream() -> None:
     assert "streamid=" not in command[-1]
 
 
+def test_stream_output_uses_its_selected_source() -> None:
+    config = ConfigLoader().load()
+    selected = SourceConfig(
+        id="kamera-zwei",
+        name="Kamera zwei",
+        type="rtsp",
+        url="rtsp://192.0.2.20/main",
+        profile="direct",
+    )
+    config.sources.append(selected)
+    output = config.stream_outputs[0].model_copy(
+        update={"source_id": selected.id},
+        deep=True,
+    )
+
+    command = StreamOutputCommandBuilder(config).build(output)
+
+    assert command[command.index("-i") + 1] == (
+        "rtsp://127.0.0.1:8554/kamera-zwei-view"
+    )
+
+
 def test_srt_output_preserves_custom_connection_parameters() -> None:
     config = ConfigLoader().load()
     output = next(

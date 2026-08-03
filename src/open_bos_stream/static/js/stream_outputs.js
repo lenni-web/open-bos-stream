@@ -27,6 +27,10 @@ function updateStreamOutputs(outputs) {
 
 	            <strong>${output.name}</strong>
 
+	            <div class="text-muted">
+	                Quelle: ${escapeHTML(output.source_name ?? "Nicht gewählt")}
+	            </div>
+
 	            <div class="stream-output-status">
 
 	                <span class="

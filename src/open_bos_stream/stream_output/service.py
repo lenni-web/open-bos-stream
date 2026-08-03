@@ -51,13 +51,23 @@ class StreamOutputService:
                 "Streaming Output ist deaktiviert."
             )
 
-        path = self._mediamtx.path(
-            self._config.stream.name
-        )
+        source = self._config.stream_output_source(output)
+
+        if source is None:
+            raise RuntimeError(
+                "Für den Streaming Output ist keine gültige Quelle gewählt."
+            )
+
+        if not source.enabled:
+            raise RuntimeError(
+                f"Die gewählte Quelle '{source.name}' ist deaktiviert."
+            )
+
+        path = self._mediamtx.path(source.viewer_path)
 
         if path is None:
             raise RuntimeError(
-                "Kein aktiver Stream vorhanden."
+                f"Die gewählte Quelle '{source.name}' ist nicht aktiv."
             )
 
         if not path.get(
@@ -65,7 +75,7 @@ class StreamOutputService:
             False,
         ):
             raise RuntimeError(
-                "Stream ist nicht bereit."
+                f"Die gewählte Quelle '{source.name}' ist nicht bereit."
             )
 
         try:
@@ -131,11 +141,21 @@ class StreamOutputService:
 
         for output in self._manager.outputs():
 
+            source = self._config.stream_output_source(output)
+
             result.append(
 
                 StreamOutputStatus(
 
                     name=output.name,
+
+                    source_id=output.source_id,
+
+                    source_name=(
+                        source.name
+                        if source is not None
+                        else None
+                    ),
 
                     enabled=output.enabled,
 

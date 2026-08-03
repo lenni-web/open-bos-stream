@@ -17,6 +17,21 @@ function renderStreamOutputs() {
                 source: "none",
             };
 
+            output.source_id ??=
+                currentConfig.sources?.find(
+                    source => source.enabled
+                )?.id ?? currentConfig.sources?.[0]?.id ?? null;
+
+            const sourceOptions = (currentConfig.sources ?? [])
+                .map(source => `
+                    <option
+                        value="${escapeHTML(source.id)}"
+                        ${output.source_id === source.id ? "selected" : ""}>
+                        ${escapeHTML(source.name)}${source.enabled ? "" : " (deaktiviert)"}
+                    </option>
+                `)
+                .join("");
+
             container.innerHTML += `
 
                 <div class="stream-output-config">
@@ -47,6 +62,22 @@ function renderStreamOutputs() {
                             ${output.type === "srt" ? "selected" : ""}>
                             SRT
                         </option>
+
+                    </select>
+
+                    <label>Weiterzuleitende Quelle</label>
+
+                    <select
+                        class="bos-input"
+                        data-index="${index}"
+                        data-field="source-id"
+                        ${sourceOptions ? "" : "disabled"}>
+
+                        ${sourceOptions || `
+                            <option value="">
+                                Keine Quelle verfügbar
+                            </option>
+                        `}
 
                     </select>
 
@@ -123,6 +154,13 @@ function addStreamOutput() {
         name: "Neuer Output",
         url: "",
         enabled: true,
+        source_id:
+            currentConfig.sources?.find(
+                source => source.enabled
+            )?.id ?? currentConfig.sources?.[0]?.id ?? null,
+        audio: {
+            source: "none",
+        },
 
     });
 
@@ -172,6 +210,10 @@ function saveStreamOutputs() {
                 enabled: card.querySelector(
                     '[data-field="enabled"]'
                 ).checked,
+
+                source_id: card.querySelector(
+                    '[data-field="source-id"]'
+                ).value || null,
 
                 audio: {
 

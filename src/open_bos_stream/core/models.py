@@ -342,6 +342,8 @@ class StreamOutputConfig(BaseModel):
 
     enabled: bool = True
 
+    source_id: str | None = None
+
     url: str
 
     audio: StreamOutputAudioConfig = Field(
@@ -533,6 +535,18 @@ class AppConfig(BaseModel):
             )
             self.stream.passthrough = not primary.requires_process
 
+            source_ids_set = set(source_ids)
+            for output in self.stream_outputs:
+                # Rückwärtskompatibilität: Vor 0.11.12 verwendeten alle
+                # Ausgänge implizit die erste aktivierte Quelle.
+                if output.source_id is None:
+                    output.source_id = primary.id
+                elif output.source_id not in source_ids_set:
+                    # Wird eine bislang gewählte Quelle entfernt, bleibt die
+                    # Gesamtkonfiguration speicherbar und der Ausgang fällt
+                    # nachvollziehbar auf die neue Primärquelle zurück.
+                    output.source_id = primary.id
+
         ids = [item.id for item in self.rtmp_inputs]
         paths = [item.path for item in self.rtmp_inputs]
         if len(ids) != len(set(ids)):
@@ -548,6 +562,21 @@ class AppConfig(BaseModel):
                 "RTMP-Wiedergabepfade müssen eindeutig sein."
             )
         return self
+
+    def stream_output_source(
+        self,
+        output: StreamOutputConfig,
+    ) -> SourceConfig | None:
+        """Die explizit für einen Streaming-Ausgang gewählte Quelle."""
+
+        return next(
+            (
+                source
+                for source in self.sources
+                if source.id == output.source_id
+            ),
+            None,
+        )
 
     @property
     def passthrough_active(self) -> bool:

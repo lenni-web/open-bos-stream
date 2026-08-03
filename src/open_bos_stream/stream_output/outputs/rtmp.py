@@ -38,6 +38,13 @@ class RTMPOutput(BaseOutput):
         output: StreamOutputConfig,
     ) -> list[str]:
 
+        source = config.stream_output_source(output)
+        input_url = (
+            f"rtsp://127.0.0.1:8554/{source.viewer_path}"
+            if source is not None
+            else config.stream.rtsp_url
+        )
+
         command = [
 
             "ffmpeg",
@@ -46,7 +53,7 @@ class RTMPOutput(BaseOutput):
             "tcp",
 
             "-i",
-            config.stream.rtsp_url,
+            input_url,
         ]
 
         audio = AudioFactory.create(

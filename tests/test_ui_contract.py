@@ -600,6 +600,16 @@ def test_hidden_superadmin_outputs_are_not_cleared_by_admin_save() -> None:
     assert '"stream-output-settings"' in save_function
     assert "if (!container)" in outputs
 
+
+def test_stream_outputs_offer_an_explicit_source_selection() -> None:
+    outputs = (
+        ROOT / "static" / "js" / "config_stream_outputs.js"
+    ).read_text(encoding="utf-8")
+
+    assert "Weiterzuleitende Quelle" in outputs
+    assert 'data-field="source-id"' in outputs
+    assert "source_id:" in outputs
+
     config = (
         ROOT / "static" / "js" / "config.js"
     ).read_text(encoding="utf-8")

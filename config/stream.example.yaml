@@ -65,3 +65,6 @@ map:
   path: /opt/open-bos-stream/mapdata
   default: stade
 stream_outputs: []
+# Jeder Streaming-Ausgang kann mit `source_id` eine der oben definierten
+# Quellen auswählen. Bei älteren Konfigurationen ohne Angabe wird einmalig
+# die erste aktivierte Quelle übernommen.
