@@ -101,22 +101,54 @@ class SnapshotService:
                 f"Quelle '{source.name}' ist nicht verfügbar."
             )
         filename = self.next_filename(source.id)
+        working_file = filename.with_name(f".{filename.name}.part")
+        working_file.unlink(missing_ok=True)
 
-        self._runner.run(
-            [
-                "ffmpeg",
-                "-y",
-                "-rtsp_transport",
-                "tcp",
-                "-i",
-                f"rtsp://127.0.0.1:8554/{source.viewer_path}",
-                "-frames:v",
-                "1",
-                str(filename),
-            ],
-            timeout=15,
-            check=True,
-        )
+        try:
+            self._runner.run(
+                [
+                    "ffmpeg",
+                    "-y",
+                    "-rtsp_transport",
+                    "tcp",
+                    "-fflags",
+                    "+genpts+discardcorrupt",
+                    "-err_detect",
+                    "ignore_err",
+                    # Nicht den ersten beliebigen, eventuell nur grau
+                    # rekonstruierten HEVC-Frame verwenden. Auf einen
+                    # vollständigen Schlüsselbild-Frame warten.
+                    "-skip_frame",
+                    "nokey",
+                    "-i",
+                    f"rtsp://127.0.0.1:8554/{source.viewer_path}",
+                    "-an",
+                    "-frames:v",
+                    "1",
+                    "-q:v",
+                    "2",
+                    "-update",
+                    "1",
+                    "-f",
+                    "image2",
+                    str(working_file),
+                ],
+                timeout=20,
+                check=True,
+            )
+
+            if (
+                not working_file.exists()
+                or working_file.stat().st_size < 1024
+            ):
+                raise RuntimeError(
+                    "FFmpeg hat keinen vollständigen Snapshot erzeugt."
+                )
+
+            working_file.replace(filename)
+        except Exception:
+            working_file.unlink(missing_ok=True)
+            raise
 
         self._last_snapshot = filename
 

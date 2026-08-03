@@ -9,7 +9,9 @@ from __future__ import annotations
 import logging
 import signal
 import subprocess
+import tempfile
 import time
+from typing import TextIO
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +21,20 @@ class RecordingProcess:
 
     def __init__(self) -> None:
         self._process: subprocess.Popen | None = None
+        self._stderr_file: TextIO | None = None
         self.last_error = ""
+
+    def _read_stderr(self) -> str:
+        if self._stderr_file is None:
+            return ""
+        self._stderr_file.flush()
+        self._stderr_file.seek(0)
+        return self._stderr_file.read().strip()
+
+    def _close_stderr(self) -> None:
+        if self._stderr_file is not None:
+            self._stderr_file.close()
+            self._stderr_file = None
 
     @property
     def running(self) -> bool:
@@ -49,6 +64,15 @@ class RecordingProcess:
 
         try:
 
+            # Ein normales PIPE kann volllaufen, wenn eine beschädigte HEVC-
+            # Quelle sehr viele Decoderwarnungen erzeugt. Eine temporäre Datei
+            # hält FFmpeg auch in diesem Fall dauerhaft schreibfähig.
+            self._close_stderr()
+            self._stderr_file = tempfile.TemporaryFile(
+                mode="w+t",
+                encoding="utf-8",
+            )
+
             self._process = subprocess.Popen(
                 [
                     command[0],
@@ -59,7 +83,7 @@ class RecordingProcess:
                     *command[1:],
                 ],
                 stdout=subprocess.DEVNULL,
-                stderr=subprocess.PIPE,
+                stderr=self._stderr_file,
                 text=True,
             )
 
@@ -68,18 +92,22 @@ class RecordingProcess:
 
             if self._process.poll() is not None:
 
-                error = self._process.stderr.read().strip()
+                error = self._read_stderr()
+
+                self._close_stderr()
 
                 raise RuntimeError(
                     f"FFmpeg konnte die Aufnahme nicht starten:\n{error}"
                 )
 
         except FileNotFoundError as exc:
+            self._close_stderr()
             raise RuntimeError(
                 "FFmpeg wurde nicht gefunden."
             ) from exc
 
         except Exception as exc:
+            self._close_stderr()
             raise RuntimeError(
                 f"Recording konnte nicht gestartet werden: {exc}"
             ) from exc
@@ -96,7 +124,7 @@ class RecordingProcess:
             self._process.send_signal(signal.SIGINT)
 
         try:
-            _, stderr = self._process.communicate(timeout=10)
+            self._process.wait(timeout=15)
 
         except subprocess.TimeoutExpired:
 
@@ -105,9 +133,10 @@ class RecordingProcess:
             )
 
             self._process.kill()
-            _, stderr = self._process.communicate()
+            self._process.wait()
 
         returncode = int(self._process.returncode or 0)
-        self.last_error = (stderr or "").strip()
+        self.last_error = self._read_stderr()
+        self._close_stderr()
         self._process = None
         return returncode

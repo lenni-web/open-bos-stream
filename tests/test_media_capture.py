@@ -21,6 +21,9 @@ class FakeRunner:
 
     def run(self, command, **_kwargs):
         self.command = list(command)
+        Path(command[-1]).write_bytes(
+            b"\xff\xd8" + (b"snapshot" * 256) + b"\xff\xd9"
+        )
 
 
 class FakeRecordingManager:
@@ -88,6 +91,12 @@ def test_snapshot_uses_selected_source(tmp_path: Path) -> None:
         f"rtsp://127.0.0.1:8554/{source.viewer_path}"
         in runner.command
     )
+    assert ["-skip_frame", "nokey"] == runner.command[
+        runner.command.index("-skip_frame"):
+        runner.command.index("-skip_frame") + 2
+    ]
+    assert filename.exists()
+    assert not filename.with_name(f".{filename.name}.part").exists()
 
 
 def test_recording_uses_and_remembers_selected_source(

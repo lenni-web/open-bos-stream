@@ -80,3 +80,27 @@ def test_failed_recording_is_discarded(tmp_path: Path) -> None:
     assert not final.exists()
     assert builder.output is not None
     assert not builder.output.exists()
+
+
+def test_nonzero_ffmpeg_exit_keeps_valid_finalized_recording(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    manager, builder = manager_with_fakes(returncode=255)
+    manager._process.last_error = "Could not find ref with POC 47"
+    final = tmp_path / "recording_test.mp4"
+    monkeypatch.setattr(
+        "open_bos_stream.recording.manager.subprocess.run",
+        lambda *args, **kwargs: SimpleNamespace(
+            returncode=0,
+            stdout="video\n",
+            stderr="",
+        ),
+    )
+
+    manager.start(final, "rtsp://127.0.0.1/source")
+    manager.stop()
+
+    assert final.read_bytes() == b"mp4-data"
+    assert builder.output is not None
+    assert not builder.output.exists()
