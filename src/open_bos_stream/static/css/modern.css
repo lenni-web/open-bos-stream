@@ -158,7 +158,18 @@ body {
 }
 
 .header-logo {
-    font-size: 24px;
+    display: block;
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+}
+
+.header-logo img,
+.sidebar-logo img,
+.auth-brand-icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 
 .header-title {
@@ -224,11 +235,8 @@ body {
 }
 
 .sidebar-logo {
-    background: linear-gradient(
-        145deg,
-        var(--bos-red),
-        var(--bos-red-dark)
-    );
+    overflow: hidden;
+    background: transparent;
 }
 
 .bos-nav-item {
@@ -507,15 +515,14 @@ body {
 }
 
 .auth-brand-icon {
-    display: grid;
+    display: block;
     width: 54px;
     height: 54px;
     flex: 0 0 54px;
-    place-items: center;
-    border-radius: 15px;
-    background: linear-gradient(145deg, var(--bos-red), var(--bos-red-dark));
+    overflow: hidden;
+    border-radius: 13px;
+    background: transparent;
     box-shadow: 0 8px 20px rgba(176, 0, 32, 0.2);
-    font-size: 1.65rem;
 }
 
 .auth-brand div {

@@ -1,5 +1,7 @@
 # Open BOS Stream
 
+<img src="src/open_bos_stream/static/icons/open-bos-stream.svg" alt="Open BOS Stream" width="96">
+
 Open BOS Stream ist eine webbasierte Streaming- und Kartenplattform für BOS-Anwendungen (Behörden und Organisationen mit Sicherheitsaufgaben). Sie kombiniert Live-Video, Kartenansicht und einsatzrelevante Overlays in einer leichtgewichtigen Anwendung für Raspberry Pi und Debian-Server.
 
 Die HTTPS-Oberfläche kann auf iOS über „Zum Home-Bildschirm“ und auf Android

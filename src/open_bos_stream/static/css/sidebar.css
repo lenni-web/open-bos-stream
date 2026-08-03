@@ -86,7 +86,9 @@
 
     border-radius: 12px;
 
-    background: #d32f2f;
+    overflow: hidden;
+
+    background: transparent;
 
     color: white;
 
@@ -347,4 +349,3 @@
     }
 
 }
-
