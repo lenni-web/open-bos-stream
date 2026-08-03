@@ -295,7 +295,9 @@ def test_mobile_web_app_manifest_and_icons_are_linked() -> None:
         assert 'rel="apple-touch-icon"' in template
         assert 'name="theme-color"' in template
     assert '"display": "standalone"' in manifest
-    assert '"purpose": "any maskable"' in manifest
+    assert '"purpose": "any"' in manifest
+    assert '"purpose": "maskable"' in manifest
+    assert "open-bos-stream-maskable-512.png" in manifest
 
 
 def test_media_player_has_compatibility_fallback() -> None:
@@ -579,7 +581,7 @@ def test_login_page_has_product_identity_and_description() -> None:
         ROOT / "templates" / "login.html"
     ).read_text(encoding="utf-8")
 
-    assert "🚒" in login
+    assert "open-bos-stream.svg" in login
     assert "Open BOS Stream" in login
     assert "Empfangen, Überwachen und Anzeigen" in login
     assert 'id="auth-title"' in login

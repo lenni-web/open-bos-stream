@@ -11,6 +11,19 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.11.11] - 2026-08-03
+
+### Changed
+
+- Das neue Open-BOS-Stream-Signet verbindet Drohne und Flamme in einem roten
+  Schutzschild auf einer dunkelblauen Kachel. Kopfzeile, Seitenleiste,
+  Anmeldeseite, Favicons und installierte Web-App verwenden nun durchgängig
+  dieselbe visuelle Identität.
+- Die Icon-Familie enthält neben dem skalierbaren SVG passende PNG-Größen für
+  Browser-Favicons, Apple-Touch-Icons sowie normale und maskierbare PWA-Icons.
+
+---
+
 ## [0.11.10] - 2026-08-02
 
 ### Added

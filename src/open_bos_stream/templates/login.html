@@ -10,15 +10,22 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="BOS Stream">
     <link rel="manifest" href="/static/manifest.webmanifest?v={{ version }}">
-    <link rel="icon" href="/static/icons/open-bos-stream.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/static/icons/open-bos-stream-180.png">
+    <link rel="icon" href="/static/icons/open-bos-stream.svg?v={{ version }}" type="image/svg+xml">
+    <link rel="icon" href="/static/icons/open-bos-stream-32.png?v={{ version }}" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="/static/icons/open-bos-stream-180.png?v={{ version }}">
     <link rel="stylesheet" href="/static/css/obds.css?v={{ version }}">
     <link rel="stylesheet" href="/static/css/modern.css?v={{ version }}">
 </head>
 <body class="auth-page">
     <main class="auth-card bos-card">
         <header class="auth-brand">
-            <span class="auth-brand-icon" aria-hidden="true">🚒</span>
+            <span class="auth-brand-icon" aria-hidden="true">
+                <img
+                    src="/static/icons/open-bos-stream.svg?v={{ version }}"
+                    alt=""
+                    width="54"
+                    height="54">
+            </span>
             <div>
                 <strong>Open BOS Stream</strong>
                 <span>BOS Streaming Suite</span>
