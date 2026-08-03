@@ -9,6 +9,13 @@ window.addEventListener("load", async () => {
         1000
     );
 
+    // Nur die sichtbare Aufnahmezeit lokal sekündlich fortschreiben.
+    // Der Dashboard-Abruf bleibt bewusst im ressourcenschonenden 2-s-Takt.
+    setInterval(
+        updateRecordingTimer,
+        1000
+    );
+
     // ------------------------------------------------------
     // UI-Zustand wiederherstellen
     // ------------------------------------------------------
@@ -45,6 +52,7 @@ window.addEventListener("load", async () => {
 
     if (window.currentUser?.role !== "viewer") {
         await refreshConfig();
+        await loadUsers();
     }
     if (window.currentUser?.role === "superadmin") {
         refreshSnapshot();
@@ -53,7 +61,6 @@ window.addEventListener("load", async () => {
             await loadDisplayConfig();
             await loadWebAccessConfig();
         }
-        await loadUsers();
     }
 
     // ------------------------------------------------------

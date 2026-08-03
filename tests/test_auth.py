@@ -1,12 +1,15 @@
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
+from fastapi import HTTPException
 
-from open_bos_stream.auth.service import AuthError, AuthService
+from open_bos_stream.api.auth import _assert_admin_scope
+from open_bos_stream.auth.middleware import ADMIN_PATHS, ADMIN_PREFIXES
 from open_bos_stream.auth.middleware import SUPERADMIN_PATHS
 from open_bos_stream.auth.middleware import SUPERADMIN_PREFIXES
-from open_bos_stream.auth.middleware import ADMIN_PATHS, ADMIN_PREFIXES
 from open_bos_stream.auth.middleware import viewer_mutation_allowed
+from open_bos_stream.auth.service import AuthError, AuthService
 
 
 def service(tmp_path: Path) -> AuthService:
@@ -130,7 +133,7 @@ def test_superadmin_only_routes_cover_sensitive_features() -> None:
     assert "/display" in SUPERADMIN_PREFIXES
     assert "/web-access" in SUPERADMIN_PREFIXES
     assert "/stream-output" in SUPERADMIN_PREFIXES
-    assert "/auth/users" in SUPERADMIN_PREFIXES
+    assert "/auth/users" not in SUPERADMIN_PREFIXES
     assert "/media" in SUPERADMIN_PREFIXES
     assert "/recording" in SUPERADMIN_PREFIXES
     assert "/snapshot" in SUPERADMIN_PREFIXES
@@ -140,6 +143,7 @@ def test_superadmin_only_routes_cover_sensitive_features() -> None:
 
 def test_system_diagnostics_require_at_least_admin_role() -> None:
     assert "/system" in ADMIN_PREFIXES
+    assert "/auth/users" in ADMIN_PREFIXES
     assert "/dashboard/diagnostics" in ADMIN_PATHS
 
 
@@ -157,3 +161,24 @@ def test_viewers_can_only_manage_fullscreen_display_leases() -> None:
         "/dashboard/sources/quelle-1/probe",
     )
     assert not viewer_mutation_allowed("PUT", "/config/sources")
+
+
+def test_admin_cannot_manage_or_create_superadmins() -> None:
+    request = SimpleNamespace(
+        state=SimpleNamespace(
+            user={"username": "operator", "role": "admin"}
+        )
+    )
+
+    with pytest.raises(HTTPException) as target_error:
+        _assert_admin_scope(request, target_role="superadmin")
+    with pytest.raises(HTTPException) as role_error:
+        _assert_admin_scope(request, desired_role="superadmin")
+
+    assert target_error.value.status_code == 403
+    assert role_error.value.status_code == 403
+    _assert_admin_scope(
+        request,
+        target_role="admin",
+        desired_role="viewer",
+    )

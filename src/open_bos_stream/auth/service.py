@@ -171,6 +171,22 @@ class AuthService:
             for item in self._read_users()
         ]
 
+    def user(self, username: str) -> dict | None:
+        """Öffentliche Kontodaten eines einzelnen Benutzers."""
+
+        normalized = username.strip().lower()
+        return next(
+            (
+                {
+                    "username": item["username"],
+                    "role": item["role"],
+                }
+                for item in self._read_users()
+                if item["username"] == normalized
+            ),
+            None,
+        )
+
     def delete_user(self, username: str, current_username: str) -> None:
         username = username.strip().lower()
         if username == current_username:

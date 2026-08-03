@@ -173,6 +173,10 @@
             </div>
         </section>
         {% endif %}
+
+        {% endif %}
+
+        {% if user.role != "viewer" %}
         <section class="bos-card settings-section settings-section-users">
             <div class="settings-section-header">
                 <span class="settings-icon" aria-hidden="true">♙</span>
@@ -193,7 +197,9 @@
                     <select id="new-user-role" class="bos-input">
                         <option value="viewer">Viewer – nur ansehen</option>
                         <option value="admin">Admin – Quellen verwalten</option>
+                        {% if user.role == "superadmin" %}
                         <option value="superadmin">Superadmin – Systemverwaltung</option>
+                        {% endif %}
                     </select>
                 </label>
                 <label class="form-field form-field-wide">

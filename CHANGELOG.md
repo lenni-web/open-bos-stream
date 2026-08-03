@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.11.12] - 2026-08-03
+
 ### Added
 
 - Für jeden RTMP- oder SRT-Streaming-Ausgang kann nun explizit ausgewählt
@@ -16,6 +20,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   Ausgänge übernehmen rückwärtskompatibel die bisher verwendete erste aktive
   Quelle; Statusanzeige und Startprüfung beziehen sich anschließend auf die
   ausgewählte Quelle.
+- Admins können Viewer- und Admin-Konten anlegen, bearbeiten und entfernen.
+  Superadmin-Konten bleiben für sie sowohl in der Oberfläche als auch über
+  direkte API-Aufrufe vollständig geschützt; nur Superadmins dürfen diese
+  Konten sehen oder verwalten und weitere Superadmins anlegen.
 
 ### Fixed
 
@@ -28,6 +36,9 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   ignorieren beschädigte Eingangspakete und werden erst nach erfolgreicher
   Mindestprüfung atomar in der Mediathek veröffentlicht. Dadurch gelangen
   keine grauen, nur teilweise rekonstruierten Bilder mehr in die Oberfläche.
+- Der laufende Aufnahmetimer wird lokal jede Sekunde fortgeschrieben, während
+  die übrigen Dashboard-Daten weiterhin nur alle zwei Sekunden abgefragt
+  werden.
 
 ---
 

@@ -22,6 +22,26 @@ class UserUpdate(BaseModel):
     password: str | None = None
 
 
+def _assert_admin_scope(
+    request: Request,
+    *,
+    target_role: str | None = None,
+    desired_role: str | None = None,
+) -> None:
+    """Verhindert Superadmin-Verwaltung durch normale Admins."""
+
+    if request.state.user["role"] == "superadmin":
+        return
+    if target_role == "superadmin" or desired_role == "superadmin":
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "Admins dürfen keine Superadmin-Konten verwalten oder "
+                "Superadmins anlegen."
+            ),
+        )
+
+
 @router.get("/status")
 async def status(request: Request):
     return {
@@ -64,12 +84,16 @@ async def logout(response: Response):
 
 
 @router.get("/users")
-async def users():
-    return auth_service.users()
+async def users(request: Request):
+    result = auth_service.users()
+    if request.state.user["role"] != "superadmin":
+        result = [item for item in result if item["role"] != "superadmin"]
+    return result
 
 
 @router.post("/users")
-async def create_user(payload: UserCreate):
+async def create_user(payload: UserCreate, request: Request):
+    _assert_admin_scope(request, desired_role=payload.role)
     try:
         user = auth_service.create_user(
             payload.username,
@@ -83,6 +107,10 @@ async def create_user(payload: UserCreate):
 
 @router.delete("/users/{username}")
 async def delete_user(username: str, request: Request):
+    target = auth_service.user(username)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Benutzer wurde nicht gefunden.")
+    _assert_admin_scope(request, target_role=target["role"])
     try:
         auth_service.delete_user(
             username,
@@ -94,7 +122,19 @@ async def delete_user(username: str, request: Request):
 
 
 @router.patch("/users/{username}")
-async def update_user(username: str, payload: UserUpdate):
+async def update_user(
+    username: str,
+    payload: UserUpdate,
+    request: Request,
+):
+    target = auth_service.user(username)
+    if target is None:
+        raise HTTPException(status_code=404, detail="Benutzer wurde nicht gefunden.")
+    _assert_admin_scope(
+        request,
+        target_role=target["role"],
+        desired_role=payload.role,
+    )
     try:
         user = auth_service.update_user(
             username,

@@ -5,7 +5,7 @@ async function logoutUser() {
 
 async function loadUsers() {
     const container = document.getElementById("user-list");
-    if (!container || window.currentUser?.role !== "superadmin") {
+    if (!container || window.currentUser?.role === "viewer") {
         return;
     }
     try {
@@ -32,10 +32,12 @@ async function loadUsers() {
                                 ${user.role === "admin" ? "selected" : ""}>
                                 Admin
                             </option>
-                            <option value="superadmin"
-                                ${user.role === "superadmin" ? "selected" : ""}>
-                                Superadmin
-                            </option>
+                            ${window.currentUser?.role === "superadmin" ? `
+                                <option value="superadmin"
+                                    ${user.role === "superadmin" ? "selected" : ""}>
+                                    Superadmin
+                                </option>
+                            ` : ""}
                         </select>
                     </label>
                     <label class="form-field">

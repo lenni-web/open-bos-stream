@@ -278,9 +278,15 @@ def test_dashboard_polling_uses_two_second_interval() -> None:
     app_js = (ROOT / "static" / "js" / "app.js").read_text(
         encoding="utf-8"
     )
+    recording_js = (
+        ROOT / "static" / "js" / "recording.js"
+    ).read_text(encoding="utf-8")
 
     assert "refreshDashboard,\n        2000" in app_js
     assert "updateClock,\n        1000" in app_js
+    assert "updateRecordingTimer,\n        1000" in app_js
+    assert "function updateRecordingTimer()" in recording_js
+    assert "currentRecordingDuration()" in recording_js
 
 
 def test_mobile_web_app_manifest_and_icons_are_linked() -> None:
@@ -644,7 +650,7 @@ def test_transcoding_options_belong_to_each_source() -> None:
     assert "loadSourceEncoders" in sources
 
 
-def test_superadmin_can_edit_user_role_and_password() -> None:
+def test_admins_can_manage_non_superadmin_users() -> None:
     users = (
         ROOT / "static" / "js" / "auth_users.js"
     ).read_text(encoding="utf-8")
@@ -652,3 +658,8 @@ def test_superadmin_can_edit_user_role_and_password() -> None:
     assert "function saveUser(username)" in users
     assert "Neues Passwort (optional)" in users
     assert "api.patch(" in users
+    assert 'window.currentUser?.role === "viewer"' in users
+    assert 'window.currentUser?.role === "superadmin"' in users
+    assert '{% if user.role != "viewer" %}' in (
+        ROOT / "templates" / "components" / "settings_card.html"
+    ).read_text(encoding="utf-8")
