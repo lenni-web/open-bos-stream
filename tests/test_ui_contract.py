@@ -258,8 +258,11 @@ def test_rtmp_multi_source_preview_profile_is_selectable() -> None:
     ).read_text(encoding="utf-8")
 
     assert '"preview_transcode"' in source_js
-    assert "Mehrquellen-Vorschau · max. 360p" in source_js
-    assert "maximal\n                640×360, 12 fps" in source_js
+    assert '"preview_transcode_economy"' in source_js
+    assert "Mehrquellen-Vorschau · ausgewogen (max. 480p)" in source_js
+    assert "Mehrquellen-Vorschau · sparsam (max. 360p)" in source_js
+    assert '"640×360, 12 fps und etwa 800 kbit/s"' in source_js
+    assert '"854×480, 12 fps und etwa 1,1 Mbit/s"' in source_js
     assert "Vollbild zeigt den Originalstream" in source_js
 
 

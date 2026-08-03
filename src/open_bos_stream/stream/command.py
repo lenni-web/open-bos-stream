@@ -308,11 +308,17 @@ class FFmpegCommandBuilder:
             }
             else (
                 "copy_repair_low_latency"
-                if source.profile == "preview_transcode"
+                if source.is_preview_transcode
                 else "copy"
             )
         )
-        if source.profile == "preview_transcode":
+        if source.is_preview_transcode:
+            economy = source.profile == "preview_transcode_economy"
+            max_width = 640 if economy else 854
+            max_height = 360 if economy else 480
+            bitrate = "800k" if economy else "1100k"
+            maxrate = "1000k" if economy else "1300k"
+            bufsize = maxrate
             output_path = viewer_path or source.viewer_path
             return [
                 "ffmpeg",
@@ -321,7 +327,8 @@ class FFmpegCommandBuilder:
                 "-an",
                 "-vf",
                 (
-                    "scale=w=min(640\\,iw):h=min(360\\,ih):"
+                    f"scale=w=min({max_width}\\,iw):"
+                    f"h=min({max_height}\\,ih):"
                     "force_original_aspect_ratio=decrease:"
                     "force_divisible_by=2:flags=fast_bilinear,"
                     "fps=12"
@@ -336,9 +343,9 @@ class FFmpegCommandBuilder:
                 "-g", "24",
                 "-keyint_min", "24",
                 "-sc_threshold", "0",
-                "-b:v", "800k",
-                "-maxrate", "1000k",
-                "-bufsize", "1000k",
+                "-b:v", bitrate,
+                "-maxrate", maxrate,
+                "-bufsize", bufsize,
                 "-rtsp_transport", "tcp",
                 "-f", "rtsp",
                 f"rtsp://127.0.0.1:8554/{output_path}",

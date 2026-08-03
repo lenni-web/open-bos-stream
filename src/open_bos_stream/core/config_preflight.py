@@ -121,7 +121,7 @@ class ConfigPreflightValidator:
 
             codec = (
                 "libx264"
-                if source.profile == "preview_transcode"
+                if source.is_preview_transcode
                 else (
                     source.codec or config.encoder.codec
                     if source.profile == "transcode"

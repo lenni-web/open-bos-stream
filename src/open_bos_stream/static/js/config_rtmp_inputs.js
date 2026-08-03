@@ -22,13 +22,20 @@ function sourceProfileOptions(selected, sourceType) {
         ],
         [
             "preview_transcode",
-            "Mehrquellen-Vorschau · max. 360p",
+            "Mehrquellen-Vorschau · ausgewogen (max. 480p)",
+        ],
+        [
+            "preview_transcode_economy",
+            "Mehrquellen-Vorschau · sparsam (max. 360p)",
         ],
         ["transcode", "Transcodieren"],
     ];
     return profiles
         .filter(([value]) => (
-            value !== "preview_transcode" || sourceType === "rtmp"
+            ![
+                "preview_transcode",
+                "preview_transcode_economy",
+            ].includes(value) || sourceType === "rtmp"
         ))
         .map(([value, label]) => `
         <option
@@ -126,14 +133,21 @@ function sourceTranscodingFields(source) {
 }
 
 function sourcePreviewProfileHint(source) {
-    if (source.profile !== "preview_transcode") {
+    if (![
+        "preview_transcode",
+        "preview_transcode_economy",
+    ].includes(source.profile)) {
         return "";
     }
+    const economy = source.profile === "preview_transcode_economy";
+    const quality = economy
+        ? "640×360, 12 fps und etwa 800 kbit/s"
+        : "854×480, 12 fps und etwa 1,1 Mbit/s";
     return `
         <div class="form-field form-field-wide source-profile-hint">
             <small>
                 Die Übersicht nutzt eine H.264-Vorschau mit maximal
-                640×360, 12 fps und ohne Audio. Kleinere Quellen werden
+                ${quality} und ohne Audio. Kleinere Quellen werden
                 nicht hochskaliert; Vollbild zeigt den Originalstream.
             </small>
         </div>
@@ -420,8 +434,10 @@ function renderSources() {
                 if (event.target.value === "v4l2") {
                     currentConfig.sources[index].profile = "transcode";
                 } else if (
-                    currentConfig.sources[index].profile ===
-                    "preview_transcode" &&
+                    [
+                        "preview_transcode",
+                        "preview_transcode_economy",
+                    ].includes(currentConfig.sources[index].profile) &&
                     event.target.value !== "rtmp"
                 ) {
                     currentConfig.sources[index].profile = "direct";

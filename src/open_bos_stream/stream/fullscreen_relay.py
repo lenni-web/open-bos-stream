@@ -97,7 +97,7 @@ class FullscreenRelayManager:
                 process: subprocess.Popen[bytes] | None = None
                 if not (
                     source.type == "rtmp"
-                    and source.profile == "preview_transcode"
+                    and source.is_preview_transcode
                 ):
                     command = self._builder.build_source(
                         source,

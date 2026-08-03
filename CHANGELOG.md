@@ -11,6 +11,24 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.11.10] - 2026-08-02
+
+### Added
+
+- Für RTMP-Quellen stehen zwei Mehrquellen-Vorschauprofile zur Verfügung:
+  `ausgewogen` erzeugt maximal 854×480 Pixel bei 12 fps und etwa 1,1 Mbit/s;
+  `sparsam` erzeugt maximal 640×360 Pixel bei 12 fps und etwa 800 kbit/s.
+  Beide verwenden H.264 ohne Audio, skalieren kleinere Quellen nicht hoch und
+  wechseln im Vollbild auf den unveränderten Originalstream.
+
+### Changed
+
+- Das bestehende Profil `preview_transcode` bleibt rückwärtskompatibel und
+  wird nun als ausgewogene 480p-Variante behandelt. Der 360p-Sparmodus erhält
+  den separaten Wert `preview_transcode_economy`.
+
+---
+
 ## [0.11.9] - 2026-08-02
 
 ### Added
