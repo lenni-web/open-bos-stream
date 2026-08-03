@@ -402,7 +402,7 @@ def test_rtmp_low_latency_repair_reduces_input_queue() -> None:
     ]
 
 
-def test_rtmp_preview_profile_scales_without_upscaling() -> None:
+def test_rtmp_balanced_preview_profile_scales_without_upscaling() -> None:
     config = ConfigLoader().load()
     source = SourceConfig(
         id="drohne-preview",
@@ -418,8 +418,8 @@ def test_rtmp_preview_profile_scales_without_upscaling() -> None:
     assert source.viewer_path == "drohne-preview-view"
     assert source.fullscreen_viewer_path == "drohne-preview"
     assert source.requires_process is True
-    assert "min(640\\,iw)" in video_filter
-    assert "min(360\\,ih)" in video_filter
+    assert "min(854\\,iw)" in video_filter
+    assert "min(480\\,ih)" in video_filter
     assert "force_original_aspect_ratio=decrease" in video_filter
     assert "force_divisible_by=2" in video_filter
     assert "fps=12" in video_filter
@@ -438,13 +438,13 @@ def test_rtmp_preview_profile_scales_without_upscaling() -> None:
     assert ["-keyint_min", "24"] == command[
         command.index("-keyint_min"):command.index("-keyint_min") + 2
     ]
-    assert ["-b:v", "800k"] == command[
+    assert ["-b:v", "1100k"] == command[
         command.index("-b:v"):command.index("-b:v") + 2
     ]
-    assert ["-maxrate", "1000k"] == command[
+    assert ["-maxrate", "1300k"] == command[
         command.index("-maxrate"):command.index("-maxrate") + 2
     ]
-    assert ["-bufsize", "1000k"] == command[
+    assert ["-bufsize", "1300k"] == command[
         command.index("-bufsize"):command.index("-bufsize") + 2
     ]
     assert "-fps_mode" not in command
@@ -455,15 +455,47 @@ def test_rtmp_preview_profile_scales_without_upscaling() -> None:
     )
 
 
+def test_rtmp_economy_preview_profile_uses_360p_budget() -> None:
+    config = ConfigLoader().load()
+    source = SourceConfig(
+        id="drohne-sparsam",
+        name="Drohne sparsam",
+        type="rtmp",
+        profile="preview_transcode_economy",
+    )
+
+    command = FFmpegCommandBuilder(config).build_source(source)
+    video_filter = command[command.index("-vf") + 1]
+
+    assert source.is_preview_transcode is True
+    assert source.fullscreen_viewer_path == "drohne-sparsam"
+    assert "min(640\\,iw)" in video_filter
+    assert "min(360\\,ih)" in video_filter
+    assert "fps=12" in video_filter
+    assert ["-b:v", "800k"] == command[
+        command.index("-b:v"):command.index("-b:v") + 2
+    ]
+    assert ["-maxrate", "1000k"] == command[
+        command.index("-maxrate"):command.index("-maxrate") + 2
+    ]
+    assert ["-bufsize", "1000k"] == command[
+        command.index("-bufsize"):command.index("-bufsize") + 2
+    ]
+
+
 def test_preview_profile_is_restricted_to_rtmp() -> None:
-    with pytest.raises(ValidationError):
-        SourceConfig(
-            id="kamera-preview",
-            name="Kamera Vorschau",
-            type="rtsp",
-            profile="preview_transcode",
-            url="rtsp://192.0.2.50/stream",
-        )
+    for profile in (
+        "preview_transcode",
+        "preview_transcode_economy",
+    ):
+        with pytest.raises(ValidationError):
+            SourceConfig(
+                id="kamera-preview",
+                name="Kamera Vorschau",
+                type="rtsp",
+                profile=profile,
+                url="rtsp://192.0.2.50/stream",
+            )
 
 
 def test_rtsp_low_latency_repair_uses_bounded_delay() -> None:

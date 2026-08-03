@@ -4,6 +4,27 @@ Die Roadmap beschreibt die geplante Weiterentwicklung von **Open BOS Stream**. S
 
 ---
 
+# Version 0.11.x
+
+## Ziel
+
+Mehrere gleichzeitige Einsatzquellen stabil, nachvollziehbar und mit
+abgestufter Ressourcenlast bereitstellen.
+
+### Mehrquellenbetrieb
+
+- [x] Bis zu acht gleichwertige Quellen konfigurieren und überwachen
+- [x] RTMP-Publisher pro Quelle über Pfad und Token zuordnen
+- [x] Originalstream im Vollbild ohne zusätzliche Transkodierung verwenden
+- [x] Ausgewogene 480p-Vorschau für bis zu vier aktive Quellen
+- [x] Sparsame 360p-Vorschau für viele Quellen oder knappe CPU-Reserven
+- [x] FPS, Geschwindigkeit, Drop-/Dup-Frames und letzten Fortschritt anzeigen
+- [x] Reproduzierbare Mehrquellen-Tests und Diagnoseexport bereitstellen
+- [ ] Vier reale Einsatzquellen über längere Laufzeit validieren
+- [ ] Acht Quellen im sparsamen Vorschauprofil als Belastungstest validieren
+
+---
+
 # Version 0.4.x
 
 ## Ziel

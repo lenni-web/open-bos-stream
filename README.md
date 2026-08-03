@@ -416,9 +416,12 @@ ID sowie ein Verarbeitungsprofil:
 - `Copy mit Zeitstempel-Korrektur`: Originalvideo mit reparierten Zeitstempeln
 - `Copy-Reparatur · geringe Latenz`: kleinere Eingangsqueue und eng begrenzter
   RTSP-Puffer für bereits weitgehend stabile Quellen
-- `Mehrquellen-Vorschau · max. 360p` (nur RTMP): transkodierte H.264-Vorschau
-  mit maximal 640×360 Pixeln und 12 fps für das Raster; das Original bleibt
-  für den Vollbildmodus erhalten
+- `Mehrquellen-Vorschau · ausgewogen (max. 480p)` (nur RTMP): transkodierte
+  H.264-Vorschau mit maximal 854×480 Pixeln, 12 fps und etwa 1,1 Mbit/s;
+  empfohlen für bis zu vier gleichzeitig aktive Quellen
+- `Mehrquellen-Vorschau · sparsam (max. 360p)` (nur RTMP): transkodierte
+  H.264-Vorschau mit maximal 640×360 Pixeln, 12 fps und etwa 800 kbit/s;
+  empfohlen für viele gleichzeitige Quellen oder knappere CPU-Reserven
 - `Transcodieren`: den pro Quelle gewählten Encoder verwenden
 
 Bei `Transcodieren` erscheinen Encoder, Bitrate, Pixelformat, GOP, Preset und
@@ -443,17 +446,24 @@ Fehler bleibt der Substream sichtbar; beim Schließen wird ebenfalls wieder
 der Substream verwendet. Eine leere Vorschau-URL verwendet weiterhin den
 Hauptstream.
 
-Liefert ein RTMP-Publisher nur einen einzelnen Stream, kann das Profil
-`Mehrquellen-Vorschau · max. 360p` daraus eine leichtere Browserausgabe
-erzeugen. Die Skalierung behält das Seitenverhältnis bei und begrenzt Breite
-und Höhe auf 640×360; 720p-, 1080p-, 4K- und abweichende Formate funktionieren
-damit gleichermaßen. Kleinere Quellen werden nicht vergrößert. Die Vorschau
-läuft ohne Audio mit 12 fps und etwa 800 kbit/s. Das CPU-sparende
-`ultrafast`-Preset hält mehrere parallele Vorschauen leichter in Echtzeit.
-Beim Vollbild wechselt der
-Browser auf den unveränderten RTMP-Eingang. Da die Vorschau per Software
-kodiert wird, sollte ihre CPU-Auslastung vor einem breiten Einsatz mit realen
+Liefert ein RTMP-Publisher nur einen einzelnen Stream, erzeugen die beiden
+Mehrquellen-Profile daraus eine leichtere Browserausgabe. `Ausgewogen`
+begrenzt das Bild auf 854×480, 12 fps und etwa 1,1 Mbit/s. Diese Variante ist
+für bis zu vier gleichzeitig aktive Quellen der empfohlene Standard und bleibt
+auf Tablets deutlich klarer. `Sparsam` begrenzt auf 640×360, 12 fps und etwa
+800 kbit/s. Diese Variante ist für mehr parallele Quellen oder schwächere
+Server vorgesehen. Beide Skalierungen erhalten das Seitenverhältnis;
+720p-, 1080p-, 4K- und abweichende Formate funktionieren gleichermaßen und
+kleinere Quellen werden nicht vergrößert. Audio ist in der Vorschau
+deaktiviert. Das CPU-sparende `ultrafast`-Preset hält mehrere parallele
+Vorschauen leichter in Echtzeit. Beim Vollbild wechselt der Browser bei beiden
+Profilen auf den unveränderten RTMP-Eingang. Da die Vorschauen per Software
+kodiert werden, sollte ihre CPU-Auslastung vor einem breiten Einsatz mit realen
 Quellen geprüft werden.
+
+Bestehende Konfigurationen mit dem bisherigen Mehrquellen-Profil werden nach
+dem Update automatisch als `ausgewogen` interpretiert. Wer die geringere Last
+der 360p-Variante behalten möchte, wählt anschließend ausdrücklich `sparsam`.
 
 Snapshots und Aufnahmen einer Quelle folgen derzeit ebenfalls dem in der
 Oberfläche wiedergegebenen Viewerpfad und verwenden damit bei einer Vorschau
