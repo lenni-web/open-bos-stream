@@ -21,7 +21,6 @@ SUPERADMIN_PREFIXES = (
     "/display",
     "/web-access",
     "/stream-output",
-    "/auth/users",
     "/media",
     "/recording",
     "/snapshot",
@@ -31,6 +30,7 @@ SUPERADMIN_PATHS = {
 }
 ADMIN_PREFIXES = (
     "/system",
+    "/auth/users",
 )
 ADMIN_PATHS = {
     "/dashboard/diagnostics",

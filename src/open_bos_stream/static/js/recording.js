@@ -2,6 +2,11 @@
 // Recording Helper
 // ==========================================================
 let lastRecordingState = null;
+let recordingTimerState = {
+    active: false,
+    baseSeconds: 0,
+    synchronizedAt: performance.now(),
+};
 
 function formatDuration(seconds) {
 
@@ -30,6 +35,55 @@ function formatDuration(seconds) {
 
     );
 
+}
+
+function synchronizeRecordingTimer(recording) {
+    recordingTimerState = {
+        active: Boolean(recording?.active),
+        baseSeconds: Math.max(
+            0,
+            Number(recording?.duration ?? 0)
+        ),
+        synchronizedAt: performance.now(),
+    };
+}
+
+function currentRecordingDuration() {
+    if (!recordingTimerState.active) {
+        return recordingTimerState.baseSeconds;
+    }
+
+    return recordingTimerState.baseSeconds + Math.floor(
+        (performance.now() - recordingTimerState.synchronizedAt) / 1000
+    );
+}
+
+function updateRecordingTimer() {
+    if (!recordingTimerState.active) {
+        return;
+    }
+
+    const seconds = currentRecordingDuration();
+    const duration = formatDuration(seconds);
+
+    if (window.dashboard?.recording) {
+        window.dashboard.recording.duration = seconds;
+    }
+
+    updateValue("recording-duration", duration);
+    updateValue("media-recording-duration", duration);
+
+    const overlayDuration = document.getElementById("video-duration");
+    if (overlayDuration) {
+        overlayDuration.textContent = duration;
+    }
+
+    const recordingElement = document.getElementById(
+        "video-recording-time"
+    );
+    if (recordingElement) {
+        recordingElement.textContent = `⏺ REC ${duration}`;
+    }
 }
 
 // ==========================================================
@@ -86,6 +140,8 @@ lastRecordingState =
 
     const active =
         recording.active;
+
+    synchronizeRecordingTimer(recording);
 
     const duration =
         formatDuration(
