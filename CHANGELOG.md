@@ -9,6 +9,14 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Für jeden RTMP- oder SRT-Streaming-Ausgang kann nun explizit ausgewählt
+  werden, welche der konfigurierten Quellen weitergeleitet wird. Bestehende
+  Ausgänge übernehmen rückwärtskompatibel die bisher verwendete erste aktive
+  Quelle; Statusanzeige und Startprüfung beziehen sich anschließend auf die
+  ausgewählte Quelle.
+
 ---
 
 ## [0.11.11] - 2026-08-03

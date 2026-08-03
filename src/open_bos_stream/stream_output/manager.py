@@ -72,6 +72,13 @@ class StreamOutputManager:
 
         for name, output in configured.items():
 
+            previous = self._outputs.get(name)
+
+            if previous is not None and previous != output:
+                process = self._processes.get(name)
+                if process and process.running:
+                    process.stop()
+
             self._outputs[name] = output
 
             if name not in self._processes:
