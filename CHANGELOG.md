@@ -17,6 +17,18 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   Quelle; Statusanzeige und Startprüfung beziehen sich anschließend auf die
   ausgewählte Quelle.
 
+### Fixed
+
+- HEVC-Aufnahmen werden beim Stoppen nicht mehr allein wegen tolerierbarer
+  Decoderwarnungen oder des FFmpeg-SIGINT-Exitcodes verworfen. Die erzeugte
+  MP4-Datei wird inhaltlich validiert; außerdem kann eine große Menge an
+  FFmpeg-Fehlerausgaben den Aufnahmeprozess nicht mehr durch einen vollen
+  Prozess-Pipe blockieren.
+- Snapshots aus HEVC-Quellen warten nun auf ein vollständiges Schlüsselbild,
+  ignorieren beschädigte Eingangspakete und werden erst nach erfolgreicher
+  Mindestprüfung atomar in der Mediathek veröffentlicht. Dadurch gelangen
+  keine grauen, nur teilweise rekonstruierten Bilder mehr in die Oberfläche.
+
 ---
 
 ## [0.11.11] - 2026-08-03

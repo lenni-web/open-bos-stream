@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from open_bos_stream.core.config import ConfigLoader
 from open_bos_stream.core.models import (
     AppConfig,
@@ -7,6 +9,7 @@ from open_bos_stream.core.models import (
 from open_bos_stream.stream.command import FFmpegCommandBuilder
 from open_bos_stream.stream.service import StreamService
 from open_bos_stream.stream.inputs.rtmp import repair_input_url
+from open_bos_stream.recording.command import RecordingCommandBuilder
 from open_bos_stream.stream_output.command import (
     StreamOutputCommandBuilder,
 )
@@ -291,6 +294,19 @@ def test_copy_mode_never_builds_video_filters_or_overlay() -> None:
     assert "-vf" not in command
     assert "-filter_complex" not in command
     assert config.stream.overlay.font not in " ".join(command)
+
+
+def test_recording_tolerates_corrupt_input_packets() -> None:
+    command = RecordingCommandBuilder().build(
+        Path("recording.mp4"),
+        "rtsp://127.0.0.1:8554/quelle-1",
+        transcode_video=True,
+    )
+
+    assert "+genpts+discardcorrupt" in command
+    assert ["-err_detect", "ignore_err"] == command[
+        command.index("-err_detect"):command.index("-err_detect") + 2
+    ]
 
 
 def test_srt_output_command_is_flat_and_uses_direct_stream() -> None:

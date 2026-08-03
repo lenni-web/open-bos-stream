@@ -75,13 +75,19 @@ class RecordingManager:
         self._working_file = None
         self._final_file = None
 
-        if returncode != 0:
-            working_file.unlink(missing_ok=True)
+        try:
+            # FFmpeg kann nach einem kontrollierten SIGINT einen Nicht-Null-
+            # Code liefern, obwohl der MP4-Trailer korrekt geschrieben wurde.
+            # Entscheidend ist deshalb die validierte Datei, nicht allein der
+            # Prozesscode oder tolerierbare Decoderwarnungen der Quelle.
+            self._validate(working_file)
+        except RuntimeError as exc:
+            detail = self._process.last_error or f"Exit {returncode}"
             raise RuntimeError(
-                "Aufnahme wurde von FFmpeg nicht sauber abgeschlossen: "
-                f"{self._process.last_error or f'Exit {returncode}'}"
-            )
-        self._validate(working_file)
+                "Aufnahme konnte nicht als gültige MP4-Datei abgeschlossen "
+                f"werden: {exc}\nFFmpeg: {detail}"
+            ) from exc
+
         working_file.replace(final_file)
         return True
 

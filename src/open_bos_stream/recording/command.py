@@ -24,6 +24,10 @@ class RecordingCommandBuilder:
 
             "-rtsp_transport", "tcp",
 
+            "-fflags", "+genpts+discardcorrupt",
+
+            "-err_detect", "ignore_err",
+
             "-i",
             input_url,
 
