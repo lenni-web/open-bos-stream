@@ -1,3 +1,5 @@
+import re
+
 from fastapi import Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -33,6 +35,25 @@ ADMIN_PREFIXES = (
 ADMIN_PATHS = {
     "/dashboard/diagnostics",
 }
+
+FULLSCREEN_ACQUIRE_PATH = re.compile(
+    r"^/dashboard/sources/[a-z0-9_-]+/fullscreen$"
+)
+FULLSCREEN_RELEASE_PATH = re.compile(
+    r"^/dashboard/sources/[a-z0-9_-]+/fullscreen/[a-f0-9]+$"
+)
+
+
+def viewer_mutation_allowed(method: str, path: str) -> bool:
+    """Erlaubt Viewern ausschließlich ihren Anzeige-Lebenszyklus."""
+
+    return (
+        method == "POST"
+        and FULLSCREEN_ACQUIRE_PATH.fullmatch(path) is not None
+    ) or (
+        method == "DELETE"
+        and FULLSCREEN_RELEASE_PATH.fullmatch(path) is not None
+    )
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -90,8 +111,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
             )
 
         mutation = request.method not in {"GET", "HEAD", "OPTIONS"}
+        viewer_display_mutation = viewer_mutation_allowed(
+            request.method,
+            path,
+        )
         admin_only = (
-            mutation
+            (mutation and not viewer_display_mutation)
             or path.startswith(ADMIN_PREFIXES)
             or path in ADMIN_PATHS
         )

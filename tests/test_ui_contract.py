@@ -162,10 +162,18 @@ def test_settings_use_one_equal_source_list() -> None:
     source_js = (
         ROOT / "static" / "js" / "config_rtmp_inputs.js"
     ).read_text(encoding="utf-8")
+    modern_css = (
+        ROOT / "static" / "css" / "modern.css"
+    ).read_text(encoding="utf-8")
 
     assert 'id="source-settings"' in settings
     assert 'id="source-add-button"' in settings
     assert "+ Quelle hinzufügen" in settings
+    assert "Profil-Empfehlung:" in settings
+    assert "bis zu vier Quellen" in settings
+    assert "fünf bis acht Quellen" in settings
+    assert "Im Vollbild bleibt bei beiden das Original erhalten" in settings
+    assert ".settings-profile-recommendation" in modern_css
     assert "RTMP-Eingang hinzufügen" not in settings
     assert "function renderSources()" in source_js
     assert "data-role=\"publish-url\"" in source_js

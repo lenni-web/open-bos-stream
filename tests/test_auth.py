@@ -6,6 +6,7 @@ from open_bos_stream.auth.service import AuthError, AuthService
 from open_bos_stream.auth.middleware import SUPERADMIN_PATHS
 from open_bos_stream.auth.middleware import SUPERADMIN_PREFIXES
 from open_bos_stream.auth.middleware import ADMIN_PATHS, ADMIN_PREFIXES
+from open_bos_stream.auth.middleware import viewer_mutation_allowed
 
 
 def service(tmp_path: Path) -> AuthService:
@@ -140,3 +141,19 @@ def test_superadmin_only_routes_cover_sensitive_features() -> None:
 def test_system_diagnostics_require_at_least_admin_role() -> None:
     assert "/system" in ADMIN_PREFIXES
     assert "/dashboard/diagnostics" in ADMIN_PATHS
+
+
+def test_viewers_can_only_manage_fullscreen_display_leases() -> None:
+    acquire = "/dashboard/sources/quelle-1/fullscreen"
+    release = acquire + "/abcdef0123456789"
+
+    assert viewer_mutation_allowed("POST", acquire)
+    assert viewer_mutation_allowed("DELETE", release)
+
+    assert not viewer_mutation_allowed("DELETE", acquire)
+    assert not viewer_mutation_allowed("POST", release)
+    assert not viewer_mutation_allowed(
+        "POST",
+        "/dashboard/sources/quelle-1/probe",
+    )
+    assert not viewer_mutation_allowed("PUT", "/config/sources")

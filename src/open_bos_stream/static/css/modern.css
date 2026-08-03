@@ -696,6 +696,16 @@ body {
     font-size: 0.84rem;
 }
 
+.settings-section-header .settings-profile-recommendation {
+    max-width: 760px;
+    margin-top: 8px;
+    line-height: 1.45;
+}
+
+.settings-profile-recommendation strong {
+    color: var(--bos-dark);
+}
+
 .settings-icon {
     display: grid;
     place-items: center;

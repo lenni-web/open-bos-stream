@@ -26,6 +26,15 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 - Das bestehende Profil `preview_transcode` bleibt rückwärtskompatibel und
   wird nun als ausgewogene 480p-Variante behandelt. Der 360p-Sparmodus erhält
   den separaten Wert `preview_transcode_economy`.
+- Direkt unter dem Mehrquellenempfang erklärt die Einstellungsseite, wann die
+  ausgewogene 480p- beziehungsweise sparsame 360p-Vorschau empfohlen wird.
+
+### Fixed
+
+- Angemeldete Viewer dürfen den Vollbild-Hauptstream jetzt anfordern und den
+  zugehörigen temporären Lease wieder freigeben. Andere schreibende Endpunkte
+  bleiben weiterhin mindestens der Rolle Admin vorbehalten. Damit wechselt
+  auch Edge bei einer Viewer-Sitzung von der Vorschau zum Originalstream.
 
 ---
 
