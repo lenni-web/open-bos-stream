@@ -233,6 +233,17 @@ Uvicorn, HLS, WHEP, RTSP und die MediaMTX-API lauschen dabei ausschließlich
 lokal. Der WebRTC-Medienstrom verwendet weiterhin UDP 8189. MediaMTX erhält
 die öffentliche Domain automatisch als `webrtcAdditionalHosts`.
 
+Caddy versieht öffentliche Antworten mit HSTS, MIME-Schutz, restriktiven
+Frame-, Referrer- und Berechtigungsrichtlinien. HLS- und WHEP-Anfragen werden
+vor der Weiterleitung gegen die Open-BOS-Sitzung geprüft. Dadurch können auch
+direkte Medien-URLs nur von angemeldeten Viewern, Admins oder Superadmins
+verwendet werden.
+
+Nach fünf fehlgeschlagenen Anmeldungen derselben Benutzer-/IP-Kombination
+wird diese für 15 Minuten gesperrt. Zusätzlich greift eine IP-weite Grenze
+gegen das Durchprobieren vieler Konten. Fehlversuche und temporäre Sperren
+werden ohne Passwörter im Anwendungsjournal protokolliert.
+
 Wenn HTTPS deaktiviert bleibt, verwendet die Anwendung weiterhin die direkten
 Ports 8000, 8888 und 8889.
 

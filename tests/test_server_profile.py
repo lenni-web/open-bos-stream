@@ -14,8 +14,8 @@ def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_release_version_is_0_11_10() -> None:
-    assert VERSION == "0.11.12"
+def test_release_version_is_0_11_13() -> None:
+    assert VERSION == "0.11.13"
 
 
 def test_server_profile_can_be_selected_from_environment(
@@ -178,10 +178,16 @@ def test_caddy_routes_application_whep_and_hls() -> None:
 
     assert "acme-v02.api.letsencrypt.org" in caddy
     assert "handle_path /whep/*" in caddy
+    assert caddy.count("uri /auth/media-access") == 2
+    assert caddy.count("forward_auth 127.0.0.1:8000") == 2
     assert "header_down Location ^/ /whep/" in caddy
     assert "handle_path /hls/*" in caddy
     assert "header_down Location ^/ /hls/" in caddy
     assert "reverse_proxy 127.0.0.1:8000" in caddy
+    assert 'Strict-Transport-Security "max-age=31536000"' in caddy
+    assert 'X-Content-Type-Options "nosniff"' in caddy
+    assert 'X-Frame-Options "DENY"' in caddy
+    assert "Content-Security-Policy \"frame-ancestors 'none'\"" in caddy
 
 
 def test_server_access_accepts_domain_or_https_url() -> None:
