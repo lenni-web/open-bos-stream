@@ -6,10 +6,12 @@ from fastapi import HTTPException
 
 from open_bos_stream.api.auth import _assert_admin_scope
 from open_bos_stream.auth.middleware import ADMIN_PATHS, ADMIN_PREFIXES
+from open_bos_stream.auth.middleware import PUBLIC_PREFIXES
 from open_bos_stream.auth.middleware import SUPERADMIN_PATHS
 from open_bos_stream.auth.middleware import SUPERADMIN_PREFIXES
 from open_bos_stream.auth.middleware import viewer_mutation_allowed
 from open_bos_stream.auth.service import AuthError, AuthService
+from open_bos_stream.auth.rate_limit import LoginRateLimiter
 
 
 def service(tmp_path: Path) -> AuthService:
@@ -17,6 +19,36 @@ def service(tmp_path: Path) -> AuthService:
         str(tmp_path / "users.yaml"),
         str(tmp_path / "auth.secret"),
     )
+
+
+def test_login_rate_limit_locks_and_recovers() -> None:
+    now = [1000.0]
+    limiter = LoginRateLimiter(
+        account_limit=3,
+        ip_limit=10,
+        window_seconds=60,
+        lock_seconds=120,
+        clock=lambda: now[0],
+    )
+
+    assert limiter.record_failure("Leitung", "192.0.2.1") == 0
+    assert limiter.record_failure("leitung", "192.0.2.1") == 0
+    assert limiter.record_failure("leitung", "192.0.2.1") == 120
+    assert limiter.retry_after("leitung", "192.0.2.1") == 120
+
+    now[0] += 121
+    assert limiter.retry_after("leitung", "192.0.2.1") == 0
+
+
+def test_success_clears_account_failures_but_not_ip_protection() -> None:
+    limiter = LoginRateLimiter(account_limit=2, ip_limit=3)
+
+    limiter.record_failure("leitung", "192.0.2.1")
+    limiter.record_success("leitung", "192.0.2.1")
+
+    assert limiter.retry_after("leitung", "192.0.2.1") == 0
+    assert limiter.record_failure("anderer", "192.0.2.1") == 0
+    assert limiter.record_failure("dritter", "192.0.2.1") > 0
 
 
 def test_initial_superadmin_and_signed_session(tmp_path: Path) -> None:
@@ -145,6 +177,10 @@ def test_system_diagnostics_require_at_least_admin_role() -> None:
     assert "/system" in ADMIN_PREFIXES
     assert "/auth/users" in ADMIN_PREFIXES
     assert "/dashboard/diagnostics" in ADMIN_PATHS
+
+
+def test_caddy_media_check_is_not_public() -> None:
+    assert not "/auth/media-access".startswith(PUBLIC_PREFIXES)
 
 
 def test_viewers_can_only_manage_fullscreen_display_leases() -> None:

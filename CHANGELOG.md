@@ -11,6 +11,19 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.11.13] - 2026-08-09
+
+### Security
+
+- Das verwaltete Caddy-Profil setzt HSTS, MIME-Schutz sowie restriktive
+  Frame-, Referrer-, Content- und Berechtigungsrichtlinien.
+- Direkte HLS- und WHEP-Zugriffe werden vor der Weiterleitung an MediaMTX
+  gegen die angemeldete Open-BOS-Sitzung geprüft. Unangemeldete Zugriffe auf
+  bekannte Stream-Pfade werden damit abgewiesen.
+- Fehlgeschlagene Anmeldungen werden protokolliert und je Benutzer/IP sowie
+  IP-weit begrenzt. Wiederholte Fehlversuche führen zu einer temporären
+  15-minütigen Sperre und liefern eine standardisierte Wiederholungsfrist.
+
 ## [0.11.12] - 2026-08-03
 
 ### Added

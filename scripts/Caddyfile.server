@@ -5,7 +5,20 @@
 __DOMAIN__ {
     encode zstd gzip
 
+    header {
+        -Server
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "same-origin"
+        X-Frame-Options "DENY"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        Content-Security-Policy "frame-ancestors 'none'"
+    }
+
     handle_path /whep/* {
+        forward_auth 127.0.0.1:8000 {
+            uri /auth/media-access
+        }
         reverse_proxy {
             to 127.0.0.1:8889
             header_down Location ^/ /whep/
@@ -13,6 +26,9 @@ __DOMAIN__ {
     }
 
     handle_path /hls/* {
+        forward_auth 127.0.0.1:8000 {
+            uri /auth/media-access
+        }
         reverse_proxy {
             to 127.0.0.1:8888
             header_down Location ^/ /hls/

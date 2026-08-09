@@ -1,16 +1,19 @@
+import logging
+
 from fastapi import APIRouter, HTTPException, Request, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from open_bos_stream.auth.service import AuthError
-from open_bos_stream.core.container import auth_service
+from open_bos_stream.core.container import auth_service, login_rate_limiter
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+logger = logging.getLogger(__name__)
 
 
 class Credentials(BaseModel):
-    username: str
-    password: str
+    username: str = Field(min_length=1, max_length=64)
+    password: str = Field(min_length=1, max_length=1024)
 
 
 class UserCreate(Credentials):
@@ -66,15 +69,58 @@ async def setup(payload: Credentials, response: Response):
 
 
 @router.post("/login")
-async def login(payload: Credentials, response: Response):
+async def login(payload: Credentials, request: Request, response: Response):
+    client_ip = request.client.host if request.client else "unknown"
+    retry_after = login_rate_limiter.retry_after(
+        payload.username,
+        client_ip,
+    )
+    if retry_after:
+        logger.warning(
+            "Anmeldung vorübergehend gesperrt: Benutzer %r, IP %s, "
+            "Restzeit %ss",
+            payload.username.strip().lower(),
+            client_ip,
+            retry_after,
+        )
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                "Zu viele fehlgeschlagene Anmeldungen. "
+                "Bitte später erneut versuchen."
+            ),
+            headers={"Retry-After": str(retry_after)},
+        )
     user = auth_service.authenticate(payload.username, payload.password)
     if not user:
+        retry_after = login_rate_limiter.record_failure(
+            payload.username,
+            client_ip,
+        )
+        logger.warning(
+            "Fehlgeschlagene Anmeldung: Benutzer %r, IP %s%s",
+            payload.username.strip().lower(),
+            client_ip,
+            (
+                f", für {retry_after}s gesperrt"
+                if retry_after
+                else ""
+            ),
+        )
         raise HTTPException(
             status_code=401,
             detail="Benutzername oder Passwort ist falsch.",
         )
+    login_rate_limiter.record_success(payload.username, client_ip)
     _set_session(response, auth_service.create_token(user))
     return {"success": True, "user": user}
+
+
+@router.get("/media-access", status_code=204)
+async def media_access():
+    """Sitzungsprüfung für Caddys HLS-/WHEP-Weiterleitung."""
+
+    return Response(status_code=204)
 
 
 @router.post("/logout")
