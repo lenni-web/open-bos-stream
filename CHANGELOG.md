@@ -11,6 +11,19 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.12.0] - 2026-08-20
+
+### Added
+
+- Superadmins können auf der Systemseite ein automatisch aktualisiertes,
+  serverseitig bereinigtes Stream-Protokoll von Open BOS Stream, dem Streamer
+  und MediaMTX einsehen. Es enthält insbesondere eingehende Verbindungen,
+  Authentifizierungsfehler und Streamparameter, ohne Tokens oder URL-Passwörter
+  offenzulegen.
+- Ein doppelt bestätigter Systemseiten-Befehl kann den Server zeitversetzt neu
+  starten. Protokollzugriff und Neustart verwenden fest definierte, root-eigene
+  Helfer und sind in Oberfläche und API ausschließlich Superadmins zugänglich.
+
 ## [0.11.13] - 2026-08-09
 
 ### Security

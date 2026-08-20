@@ -1002,6 +1002,52 @@ body {
     padding: 20px;
 }
 
+.system-admin-panel {
+    padding: 20px;
+}
+
+.system-admin-panel > p {
+    margin: 0 0 12px;
+    color: var(--bos-muted);
+    font-size: 0.8rem;
+}
+
+.system-admin-actions,
+.stream-log-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.stream-log-panel {
+    margin-top: 14px;
+}
+
+.stream-log-toolbar {
+    justify-content: space-between;
+    margin-bottom: 8px;
+    color: var(--bos-muted);
+    font-size: 0.76rem;
+}
+
+.stream-log-panel pre {
+    max-height: 420px;
+    margin: 0;
+    overflow: auto;
+    border-radius: var(--bos-radius-small);
+    padding: 14px;
+    background: #111827;
+    color: #d8e2ef;
+    font: 0.72rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.system-admin-panel .system-feedback.is-error {
+    color: var(--bos-red);
+}
+
 .test-session-panel > p {
     margin: 0 0 12px;
     color: var(--bos-muted);

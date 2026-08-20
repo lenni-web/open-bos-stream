@@ -23,6 +23,9 @@ TARGET_MEDIAMTX_CONFIG="${PROFILE_DIR}/mediamtx.yml"
 SOURCE_SUDOERS_FILE="${SCRIPT_DIR}/open-bos-stream-sudoers"
 SOURCE_SERVER_SUDOERS_FILE="${SCRIPT_DIR}/open-bos-stream-server-sudoers"
 TARGET_SUDOERS_FILE="/etc/sudoers.d/open-bos-stream"
+SOURCE_STREAM_LOG_HELPER="${SCRIPT_DIR}/open-bos-stream-log-helper"
+SOURCE_REBOOT_HELPER="${SCRIPT_DIR}/open-bos-reboot-helper"
+SYSTEM_HELPER_DIR="/usr/local/libexec/open-bos-stream"
 
 install_service_unit() {
     local source_file="$1"
@@ -224,6 +227,13 @@ SUDOERS_SOURCE="${SOURCE_SUDOERS_FILE}"
 if [ "${PROFILE}" = "server" ]; then
     SUDOERS_SOURCE="${SOURCE_SERVER_SUDOERS_FILE}"
 fi
+sudo install -d -o root -g root -m 0755 "${SYSTEM_HELPER_DIR}"
+sudo install -o root -g root -m 0755 \
+    "${SOURCE_STREAM_LOG_HELPER}" \
+    "${SYSTEM_HELPER_DIR}/stream-log"
+sudo install -o root -g root -m 0755 \
+    "${SOURCE_REBOOT_HELPER}" \
+    "${SYSTEM_HELPER_DIR}/reboot"
 SUDOERS_TEMPORARY="$(mktemp)"
 sed "s/^streampi /${SERVICE_USER} /" \
     "${SUDOERS_SOURCE}" > "${SUDOERS_TEMPORARY}"

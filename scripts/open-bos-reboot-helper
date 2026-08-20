@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -eu
+
+# Die kurze Verzögerung lässt die HTTP-Antwort noch zum Browser gelangen.
+exec /usr/bin/systemd-run \
+    --quiet \
+    --unit=open-bos-reboot \
+    --on-active=3s \
+    /usr/bin/systemctl reboot

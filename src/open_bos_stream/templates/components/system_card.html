@@ -92,6 +92,50 @@
         </section>
 
         {% if user.role == "superadmin" %}
+        <section class="bos-card system-admin-panel">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">Superadmin</span>
+                    <h2>Systemwerkzeuge</h2>
+                </div>
+                <span class="diagnostic-state">Geschützter Bereich</span>
+            </div>
+            <p>
+                Zeigt die letzten Verbindungs-, Authentifizierungs- und
+                Streammeldungen. Zugangsdaten werden vor der Ausgabe verdeckt.
+            </p>
+            <div class="system-admin-actions">
+                <button
+                    id="stream-log-toggle"
+                    class="bos-button"
+                    type="button">
+                    Stream-Log anzeigen
+                </button>
+                <button
+                    id="system-reboot"
+                    class="bos-button bos-button-red"
+                    type="button">
+                    Server neu starten
+                </button>
+            </div>
+            <div id="stream-log-panel" class="stream-log-panel" hidden>
+                <div class="stream-log-toolbar">
+                    <span id="stream-log-status">Noch nicht geladen</span>
+                    <button
+                        id="stream-log-refresh"
+                        class="bos-button"
+                        type="button">
+                        Aktualisieren
+                    </button>
+                </div>
+                <pre id="stream-log-content" tabindex="0">—</pre>
+            </div>
+            <div
+                id="system-admin-feedback"
+                class="system-feedback"
+                aria-live="polite"></div>
+        </section>
+
         <section class="bos-card test-session-panel">
             <div class="section-heading">
                 <div>

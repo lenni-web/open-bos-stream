@@ -195,6 +195,14 @@ class OBSApi {
 
     }
 
+    async streamLog() {
+        return await this.get("/system/stream-log");
+    }
+
+    async rebootSystem() {
+        return await this.post("/system/reboot");
+    }
+
     // ---------------------------------------------------------
     // Recording
     // ---------------------------------------------------------

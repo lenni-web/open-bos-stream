@@ -7,3 +7,5 @@ streampi ALL=(root) NOPASSWD: /usr/bin/systemctl restart open-bos-display.servic
 streampi ALL=(root) NOPASSWD: /usr/bin/systemctl enable --now open-bos-web-proxy.socket
 streampi ALL=(root) NOPASSWD: /usr/bin/systemctl disable --now open-bos-web-proxy.socket
 streampi ALL=(root) NOPASSWD: /usr/bin/systemctl stop open-bos-web-proxy.service
+streampi ALL=(root) NOPASSWD: /usr/local/libexec/open-bos-stream/stream-log
+streampi ALL=(root) NOPASSWD: /usr/local/libexec/open-bos-stream/reboot

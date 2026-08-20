@@ -14,8 +14,8 @@ def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_release_version_is_0_11_13() -> None:
-    assert VERSION == "0.11.13"
+def test_release_version_is_0_12_0() -> None:
+    assert VERSION == "0.12.0"
 
 
 def test_server_profile_can_be_selected_from_environment(
@@ -163,6 +163,15 @@ def test_installer_creates_and_persists_service_identity() -> None:
     )
     assert 'PACKAGE_BUILD_DIR="$(mktemp -d)"' in installer
     assert 'cp -R "${TARGET_DIR}/src"' in installer
+    assert '"${SYSTEM_HELPER_DIR}/stream-log"' in installer
+    assert '"${SYSTEM_HELPER_DIR}/reboot"' in installer
+    for sudoers_name in (
+        "scripts/open-bos-stream-sudoers",
+        "scripts/open-bos-stream-server-sudoers",
+    ):
+        sudoers = read(sudoers_name)
+        assert "/usr/local/libexec/open-bos-stream/stream-log" in sudoers
+        assert "/usr/local/libexec/open-bos-stream/reboot" in sudoers
     assert '"${PACKAGE_BUILD_DIR}"' in installer
     assert '--exclude "*.egg-info/"' in read("scripts/deploy.sh")
     for script in (install, update):
