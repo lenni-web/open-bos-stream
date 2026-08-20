@@ -733,6 +733,16 @@ Stabilisierte Ausgabe: rtsp://127.0.0.1:8554/drohne
 Die Systemseite zeigt zusätzlich die gemessene Eingangsbitrate,
 Paketabstände sowie lokale WebRTC-Statistiken des aktuellen Browsers.
 
+Superadmins finden auf der Systemseite außerdem zwei bewusst eng begrenzte
+Werkzeuge: Die Stream-Logansicht zeigt die letzten Meldungen von Anwendung,
+Streamer und MediaMTX und aktualisiert sie bei geöffneter Ansicht alle fünf
+Sekunden. Tokens, URL-Zugangsdaten und Passwörter werden serverseitig vor der
+Ausgabe verdeckt. Ein Server-Neustart kann nach zwei aufeinanderfolgenden
+Bestätigungen zeitversetzt ausgelöst werden, damit die Rückmeldung noch den
+Browser erreicht. Beide Funktionen verwenden root-eigene Hilfsprogramme ohne
+frei wählbare Befehle oder Parameter und sind auch über die API ausschließlich
+für Superadmins zugelassen.
+
 Als zusätzliche Abstimmung steht `Copy-Reparatur · geringe Latenz` bereit.
 Sie behält Stream Copy, Zeitstempelkorrektur und RTSP/TCP bei, reduziert aber
 die Eingangsqueue von 512 auf 128 Pakete und begrenzt die RTSP-Verzögerung auf

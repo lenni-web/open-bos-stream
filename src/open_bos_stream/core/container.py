@@ -37,6 +37,9 @@ from open_bos_stream.stream_output.service import (
 from open_bos_stream.system.info import (
     SystemInfoService,
 )
+from open_bos_stream.system.administration import (
+    SystemAdministrationService,
+)
 
 # ---------------------------------------------------------
 # Konfiguration
@@ -115,6 +118,7 @@ health_service = HealthService(
 )
 
 system_info_service = SystemInfoService(process_runner)
+system_administration_service = SystemAdministrationService(process_runner)
 media_storage_service = MediaStorageService()
 
 recording_service = RecordingService(

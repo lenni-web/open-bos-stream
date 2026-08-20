@@ -88,6 +88,10 @@ def test_system_diagnostics_controls_remain_available() -> None:
         "viewer-network",
         "viewer-dropped-frames",
         "stream-stable-for",
+        "stream-log-toggle",
+        "stream-log-panel",
+        "stream-log-content",
+        "system-reboot",
     } <= ids
 
     dashboard = (
@@ -116,6 +120,13 @@ def test_system_diagnostics_controls_remain_available() -> None:
     assert '"Nicht verfügbar"' in health
     assert "function updateSystemWebAccess(info)" in dashboard
     assert "HTTPS erreichbar" in dashboard
+
+    system_admin = (
+        ROOT / "static" / "js" / "system_admin.js"
+    ).read_text(encoding="utf-8")
+    assert "api.streamLog()" in system_admin
+    assert "api.rebootSystem()" in system_admin
+    assert system_admin.count("window.confirm(") == 2
 
 
 def test_compact_header_keeps_responsive_system_summary() -> None:

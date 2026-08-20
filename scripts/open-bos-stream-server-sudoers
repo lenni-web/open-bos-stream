@@ -1,3 +1,5 @@
 streampi ALL=(root) NOPASSWD: /usr/bin/systemctl start open-bos-streamer.service
 streampi ALL=(root) NOPASSWD: /usr/bin/systemctl stop open-bos-streamer.service
 streampi ALL=(root) NOPASSWD: /usr/bin/systemctl restart open-bos-streamer.service
+streampi ALL=(root) NOPASSWD: /usr/local/libexec/open-bos-stream/stream-log
+streampi ALL=(root) NOPASSWD: /usr/local/libexec/open-bos-stream/reboot

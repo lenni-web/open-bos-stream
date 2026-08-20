@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -eu
+
+exec /usr/bin/journalctl \
+    --unit=open-bos-stream.service \
+    --unit=open-bos-streamer.service \
+    --unit=mediamtx.service \
+    --since=-90min \
+    --lines=500 \
+    --no-pager \
+    --output=short-iso

@@ -2,16 +2,49 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException
+from fastapi.testclient import TestClient
 
 from open_bos_stream.api.auth import _assert_admin_scope
 from open_bos_stream.auth.middleware import ADMIN_PATHS, ADMIN_PREFIXES
+from open_bos_stream.auth.middleware import AuthMiddleware
 from open_bos_stream.auth.middleware import PUBLIC_PREFIXES
 from open_bos_stream.auth.middleware import SUPERADMIN_PATHS
 from open_bos_stream.auth.middleware import SUPERADMIN_PREFIXES
 from open_bos_stream.auth.middleware import viewer_mutation_allowed
 from open_bos_stream.auth.service import AuthError, AuthService
 from open_bos_stream.auth.rate_limit import LoginRateLimiter
+
+
+class EndpointRoleService:
+    COOKIE_NAME = "test_session"
+    SESSION_SECONDS = 60
+    configured = True
+
+    @staticmethod
+    def verify_token(token: str | None) -> dict | None:
+        if token not in {"viewer", "admin", "superadmin"}:
+            return None
+        return {"username": token, "role": token}
+
+    @staticmethod
+    def has_role(user: dict | None, minimum: str) -> bool:
+        return AuthService.has_role(user, minimum)
+
+
+def system_admin_client() -> TestClient:
+    app = FastAPI()
+    app.add_middleware(AuthMiddleware, service=EndpointRoleService())
+
+    @app.get("/system/stream-log")
+    async def stream_log():
+        return {"content": "test"}
+
+    @app.post("/system/reboot")
+    async def reboot():
+        return {"success": True}
+
+    return TestClient(app)
 
 
 def service(tmp_path: Path) -> AuthService:
@@ -170,6 +203,8 @@ def test_superadmin_only_routes_cover_sensitive_features() -> None:
     assert "/recording" in SUPERADMIN_PREFIXES
     assert "/snapshot" in SUPERADMIN_PREFIXES
     assert "/config/restore" in SUPERADMIN_PATHS
+    assert "/system/reboot" in SUPERADMIN_PATHS
+    assert "/system/stream-log" in SUPERADMIN_PATHS
     assert "/config/sources" not in SUPERADMIN_PATHS
 
 
@@ -177,6 +212,26 @@ def test_system_diagnostics_require_at_least_admin_role() -> None:
     assert "/system" in ADMIN_PREFIXES
     assert "/auth/users" in ADMIN_PREFIXES
     assert "/dashboard/diagnostics" in ADMIN_PATHS
+
+
+@pytest.mark.parametrize(
+    ("path", "method"),
+    (
+        ("/system/stream-log", "get"),
+        ("/system/reboot", "post"),
+    ),
+)
+def test_system_admin_endpoints_require_superadmin(
+    path: str,
+    method: str,
+) -> None:
+    with system_admin_client() as client:
+        assert getattr(client, method)(path).status_code == 401
+        for role in ("viewer", "admin"):
+            client.cookies.set("test_session", role)
+            assert getattr(client, method)(path).status_code == 403
+        client.cookies.set("test_session", "superadmin")
+        assert getattr(client, method)(path).status_code == 200
 
 
 def test_caddy_media_check_is_not_public() -> None:
