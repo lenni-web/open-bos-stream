@@ -2,6 +2,7 @@
 // Recording Helper
 // ==========================================================
 let lastRecordingState = null;
+let lastRecordingOutcome = null;
 let recordingTimerState = {
     active: false,
     baseSeconds: 0,
@@ -123,7 +124,8 @@ if (lastRecordingState !== null) {
 
     if (
         lastRecordingState &&
-        !recording.active
+        !recording.active &&
+        !recording.end_reason
     ) {
 
         addEvent(
@@ -133,6 +135,24 @@ if (lastRecordingState !== null) {
 
     }
 
+}
+
+const outcomeKey = recording.finished_at
+    ? `${recording.finished_at}:${recording.end_reason}`
+    : null;
+if (outcomeKey && outcomeKey !== lastRecordingOutcome) {
+    if (recording.end_reason === "stream_interrupted") {
+        addEvent(
+            "warning",
+            "⚠ Aufnahme durch Streamabbruch beendet und gespeichert"
+        );
+    } else if (recording.end_reason === "failed") {
+        addEvent(
+            "error",
+            "⛔ Abgebrochene Aufnahme war nicht verwertbar"
+        );
+    }
+    lastRecordingOutcome = outcomeKey;
 }
 
 lastRecordingState =
@@ -173,6 +193,18 @@ lastRecordingState =
             source_name:
                 recording.source_name,
 
+            end_reason:
+                recording.end_reason,
+
+            end_message:
+                recording.end_message,
+
+            completed_filename:
+                recording.completed_filename,
+
+            finished_at:
+                recording.finished_at,
+
         };
 
     }
@@ -187,7 +219,11 @@ lastRecordingState =
 
         active
             ? "🟢 Aktiv"
-            : "⚪ Nicht aktiv"
+            : recording.end_reason === "stream_interrupted"
+                ? "🟠 Durch Streamabbruch beendet"
+                : recording.end_reason === "failed"
+                    ? "🔴 Aufnahme fehlgeschlagen"
+                    : "⚪ Nicht aktiv"
 
     );
 

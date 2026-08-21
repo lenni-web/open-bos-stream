@@ -39,6 +39,15 @@ class RecordingService:
         self._status.recording = self._manager.running
         self._status.pid = self._manager.pid
 
+        outcome = getattr(self._manager, "last_outcome", None)
+        if outcome is not None:
+            self._status.end_reason = outcome.reason
+            self._status.end_message = outcome.message
+            self._status.completed_filename = outcome.filename
+            self._status.finished_at = outcome.finished_at
+            if not self._manager.running:
+                self._status.started_at = None
+
         if (
             self._manager.running
             and self._status.started_at is not None
@@ -99,6 +108,10 @@ class RecordingService:
         self._status.pid = self._manager.pid
         self._status.source_id = source.id
         self._status.source_name = source.name
+        self._status.end_reason = None
+        self._status.end_message = None
+        self._status.completed_filename = None
+        self._status.finished_at = None
 
     def stop(self) -> None:
         """Aufnahme stoppen."""

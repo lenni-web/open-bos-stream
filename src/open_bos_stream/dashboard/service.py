@@ -392,6 +392,14 @@ class DashboardService:
 
                 "source_name": recording.source_name,
 
+                "end_reason": recording.end_reason,
+
+                "end_message": recording.end_message,
+
+                "completed_filename": recording.completed_filename,
+
+                "finished_at": recording.finished_at,
+
             },
 
             "media_capture": {
