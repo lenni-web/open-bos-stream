@@ -11,6 +11,14 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.12.1] - 2026-08-21
+
+### Changed
+
+- Die bereinigte Stream-Logansicht auf der Systemseite ist nun neben
+  Superadmins auch für normale Admins verfügbar. Der Server-Neustart bleibt
+  weiterhin ausschließlich Superadmins vorbehalten.
+
 ## [0.12.0] - 2026-08-20
 
 ### Added

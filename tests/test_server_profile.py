@@ -14,8 +14,8 @@ def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_release_version_is_0_12_0() -> None:
-    assert VERSION == "0.12.0"
+def test_release_version_is_0_12_1() -> None:
+    assert VERSION == "0.12.1"
 
 
 def test_server_profile_can_be_selected_from_environment(

@@ -28,7 +28,6 @@ SUPERADMIN_PREFIXES = (
 SUPERADMIN_PATHS = {
     "/config/restore",
     "/system/reboot",
-    "/system/stream-log",
 }
 ADMIN_PREFIXES = (
     "/system",

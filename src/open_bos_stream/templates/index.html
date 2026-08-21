@@ -206,6 +206,9 @@ window.installationProfile = {{ installation_profile | tojson }};
 <script src="/static/js/library.js?v={{ version }}"></script>
 <script src="/static/js/snapshot_library.js?v={{ version }}"></script>
 <script src="/static/js/media_library.js?v={{ version }}"></script>
+{% endif %}
+
+{% if user.role != "viewer" %}
 <script src="/static/js/system_admin.js?v={{ version }}"></script>
 {% endif %}
 

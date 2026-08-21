@@ -91,11 +91,10 @@
             </div>
         </section>
 
-        {% if user.role == "superadmin" %}
         <section class="bos-card system-admin-panel">
             <div class="section-heading">
                 <div>
-                    <span class="section-kicker">Superadmin</span>
+                    <span class="section-kicker">Administration</span>
                     <h2>Systemwerkzeuge</h2>
                 </div>
                 <span class="diagnostic-state">Geschützter Bereich</span>
@@ -111,12 +110,14 @@
                     type="button">
                     Stream-Log anzeigen
                 </button>
+                {% if user.role == "superadmin" %}
                 <button
                     id="system-reboot"
                     class="bos-button bos-button-red"
                     type="button">
                     Server neu starten
                 </button>
+                {% endif %}
             </div>
             <div id="stream-log-panel" class="stream-log-panel" hidden>
                 <div class="stream-log-toolbar">
@@ -136,6 +137,7 @@
                 aria-live="polite"></div>
         </section>
 
+        {% if user.role == "superadmin" %}
         <section class="bos-card test-session-panel">
             <div class="section-heading">
                 <div>
