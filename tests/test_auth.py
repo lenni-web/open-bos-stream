@@ -204,7 +204,7 @@ def test_superadmin_only_routes_cover_sensitive_features() -> None:
     assert "/snapshot" in SUPERADMIN_PREFIXES
     assert "/config/restore" in SUPERADMIN_PATHS
     assert "/system/reboot" in SUPERADMIN_PATHS
-    assert "/system/stream-log" in SUPERADMIN_PATHS
+    assert "/system/stream-log" not in SUPERADMIN_PATHS
     assert "/config/sources" not in SUPERADMIN_PATHS
 
 
@@ -214,24 +214,24 @@ def test_system_diagnostics_require_at_least_admin_role() -> None:
     assert "/dashboard/diagnostics" in ADMIN_PATHS
 
 
-@pytest.mark.parametrize(
-    ("path", "method"),
-    (
-        ("/system/stream-log", "get"),
-        ("/system/reboot", "post"),
-    ),
-)
-def test_system_admin_endpoints_require_superadmin(
-    path: str,
-    method: str,
-) -> None:
+def test_stream_log_endpoint_requires_admin() -> None:
     with system_admin_client() as client:
-        assert getattr(client, method)(path).status_code == 401
+        assert client.get("/system/stream-log").status_code == 401
+        client.cookies.set("test_session", "viewer")
+        assert client.get("/system/stream-log").status_code == 403
+        for role in ("admin", "superadmin"):
+            client.cookies.set("test_session", role)
+            assert client.get("/system/stream-log").status_code == 200
+
+
+def test_reboot_endpoint_requires_superadmin() -> None:
+    with system_admin_client() as client:
+        assert client.post("/system/reboot").status_code == 401
         for role in ("viewer", "admin"):
             client.cookies.set("test_session", role)
-            assert getattr(client, method)(path).status_code == 403
+            assert client.post("/system/reboot").status_code == 403
         client.cookies.set("test_session", "superadmin")
-        assert getattr(client, method)(path).status_code == 200
+        assert client.post("/system/reboot").status_code == 200
 
 
 def test_caddy_media_check_is_not_public() -> None:
