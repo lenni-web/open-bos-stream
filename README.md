@@ -743,6 +743,15 @@ werden. Beide Funktionen verwenden root-eigene Hilfsprogramme ohne frei
 wählbare Befehle oder Parameter und werden auch über die API entsprechend der
 Rolle geschützt.
 
+Eine laufende Aufnahme wird durch einen separaten Wächter unabhängig von der
+geöffneten Oberfläche überwacht. Endet FFmpeg unerwartet, etwa weil die
+Streamverbindung abbricht, wird die temporäre MP4-Datei automatisch geprüft.
+Eine gültige Teilaufnahme wird unmittelbar in der Mediathek veröffentlicht
+und als durch Streamabbruch beendet gemeldet; eine nicht abspielbare Datei
+wird entfernt und mit Fehlerstatus ausgewiesen. Ein später zurückkehrender
+Stream startet aus Datenschutz- und Bediengründen keine neue Aufnahme
+automatisch.
+
 Als zusätzliche Abstimmung steht `Copy-Reparatur · geringe Latenz` bereit.
 Sie behält Stream Copy, Zeitstempelkorrektur und RTSP/TCP bei, reduziert aber
 die Eingangsqueue von 512 auf 128 Pakete und begrenzt die RTSP-Verzögerung auf

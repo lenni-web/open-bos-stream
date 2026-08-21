@@ -19,6 +19,14 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   Superadmins auch für normale Admins verfügbar. Der Server-Neustart bleibt
   weiterhin ausschließlich Superadmins vorbehalten.
 
+### Fixed
+
+- Laufende Aufnahmen werden nun unabhängig vom Dashboard überwacht. Bei einem
+  Streamabbruch wird eine gültige MP4-Teilaufnahme automatisch abgeschlossen,
+  validiert und in der Mediathek veröffentlicht; beschädigte Teilaufnahmen
+  werden entfernt und als Fehler gemeldet. Ein wiederkehrender Stream startet
+  weiterhin keine unbeabsichtigte Folgeaufnahme.
+
 ## [0.12.0] - 2026-08-20
 
 ### Added

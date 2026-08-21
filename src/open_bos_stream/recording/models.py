@@ -23,3 +23,11 @@ class RecordingStatus(BaseModel):
     source_id: str | None = None
 
     source_name: str | None = None
+
+    end_reason: str | None = None
+
+    end_message: str | None = None
+
+    completed_filename: str | None = None
+
+    finished_at: float | None = None

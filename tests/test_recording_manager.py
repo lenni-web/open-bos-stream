@@ -1,5 +1,6 @@
 from pathlib import Path
 from types import SimpleNamespace
+import time
 
 import pytest
 
@@ -104,3 +105,63 @@ def test_nonzero_ffmpeg_exit_keeps_valid_finalized_recording(
     assert final.read_bytes() == b"mp4-data"
     assert builder.output is not None
     assert not builder.output.exists()
+
+
+def test_unexpected_exit_automatically_publishes_valid_partial_recording(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    manager, builder = manager_with_fakes(returncode=1)
+    final = tmp_path / "recording_interrupted.mp4"
+    monkeypatch.setattr(
+        "open_bos_stream.recording.manager.subprocess.run",
+        lambda *args, **kwargs: SimpleNamespace(
+            returncode=0,
+            stdout="video\n",
+            stderr="",
+        ),
+    )
+
+    manager.start(final, "rtsp://127.0.0.1/source")
+    manager._process.running = False
+
+    deadline = time.monotonic() + 2
+    while manager.last_outcome is None and time.monotonic() < deadline:
+        time.sleep(0.02)
+
+    assert final.read_bytes() == b"mp4-data"
+    assert builder.output is not None
+    assert not builder.output.exists()
+    assert manager.last_outcome is not None
+    assert manager.last_outcome.reason == "stream_interrupted"
+    assert manager.last_outcome.filename == str(final)
+
+
+def test_unexpected_exit_discards_invalid_partial_recording(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    manager, builder = manager_with_fakes(returncode=1)
+    final = tmp_path / "recording_invalid.mp4"
+    monkeypatch.setattr(
+        "open_bos_stream.recording.manager.subprocess.run",
+        lambda *args, **kwargs: SimpleNamespace(
+            returncode=1,
+            stdout="",
+            stderr="moov atom not found",
+        ),
+    )
+
+    manager.start(final, "rtsp://127.0.0.1/source")
+    manager._process.running = False
+
+    deadline = time.monotonic() + 2
+    while manager.last_outcome is None and time.monotonic() < deadline:
+        time.sleep(0.02)
+
+    assert not final.exists()
+    assert builder.output is not None
+    assert not builder.output.exists()
+    assert manager.last_outcome is not None
+    assert manager.last_outcome.reason == "failed"
+    assert manager.last_outcome.filename is None

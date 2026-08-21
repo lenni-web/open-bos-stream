@@ -6,11 +6,28 @@ Zentrale Steuerung der Videoaufzeichnung.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+import logging
 import subprocess
+import threading
+import time
 from pathlib import Path
 
 from open_bos_stream.recording.command import RecordingCommandBuilder
 from open_bos_stream.recording.process import RecordingProcess
+
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class RecordingOutcome:
+    reason: str
+    message: str
+    filename: str | None
+    finished_at: float
+
+
 class RecordingManager:
 
     def __init__(self) -> None:
@@ -23,6 +40,12 @@ class RecordingManager:
 
         self._working_file: Path | None = None
 
+        self._lock = threading.RLock()
+
+        self._generation = 0
+
+        self._last_outcome: RecordingOutcome | None = None
+
     @property
     def running(self) -> bool:
 
@@ -33,6 +56,11 @@ class RecordingManager:
 
         return self._process.pid
 
+    @property
+    def last_outcome(self) -> RecordingOutcome | None:
+        with self._lock:
+            return self._last_outcome
+
     def start(
         self,
         filename: Path,
@@ -42,32 +70,80 @@ class RecordingManager:
         transcode_audio: bool = False,
     ) -> bool:
 
-        if self.running:
-            return True
+        with self._lock:
+            if self.running:
+                return True
 
-        working_file = filename.with_name(f".{filename.name}.part")
-        working_file.unlink(missing_ok=True)
-        command = self._builder.build(
-            working_file,
-            input_url,
-            transcode_video=transcode_video,
-            transcode_audio=transcode_audio,
-        )
+            # Ein unerwartet beendeter Vorgänger wird vor einer neuen
+            # Aufnahme noch abgeschlossen, selbst wenn der Wächter noch
+            # nicht zum Zug gekommen ist.
+            if self._working_file is not None:
+                try:
+                    self._finalize_locked(unexpected=True)
+                except RuntimeError:
+                    logger.exception(
+                        "Unerwartet beendete Aufnahme war nicht verwertbar."
+                    )
 
-        try:
-            self._process.start(command)
-        except Exception:
+            working_file = filename.with_name(f".{filename.name}.part")
             working_file.unlink(missing_ok=True)
-            raise
+            command = self._builder.build(
+                working_file,
+                input_url,
+                transcode_video=transcode_video,
+                transcode_audio=transcode_audio,
+            )
 
-        self._final_file = filename
-        self._working_file = working_file
+            try:
+                self._process.start(command)
+            except Exception:
+                working_file.unlink(missing_ok=True)
+                raise
+
+            self._final_file = filename
+            self._working_file = working_file
+            self._last_outcome = None
+            self._generation += 1
+            generation = self._generation
+
+            threading.Thread(
+                target=self._watch_process,
+                args=(generation,),
+                name="open-bos-recording-watch",
+                daemon=True,
+            ).start()
 
         return self.running
 
     def stop(self) -> bool:
-        if self._working_file is None or self._final_file is None:
+        with self._lock:
+            self._generation += 1
+            if self._working_file is None or self._final_file is None:
+                return True
+            self._finalize_locked(unexpected=False)
             return True
+
+    def _watch_process(self, generation: int) -> None:
+        """Schließt eine ohne Bedienaktion beendete Aufnahme automatisch ab."""
+
+        while True:
+            time.sleep(0.25)
+            with self._lock:
+                if generation != self._generation:
+                    return
+                if self._process.running:
+                    continue
+                try:
+                    self._finalize_locked(unexpected=True)
+                except RuntimeError:
+                    logger.exception(
+                        "Aufnahme endete unerwartet und konnte nicht "
+                        "veröffentlicht werden."
+                    )
+                return
+
+    def _finalize_locked(self, *, unexpected: bool) -> None:
+        """Validiert und veröffentlicht eine Aufnahme unter gehaltenem Lock."""
 
         returncode = self._process.stop()
         working_file = self._working_file
@@ -83,13 +159,33 @@ class RecordingManager:
             self._validate(working_file)
         except RuntimeError as exc:
             detail = self._process.last_error or f"Exit {returncode}"
+            message = (
+                "Aufnahme endete unerwartet und enthält keine gültige "
+                f"MP4-Datei: {exc}"
+            )
+            self._last_outcome = RecordingOutcome(
+                reason="failed",
+                message=message,
+                filename=None,
+                finished_at=time.time(),
+            )
             raise RuntimeError(
                 "Aufnahme konnte nicht als gültige MP4-Datei abgeschlossen "
                 f"werden: {exc}\nFFmpeg: {detail}"
             ) from exc
 
         working_file.replace(final_file)
-        return True
+        self._last_outcome = RecordingOutcome(
+            reason=("stream_interrupted" if unexpected else "completed"),
+            message=(
+                "Streamverbindung wurde unterbrochen. Die bis dahin "
+                "aufgezeichneten Videodaten wurden gespeichert."
+                if unexpected
+                else "Aufnahme wurde abgeschlossen."
+            ),
+            filename=str(final_file),
+            finished_at=time.time(),
+        )
 
     @staticmethod
     def _validate(file: Path) -> None:
