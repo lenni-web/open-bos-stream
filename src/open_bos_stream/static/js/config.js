@@ -61,6 +61,7 @@ function bindConfigChangeTracking() {
                 event.target.id?.startsWith(
                     "cfg-display-"
                 )
+                || event.target.id === "cfg-recording-automatic"
             ) {
                 return;
             }
@@ -235,6 +236,56 @@ function renderMediaCaptureConfig() {
         automatic.checked = (
             currentConfig.media_capture?.recording_mode === "automatic"
         );
+        if (!automatic.dataset.immediateSaveBound) {
+            automatic.dataset.immediateSaveBound = "true";
+            automatic.addEventListener(
+                "change",
+                () => saveRecordingModeImmediately()
+            );
+        }
+    }
+}
+
+async function saveRecordingModeImmediately() {
+    const automatic = document.getElementById(
+        "cfg-recording-automatic"
+    );
+    const source = document.getElementById("cfg-media-source");
+    const status = document.getElementById(
+        "cfg-recording-mode-status"
+    );
+    if (!automatic || !source || !currentConfig) {
+        return;
+    }
+
+    const previous = currentConfig.media_capture?.recording_mode ?? "manual";
+    const payload = {
+        source_id: source.value || null,
+        recording_mode: automatic.checked ? "automatic" : "manual",
+    };
+
+    automatic.disabled = true;
+    if (status) status.textContent = "Wird gespeichert …";
+    try {
+        const result = await api.saveMediaCapture(payload);
+        currentConfig.media_capture = result.media_capture;
+        automatic.checked = (
+            result.media_capture.recording_mode === "automatic"
+        );
+        if (status) {
+            status.textContent = automatic.checked
+                ? "Automatische Aufnahme ist aktiv."
+                : "Manuelle Aufnahme ist aktiv.";
+        }
+        addEvent("success", "⏺ " + result.message);
+    } catch (err) {
+        automatic.checked = previous === "automatic";
+        if (status) {
+            status.textContent = "Speichern fehlgeschlagen: " + err.message;
+        }
+        addEvent("error", "⏺ " + err.message);
+    } finally {
+        automatic.disabled = false;
     }
 }
 

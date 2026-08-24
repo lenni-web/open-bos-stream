@@ -9,6 +9,7 @@ from open_bos_stream.core.config_apply import (
 )
 from open_bos_stream.core.models import (
     AppConfig,
+    MediaCaptureConfig,
     SourceConfig,
 )
 
@@ -123,6 +124,35 @@ def test_capture_profile_is_activated_atomically(
     assert len(loader.saved) == 1
     assert loader.last_known_good is not None
     assert "aktiviert" in message
+
+
+def test_media_capture_mode_is_saved_without_stream_restart() -> None:
+    runtime = ConfigLoader().load()
+    loader = FakeLoader()
+    stream = FakeStream(runtime)
+    outputs = FakeReloadable()
+    service = ConfigApplyService(
+        loader,
+        runtime,
+        stream,
+        outputs,
+        FakePreflight(),
+    )
+
+    saved = service.update_media_capture(
+        MediaCaptureConfig(
+            source_id=runtime.sources[0].id,
+            recording_mode="automatic",
+        )
+    )
+
+    assert saved.recording_mode == "automatic"
+    assert runtime.media_capture.recording_mode == "automatic"
+    assert loader.saved[-1].media_capture.recording_mode == "automatic"
+    assert loader.last_known_good is not None
+    assert loader.last_known_good.media_capture.recording_mode == "automatic"
+    assert stream.restarts == 0
+    assert stream.stops == 0
 
 
 def test_failed_capture_activation_rolls_back(

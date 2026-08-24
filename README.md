@@ -706,6 +706,11 @@ Für Aufnahmen stehen zwei Betriebsarten zur Verfügung:
   Mediathek veröffentlicht. Kehrt das Signal später zurück, entsteht eine neue
   Aufnahme. Manuelle Start-/Stopp-Befehle sind in dieser Betriebsart gesperrt.
 
+Der Betriebsartenschalter wird unmittelbar gespeichert und benötigt nicht den
+allgemeinen Button „Änderungen speichern“. Dabei werden weder laufende Streams
+noch der Mehrquellen-Streamer neu gestartet. Eine Statuszeile direkt am
+Schalter bestätigt den aktiven Modus oder meldet einen Speicherfehler.
+
 Ein einzelner kurzzeitig fehlender Statuswert beendet die Aufnahme nicht;
 erst ein bestätigter Signalverlust löst den Abschluss aus. Die Automatik läuft
 auch dann weiter, wenn keine Weboberfläche geöffnet ist.

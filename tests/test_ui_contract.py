@@ -480,6 +480,7 @@ def test_superadmin_media_source_controls_are_present() -> None:
 
     assert 'id="cfg-media-source"' in settings
     assert 'id="cfg-recording-automatic"' in settings
+    assert 'id="cfg-recording-mode-status"' in settings
     assert "Snapshot- und Aufnahmequelle" in settings
     assert '{% if user.role == "superadmin" %}' in panel
     assert 'id="media-capture-bar"' in panel
@@ -488,6 +489,8 @@ def test_superadmin_media_source_controls_are_present() -> None:
     assert 'id="media-recording-toggle"' in panel
     assert "function renderMediaCaptureConfig()" in config
     assert "function saveMediaCaptureConfig()" in config
+    assert "function saveRecordingModeImmediately()" in config
+    assert "api.saveMediaCapture(payload)" in config
 
 
 def test_admin_initialization_does_not_call_superadmin_media_functions() -> None:
