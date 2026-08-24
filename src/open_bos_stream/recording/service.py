@@ -5,6 +5,7 @@ Recording Service
 from __future__ import annotations
 
 import time
+from threading import RLock
 
 from open_bos_stream.core.models import AppConfig
 from open_bos_stream.mediamtx.client import MediaMTXClient
@@ -32,12 +33,23 @@ class RecordingService:
 
         self._mediamtx = mediamtx
 
+        self._control_lock = RLock()
+
+        self._automatic_last_attempt = 0.0
+
+        self._automatic_offline_samples = 0
+
     @property
     def status(self) -> RecordingStatus:
         """Aktuellen Aufnahmestatus zurückgeben."""
 
         self._status.recording = self._manager.running
         self._status.pid = self._manager.pid
+        self._status.mode = self._config.media_capture.recording_mode
+        self._status.automatic_waiting = (
+            self._status.mode == "automatic"
+            and not self._manager.running
+        )
 
         outcome = getattr(self._manager, "last_outcome", None)
         if outcome is not None:
@@ -58,8 +70,20 @@ class RecordingService:
 
         return self._status
 
-    def start(self) -> None:
+    def start(self, *, automatic: bool = False) -> None:
         """Aufnahme starten."""
+
+        with self._control_lock:
+            self._start(automatic=automatic)
+
+    def _start(self, *, automatic: bool) -> None:
+        if (
+            self._config.media_capture.recording_mode == "automatic"
+            and not automatic
+        ):
+            raise RuntimeError(
+                "Die Aufnahme wird automatisch durch das Eingangssignal gesteuert."
+            )
 
         if self._manager.running:
             return
@@ -112,9 +136,23 @@ class RecordingService:
         self._status.end_message = None
         self._status.completed_filename = None
         self._status.finished_at = None
+        self._status.automatic_error = None
+        self._status.automatic_waiting = False
 
-    def stop(self) -> None:
+    def stop(self, *, automatic: bool = False) -> None:
         """Aufnahme stoppen."""
+
+        with self._control_lock:
+            self._stop(automatic=automatic)
+
+    def _stop(self, *, automatic: bool) -> None:
+        if (
+            self._config.media_capture.recording_mode == "automatic"
+            and not automatic
+        ):
+            raise RuntimeError(
+                "Die Aufnahme wird automatisch durch das Eingangssignal gesteuert."
+            )
 
         try:
             self._manager.stop()
@@ -123,6 +161,57 @@ class RecordingService:
             self._status.started_at = None
             self._status.duration = 0
             self._status.pid = None
+
+    def reconcile_automatic(self) -> None:
+        """Aufnahmezustand an das Signal der gewählten Quelle angleichen."""
+
+        with self._control_lock:
+            if self._config.media_capture.recording_mode != "automatic":
+                self._automatic_offline_samples = 0
+                self._status.automatic_waiting = False
+                self._status.automatic_error = None
+                return
+
+            self._status.mode = "automatic"
+            try:
+                source = self._selected_source()
+            except RuntimeError as exc:
+                self._status.automatic_waiting = True
+                self._status.automatic_error = str(exc)
+                return
+
+            path = self._mediamtx.path(source.viewer_path)
+            ready = bool(path and path.get("ready", False))
+
+            if self._manager.running:
+                if self._status.source_id != source.id:
+                    self._stop(automatic=True)
+                    self._automatic_offline_samples = 0
+                    return
+                if ready:
+                    self._automatic_offline_samples = 0
+                    self._status.automatic_error = None
+                    return
+                self._automatic_offline_samples += 1
+                if self._automatic_offline_samples >= 2:
+                    self._stop(automatic=True)
+                    self._automatic_offline_samples = 0
+                return
+
+            self._status.automatic_waiting = True
+            if not ready:
+                self._automatic_offline_samples = 0
+                self._status.automatic_error = None
+                return
+
+            now = time.monotonic()
+            if now - self._automatic_last_attempt < 5:
+                return
+            self._automatic_last_attempt = now
+            try:
+                self._start(automatic=True)
+            except RuntimeError as exc:
+                self._status.automatic_error = str(exc)
 
     def _selected_source(self):
         selected_id = self._config.media_capture.source_id

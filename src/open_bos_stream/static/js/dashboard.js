@@ -124,11 +124,18 @@ function updateMediaCaptureBar(mediaCapture) {
         "media-capture-source-name",
         mediaCapture?.source_name || "Keine Quelle ausgewählt"
     );
+    const automatic = mediaCapture?.recording_mode === "automatic";
+    updateValue(
+        "media-recording-mode",
+        automatic ? "Automatische Aufnahme" : "Manuelle Aufnahme"
+    );
     const snapshot = document.getElementById("media-snapshot-button");
     const recording = document.getElementById("media-recording-toggle");
     if (snapshot) snapshot.disabled = !mediaCapture?.ready;
-    if (recording && !window.dashboard?.recording?.active) {
-        recording.disabled = !mediaCapture?.ready;
+    if (recording) {
+        recording.disabled = automatic || (
+            !window.dashboard?.recording?.active && !mediaCapture?.ready
+        );
     }
 }
 

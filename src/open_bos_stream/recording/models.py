@@ -4,6 +4,8 @@ Recording models.
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel
 
 
@@ -31,3 +33,9 @@ class RecordingStatus(BaseModel):
     completed_filename: str | None = None
 
     finished_at: float | None = None
+
+    mode: Literal["manual", "automatic"] = "manual"
+
+    automatic_waiting: bool = False
+
+    automatic_error: str | None = None

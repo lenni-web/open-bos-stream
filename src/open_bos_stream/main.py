@@ -3,7 +3,8 @@ Open BOS Stream
 Application Entry Point
 """
 
-from contextlib import asynccontextmanager
+import asyncio
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -57,6 +58,19 @@ setup_logging()
 logger = logging.getLogger(__name__)
 
 
+async def automatic_recording_loop() -> None:
+    """Steuert automatische Aufnahmen unabhängig vom Browser."""
+
+    while True:
+        try:
+            await asyncio.to_thread(recording_service.reconcile_automatic)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("Automatische Aufnahmesteuerung fehlgeschlagen.")
+        await asyncio.sleep(1)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialisiert die Anwendung."""
@@ -70,11 +84,18 @@ async def lifespan(app: FastAPI):
                 "Der interne Streamer konnte nicht gestartet werden."
             )
 
-    yield
+    recording_task = asyncio.create_task(automatic_recording_loop())
+
+    try:
+        yield
+    finally:
+        recording_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await recording_task
 
     if recording_service.status.recording:
         try:
-            recording_service.stop()
+            recording_service.stop(automatic=True)
         except Exception:
             logger.exception(
                 "Die laufende Aufnahme konnte nicht sauber beendet werden."

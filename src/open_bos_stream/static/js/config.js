@@ -227,6 +227,15 @@ function renderMediaCaptureConfig() {
     } else {
         select.value = sources[0]?.id ?? "";
     }
+
+    const automatic = document.getElementById(
+        "cfg-recording-automatic"
+    );
+    if (automatic) {
+        automatic.checked = (
+            currentConfig.media_capture?.recording_mode === "automatic"
+        );
+    }
 }
 
 function saveMediaCaptureConfig() {
@@ -236,6 +245,9 @@ function saveMediaCaptureConfig() {
     }
     currentConfig.media_capture = {
         source_id: select.value || null,
+        recording_mode: document.getElementById(
+            "cfg-recording-automatic"
+        )?.checked ? "automatic" : "manual",
     };
 }
 

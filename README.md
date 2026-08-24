@@ -697,6 +697,19 @@ Bedienung, Medienseite sowie Snapshot- und Aufnahme-API bleiben ausschließlich
 für Superadmins verfügbar. Ist die ausgewählte Quelle offline, bleiben die
 Schaltflächen deaktiviert.
 
+Für Aufnahmen stehen zwei Betriebsarten zur Verfügung:
+
+- **Manuell:** Ein Superadmin startet und stoppt die Aufnahme im Medienbalken.
+- **Automatisch:** Die Anwendung überwacht die gewählte Medienquelle
+  serverseitig. Sobald ihr Signal verfügbar ist, beginnt eine neue Aufnahme.
+  Endet das Signal, wird die Datei kontrolliert abgeschlossen und in der
+  Mediathek veröffentlicht. Kehrt das Signal später zurück, entsteht eine neue
+  Aufnahme. Manuelle Start-/Stopp-Befehle sind in dieser Betriebsart gesperrt.
+
+Ein einzelner kurzzeitig fehlender Statuswert beendet die Aufnahme nicht;
+erst ein bestätigter Signalverlust löst den Abschluss aus. Die Automatik läuft
+auch dann weiter, wenn keine Weboberfläche geöffnet ist.
+
 ## Webzugriff im lokalen Profil
 
 Die Oberfläche bleibt immer unter `http://<geraet>:8000` erreichbar.
@@ -748,9 +761,9 @@ geöffneten Oberfläche überwacht. Endet FFmpeg unerwartet, etwa weil die
 Streamverbindung abbricht, wird die temporäre MP4-Datei automatisch geprüft.
 Eine gültige Teilaufnahme wird unmittelbar in der Mediathek veröffentlicht
 und als durch Streamabbruch beendet gemeldet; eine nicht abspielbare Datei
-wird entfernt und mit Fehlerstatus ausgewiesen. Ein später zurückkehrender
-Stream startet aus Datenschutz- und Bediengründen keine neue Aufnahme
-automatisch.
+wird entfernt und mit Fehlerstatus ausgewiesen. Im manuellen Aufnahmemodus
+startet ein später zurückkehrender Stream keine neue Aufnahme. Nur der bewusst
+aktivierte Automatikmodus startet bei einem erneuten Signal eine neue Datei.
 
 Als zusätzliche Abstimmung steht `Copy-Reparatur · geringe Latenz` bereit.
 Sie behält Stream Copy, Zeitstempelkorrektur und RTSP/TCP bei, reduziert aber

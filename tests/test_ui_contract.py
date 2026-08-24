@@ -479,9 +479,11 @@ def test_superadmin_media_source_controls_are_present() -> None:
     ).read_text(encoding="utf-8")
 
     assert 'id="cfg-media-source"' in settings
+    assert 'id="cfg-recording-automatic"' in settings
     assert "Snapshot- und Aufnahmequelle" in settings
     assert '{% if user.role == "superadmin" %}' in panel
     assert 'id="media-capture-bar"' in panel
+    assert 'id="media-recording-mode"' in panel
     assert 'id="media-snapshot-button"' in panel
     assert 'id="media-recording-toggle"' in panel
     assert "function renderMediaCaptureConfig()" in config

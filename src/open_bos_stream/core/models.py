@@ -356,6 +356,8 @@ class MediaCaptureConfig(BaseModel):
 
     source_id: str | None = None
 
+    recording_mode: Literal["manual", "automatic"] = "manual"
+
 class AppConfig(BaseModel):
 
     source_profile: Literal[
