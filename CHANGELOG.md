@@ -15,6 +15,11 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   manueller und automatischer Steuerung umschalten. Im Automatikmodus beginnt
   die Aufnahme beim Eintreffen des Signals und wird bei dessen Ende sauber
   abgeschlossen; die Steuerung läuft serverseitig ohne geöffneten Browser.
+- Der Schalter für die Aufnahmeart wird nun unmittelbar über einen eigenen
+  Endpunkt gespeichert. Dafür wird weder die gesamte Streamkonfiguration
+  aktiviert noch der Streamer neu gestartet; Erfolg und Fehler erscheinen
+  direkt am Schalter und ein fehlgeschlagener Wechsel wird sichtbar
+  zurückgenommen.
 
 ---
 

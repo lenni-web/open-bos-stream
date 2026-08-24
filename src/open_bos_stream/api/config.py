@@ -3,7 +3,11 @@ from starlette.concurrency import run_in_threadpool
 
 from open_bos_stream.core.config import ConfigLoader
 from open_bos_stream.core.config_apply import ConfigApplyError
-from open_bos_stream.core.models import AppConfig, SourceConfig
+from open_bos_stream.core.models import (
+    AppConfig,
+    MediaCaptureConfig,
+    SourceConfig,
+)
 
 from open_bos_stream.core.container import (
     config_apply_service,
@@ -98,6 +102,28 @@ async def save_sources(sources: list[SourceConfig], request: Request):
     current["sources"] = [source.model_dump() for source in sources]
     candidate = AppConfig.model_validate(current)
     return await apply_config(candidate)
+
+
+@router.put("/media-capture")
+async def save_media_capture(
+    media_capture: MediaCaptureConfig,
+    request: Request,
+):
+    if request.state.user["role"] != "superadmin":
+        raise HTTPException(
+            status_code=403,
+            detail="Nur Superadmins dürfen die Aufnahmesteuerung ändern.",
+        )
+
+    saved = await run_in_threadpool(
+        config_apply_service.update_media_capture,
+        media_capture,
+    )
+    return {
+        "success": True,
+        "message": "Aufnahmesteuerung wurde gespeichert.",
+        "media_capture": saved,
+    }
 
 
 @router.post("/test")

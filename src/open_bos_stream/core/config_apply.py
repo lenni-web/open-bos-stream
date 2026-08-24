@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from threading import RLock
 from typing import Protocol
 
 from open_bos_stream.core.config import ConfigLoader
@@ -10,7 +11,7 @@ from open_bos_stream.core.config_preflight import (
     ConfigPreflightError,
     ConfigPreflightValidator,
 )
-from open_bos_stream.core.models import AppConfig
+from open_bos_stream.core.models import AppConfig, MediaCaptureConfig
 from open_bos_stream.core.installation import installation_profile
 
 
@@ -50,6 +51,7 @@ class ConfigApplyService:
         self._outputs = outputs
         self._preflight = preflight or ConfigPreflightValidator()
         self._probe = probe
+        self._lock = RLock()
 
     @staticmethod
     def _validate(config: AppConfig) -> None:
@@ -91,6 +93,10 @@ class ConfigApplyService:
             self._probe.reload(self._runtime)
 
     def apply(self, candidate: AppConfig) -> str:
+        with self._lock:
+            return self._apply(candidate)
+
+    def _apply(self, candidate: AppConfig) -> str:
         checks = self.test(candidate)
 
         previous = self._runtime.model_copy(deep=True)
@@ -153,6 +159,20 @@ class ConfigApplyService:
                 raise
 
             raise ConfigApplyError(str(exc)) from exc
+
+    def update_media_capture(
+        self,
+        media_capture: MediaCaptureConfig,
+    ) -> MediaCaptureConfig:
+        """Mediensteuerung ohne Neustart des Streamers speichern."""
+
+        with self._lock:
+            candidate = self._runtime.model_copy(deep=True)
+            candidate.media_capture = media_capture.model_copy(deep=True)
+            self._loader.save(candidate)
+            self._loader.save_last_known_good(candidate)
+            self._runtime.media_capture = candidate.media_capture
+            return candidate.media_capture.model_copy(deep=True)
 
     def test(self, candidate: AppConfig) -> list[str]:
         """Prüft eine Konfiguration ohne sie zu speichern."""

@@ -329,6 +329,15 @@ class OBSApi {
 
     }
 
+    async saveMediaCapture(mediaCapture) {
+
+        return await this.put(
+            "/config/media-capture",
+            mediaCapture
+        );
+
+    }
+
     async encoders(source) {
 
 	    return await this.post(
