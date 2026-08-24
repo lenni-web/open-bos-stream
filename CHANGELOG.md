@@ -9,6 +9,13 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Superadmins können die Aufnahme der ausgewählten Medienquelle zwischen
+  manueller und automatischer Steuerung umschalten. Im Automatikmodus beginnt
+  die Aufnahme beim Eintreffen des Signals und wird bei dessen Ende sauber
+  abgeschlossen; die Steuerung läuft serverseitig ohne geöffneten Browser.
+
 ---
 
 ## [0.12.1] - 2026-08-21

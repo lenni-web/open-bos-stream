@@ -164,3 +164,70 @@ def test_h265_recording_is_transcoded_for_browser(tmp_path: Path) -> None:
 
     assert manager.transcode_video is True
     assert manager.transcode_audio is True
+
+
+def test_automatic_recording_follows_source_signal(
+    tmp_path: Path,
+) -> None:
+    config, source = selected_second_source()
+    config.media_capture.recording_mode = "automatic"
+
+    class SwitchableMediaMTX:
+        ready = True
+
+        def path(self, name: str):
+            return {
+                "name": name,
+                "ready": self.ready,
+                "codec": "H264",
+                "tracks": ["H264", "MPEG-4 Audio"],
+            }
+
+    mediamtx = SwitchableMediaMTX()
+    service = RecordingService(config, mediamtx)
+    manager = FakeRecordingManager()
+    service._manager = manager
+    service._recorder = FakeRecorder(tmp_path)
+
+    service.reconcile_automatic()
+
+    assert manager.running is True
+    assert service.status.source_id == source.id
+    assert service.status.mode == "automatic"
+
+    mediamtx.ready = False
+    service.reconcile_automatic()
+    assert manager.running is True
+
+    service.reconcile_automatic()
+    assert manager.running is False
+    assert service.status.automatic_waiting is True
+
+
+def test_manual_recording_commands_are_blocked_in_automatic_mode(
+    tmp_path: Path,
+) -> None:
+    config, _source = selected_second_source()
+    config.media_capture.recording_mode = "automatic"
+    service = RecordingService(config, FakeMediaMTX())
+    service._manager = FakeRecordingManager()
+    service._recorder = FakeRecorder(tmp_path)
+
+    try:
+        service.start()
+    except RuntimeError as exc:
+        assert "automatisch" in str(exc)
+    else:
+        raise AssertionError("Manueller Start wurde nicht gesperrt")
+
+    service.start(automatic=True)
+
+    try:
+        service.stop()
+    except RuntimeError as exc:
+        assert "automatisch" in str(exc)
+    else:
+        raise AssertionError("Manueller Stopp wurde nicht gesperrt")
+
+    service.stop(automatic=True)
+    assert service.status.recording is False

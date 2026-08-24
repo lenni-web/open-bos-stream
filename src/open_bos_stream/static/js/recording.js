@@ -205,6 +205,15 @@ lastRecordingState =
             finished_at:
                 recording.finished_at,
 
+            mode:
+                recording.mode ?? "manual",
+
+            automatic_waiting:
+                Boolean(recording.automatic_waiting),
+
+            automatic_error:
+                recording.automatic_error,
+
         };
 
     }
@@ -303,10 +312,16 @@ lastRecordingState =
 
     if (toggle) {
 
+        const automatic = recording.mode === "automatic";
+
         toggle.textContent =
-            active
+            automatic
+                ? (active ? "⏺ Automatische Aufnahme" : "◷ Automatik wartet")
+                : active
                 ? "⏹ Aufnahme stoppen"
                 : "⏺ Aufnahme starten";
+
+        toggle.disabled = automatic;
 
         toggle.classList.toggle(
             "bos-button-red",
@@ -324,9 +339,13 @@ lastRecordingState =
         "media-recording-toggle"
     );
     if (mediaToggle) {
-        mediaToggle.textContent = active
+        const automatic = recording.mode === "automatic";
+        mediaToggle.textContent = automatic
+            ? (active ? "⏺ Automatische Aufnahme" : "◷ Automatik wartet")
+            : active
             ? "⏹ Aufnahme stoppen"
             : "⏺ Aufnahme starten";
+        mediaToggle.disabled = automatic;
         mediaToggle.classList.toggle("bos-button-red", active);
     }
 

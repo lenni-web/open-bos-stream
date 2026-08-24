@@ -400,6 +400,12 @@ class DashboardService:
 
                 "finished_at": recording.finished_at,
 
+                "mode": recording.mode,
+
+                "automatic_waiting": recording.automatic_waiting,
+
+                "automatic_error": recording.automatic_error,
+
             },
 
             "media_capture": {
@@ -420,6 +426,7 @@ class DashboardService:
                     if selected_media_source
                     else False
                 ),
+                "recording_mode": self._config.media_capture.recording_mode,
             },
 
             # -------------------------------------------------
