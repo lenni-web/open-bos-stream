@@ -672,7 +672,8 @@ Rolle ändern oder ein neues Passwort vergeben. Mindestens ein Superadmin muss
 immer erhalten bleiben.
 
 Der lokale Kiosk erhält ausschließlich eine auf Loopback begrenzte
-Viewer-Ansicht. Im normalen Chromium-Modus ist eine reguläre Anmeldung nötig,
+Viewer-Ansicht. Zusätzlich muss Chromium ein geheimes Ticket vorlegen, das der
+Display-Dienst bei jedem Start neu erzeugt. Im normalen Chromium-Modus ist eine reguläre Anmeldung nötig,
 wenn Einstellungen bedient werden sollen.
 Eine vorübergehend nicht erreichbare Quelle wird unabhängig mit begrenztem
 Backoff neu verbunden und unterbricht die übrigen Quellen nicht.

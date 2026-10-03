@@ -15,3 +15,4 @@ mapdata/*
 testdata/*.mp4
 test-results/
 test-tokens.env*
+.DS_Store
