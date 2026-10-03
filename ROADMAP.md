@@ -55,11 +55,12 @@ funktional weiterentwickelt.
 
 ---
 
-# Nächstes Release (0.13.0)
+# Letzte Releases
 
-- [x] Automatische Aufnahme abhängig vom Eingangssignal
-- [x] Sicherheitsfix für die Kiosk-Anmeldung
-- [x] Release-Abschnitt im Changelog, Versionssprung und Git-Tag
+- **0.14.0** (2026-10-03): Speicherschutz mit Warnung, Sperre, optionaler
+  Bereinigung und „Behalten“-Markierung
+- **0.13.0** (2026-10-03): Automatische Aufnahme abhängig vom Eingangssignal,
+  Sicherheitsfix für die Kiosk-Anmeldung
 
 ---
 
