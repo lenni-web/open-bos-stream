@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.15.0** (2026-10-03): Aufnahmen und Snapshots in voller Qualität des
+  Originalstreams, H.265 ohne Live-Umwandlung
 - **0.14.0** (2026-10-03): Speicherschutz mit Warnung, Sperre, optionaler
   Bereinigung und „Behalten“-Markierung
 - **0.13.0** (2026-10-03): Automatische Aufnahme abhängig vom Eingangssignal,

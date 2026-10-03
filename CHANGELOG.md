@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.15.0] - 2026-10-03
+
 ### Changed
 
 - Aufnahmen und Snapshots verwenden nun immer den Originalstream in voller
