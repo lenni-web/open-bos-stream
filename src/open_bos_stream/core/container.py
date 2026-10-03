@@ -15,6 +15,7 @@ from open_bos_stream.web_access.manager import WebAccessManager
 from open_bos_stream.mediamtx.client import MediaMTXClient
 from open_bos_stream.mediamtx.service import MediaMTXService
 from open_bos_stream.recording.library import RecordingLibrary
+from open_bos_stream.recording.playback import RecordingPlaybackCache
 from open_bos_stream.recording.service import RecordingService
 from open_bos_stream.snapshot.library import SnapshotLibrary
 from open_bos_stream.snapshot.service import SnapshotService
@@ -119,17 +120,39 @@ health_service = HealthService(
 
 system_info_service = SystemInfoService(process_runner)
 system_administration_service = SystemAdministrationService(process_runner)
-media_storage_service = MediaStorageService()
+# ---------------------------------------------------------
+# Bibliotheken
+# ---------------------------------------------------------
+
+recording_library = RecordingLibrary()
+
+snapshot_library = SnapshotLibrary()
+
+media_library = MediaLibrary(
+    recordings=recording_library,
+    snapshots=snapshot_library,
+)
+
+playback_cache = RecordingPlaybackCache(recording_library.directory)
+
+media_storage_service = MediaStorageService(
+    config=config,
+    recording_library=recording_library,
+    snapshot_library=snapshot_library,
+    playback_cache=playback_cache,
+)
 
 recording_service = RecordingService(
     config=config,
     mediamtx=mediamtx_client,
+    storage=media_storage_service,
 )
 
 snapshot_service = SnapshotService(
     config,
     mediamtx_client,
     runner=process_runner,
+    storage=media_storage_service,
 )
 
 dashboard_service = DashboardService(
@@ -142,18 +165,4 @@ dashboard_service = DashboardService(
     stream_output_service=stream_output_service,
     media_storage_service=media_storage_service,
     stream_probe_service=stream_probe_service,
-)
-
-
-# ---------------------------------------------------------
-# Bibliotheken
-# ---------------------------------------------------------
-
-recording_library = RecordingLibrary()
-
-snapshot_library = SnapshotLibrary()
-
-media_library = MediaLibrary(
-    recordings=recording_library,
-    snapshots=snapshot_library,
 )

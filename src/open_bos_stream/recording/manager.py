@@ -6,7 +6,7 @@ Zentrale Steuerung der Videoaufzeichnung.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import logging
 import subprocess
 import threading
@@ -115,12 +115,27 @@ class RecordingManager:
 
         return self.running
 
-    def stop(self) -> bool:
+    def stop(
+        self,
+        *,
+        reason: str | None = None,
+        message: str | None = None,
+    ) -> bool:
         with self._lock:
             self._generation += 1
             if self._working_file is None or self._final_file is None:
                 return True
             self._finalize_locked(unexpected=False)
+            if (
+                reason is not None
+                and self._last_outcome is not None
+                and self._last_outcome.reason == "completed"
+            ):
+                self._last_outcome = replace(
+                    self._last_outcome,
+                    reason=reason,
+                    message=message or self._last_outcome.message,
+                )
             return True
 
     def _watch_process(self, generation: int) -> None:

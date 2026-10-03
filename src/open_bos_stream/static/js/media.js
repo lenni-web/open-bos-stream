@@ -109,6 +109,14 @@ function mediaGroup(timestamp) {
 
 }
 
+function mediaProtectedBadge(file) {
+
+    return file.protected
+        ? '<span class="media-protected-badge" title="Wird nicht automatisch gelöscht">🔒 Behalten</span>'
+        : "";
+
+}
+
 function mediaTitle(file) {
 
     if (file.type === "recording") {
@@ -117,6 +125,7 @@ function mediaTitle(file) {
             <span class="media-recording">
                 🎬 Aufnahme
             </span>
+            ${mediaProtectedBadge(file)}
         `;
 
     }
@@ -125,6 +134,7 @@ function mediaTitle(file) {
         <span class="media-snapshot">
             📸 Snapshot
         </span>
+        ${mediaProtectedBadge(file)}
     `;
 
 }

@@ -62,6 +62,7 @@ function bindConfigChangeTracking() {
                     "cfg-display-"
                 )
                 || event.target.id === "cfg-recording-automatic"
+                || event.target.id?.startsWith("cfg-storage-")
             ) {
                 return;
             }
@@ -112,6 +113,8 @@ async function refreshConfig() {
         renderSources();
 
         renderMediaCaptureConfig();
+
+        renderStorageSettings();
 
         setConfigDirty(false);
         setConfigSaveStatus("");
@@ -243,6 +246,65 @@ function renderMediaCaptureConfig() {
                 () => saveRecordingModeImmediately()
             );
         }
+    }
+}
+
+function renderStorageSettings() {
+    const storage = currentConfig?.storage ?? {};
+    const warning = document.getElementById("cfg-storage-warning");
+    const minimum = document.getElementById("cfg-storage-minimum");
+    const cleanup = document.getElementById("cfg-storage-auto-cleanup");
+    if (!warning || !minimum || !cleanup) {
+        return;
+    }
+    warning.value = storage.warning_free_percent ?? 15;
+    minimum.value = storage.minimum_free_percent ?? 5;
+    cleanup.checked = Boolean(storage.auto_cleanup);
+}
+
+async function saveStorageSettings() {
+    const warning = document.getElementById("cfg-storage-warning");
+    const minimum = document.getElementById("cfg-storage-minimum");
+    const cleanup = document.getElementById("cfg-storage-auto-cleanup");
+    const button = document.getElementById("cfg-storage-save");
+    const status = document.getElementById("cfg-storage-status");
+    if (!warning || !minimum || !cleanup || !currentConfig) {
+        return;
+    }
+
+    const payload = {
+        warning_free_percent: Number(warning.value),
+        minimum_free_percent: Number(minimum.value),
+        auto_cleanup: cleanup.checked,
+    };
+    if (payload.minimum_free_percent >= payload.warning_free_percent) {
+        if (status) {
+            status.textContent =
+                "Die Mindestgrenze muss unter der Warnschwelle liegen.";
+        }
+        return;
+    }
+
+    if (button) button.disabled = true;
+    if (status) status.textContent = "Wird gespeichert …";
+    try {
+        const result = await api.saveStorage(payload);
+        currentConfig.storage = result.storage;
+        renderStorageSettings();
+        if (status) {
+            status.textContent = result.storage.auto_cleanup
+                ? "Gespeichert. Älteste Medien werden bei Speichermangel gelöscht."
+                : "Gespeichert. Bei Speichermangel werden neue Medien gesperrt.";
+        }
+        addEvent("success", "▤ " + result.message);
+    } catch (err) {
+        renderStorageSettings();
+        if (status) {
+            status.textContent = "Speichern fehlgeschlagen: " + err.message;
+        }
+        addEvent("error", "▤ " + err.message);
+    } finally {
+        if (button) button.disabled = false;
     }
 }
 

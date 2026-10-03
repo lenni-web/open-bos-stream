@@ -231,3 +231,65 @@ def test_manual_recording_commands_are_blocked_in_automatic_mode(
 
     service.stop(automatic=True)
     assert service.status.recording is False
+
+
+class FullStorage:
+    def ensure_capacity(self) -> None:
+        from open_bos_stream.media.storage import StorageFullError
+
+        raise StorageFullError("Zu wenig freier Speicher.")
+
+
+def test_full_storage_blocks_recordings_and_snapshots(
+    tmp_path: Path,
+) -> None:
+    config, _source = selected_second_source()
+    recording = RecordingService(config, FakeMediaMTX(), FullStorage())
+    manager = FakeRecordingManager()
+    recording._manager = manager
+    recording._recorder = FakeRecorder(tmp_path)
+    runner = FakeRunner()
+    snapshot = SnapshotService(
+        config,
+        FakeMediaMTX(),
+        directory=str(tmp_path),
+        runner=runner,
+        storage=FullStorage(),
+    )
+
+    try:
+        recording.start()
+    except RuntimeError as exc:
+        assert "Speicher" in str(exc)
+    else:
+        raise AssertionError("Aufnahme hätte gesperrt sein müssen.")
+    try:
+        snapshot.create()
+    except RuntimeError as exc:
+        assert "Speicher" in str(exc)
+    else:
+        raise AssertionError("Snapshot hätte gesperrt sein müssen.")
+
+    assert manager.running is False
+    assert runner.command is None
+
+
+def test_storage_stop_finishes_running_recording(tmp_path: Path) -> None:
+    config, _source = selected_second_source()
+    service = RecordingService(config, FakeMediaMTX())
+    stops = []
+
+    class Manager(FakeRecordingManager):
+        def stop(self, **kwargs) -> bool:
+            stops.append(kwargs)
+            self.running = False
+            return True
+
+    service._manager = Manager()
+    service._recorder = FakeRecorder(tmp_path)
+    service.start()
+
+    service.stop_for_storage("Speicher voll.")
+
+    assert stops == [{"reason": "storage_low", "message": "Speicher voll."}]
+    assert service.status.recording is False

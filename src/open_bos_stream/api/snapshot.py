@@ -4,6 +4,7 @@ Snapshot API
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
 
 from open_bos_stream.core.container import (
     snapshot_library,
@@ -14,6 +15,10 @@ router = APIRouter(
     prefix="/snapshot",
     tags=["Snapshot"],
 )
+
+
+class ProtectionRequest(BaseModel):
+    protected: bool
 
 
 @router.get("/status")
@@ -97,4 +102,20 @@ async def delete(filename: str):
 
     return {
         "success": success,
+    }
+
+
+@router.put("/{filename}/protected")
+async def set_protected(filename: str, request: ProtectionRequest):
+    """Snapshot vor automatischer Bereinigung schützen oder freigeben."""
+
+    if not snapshot_library.set_protected(filename, request.protected):
+        raise HTTPException(
+            status_code=404,
+            detail="Snapshot nicht gefunden.",
+        )
+
+    return {
+        "success": True,
+        "protected": request.protected,
     }

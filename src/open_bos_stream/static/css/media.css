@@ -414,3 +414,21 @@
 
 }
 
+
+.library-button.is-protected {
+
+    background: rgba(36, 107, 206, 0.12);
+
+}
+
+.media-protected-badge {
+
+    margin-left: 6px;
+
+    color: var(--bos-blue);
+
+    font-size: 0.72rem;
+
+    font-weight: 700;
+
+}

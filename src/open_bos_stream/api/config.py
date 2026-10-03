@@ -6,6 +6,7 @@ from open_bos_stream.core.config_apply import ConfigApplyError
 from open_bos_stream.core.models import (
     AppConfig,
     MediaCaptureConfig,
+    StorageConfig,
     SourceConfig,
 )
 
@@ -123,6 +124,28 @@ async def save_media_capture(
         "success": True,
         "message": "Aufnahmesteuerung wurde gespeichert.",
         "media_capture": saved,
+    }
+
+
+@router.put("/storage")
+async def save_storage(
+    storage: StorageConfig,
+    request: Request,
+):
+    if request.state.user["role"] != "superadmin":
+        raise HTTPException(
+            status_code=403,
+            detail="Nur Superadmins dürfen den Speicherschutz ändern.",
+        )
+
+    saved = await run_in_threadpool(
+        config_apply_service.update_storage,
+        storage,
+    )
+    return {
+        "success": True,
+        "message": "Speicherschutz wurde gespeichert.",
+        "storage": saved,
     }
 
 

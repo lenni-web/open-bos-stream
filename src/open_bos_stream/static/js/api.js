@@ -338,6 +338,33 @@ class OBSApi {
 
     }
 
+    async saveStorage(storage) {
+
+        return await this.put(
+            "/config/storage",
+            storage
+        );
+
+    }
+
+    async setRecordingProtected(filename, protectedFlag) {
+
+        return await this.put(
+            `/recording/${encodeURIComponent(filename)}/protected`,
+            {protected: protectedFlag}
+        );
+
+    }
+
+    async setSnapshotProtected(filename, protectedFlag) {
+
+        return await this.put(
+            `/snapshot/${encodeURIComponent(filename)}/protected`,
+            {protected: protectedFlag}
+        );
+
+    }
+
     async encoders(source) {
 
 	    return await this.post(
