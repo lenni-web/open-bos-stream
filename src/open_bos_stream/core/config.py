@@ -11,10 +11,16 @@ class ConfigLoader:
 
     def __init__(
         self,
-        config_file: str = "config/stream.yaml",
+        config_file: str | None = None,
     ) -> None:
 
-        self.config_file = Path(config_file)
+        self.config_file = Path(
+            config_file
+            or os.environ.get(
+                "OPEN_BOS_STREAM_CONFIG",
+                "config/stream.yaml",
+            )
+        )
 
     def load(self) -> AppConfig:
 

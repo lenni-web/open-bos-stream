@@ -1,0 +1,85 @@
+# Feste Testkonfiguration; basiert auf config/stream.example.yaml.
+# Wird von tests/conftest.py vor jedem Testlauf in ein temporäres
+# Verzeichnis kopiert, damit lokale Konfigurationen keinen Einfluss haben.
+capture:
+  device: /dev/video0
+  width: 1280
+  height: 720
+  fps: 30
+  format: mjpeg
+input:
+  type: rtmp
+  mode: copy
+  device: /dev/video0
+  url: rtmp://127.0.0.1:1935/live/drohne
+  width: 1280
+  height: 720
+  fps: 30
+  format: mjpeg
+sources:
+  - id: quelle-1
+    name: Quelle 1
+    drone_type: ""
+    type: rtmp
+    profile: direct
+    enabled: true
+    url: rtmp://127.0.0.1:1935/quelle-1
+    device: /dev/video0
+    width: 1280
+    height: 720
+    fps: 30
+    format: mjpeg
+    transport: tcp
+    codec: null
+    audio_mode: copy
+media_capture:
+  source_id: quelle-1
+rtmp_inputs:
+  - id: quelle-1
+    name: Quelle 1
+    path: live/drohne
+    viewer_path: null
+    enabled: true
+encoder:
+  codec: copy
+  bitrate: 8M
+  pixel_format: yuv420p
+  gop: 30
+  preset: ultrafast
+  tune: zerolatency
+stream:
+  name: live/drohne
+  rtsp_url: rtsp://127.0.0.1:8554/live/drohne
+  passthrough: true
+  viewer:
+    protocol: webrtc
+  audio:
+    source: none
+    device: null
+  overlay:
+    source: none
+    font: /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
+    size: 24
+    color: white
+    x: w-tw-20
+    y: "20"
+map:
+  source: mbtiles
+  path: /opt/open-bos-stream/mapdata
+  default: stade
+stream_outputs:
+- type: rtmp
+  name: RTMP-Test
+  enabled: true
+  url: rtmp://stream.example.test:1935/live/test
+  audio:
+    source: input
+- type: srt
+  name: SRT-Test
+  enabled: true
+  url: srt://srt.example.test:8890
+  audio:
+    source: input
+# Jeder Streaming-Ausgang kann mit `source_id` eine der oben definierten
+# Quellen auswählen. Bei älteren Konfigurationen ohne Angabe wird einmalig
+# die erste aktivierte Quelle übernommen.
