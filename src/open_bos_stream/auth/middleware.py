@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from open_bos_stream.auth.service import AuthService
+from open_bos_stream.display.ticket import TICKET_PARAMETER, ticket_valid
 
 
 PUBLIC_PREFIXES = (
@@ -74,6 +75,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             and request.query_params.get("display") == "1"
             and request.client is not None
             and request.client.host in {"127.0.0.1", "::1"}
+            and ticket_valid(request.query_params.get(TICKET_PARAMETER))
         )
         if local_kiosk:
             request.state.user = {

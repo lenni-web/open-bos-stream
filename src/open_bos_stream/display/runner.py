@@ -12,6 +12,7 @@ import time
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from open_bos_stream.core.config import ConfigLoader
+from open_bos_stream.display.ticket import TICKET_PARAMETER, issue_ticket
 
 
 def display_url(url: str, hide_cursor: bool) -> str:
@@ -30,6 +31,39 @@ def display_url(url: str, hide_cursor: bool) -> str:
             parts.fragment,
         )
     )
+
+
+def with_ticket(url: str, ticket: str) -> str:
+    """Kiosk-Ticket an eine Display-URL anhängen."""
+
+    parts = urlsplit(url)
+    query = dict(parse_qsl(parts.query))
+    if query.get("display") != "1":
+        return url
+    query[TICKET_PARAMETER] = ticket
+    return urlunsplit(
+        (
+            parts.scheme,
+            parts.netloc,
+            parts.path,
+            urlencode(query),
+            parts.fragment,
+        )
+    )
+
+
+def redact_ticket(command: list[str]) -> list[str]:
+    """Ticket für Protokollausgaben unkenntlich machen."""
+
+    marker = f"{TICKET_PARAMETER}="
+    redacted = []
+    for item in command:
+        if marker in item:
+            prefix, _, rest = item.partition(marker)
+            _, separator, suffix = rest.partition("&")
+            item = f"{prefix}{marker}***{separator}{suffix}"
+        redacted.append(item)
+    return redacted
 
 
 def wayland_environment(
@@ -116,13 +150,14 @@ def chromium_command(
     elif config.fullscreen:
         command.append("--start-maximized")
 
-    command.append(
-        display_url(
-            url,
-            config.hide_cursor
-            and config.mode != "normal",
-        )
+    url = display_url(
+        url,
+        config.hide_cursor
+        and config.mode != "normal",
     )
+    if "display=1" in url:
+        url = with_ticket(url, issue_ticket())
+    command.append(url)
 
     return command
 
@@ -190,7 +225,11 @@ def run_display_session() -> int:
         command = chromium_command(
             environment["XDG_RUNTIME_DIR"],
         )
-        print("Open BOS Display browser:", " ".join(command), flush=True)
+        print(
+            "Open BOS Display browser:",
+            " ".join(redact_ticket(command)),
+            flush=True,
+        )
         browser = subprocess.Popen(command, env=environment)
 
         while True:
