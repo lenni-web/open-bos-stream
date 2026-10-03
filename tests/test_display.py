@@ -8,8 +8,11 @@ from open_bos_stream.display.runner import (
     base_environment,
     chromium_command,
     display_url,
+    redact_ticket,
     wayland_environment,
+    with_ticket,
 )
+from open_bos_stream.display.ticket import issue_ticket, ticket_valid
 
 
 def test_display_modes_are_explicit() -> None:
@@ -72,8 +75,13 @@ def test_base_environment_prepares_private_runtime_directory(
 
 
 def test_chromium_starts_without_privileged_inhibitor(
+    tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setenv(
+        "OPEN_BOS_DISPLAY_TICKET_FILE",
+        str(tmp_path / "kiosk-ticket"),
+    )
     monkeypatch.setattr(
         "open_bos_stream.display.runner.shutil.which",
         lambda command: f"/usr/bin/{command}",
@@ -95,3 +103,50 @@ def test_chromium_starts_without_privileged_inhibitor(
 
     assert command[0] == "/usr/bin/chromium"
     assert "systemd-inhibit" not in command
+
+
+def test_kiosk_url_carries_secret_ticket_and_log_redacts_it(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    ticket_path = tmp_path / "kiosk-ticket"
+    monkeypatch.setenv("OPEN_BOS_DISPLAY_TICKET_FILE", str(ticket_path))
+    monkeypatch.setattr(
+        "open_bos_stream.display.runner.shutil.which",
+        lambda command: f"/usr/bin/{command}",
+    )
+    monkeypatch.setattr(
+        "open_bos_stream.display.runner.ConfigLoader.load",
+        lambda _loader: type(
+            "Config",
+            (),
+            {"display": DisplayConfig(mode="kiosk")},
+        )(),
+    )
+
+    command = chromium_command()
+    ticket = ticket_path.read_text(encoding="utf-8")
+
+    assert ticket_path.stat().st_mode & 0o777 == 0o600
+    assert ticket_valid(ticket)
+    assert f"display_ticket={ticket}" in command[-1]
+    assert ticket not in " ".join(redact_ticket(command))
+    assert "display_ticket=***" in " ".join(redact_ticket(command))
+
+
+def test_display_ticket_rejects_missing_or_wrong_values(
+    tmp_path: Path,
+) -> None:
+    ticket_path = tmp_path / "kiosk-ticket"
+
+    assert not ticket_valid("irgendwas", ticket_path)
+
+    ticket = issue_ticket(ticket_path)
+
+    assert ticket_valid(ticket, ticket_path)
+    assert not ticket_valid(None, ticket_path)
+    assert not ticket_valid("", ticket_path)
+    assert not ticket_valid(ticket + "x", ticket_path)
+    assert with_ticket("http://127.0.0.1:8000/", ticket) == (
+        "http://127.0.0.1:8000/"
+    )

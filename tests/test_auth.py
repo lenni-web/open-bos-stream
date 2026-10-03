@@ -14,6 +14,7 @@ from open_bos_stream.auth.middleware import SUPERADMIN_PREFIXES
 from open_bos_stream.auth.middleware import viewer_mutation_allowed
 from open_bos_stream.auth.service import AuthError, AuthService
 from open_bos_stream.auth.rate_limit import LoginRateLimiter
+from open_bos_stream.display.ticket import issue_ticket
 
 
 class EndpointRoleService:
@@ -273,3 +274,57 @@ def test_admin_cannot_manage_or_create_superadmins() -> None:
         target_role="admin",
         desired_role="viewer",
     )
+
+
+class DisplayTokenService(EndpointRoleService):
+    @staticmethod
+    def create_display_token() -> str:
+        return "viewer"
+
+
+def local_display_client(tmp_path: Path, monkeypatch) -> tuple[TestClient, str]:
+    ticket_path = tmp_path / "kiosk-ticket"
+    monkeypatch.setenv("OPEN_BOS_DISPLAY_TICKET_FILE", str(ticket_path))
+    ticket = issue_ticket(ticket_path)
+
+    app = FastAPI()
+    app.add_middleware(AuthMiddleware, service=DisplayTokenService())
+
+    @app.get("/")
+    async def index():
+        return {"page": "dashboard"}
+
+    client = TestClient(
+        app,
+        client=("127.0.0.1", 50000),
+        follow_redirects=False,
+    )
+    return client, ticket
+
+
+def test_loopback_display_requires_valid_ticket(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    client, ticket = local_display_client(tmp_path, monkeypatch)
+
+    # Über den Port-80-Proxy des lokalen Profils kommen auch fremde
+    # Clients scheinbar von 127.0.0.1. Ohne Ticket keine Display-Sitzung.
+    without_ticket = client.get(
+        "/?display=1",
+        headers={"accept": "text/html"},
+    )
+    wrong_ticket = client.get(
+        "/?display=1&display_ticket=falsch",
+        headers={"accept": "text/html"},
+    )
+
+    assert without_ticket.status_code == 303
+    assert "test_session" not in without_ticket.cookies
+    assert wrong_ticket.status_code == 303
+    assert "test_session" not in wrong_ticket.cookies
+
+    granted = client.get(f"/?display=1&display_ticket={ticket}")
+
+    assert granted.status_code == 200
+    assert granted.cookies.get("test_session") == "viewer"

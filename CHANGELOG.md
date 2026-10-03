@@ -21,6 +21,16 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   direkt am Schalter und ein fehlgeschlagener Wechsel wird sichtbar
   zurückgenommen.
 
+### Security
+
+- Die automatische Viewer-Anmeldung des lokalen Kiosk-Displays verlangt nun
+  zusätzlich ein geheimes Ticket, das der Display-Dienst bei jedem Start neu
+  erzeugt und nur für das Dienstkonto lesbar ablegt. Bisher genügte im
+  lokalen Profil ein Aufruf von `/?display=1` über Port 80, weil der
+  Port-80-Proxy alle Anfragen scheinbar von `127.0.0.1` weiterleitet; damit
+  konnten Geräte im Netzwerk ohne Anmeldung Live-Streams sehen. Im
+  Protokoll des Display-Dienstes wird das Ticket unkenntlich gemacht.
+
 ---
 
 ## [0.12.1] - 2026-08-21
