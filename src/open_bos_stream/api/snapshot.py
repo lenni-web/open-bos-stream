@@ -5,6 +5,7 @@ Snapshot API
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 
 from open_bos_stream.core.container import (
     snapshot_library,
@@ -33,7 +34,7 @@ async def create():
     """Neuen Snapshot erstellen."""
 
     try:
-        filename = snapshot_service.create()
+        filename = await run_in_threadpool(snapshot_service.create)
     except (RuntimeError, TimeoutError) as exc:
         raise HTTPException(
             status_code=409,

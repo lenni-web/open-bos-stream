@@ -34,6 +34,7 @@ class FakeRecordingManager:
         self.input_url: str | None = None
         self.transcode_video: bool | None = None
         self.transcode_audio: bool | None = None
+        self.hevc: bool | None = None
 
     def start(
         self,
@@ -42,10 +43,12 @@ class FakeRecordingManager:
         *,
         transcode_video: bool = False,
         transcode_audio: bool = False,
+        hevc: bool = False,
     ) -> bool:
         self.input_url = input_url
         self.transcode_video = transcode_video
         self.transcode_audio = transcode_audio
+        self.hevc = hevc
         self.running = True
         return True
 
@@ -143,7 +146,7 @@ def test_media_source_falls_back_to_first_enabled_source(
     )
 
 
-def test_h265_recording_is_transcoded_for_browser(tmp_path: Path) -> None:
+def test_h265_recording_keeps_original_video(tmp_path: Path) -> None:
     config, source = selected_second_source()
 
     class H265MediaMTX:
@@ -162,7 +165,9 @@ def test_h265_recording_is_transcoded_for_browser(tmp_path: Path) -> None:
 
     service.start()
 
-    assert manager.transcode_video is True
+    # H.265 wird unverändert übernommen; nur fremdes Audio wird zu AAC.
+    assert manager.transcode_video is False
+    assert manager.hevc is True
     assert manager.transcode_audio is True
 
 
@@ -293,3 +298,122 @@ def test_storage_stop_finishes_running_recording(tmp_path: Path) -> None:
 
     assert stops == [{"reason": "storage_low", "message": "Speicher voll."}]
     assert service.status.recording is False
+
+
+class FakeRelays:
+    """Vollbild-Relay, dessen Hauptstream nach einer Abfrage bereit ist."""
+
+    def __init__(self, ready_after: int = 1) -> None:
+        self.ready_after = ready_after
+        self.polls = 0
+        self.acquired: list[str] = []
+        self.released: list[tuple[str, str]] = []
+
+    def acquire(self, source_id: str) -> dict:
+        self.acquired.append(source_id)
+        return {"lease_id": "lease-1", "ready": self.ready_after == 0}
+
+    def status(self, source_id: str, lease_id: str) -> dict:
+        self.polls += 1
+        return {
+            "lease_id": lease_id,
+            "ready": self.polls >= self.ready_after,
+        }
+
+    def release(self, source_id: str, lease_id: str) -> None:
+        self.released.append((source_id, lease_id))
+
+
+def preview_source_config():
+    config, source = selected_second_source()
+    preview = source.model_copy(
+        update={"profile": "preview_transcode"}
+    )
+    config.sources = [config.sources[0], preview]
+    return config, preview
+
+
+def test_recording_uses_original_stream_of_preview_source(
+    tmp_path: Path,
+) -> None:
+    config, source = preview_source_config()
+    relays = FakeRelays()
+    service = RecordingService(config, FakeMediaMTX(), relays=relays)
+    service._capture._sleep = lambda _seconds: None
+    manager = FakeRecordingManager()
+    service._manager = manager
+    service._recorder = FakeRecorder(tmp_path)
+
+    service.start()
+
+    assert source.viewer_path != source.fullscreen_viewer_path
+    assert manager.input_url == (
+        f"rtsp://127.0.0.1:8554/{source.fullscreen_viewer_path}"
+    )
+    assert service.status.full_quality is True
+    assert relays.released == []
+
+    service.stop()
+
+    assert relays.released == [(source.id, "lease-1")]
+    assert service.status.full_quality is None
+
+
+def test_snapshot_uses_original_stream_and_releases_it(
+    tmp_path: Path,
+) -> None:
+    config, source = preview_source_config()
+    relays = FakeRelays(ready_after=0)
+    runner = FakeRunner()
+    service = SnapshotService(
+        config,
+        FakeMediaMTX(),
+        directory=str(tmp_path),
+        runner=runner,
+        relays=relays,
+    )
+
+    service.create()
+
+    assert (
+        f"rtsp://127.0.0.1:8554/{source.fullscreen_viewer_path}"
+        in runner.command
+    )
+    assert relays.released == [(source.id, "lease-1")]
+
+
+def test_unavailable_original_stream_falls_back_to_preview(
+    tmp_path: Path,
+) -> None:
+    config, source = preview_source_config()
+    relays = FakeRelays(ready_after=10_000)
+    service = RecordingService(config, FakeMediaMTX(), relays=relays)
+    service._capture._timeout = 0
+    manager = FakeRecordingManager()
+    service._manager = manager
+    service._recorder = FakeRecorder(tmp_path)
+
+    service.start()
+
+    assert manager.input_url == (
+        f"rtsp://127.0.0.1:8554/{source.viewer_path}"
+    )
+    assert service.status.full_quality is False
+    assert relays.released == [(source.id, "lease-1")]
+
+
+def test_unexpectedly_ended_recording_releases_original_stream(
+    tmp_path: Path,
+) -> None:
+    config, source = preview_source_config()
+    relays = FakeRelays(ready_after=0)
+    service = RecordingService(config, FakeMediaMTX(), relays=relays)
+    manager = FakeRecordingManager()
+    service._manager = manager
+    service._recorder = FakeRecorder(tmp_path)
+    service.start()
+
+    manager.running = False
+    service.maintain()
+
+    assert relays.released == [(source.id, "lease-1")]

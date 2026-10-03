@@ -9,6 +9,7 @@ from pathlib import Path
 
 from open_bos_stream.core.models import AppConfig
 from open_bos_stream.core.process import ProcessRunner
+from open_bos_stream.media.capture import CaptureInputProvider
 from open_bos_stream.mediamtx.client import MediaMTXClient
 
 
@@ -22,12 +23,14 @@ class SnapshotService:
         directory: str = "snapshots",
         runner: ProcessRunner | None = None,
         storage=None,
+        relays=None,
     ) -> None:
 
         self._config = config
         self._runner = runner or ProcessRunner()
         self._mediamtx = mediamtx
         self._storage = storage
+        self._capture = CaptureInputProvider(mediamtx, relays)
 
         self.directory = Path(directory)
         self.directory.mkdir(exist_ok=True)
@@ -109,6 +112,8 @@ class SnapshotService:
         working_file = filename.with_name(f".{filename.name}.part")
         working_file.unlink(missing_ok=True)
 
+        # Snapshots verwenden den Originalstream, nicht die Vorschau.
+        capture = self._capture.open(source)
         try:
             self._runner.run(
                 [
@@ -126,7 +131,7 @@ class SnapshotService:
                     "-skip_frame",
                     "nokey",
                     "-i",
-                    f"rtsp://127.0.0.1:8554/{source.viewer_path}",
+                    capture.url,
                     "-an",
                     "-frames:v",
                     "1",
@@ -154,6 +159,8 @@ class SnapshotService:
         except Exception:
             working_file.unlink(missing_ok=True)
             raise
+        finally:
+            self._capture.release(capture)
 
         self._last_snapshot = filename
 

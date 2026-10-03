@@ -146,6 +146,7 @@ recording_service = RecordingService(
     config=config,
     mediamtx=mediamtx_client,
     storage=media_storage_service,
+    relays=fullscreen_relay_manager,
 )
 
 snapshot_service = SnapshotService(
@@ -153,6 +154,7 @@ snapshot_service = SnapshotService(
     mediamtx_client,
     runner=process_runner,
     storage=media_storage_service,
+    relays=fullscreen_relay_manager,
 )
 
 dashboard_service = DashboardService(

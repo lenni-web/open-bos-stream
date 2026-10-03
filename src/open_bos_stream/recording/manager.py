@@ -68,6 +68,7 @@ class RecordingManager:
         *,
         transcode_video: bool = False,
         transcode_audio: bool = False,
+        hevc: bool = False,
     ) -> bool:
 
         with self._lock:
@@ -92,6 +93,7 @@ class RecordingManager:
                 input_url,
                 transcode_video=transcode_video,
                 transcode_audio=transcode_audio,
+                hevc=hevc,
             )
 
             try:

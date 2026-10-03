@@ -37,7 +37,9 @@ async def start():
 
     try:
 
-        recording_service.start()
+        # Das Öffnen des Hauptstreams kann einige Sekunden dauern und darf
+        # die übrigen Anfragen nicht blockieren.
+        await run_in_threadpool(recording_service.start)
 
         return {
             "success": True,
@@ -58,7 +60,7 @@ async def stop():
 
     try:
 
-        recording_service.stop()
+        await run_in_threadpool(recording_service.stop)
 
         return {
             "success": True,

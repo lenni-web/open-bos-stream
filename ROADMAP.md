@@ -66,6 +66,10 @@ funktional weiterentwickelt.
 
 # Kurzfristig: Serverbetrieb absichern
 
+### Medien
+
+- [x] Aufnahmen und Snapshots in voller Qualität des Originalstreams
+
 ### Validierung
 
 - [ ] Vier reale Einsatzquellen über längere Laufzeit auf dem Server validieren

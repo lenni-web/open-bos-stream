@@ -371,3 +371,23 @@ def test_srt_output_preserves_custom_connection_parameters() -> None:
     assert "streamid=publish%3Acustom" in target
     assert "latency=200" in target
     assert "mode=caller" in target
+
+
+def test_copied_hevc_recording_is_tagged_for_apple_players() -> None:
+    copied = RecordingCommandBuilder().build(
+        Path("recording.mp4"),
+        "rtsp://127.0.0.1:8554/quelle-1",
+        hevc=True,
+    )
+    h264 = RecordingCommandBuilder().build(
+        Path("recording.mp4"),
+        "rtsp://127.0.0.1:8554/quelle-1",
+    )
+
+    assert ["-c:v", "copy"] == copied[
+        copied.index("-c:v"):copied.index("-c:v") + 2
+    ]
+    assert ["-tag:v", "hvc1"] == copied[
+        copied.index("-tag:v"):copied.index("-tag:v") + 2
+    ]
+    assert "-tag:v" not in h264

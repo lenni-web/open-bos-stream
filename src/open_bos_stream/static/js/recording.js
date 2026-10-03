@@ -219,6 +219,9 @@ lastRecordingState =
             automatic_error:
                 recording.automatic_error,
 
+            full_quality:
+                recording.full_quality,
+
         };
 
     }

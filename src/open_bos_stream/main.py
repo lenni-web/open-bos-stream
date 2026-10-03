@@ -64,7 +64,7 @@ async def automatic_recording_loop() -> None:
 
     while True:
         try:
-            await asyncio.to_thread(recording_service.reconcile_automatic)
+            await asyncio.to_thread(recording_service.maintain)
         except asyncio.CancelledError:
             raise
         except Exception:
