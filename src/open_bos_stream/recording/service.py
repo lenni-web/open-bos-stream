@@ -8,6 +8,7 @@ import time
 from threading import RLock
 
 from open_bos_stream.core.models import AppConfig
+from open_bos_stream.media.storage import MediaStorageService
 from open_bos_stream.mediamtx.client import MediaMTXClient
 from open_bos_stream.recording.manager import RecordingManager
 from open_bos_stream.recording.models import RecordingStatus
@@ -21,6 +22,7 @@ class RecordingService:
         self,
         config: AppConfig,
         mediamtx: MediaMTXClient,
+        storage: MediaStorageService | None = None,
     ) -> None:
 
         self._config = config
@@ -32,6 +34,8 @@ class RecordingService:
         self._status = RecordingStatus()
 
         self._mediamtx = mediamtx
+
+        self._storage = storage
 
         self._control_lock = RLock()
 
@@ -101,6 +105,9 @@ class RecordingService:
                 "Stream läuft nicht. Bitte zuerst den Stream starten."
             )
 
+        if self._storage is not None:
+            self._storage.ensure_capacity()
+
         filename = self._recorder.next_filename(source.id)
         input_url = f"rtsp://127.0.0.1:8554/{source.viewer_path}"
 
@@ -161,6 +168,20 @@ class RecordingService:
             self._status.started_at = None
             self._status.duration = 0
             self._status.pid = None
+
+    def stop_for_storage(self, message: str) -> None:
+        """Laufende Aufnahme wegen Speichermangel sauber abschließen."""
+
+        with self._control_lock:
+            if not self._manager.running:
+                return
+            try:
+                self._manager.stop(reason="storage_low", message=message)
+            finally:
+                self._status.recording = False
+                self._status.started_at = None
+                self._status.duration = 0
+                self._status.pid = None
 
     def reconcile_automatic(self) -> None:
         """Aufnahmezustand an das Signal der gewählten Quelle angleichen."""

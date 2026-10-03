@@ -151,6 +151,11 @@ if (outcomeKey && outcomeKey !== lastRecordingOutcome) {
             "error",
             "⛔ Abgebrochene Aufnahme war nicht verwertbar"
         );
+    } else if (recording.end_reason === "storage_low") {
+        addEvent(
+            "warning",
+            "⚠ Aufnahme wegen Speichermangel beendet und gespeichert"
+        );
     }
     lastRecordingOutcome = outcomeKey;
 }
@@ -232,7 +237,9 @@ lastRecordingState =
                 ? "🟠 Durch Streamabbruch beendet"
                 : recording.end_reason === "failed"
                     ? "🔴 Aufnahme fehlgeschlagen"
-                    : "⚪ Nicht aktiv"
+                    : recording.end_reason === "storage_low"
+                        ? "🟠 Wegen Speichermangel beendet"
+                        : "⚪ Nicht aktiv"
 
     );
 

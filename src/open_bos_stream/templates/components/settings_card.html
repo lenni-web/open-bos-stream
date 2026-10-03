@@ -74,6 +74,56 @@
 
         <section class="bos-card settings-section">
             <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">▤</span>
+                <div>
+                    <span class="section-kicker">Mediathek</span>
+                    <h2>Speicherschutz</h2>
+                    <p>Warnung, Sperre und Bereinigung bei knappem Speicher.</p>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="cfg-storage-warning">Warnung unter (% frei)</label>
+                    <input id="cfg-storage-warning" class="bos-input" type="number" min="2" max="50" step="1">
+                </div>
+
+                <div class="form-field">
+                    <label for="cfg-storage-minimum">Mindestgrenze (% frei)</label>
+                    <input id="cfg-storage-minimum" class="bos-input" type="number" min="1" max="40" step="1">
+                </div>
+            </div>
+
+            <label class="switch-row">
+                <input id="cfg-storage-auto-cleanup" type="checkbox">
+                <span>
+                    <strong>Älteste Medien bei Speichermangel löschen</strong>
+                    <small>
+                        Unter der Mindestgrenze werden die ältesten Aufnahmen
+                        und Snapshots gelöscht, bis wieder genug Speicher frei
+                        ist. Als „Behalten“ markierte Medien bleiben erhalten.
+                        Ausgeschaltet werden neue Aufnahmen und Snapshots
+                        stattdessen gesperrt.
+                    </small>
+                </span>
+            </label>
+
+            <div class="settings-inline-actions">
+                <button
+                    id="cfg-storage-save"
+                    class="bos-button bos-button-small"
+                    type="button"
+                    onclick="saveStorageSettings()">
+                    Speicherschutz speichern
+                </button>
+                <small id="cfg-storage-status" role="status">
+                    Wird separat und ohne Neustart gespeichert.
+                </small>
+            </div>
+        </section>
+
+        <section class="bos-card settings-section">
+            <div class="settings-section-header">
                 <span class="settings-icon" aria-hidden="true">⇥</span>
                 <div>
                     <span class="section-kicker">Weiterleitung</span>

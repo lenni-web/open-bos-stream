@@ -322,11 +322,12 @@ def test_media_player_has_compatibility_fallback() -> None:
         encoding="utf-8"
     )
     recording = (ROOT / "api" / "recording.py").read_text(encoding="utf-8")
+    container = (ROOT / "core" / "container.py").read_text(encoding="utf-8")
 
     assert "tryCompatibleMediaPlayback" in media
     assert "/recording/play-compatible/" in media
     assert '@router.get("/play-compatible/{filename}")' in recording
-    assert "RecordingPlaybackCache" in recording
+    assert "RecordingPlaybackCache" in container
     assert "run_in_threadpool(playback_cache.prepare" in recording
 
 

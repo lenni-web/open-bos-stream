@@ -5,23 +5,25 @@ Recording API
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 from fastapi.responses import FileResponse
 from starlette.concurrency import run_in_threadpool
 
 from open_bos_stream.core.container import (
+    playback_cache,
     recording_library,
     recording_service,
 )
-from open_bos_stream.recording.playback import (
-    PlaybackPreparationError,
-    RecordingPlaybackCache,
-)
+from open_bos_stream.recording.playback import PlaybackPreparationError
 
 router = APIRouter(
     prefix="/recording",
     tags=["Recording"],
 )
-playback_cache = RecordingPlaybackCache(recording_library.directory)
+
+
+class ProtectionRequest(BaseModel):
+    protected: bool
 
 
 @router.get("/status")
@@ -148,4 +150,20 @@ async def delete(filename: str):
 
     return {
         "success": success,
+    }
+
+
+@router.put("/{filename}/protected")
+async def set_protected(filename: str, request: ProtectionRequest):
+    """Aufnahme vor automatischer Bereinigung schützen oder freigeben."""
+
+    if not recording_library.set_protected(filename, request.protected):
+        raise HTTPException(
+            status_code=404,
+            detail="Aufnahme nicht gefunden.",
+        )
+
+    return {
+        "success": True,
+        "protected": request.protected,
     }

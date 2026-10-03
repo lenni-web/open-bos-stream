@@ -21,11 +21,13 @@ class SnapshotService:
         mediamtx: MediaMTXClient,
         directory: str = "snapshots",
         runner: ProcessRunner | None = None,
+        storage=None,
     ) -> None:
 
         self._config = config
         self._runner = runner or ProcessRunner()
         self._mediamtx = mediamtx
+        self._storage = storage
 
         self.directory = Path(directory)
         self.directory.mkdir(exist_ok=True)
@@ -100,6 +102,9 @@ class SnapshotService:
             raise RuntimeError(
                 f"Quelle '{source.name}' ist nicht verfügbar."
             )
+        if self._storage is not None:
+            self._storage.ensure_capacity()
+
         filename = self.next_filename(source.id)
         working_file = filename.with_name(f".{filename.name}.part")
         working_file.unlink(missing_ok=True)

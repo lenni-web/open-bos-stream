@@ -358,6 +358,25 @@ class MediaCaptureConfig(BaseModel):
 
     recording_mode: Literal["manual", "automatic"] = "manual"
 
+
+class StorageConfig(BaseModel):
+    """Schwellwerte für Speicherwarnung und automatische Bereinigung."""
+
+    warning_free_percent: int = Field(default=15, ge=2, le=50)
+
+    minimum_free_percent: int = Field(default=5, ge=1, le=40)
+
+    auto_cleanup: bool = False
+
+    @model_validator(mode="after")
+    def validate_thresholds(self):
+        if self.minimum_free_percent >= self.warning_free_percent:
+            raise ValueError(
+                "Die Mindestgrenze muss unter der Warnschwelle liegen."
+            )
+        return self
+
+
 class AppConfig(BaseModel):
 
     source_profile: Literal[
@@ -377,6 +396,10 @@ class AppConfig(BaseModel):
 
     media_capture: MediaCaptureConfig = Field(
         default_factory=MediaCaptureConfig,
+    )
+
+    storage: StorageConfig = Field(
+        default_factory=StorageConfig,
     )
 
     capture: CaptureConfig

@@ -44,6 +44,7 @@ function renderFilteredMediaLibrary() {
         "media-library",
         files,
         file => {
+            const protect = createProtectionButton(file);
             if (file.type === "recording") {
                 return `
                     ${createMediaButton(
@@ -56,6 +57,7 @@ function renderFilteredMediaLibrary() {
                         "Download",
                         `downloadRecording('${file.name}')`
                     )}
+                    ${protect}
                     ${createMediaButton(
                         "🗑",
                         "Löschen",
@@ -75,6 +77,7 @@ function renderFilteredMediaLibrary() {
                     "Download",
                     `downloadSnapshot('${file.name}')`
                 )}
+                ${protect}
                 ${createMediaButton(
                     "🗑",
                     "Löschen",
@@ -83,6 +86,49 @@ function renderFilteredMediaLibrary() {
             `;
         }
     );
+}
+
+function createProtectionButton(file) {
+    const title = file.protected
+        ? "Behalten aufheben"
+        : "Behalten (nicht automatisch löschen)";
+    return `
+        <button
+            class="library-button${file.protected ? " is-protected" : ""}"
+            title="${title}"
+            aria-pressed="${file.protected ? "true" : "false"}"
+            onclick="event.stopPropagation(); toggleMediaProtection('${file.type}', '${file.name}', ${!file.protected})">
+            ${file.protected ? "🔒" : "🔓"}
+        </button>
+    `;
+}
+
+async function toggleMediaProtection(type, filename, protectedFlag) {
+    try {
+        if (type === "recording") {
+            await api.setRecordingProtected(filename, protectedFlag);
+        } else {
+            await api.setSnapshotProtected(filename, protectedFlag);
+        }
+        const file = mediaLibraryFiles.find(
+            item => item.type === type && item.name === filename
+        );
+        if (file) {
+            file.protected = protectedFlag;
+        }
+        renderFilteredMediaLibrary();
+        addEvent(
+            "info",
+            protectedFlag
+                ? "🔒 Medium wird behalten"
+                : "🔓 Medium kann automatisch gelöscht werden"
+        );
+    } catch (err) {
+        addEvent(
+            "error",
+            "🔒 Markierung konnte nicht geändert werden: " + err.message
+        );
+    }
 }
 
 function bindMediaFilters() {

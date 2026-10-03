@@ -9,6 +9,22 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Speicherschutz für Aufnahmen und Snapshots: Unterhalb einer einstellbaren
+  Warnschwelle (Standard 15 % frei) warnen Medienbalken und Systemseite.
+  Unterhalb der Mindestgrenze (Standard 5 % frei) werden neue Aufnahmen und
+  Snapshots gesperrt und eine laufende Aufnahme wird sauber abgeschlossen und
+  gespeichert.
+- Optional löscht eine automatische Bereinigung bei Speichermangel die
+  ältesten Aufnahmen und Snapshots, bis wieder etwas mehr als die
+  Mindestgrenze frei ist. Sie ist standardmäßig ausgeschaltet; jede Löschung
+  wird protokolliert und die letzte Bereinigung auf der Systemseite angezeigt.
+- Superadmins können Aufnahmen und Snapshots in der Mediathek als „Behalten“
+  markieren. Markierte Medien werden nie automatisch gelöscht.
+- Die Einstellungen für den Speicherschutz werden separat und ohne Neustart
+  des Streamers gespeichert.
+
 ---
 
 ## [0.13.0] - 2026-10-03

@@ -16,6 +16,7 @@ class MediaItem(TypedDict):
     name: str
     size: int
     modified: float
+    protected: bool
 
 
 class MediaLibrary:

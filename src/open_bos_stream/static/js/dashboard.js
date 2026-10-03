@@ -106,7 +106,7 @@ function updateDashboard(data) {
         data.recording
     );
 
-    updateMediaCaptureBar(data.media_capture);
+    updateMediaCaptureBar(data.media_capture, data.media_storage);
 
     updateStreamOutputs(
         data.stream_outputs
@@ -114,7 +114,7 @@ function updateDashboard(data) {
 
 }
 
-function updateMediaCaptureBar(mediaCapture) {
+function updateMediaCaptureBar(mediaCapture, storage = null) {
     const bar = document.getElementById("media-capture-bar");
     if (!bar) {
         return;
@@ -129,12 +129,24 @@ function updateMediaCaptureBar(mediaCapture) {
         "media-recording-mode",
         automatic ? "Automatische Aufnahme" : "Manuelle Aufnahme"
     );
+    const blocked = Boolean(storage?.blocked);
+    const hint = document.getElementById("media-storage-hint");
+    if (hint) {
+        hint.hidden = !storage || storage.level === "ok";
+        hint.classList.toggle("is-warning", storage?.level === "warning");
+        hint.textContent = blocked
+            ? storage.blocked_message
+            : storage?.level === "warning"
+                ? `Speicher wird knapp: ${storage.free_percent.toFixed(1)} % frei.`
+                : "";
+    }
     const snapshot = document.getElementById("media-snapshot-button");
     const recording = document.getElementById("media-recording-toggle");
-    if (snapshot) snapshot.disabled = !mediaCapture?.ready;
+    if (snapshot) snapshot.disabled = blocked || !mediaCapture?.ready;
     if (recording) {
+        const active = Boolean(window.dashboard?.recording?.active);
         recording.disabled = automatic || (
-            !window.dashboard?.recording?.active && !mediaCapture?.ready
+            !active && (blocked || !mediaCapture?.ready)
         );
     }
 }
@@ -312,7 +324,39 @@ function updateStreamDiagnostics(stream, storage, sources = []) {
                 `${Math.min(storage.used_percent, 100)}%`;
             bar.classList.toggle(
                 "is-warning",
-                storage.used_percent >= 85
+                storage.level === "warning"
+            );
+            bar.classList.toggle(
+                "is-critical",
+                storage.level === "critical"
+            );
+        }
+
+        const policy =
+            document.getElementById(
+                "system-storage-policy"
+            );
+        if (policy) {
+            let text =
+                `Warnung unter ${storage.warning_free_percent} % frei · ` +
+                `Mindestgrenze ${storage.minimum_free_percent} % · ` +
+                (storage.auto_cleanup
+                    ? "Älteste Medien werden bei Speichermangel gelöscht"
+                    : "Bei Speichermangel werden neue Medien gesperrt");
+            if (storage.last_cleanup) {
+                text +=
+                    ` · Letzte Bereinigung: ` +
+                    `${storage.last_cleanup.deleted} Dateien, ` +
+                    `${formatBytes(storage.last_cleanup.freed_bytes)} am ` +
+                    new Date(
+                        storage.last_cleanup.at * 1000
+                    ).toLocaleString("de-DE");
+            }
+            policy.textContent =
+                storage.blocked_message || text;
+            policy.classList.toggle(
+                "is-critical",
+                Boolean(storage.blocked)
             );
         }
     }
@@ -326,8 +370,14 @@ function updateStreamDiagnostics(stream, storage, sources = []) {
     if ((window.dashboard?.system?.temperature ?? 0) >= 75) {
         alerts.push("Systemtemperatur ist kritisch hoch.");
     }
-    if ((storage?.used_percent || 0) >= 85) {
-        alerts.push("Weniger als 15 % Speicherplatz verfügbar.");
+    if (storage?.level === "critical") {
+        alerts.push(
+            `Speicher kritisch: nur ${storage.free_percent.toFixed(1)} % frei.`
+        );
+    } else if (storage?.level === "warning") {
+        alerts.push(
+            `Weniger als ${storage.warning_free_percent} % Speicherplatz verfügbar.`
+        );
     }
     for (
         const warning

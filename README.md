@@ -716,6 +716,30 @@ Ein einzelner kurzzeitig fehlender Statuswert beendet die Aufnahme nicht;
 erst ein bestätigter Signalverlust löst den Abschluss aus. Die Automatik läuft
 auch dann weiter, wenn keine Weboberfläche geöffnet ist.
 
+### Speicherschutz und automatische Bereinigung
+
+In den Einstellungen legt ein Superadmin unter „Speicherschutz“ zwei
+Schwellwerte für den freien Speicher des Medienverzeichnisses fest:
+
+- **Warnung** (Standard 15 % frei): Medienbalken und Systemseite weisen auf
+  knappen Speicher hin.
+- **Mindestgrenze** (Standard 5 % frei): Neue Aufnahmen und Snapshots werden
+  gesperrt. Eine laufende Aufnahme wird sauber abgeschlossen, gespeichert und
+  als „Wegen Speichermangel beendet“ gemeldet.
+
+Optional kann „Älteste Medien bei Speichermangel löschen“ aktiviert werden.
+Unterschreitet der freie Speicher dann die Mindestgrenze, löscht die Anwendung
+die ältesten Aufnahmen und Snapshots, bis wieder zwei Prozentpunkte mehr als
+die Mindestgrenze frei sind. Die Prüfung läuft alle 30 Sekunden sowie direkt
+vor jeder neuen Aufnahme und jedem Snapshot, auch ohne geöffnete Oberfläche.
+Jede Löschung erscheint im Anwendungsjournal; die letzte Bereinigung wird auf
+der Systemseite angezeigt. Reicht das nicht aus, bleibt die Sperre bestehen.
+
+Wichtige Medien lassen sich in der Mediathek mit dem Schloss-Symbol als
+„Behalten“ markieren. Sie werden nie automatisch gelöscht; manuelles Löschen
+bleibt möglich. Die Markierung wird als versteckte Datei
+`.<dateiname>.keep` neben der Mediendatei gespeichert.
+
 ## Webzugriff im lokalen Profil
 
 Die Oberfläche bleibt immer unter `http://<geraet>:8000` erreichbar.

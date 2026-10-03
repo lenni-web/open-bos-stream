@@ -82,8 +82,9 @@ funktional weiterentwickelt.
 
 ### Speicher
 
-- [ ] Speicherplatzwarnung für Aufnahmen und Snapshots
-- [ ] Optionale automatische Bereinigung alter Aufnahmen (Aufbewahrungsdauer)
+- [x] Speicherplatzwarnung und Sperre neuer Medien bei Speichermangel
+- [x] Optionale automatische Bereinigung der ältesten Medien bei Speichermangel
+- [x] „Behalten“-Markierung für Medien, die nie automatisch gelöscht werden
 
 ---
 

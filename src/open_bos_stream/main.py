@@ -15,6 +15,7 @@ from open_bos_stream.core.container import stream_service
 from open_bos_stream.core.container import auth_service
 from open_bos_stream.core.container import fullscreen_relay_manager
 from open_bos_stream.core.container import recording_service
+from open_bos_stream.core.container import media_storage_service
 from open_bos_stream.auth.middleware import AuthMiddleware
 from open_bos_stream.api.auth import router as auth_router
 from open_bos_stream.api.input import (
@@ -71,6 +72,30 @@ async def automatic_recording_loop() -> None:
         await asyncio.sleep(1)
 
 
+async def storage_protection_loop() -> None:
+    """Überwacht den freien Speicher und bereinigt bei Bedarf."""
+
+    while True:
+        try:
+            available = await asyncio.to_thread(
+                media_storage_service.enforce
+            )
+            if not available and recording_service.status.recording:
+                message = media_storage_service.blocked_message()
+                logger.warning(
+                    "Laufende Aufnahme wird wegen Speichermangel beendet."
+                )
+                await asyncio.to_thread(
+                    recording_service.stop_for_storage,
+                    message,
+                )
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("Speicherüberwachung fehlgeschlagen.")
+        await asyncio.sleep(30)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialisiert die Anwendung."""
@@ -85,13 +110,16 @@ async def lifespan(app: FastAPI):
             )
 
     recording_task = asyncio.create_task(automatic_recording_loop())
+    storage_task = asyncio.create_task(storage_protection_loop())
 
     try:
         yield
     finally:
-        recording_task.cancel()
-        with suppress(asyncio.CancelledError):
-            await recording_task
+        for task in (recording_task, storage_task):
+            task.cancel()
+        for task in (recording_task, storage_task):
+            with suppress(asyncio.CancelledError):
+                await task
 
     if recording_service.status.recording:
         try:

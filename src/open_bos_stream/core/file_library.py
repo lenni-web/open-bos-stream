@@ -38,6 +38,7 @@ class FileLibrary:
                     "name": file.name,
                     "size": stat.st_size,
                     "modified": stat.st_mtime,
+                    "protected": self._marker(file).exists(),
                 }
             )
 
@@ -89,4 +90,41 @@ class FileLibrary:
 
         file.unlink()
 
+        self._marker(file).unlink(missing_ok=True)
+
         return True
+
+    def set_protected(
+        self,
+        filename: str,
+        protected: bool,
+    ) -> bool:
+        """Datei vor automatischer Bereinigung schützen oder freigeben."""
+
+        file = self.get_file(
+            filename
+        )
+
+        if file is None:
+
+            return False
+
+        marker = self._marker(file)
+
+        if protected:
+            marker.touch(exist_ok=True)
+        else:
+            marker.unlink(missing_ok=True)
+
+        return True
+
+    def is_protected(self, file: Path) -> bool:
+        """Prüft, ob eine Datei als „Behalten“ markiert ist."""
+
+        return self._marker(file).exists()
+
+    @staticmethod
+    def _marker(file: Path) -> Path:
+        """Versteckte Markierungsdatei neben der Mediendatei."""
+
+        return file.with_name(f".{file.name}.keep")
