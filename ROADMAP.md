@@ -59,7 +59,7 @@ funktional weiterentwickelt.
 
 - [x] Automatische Aufnahme abhängig vom Eingangssignal
 - [x] Sicherheitsfix für die Kiosk-Anmeldung
-- [ ] Release-Abschnitt im Changelog, Versionssprung und Git-Tag
+- [x] Release-Abschnitt im Changelog, Versionssprung und Git-Tag
 
 ---
 
@@ -72,8 +72,8 @@ funktional weiterentwickelt.
 
 ### Qualitätssicherung
 
-- [ ] Continuous Integration: Testsuite bei jedem Push auf GitHub ausführen
-- [ ] Release-Tags wieder konsequent setzen (zuletzt `v0.11.0`)
+- [x] Continuous Integration: Testsuite bei jedem Push auf GitHub ausführen
+- [x] Release-Tags wieder konsequent setzen (ab `v0.13.0`)
 
 ### Transportsicherheit
 

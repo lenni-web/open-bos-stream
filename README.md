@@ -808,6 +808,16 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+Tests ausführen:
+
+```bash
+PYTHONPATH=src python -m pytest -q
+```
+
+Auf GitHub laufen bei jedem Push auf `main` und bei Pull Requests automatisch
+die Testsuite sowie eine Syntaxprüfung der Shell-Skripte
+(`.github/workflows/tests.yml`).
+
 Entwicklungsserver starten:
 
 ```bash
