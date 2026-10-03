@@ -1,193 +1,142 @@
 # Open BOS Stream Roadmap
 
-Die Roadmap beschreibt die geplante Weiterentwicklung von **Open BOS Stream**. Sie dient als Orientierung für zukünftige Funktionen und Entwicklungsziele.
+Die Roadmap beschreibt die geplante Weiterentwicklung von **Open BOS Stream**.
+Sie dient als Orientierung und wird bei jedem Release aktualisiert.
+
+Der Schwerpunkt liegt auf der **Serveranwendung** (Debian-Serverprofil mit
+Caddy/HTTPS, WebRTC und mehreren Netzwerkquellen). Das lokale
+Raspberry-Pi-Profil mit Kiosk-Display bleibt lauffähig, wird aber nicht
+funktional weiterentwickelt.
 
 ---
 
-# Version 0.11.x
+# Erreichter Stand (bis 0.12.x)
 
-## Ziel
+### Grundlage und Betrieb
 
-Mehrere gleichzeitige Einsatzquellen stabil, nachvollziehbar und mit
-abgestufter Ressourcenlast bereitstellen.
+- [x] FastAPI-Anwendung mit systemd-Diensten für Anwendung, Streamer und MediaMTX
+- [x] Wiederholbarer Installer und Update-Mechanismus mit Installationsprüfung
+- [x] Profile `local` und `server`, frei wählbares Dienstkonto
+- [x] Verwaltete MediaMTX-Installation mit SHA256-Prüfung
+- [x] Debian-Serverprofil mit Caddy, Let's Encrypt, öffentlichem WebRTC und UFW
 
-### Mehrquellenbetrieb
+### Quellen und Streaming
 
-- [x] Bis zu acht gleichwertige Quellen konfigurieren und überwachen
-- [x] RTMP-Publisher pro Quelle über Pfad und Token zuordnen
-- [x] Originalstream im Vollbild ohne zusätzliche Transkodierung verwenden
-- [x] Ausgewogene 480p-Vorschau für bis zu vier aktive Quellen
-- [x] Sparsame 360p-Vorschau für viele Quellen oder knappe CPU-Reserven
-- [x] FPS, Geschwindigkeit, Drop-/Dup-Frames und letzten Fortschritt anzeigen
-- [x] Reproduzierbare Mehrquellen-Tests und Diagnoseexport bereitstellen
-- [ ] Vier reale Einsatzquellen über längere Laufzeit validieren
+- [x] Bis zu acht gleichwertige Quellen (RTMP, RTSP, SRT, UDP, HTTP, HLS, Capture Card)
+- [x] Stream Copy, Zeitstempel-Reparatur, Niedriglatenz-Reparatur und Transcoding je Quelle
+- [x] Mehrquellen-Vorschauprofile (480p ausgewogen, 360p sparsam)
+- [x] RTSP-Vorschau-URL mit bedarfsgesteuertem Vollbild-Relay
+- [x] Watchdog mit unabhängigem, versetztem Backoff je Quelle
+- [x] Streaming-Ausgänge mit wählbarer Quelle
+- [x] Mobile Web-App (iOS/Android) und Vollbildwiedergabe
+
+### Sicherheit
+
+- [x] Rollen Viewer, Admin und Superadmin mit Prüfung in Oberfläche und API
+- [x] Anmeldesperre gegen Durchprobieren von Passwörtern
+- [x] RTMP-Publisher-Tokens je Quelle
+- [x] HLS/WHEP nur für angemeldete Benutzer (Caddy `forward_auth`)
+- [x] Sicherheitsheader (HSTS, CSP-Frame-Schutz, Referrer, Permissions)
+- [x] Kiosk-Anmeldung nur mit geheimem Display-Ticket
+
+### Diagnose
+
+- [x] FPS, Geschwindigkeit, Drop-/Dup-Frames, CPU und RAM je Quelle
+- [x] Gesundheitsbewertung und ffprobe-Tiefendiagnose je Quelle
+- [x] Bereinigtes Stream-Protokoll für Admins, Server-Neustart für Superadmins
+- [x] Browser-Testprotokoll, Mehrquellen-Lasttest und Server-Testmonitor
+
+### Medien und Karte
+
+- [x] Snapshots und Aufnahmen der gewählten Medienquelle mit Mediathek
+- [x] Validierte, atomar veröffentlichte Aufnahmen; sichere Teilaufnahmen bei Abbruch
+- [x] Automatische, signalgesteuerte Aufnahme
+- [x] Offline-Karte (MapLibre, MBTiles) mit Wasserentnahmestellen-Overlays
+
+---
+
+# Nächstes Release (0.13.0)
+
+- [x] Automatische Aufnahme abhängig vom Eingangssignal
+- [x] Sicherheitsfix für die Kiosk-Anmeldung
+- [ ] Release-Abschnitt im Changelog, Versionssprung und Git-Tag
+
+---
+
+# Kurzfristig: Serverbetrieb absichern
+
+### Validierung
+
+- [ ] Vier reale Einsatzquellen über längere Laufzeit auf dem Server validieren
 - [ ] Acht Quellen im sparsamen Vorschauprofil als Belastungstest validieren
 
----
+### Qualitätssicherung
 
-# Version 0.4.x
+- [ ] Continuous Integration: Testsuite bei jedem Push auf GitHub ausführen
+- [ ] Release-Tags wieder konsequent setzen (zuletzt `v0.11.0`)
 
-## Ziel
+### Transportsicherheit
 
-Stabile Basis für den produktiven Betrieb.
+- [ ] Verschlüsselter Quellenempfang über RTMPS oder SRT mit Passphrase
+- [ ] Empfehlungen zur Absender-IP-Beschränkung für Port 1935 in der Oberfläche
 
-### Status
+### Speicher
 
-- [x] FastAPI-Grundgerüst
-- [x] Streaming-Backend
-- [x] Leaflet-Kartenintegration
-- [x] Dynamisches Overlay-System
-- [x] Wasserentnahmestellen
-- [x] Mobile Fullscreen-Unterstützung
-- [x] Produktionsbetrieb über systemd
-- [x] Modularer Installer
-- [x] Automatisches Deployment
-- [x] Installationsprüfung
+- [ ] Speicherplatzwarnung für Aufnahmen und Snapshots
+- [ ] Optionale automatische Bereinigung alter Aufnahmen (Aufbewahrungsdauer)
 
 ---
 
-# Version 0.5.x
-
-## Ziel
-
-Ausbau der Anwendung für den täglichen Einsatz.
-
-### Streaming
-
-- [ ] Streamstatus
-- [ ] FPS-Anzeige
-- [ ] Bitratenanzeige
-- [ ] Verbindungsstatus
-- [ ] Stream-Neustart über WebUI
-
-### Recorder
-
-- [ ] Aufnahmesteuerung
-- [ ] Segmentierte Aufzeichnungen
-- [ ] Speicherverwaltung
-- [ ] Automatische Bereinigung
-- [ ] Download über WebUI
-
-### Karten
-
-- [ ] Weitere Overlay-Typen
-- [ ] Eigene Marker
-- [ ] GPS-Position
-- [ ] Messwerkzeuge
-- [ ] Kartenverwaltung
-
-### Weboberfläche
-
-- [ ] Dashboard
-- [ ] Statusanzeige
-- [ ] Responsive Optimierungen
-- [ ] Einstellungsdialog
-- [ ] Dunkles Design
-
----
-
-# Version 0.6.x
-
-## Ziel
-
-Konfiguration vollständig über die Weboberfläche.
+# Mittelfristig: Betrieb und Bedienung
 
 ### Konfiguration
 
-- [ ] YAML-Editor ersetzen
-- [ ] Webbasierte Konfiguration
-- [ ] Konfigurationsprüfung
-- [ ] Backup & Restore
-
-### Geräte
-
-- [ ] Kameraverwaltung
-- [ ] Mehrere Kameras
-- [ ] RTSP
-- [ ] USB-Kameras
-- [ ] CSI-Kameras
+- [ ] Vollständige Konfigurationssicherung (Export/Import inkl. Benutzer)
+- [ ] Wiederherstellung über die Weboberfläche über den letzten funktionierenden Stand hinaus
 
 ### Monitoring
 
-- [ ] CPU-Auslastung
-- [ ] RAM-Auslastung
-- [ ] Temperatur
-- [ ] Netzwerk
-- [ ] Speicherplatz
+- [ ] Netzwerkdurchsatz und Speicherplatz auf der Systemseite im Zeitverlauf
+- [ ] Benachrichtigung bei Quellenausfall oder Systemproblemen (z. B. Webhook, E-Mail)
 
----
+### Benutzer
 
-# Version 0.7.x
+- [ ] Protokoll sicherheitsrelevanter Aktionen (Anmeldung, Benutzer- und Konfigurationsänderungen)
+- [ ] Optionale Zwei-Faktor-Anmeldung für Admins und Superadmins
 
-## Ziel
+### Karte
 
-Erweiterbarkeit durch Plugins.
-
-### Plugin-System
-
-- [ ] Overlay-Plugins
-- [ ] Datenquellen
-- [ ] Ereignisse
-- [ ] Webhooks
-- [ ] Benachrichtigungen
-
-### BOS-Erweiterungen
-
-- [ ] Hydranten
-- [ ] Sirenen
-- [ ] Pegelstände
-- [ ] Wetterdaten
-- [ ] Einsatzmittel
+- [ ] Weitere Overlay-Typen und eigene Marker
+- [ ] Kartenverwaltung (MBTiles hochladen und auswählen)
 
 ---
 
 # Langfristige Ziele
 
-## Stabilität
+- Plugin-Schnittstellen für Overlays, Datenquellen und Ereignisse
+- BOS-Erweiterungen: Sirenen, Pegelstände, Wetterdaten, Einsatzmittel
+- Offiziell unterstützte Plattformen: Debian und Ubuntu Server
 
-- Reproduzierbare Installation
-- Automatisierte Tests
-- Continuous Integration
-- Dokumentation
+---
 
-## Plattformen
+# Nicht mehr im Fokus
 
-- [x] Raspberry Pi
-- [x] Debian-Serverprofil
-- Ubuntu
-
-## Serverbetrieb
-
-- [x] Optionales Caddy-/HTTPS-Setup mit Let's Encrypt
-- [x] Öffentliche WebRTC-/ICE-Konfiguration
-- [x] Optionale Host-Firewall-Regeln mit SSH-Schutz
-- [x] RTMP-Publisher in beiden Profilen mit pfadgebundenen Tokens absichern
-- [ ] RTMP-Transport über VPN oder RTMPS verschlüsseln
-
-## Bedienung
-
-- Vollständige Bedienung über die Weboberfläche
-- Mobile Optimierung
-- Touch-Bedienung
-
-## Architektur
-
-- Klare Modulstruktur
-- Erweiterbares Overlay-System
-- Plugin-Schnittstellen
-- Saubere Trennung zwischen Anwendung und Laufzeitdaten
+- Lokales Kiosk-Display (labwc/Chromium) auf dem Raspberry Pi: wird gewartet,
+  aber nicht funktional erweitert.
 
 ---
 
 # Projektvision
 
-Open BOS Stream soll eine leichtgewichtige, einfach installierbare und modular erweiterbare Streaming- und Kartenplattform für Behörden und Organisationen mit Sicherheitsaufgaben (BOS) werden.
+Open BOS Stream soll eine leichtgewichtige, einfach installierbare und modular
+erweiterbare Streaming- und Kartenplattform für Behörden und Organisationen
+mit Sicherheitsaufgaben (BOS) sein, die zuverlässig auf einem eigenen Server
+betrieben werden kann.
 
 Der Fokus liegt auf:
 
-- einfacher Installation
-- robuster Betrieb auf Raspberry Pi
-- modularer Architektur
-- schneller Bedienung
-- einfacher Erweiterbarkeit
+- einfacher Installation und Aktualisierung
+- robustem, nachvollziehbarem Serverbetrieb
+- Sicherheit und Datenschutz
+- schneller Bedienung auch auf Tablets und Smartphones
 - langfristiger Wartbarkeit
