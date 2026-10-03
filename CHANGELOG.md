@@ -9,6 +9,22 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- Aufnahmen und Snapshots verwenden nun immer den Originalstream in voller
+  Qualität statt der reduzierten Vorschau. Bei RTMP-Vorschauprofilen wird der
+  unveränderte Publisherpfad genutzt, bei RTSP-Kameras mit Vorschau-URL der
+  Hauptstream über den bedarfsgesteuerten Vollbild-Relay. Ist der Hauptstream
+  nicht rechtzeitig verfügbar, wird ersatzweise die Vorschau aufgezeichnet
+  und im Medienbalken darauf hingewiesen.
+- H.265-Video wird bei Aufnahmen nicht mehr live nach H.264 umgewandelt,
+  sondern unverändert gespeichert und für Safari/iOS als `hvc1`
+  gekennzeichnet. Das vermeidet hohe CPU-Last bei 4K-Quellen; Browser ohne
+  H.265-Unterstützung erhalten beim Abspielen automatisch eine kompatible
+  Kopie.
+- Start und Stopp von Aufnahmen sowie das Erstellen von Snapshots blockieren
+  die übrige Weboberfläche nicht mehr.
+
 ---
 
 ## [0.14.0] - 2026-10-03

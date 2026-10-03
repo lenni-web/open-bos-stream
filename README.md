@@ -478,15 +478,24 @@ Bestehende Konfigurationen mit dem bisherigen Mehrquellen-Profil werden nach
 dem Update automatisch als `ausgewogen` interpretiert. Wer die geringere Last
 der 360p-Variante behalten möchte, wählt anschließend ausdrücklich `sparsam`.
 
-Snapshots und Aufnahmen einer Quelle folgen derzeit ebenfalls dem in der
-Oberfläche wiedergegebenen Viewerpfad und verwenden damit bei einer Vorschau
-deren reduzierte Auflösung.
+Snapshots und Aufnahmen verwenden immer den Originalstream in voller Qualität,
+auch wenn die Liveübersicht eine reduzierte Vorschau zeigt. Bei den
+RTMP-Vorschauprofilen ist das der unveränderte Publisherpfad, bei RTSP mit
+Vorschau-URL der Kamera-Hauptstream. Dieser wird über denselben
+bedarfsgesteuerten Relay wie die Vollbildanzeige bereitgestellt und während
+einer Aufnahme offen gehalten. Steht der Hauptstream innerhalb von acht
+Sekunden nicht bereit, wird ersatzweise die Vorschau verwendet; der
+Medienbalken weist dann auf die Vorschauqualität hin.
 
-Aufnahmen werden nach Möglichkeit ohne erneute Videokodierung gespeichert.
-H.265-Video oder browserfremdes Audio wird für neue Aufnahmen automatisch nach
-H.264/AAC konvertiert. Erkennt der Mediathek-Player bei einer älteren Aufnahme
-ein nicht unterstütztes Format, stellt der Server beim Abspielen automatisch
-eine vollständig abgeschlossene, kompatible MP4-Datei bereit. Sie wird für
+Aufnahmen werden ohne erneute Videokodierung gespeichert. H.264 und H.265
+bleiben unverändert, H.265 wird zusätzlich als `hvc1` gekennzeichnet, damit
+Safari und iOS die Datei direkt abspielen können. Nur andere Videoformate
+werden nach H.264 und browserfremdes Audio nach AAC konvertiert. Kann der
+Mediathek-Player eine Aufnahme nicht direkt wiedergeben, etwa H.265 in
+manchen Browsern, stellt der Server beim Abspielen automatisch eine
+vollständig abgeschlossene, kompatible MP4-Datei bereit. Bei langen
+4K-Aufnahmen kann diese erste Aufbereitung einige Zeit dauern; der Download
+liefert immer das Original. Sie wird für
 weitere Wiedergaben zwischengespeichert und beim Löschen der Originalaufnahme
 ebenfalls entfernt; die Originaldatei selbst bleibt unverändert.
 

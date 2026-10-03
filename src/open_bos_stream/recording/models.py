@@ -39,3 +39,5 @@ class RecordingStatus(BaseModel):
     automatic_waiting: bool = False
 
     automatic_error: str | None = None
+
+    full_quality: bool | None = None

@@ -125,9 +125,16 @@ function updateMediaCaptureBar(mediaCapture, storage = null) {
         mediaCapture?.source_name || "Keine Quelle ausgewählt"
     );
     const automatic = mediaCapture?.recording_mode === "automatic";
+    const previewQuality = Boolean(
+        window.dashboard?.recording?.active
+        && window.dashboard.recording.full_quality === false
+    );
     updateValue(
         "media-recording-mode",
-        automatic ? "Automatische Aufnahme" : "Manuelle Aufnahme"
+        (automatic ? "Automatische Aufnahme" : "Manuelle Aufnahme")
+        + (previewQuality
+            ? " · Vorschauqualität (Hauptstream nicht verfügbar)"
+            : "")
     );
     const blocked = Boolean(storage?.blocked);
     const hint = document.getElementById("media-storage-hint");

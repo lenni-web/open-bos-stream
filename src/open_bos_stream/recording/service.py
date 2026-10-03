@@ -8,6 +8,7 @@ import time
 from threading import RLock
 
 from open_bos_stream.core.models import AppConfig
+from open_bos_stream.media.capture import CaptureInput, CaptureInputProvider
 from open_bos_stream.media.storage import MediaStorageService
 from open_bos_stream.mediamtx.client import MediaMTXClient
 from open_bos_stream.recording.manager import RecordingManager
@@ -23,6 +24,7 @@ class RecordingService:
         config: AppConfig,
         mediamtx: MediaMTXClient,
         storage: MediaStorageService | None = None,
+        relays=None,
     ) -> None:
 
         self._config = config
@@ -36,6 +38,12 @@ class RecordingService:
         self._mediamtx = mediamtx
 
         self._storage = storage
+
+        self._capture = CaptureInputProvider(mediamtx, relays)
+
+        self._capture_input: CaptureInput | None = None
+
+        self._capture_renewed_at = 0.0
 
         self._control_lock = RLock()
 
@@ -108,29 +116,51 @@ class RecordingService:
         if self._storage is not None:
             self._storage.ensure_capacity()
 
-        filename = self._recorder.next_filename(source.id)
-        input_url = f"rtsp://127.0.0.1:8554/{source.viewer_path}"
+        # Aufnahmen verwenden den Originalstream, nicht die Vorschau.
+        capture = self._capture.open(source)
+        try:
+            filename = self._recorder.next_filename(source.id)
+            details = capture.path or path
 
-        tracks = [str(item).lower() for item in path.get("tracks", [])]
-        video_codec = str(path.get("codec") or "").lower()
-        browser_video = video_codec in {"h264", "avc"} or any(
-            "h264" in item for item in tracks
-        )
-        audio_tracks = [
-            item for item in tracks
-            if not any(video in item for video in ("h264", "h265", "avc", "hevc"))
-        ]
-        browser_audio = not audio_tracks or any(
-            "aac" in item or "mpeg-4 audio" in item
-            for item in audio_tracks
-        )
+            tracks = [
+                str(item).lower() for item in details.get("tracks", [])
+            ]
+            video_codec = str(details.get("codec") or "").lower()
+            h264 = video_codec in {"h264", "avc"} or any(
+                "h264" in item for item in tracks
+            )
+            hevc = video_codec in {"h265", "hevc"} or any(
+                "h265" in item or "hevc" in item for item in tracks
+            )
+            audio_tracks = [
+                item for item in tracks
+                if not any(
+                    video in item
+                    for video in ("h264", "h265", "avc", "hevc")
+                )
+            ]
+            browser_audio = not audio_tracks or any(
+                "aac" in item or "mpeg-4 audio" in item
+                for item in audio_tracks
+            )
 
-        self._manager.start(
-            filename,
-            input_url,
-            transcode_video=not browser_video,
-            transcode_audio=not browser_audio,
-        )
+            # H.264 und H.265 werden unverändert übernommen. H.265 wird erst
+            # bei Bedarf für die Browserwiedergabe umgewandelt, damit 4K-
+            # Originale keine dauerhafte Live-Transkodierung erfordern.
+            self._manager.start(
+                filename,
+                capture.url,
+                transcode_video=not (h264 or hevc),
+                transcode_audio=not browser_audio,
+                hevc=hevc and not h264,
+            )
+        except Exception:
+            self._capture.release(capture)
+            raise
+
+        self._capture_input = capture
+        self._capture_renewed_at = time.monotonic()
+        self._status.full_quality = capture.full_quality
 
         self._status.filename = str(filename)
         self._status.started_at = time.time()
@@ -164,6 +194,7 @@ class RecordingService:
         try:
             self._manager.stop()
         finally:
+            self._release_capture()
             self._status.recording = False
             self._status.started_at = None
             self._status.duration = 0
@@ -178,10 +209,35 @@ class RecordingService:
             try:
                 self._manager.stop(reason="storage_low", message=message)
             finally:
+                self._release_capture()
                 self._status.recording = False
                 self._status.started_at = None
                 self._status.duration = 0
                 self._status.pid = None
+
+    def maintain(self) -> None:
+        """Periodische Pflege: Hauptstream halten und Automatik abgleichen."""
+
+        with self._control_lock:
+            self._maintain_capture()
+        self.reconcile_automatic()
+
+    def _maintain_capture(self) -> None:
+        if self._capture_input is None:
+            return
+        if not self._manager.running:
+            # Aufnahme wurde ohne Bedienaktion beendet (z. B. Streamabbruch).
+            self._release_capture()
+            return
+        now = time.monotonic()
+        if now - self._capture_renewed_at >= 10:
+            self._capture.renew(self._capture_input)
+            self._capture_renewed_at = now
+
+    def _release_capture(self) -> None:
+        self._capture.release(self._capture_input)
+        self._capture_input = None
+        self._status.full_quality = None
 
     def reconcile_automatic(self) -> None:
         """Aufnahmezustand an das Signal der gewählten Quelle angleichen."""

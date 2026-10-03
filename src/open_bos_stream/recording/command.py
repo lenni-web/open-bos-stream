@@ -14,6 +14,7 @@ class RecordingCommandBuilder:
         *,
         transcode_video: bool = False,
         transcode_audio: bool = False,
+        hevc: bool = False,
     ) -> list[str]:
 
         return [
@@ -37,6 +38,13 @@ class RecordingCommandBuilder:
             *(
                 ["-preset", "ultrafast", "-tune", "zerolatency", "-pix_fmt", "yuv420p"]
                 if transcode_video
+                else []
+            ),
+            # Kopiertes H.265 als hvc1 kennzeichnen, damit Safari und iOS
+            # die MP4-Datei direkt abspielen können.
+            *(
+                ["-tag:v", "hvc1"]
+                if hevc and not transcode_video
                 else []
             ),
             "-c:a", "aac" if transcode_audio else "copy",
