@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.14.0] - 2026-10-03
+
 ### Added
 
 - Speicherschutz für Aufnahmen und Snapshots: Unterhalb einer einstellbaren
