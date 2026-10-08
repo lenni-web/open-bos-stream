@@ -9,6 +9,18 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- Die Ansicht für Zuschauer ist aufgeräumt: Die obere Statusleiste mit
+  Quelle, Encoder, Streaming, CPU, RAM und Temperatur, das
+  Ereignisprotokoll sowie technische Angaben an den Livebildern
+  (Protokoll und Verarbeitungsprofil, Empfangsadresse, Auflösung/Codec,
+  Viewerzahl und Hauptstream-Zustand) werden Zuschauern nicht mehr
+  angezeigt. Ein hinterlegter Drohnen-Typ erscheint stattdessen unter dem
+  Quellennamen. Admins und Superadmins sehen weiterhin alle Angaben.
+- Die Rolle wird in der Kopfzeile auf Deutsch angezeigt (Zuschauer, Admin,
+  Superadmin).
+
 ---
 
 ## [0.15.2] - 2026-10-08

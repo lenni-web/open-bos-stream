@@ -457,6 +457,38 @@ function toggleSourceFullscreen(entry) {
     openSourceFullscreen(entry);
 }
 
+function isViewerRole() {
+    return window.currentUser?.role === "viewer";
+}
+
+function sourceSubtitle(input) {
+    // Zuschauer sehen statt Protokoll und Verarbeitungsprofil nur den
+    // optionalen Drohnen-Typ.
+    if (isViewerRole()) {
+        return input.drone_type || "";
+    }
+    return `${input.type} · ${input.profile}` +
+        (input.preview_active ? " · Vorschau" : "");
+}
+
+function sourceStateLabel(entry, ready) {
+    if (entry.fullscreenPreparing) {
+        return isViewerRole()
+            ? "Vollbild wird geladen"
+            : "Hauptstream wird geladen";
+    }
+    if (isViewerRole()) {
+        return ready ? "Online" : "Offline";
+    }
+    if (Date.now() < entry.fullscreenErrorUntil) {
+        return "Vorschau aktiv · Hauptstream nicht verfügbar";
+    }
+    if (entry.fullscreenMainReady) {
+        return "Hauptstream aktiv";
+    }
+    return ready ? "Online" : "Offline";
+}
+
 function multiSourceCard(input) {
     const card = document.createElement("article");
     card.className = "multi-source-card";
@@ -465,7 +497,7 @@ function multiSourceCard(input) {
         <header class="multi-source-card-header">
             <div>
                 <strong>${escapeHTML(input.name)}</strong>
-                <small>${escapeHTML(input.type)} · ${escapeHTML(input.profile)}</small>
+                <small>${escapeHTML(sourceSubtitle(input))}</small>
             </div>
             <span class="multi-source-state">Offline</span>
         </header>
@@ -620,9 +652,7 @@ function updateMultiSources(inputs = []) {
         ).textContent = input.name;
         entry.card.querySelector(
             ".multi-source-card-header small"
-        ).textContent =
-            `${input.type} · ${input.profile}` +
-            (input.preview_active ? " · Vorschau" : "");
+        ).textContent = sourceSubtitle(input);
         entry.card.querySelector(
             ".multi-source-placeholder small"
         ).textContent = input.publish_url;
@@ -642,15 +672,7 @@ function updateMultiSources(inputs = []) {
             "is-online",
             input.ready
         );
-        state.textContent =
-            input.ready ? "Online" : "Offline";
-        if (entry.fullscreenPreparing) {
-            state.textContent = "Hauptstream wird geladen";
-        } else if (Date.now() < entry.fullscreenErrorUntil) {
-            state.textContent = "Vorschau aktiv · Hauptstream nicht verfügbar";
-        } else if (entry.fullscreenMainReady) {
-            state.textContent = "Hauptstream aktiv";
-        }
+        state.textContent = sourceStateLabel(entry, input.ready);
 
         let displayedOnline = input.ready;
         if (input.ready) {
