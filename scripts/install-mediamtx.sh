@@ -4,7 +4,7 @@ set -euo pipefail
 
 source "$(cd "$(dirname "$0")" && pwd)/common.sh"
 
-MEDIAMTX_VERSION="${OPEN_BOS_MEDIAMTX_VERSION:-1.19.3}"
+MEDIAMTX_VERSION="${OPEN_BOS_MEDIAMTX_VERSION:-1.21.1}"
 MODE="auto"
 ARCHIVE=""
 INTERACTIVE=false
