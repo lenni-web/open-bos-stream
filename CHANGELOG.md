@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.15.2] - 2026-10-08
+
 ### Changed
 
 - Neuinstallationen und `--install-mediamtx` ohne Versionsangabe verwenden
@@ -17,6 +21,12 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   verschärft mehrere Sicherheitsvoreinstellungen. Bestehende Installationen
   behalten bei normalen Updates ihre Version; ein Wechsel erfolgt weiterhin
   nur mit `--install-mediamtx`.
+
+### Fixed
+
+- Die verwaltete Caddyfile ist nun im Format von `caddy fmt` eingerückt. Die
+  Warnung „Caddyfile input is not formatted“ beim Update entfällt; die
+  Konfiguration selbst ist unverändert.
 
 ---
 
