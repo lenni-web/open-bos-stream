@@ -57,6 +57,7 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.15.3** (2026-10-08): Aufgeräumte Ansicht für Zuschauer
 - **0.15.2** (2026-10-08): MediaMTX 1.21.1 als Standardversion, Caddyfile
   im `caddy fmt`-Format
 - **0.15.1** (2026-10-08): Wiedergabe-Cache im Speicherschutz,
