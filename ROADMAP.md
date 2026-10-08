@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.15.2** (2026-10-08): MediaMTX 1.21.1 als Standardversion, Caddyfile
+  im `caddy fmt`-Format
 - **0.15.1** (2026-10-08): Wiedergabe-Cache im Speicherschutz,
   MediaMTX-Version auf der Systemseite
 - **0.15.0** (2026-10-03): Aufnahmen und Snapshots in voller Qualität des

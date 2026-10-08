@@ -15,7 +15,7 @@ def read(path: str) -> str:
 
 
 def test_release_version_is_0_12_1() -> None:
-    assert VERSION == "0.15.1"
+    assert VERSION == "0.15.2"
 
 
 def test_server_profile_can_be_selected_from_environment(
@@ -197,6 +197,17 @@ def test_caddy_routes_application_whep_and_hls() -> None:
     assert 'X-Content-Type-Options "nosniff"' in caddy
     assert 'X-Frame-Options "DENY"' in caddy
     assert "Content-Security-Policy \"frame-ancestors 'none'\"" in caddy
+
+
+def test_caddyfile_template_uses_caddy_fmt_indentation() -> None:
+    caddy = read("scripts/Caddyfile.server")
+
+    # caddy fmt rückt mit Tabulatoren ein; Leerzeichen lösen bei jedem
+    # Update die Warnung "Caddyfile input is not formatted" aus.
+    for line in caddy.splitlines():
+        assert not line.startswith(" "), line
+        assert line == line.rstrip(), line
+    assert caddy.endswith("}\n")
 
 
 def test_server_access_accepts_domain_or_https_url() -> None:
