@@ -4,6 +4,7 @@ System Information Service
 
 from __future__ import annotations
 
+import shutil
 import socket
 from pathlib import Path
 import platform
@@ -68,6 +69,30 @@ class SystemInfoService:
                 "ffmpeg version ",
                 "",
             )
+
+        except Exception:
+            return "Unknown"
+
+    def _mediamtx_version(self) -> str:
+
+        binary = (
+            shutil.which("mediamtx")
+            or "/usr/local/bin/mediamtx"
+        )
+
+        try:
+            result = self._runner.run(
+                [binary, "--version"],
+                timeout=3,
+            )
+            if result.returncode != 0:
+                return "Unknown"
+            lines = (
+                (result.stdout or "").strip().splitlines()
+                or (result.stderr or "").strip().splitlines()
+            )
+
+            return lines[0].strip() if lines else "Unknown"
 
         except Exception:
             return "Unknown"
@@ -181,6 +206,7 @@ class SystemInfoService:
             runtime=RuntimeInfo(
                 python=platform.python_version(),
                 ffmpeg=self._ffmpeg_version(),
+                mediamtx=self._mediamtx_version(),
             ),
 
             network=NetworkInfo(

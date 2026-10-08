@@ -9,6 +9,20 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Die Systemseite zeigt unter „Anwendung & Laufzeit“ die installierte
+  MediaMTX-Version an.
+
+### Changed
+
+- Der Speicherschutz berücksichtigt nun den Wiedergabe-Cache, in dem
+  browserkompatible Kopien von Aufnahmen (z. B. aus H.265) liegen. Seine Größe
+  erscheint auf der Systemseite. Unterhalb der Mindestgrenze werden zuerst
+  diese jederzeit neu erzeugbaren Kopien entfernt, bevor neue Medien gesperrt
+  oder Aufnahmen gelöscht werden. Kopien, die sieben Tage nicht abgespielt
+  wurden, werden automatisch entfernt.
+
 ---
 
 ## [0.15.0] - 2026-10-03
