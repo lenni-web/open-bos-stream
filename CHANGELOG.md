@@ -9,6 +9,15 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- Neuinstallationen und `--install-mediamtx` ohne Versionsangabe verwenden
+  nun MediaMTX 1.21.1 statt 1.19.3. Die neue Version behebt unter anderem
+  hängende WebRTC-Bilder bei DJI-Drohnen, Zeitstempelfehler bei H.265 und
+  verschärft mehrere Sicherheitsvoreinstellungen. Bestehende Installationen
+  behalten bei normalen Updates ihre Version; ein Wechsel erfolgt weiterhin
+  nur mit `--install-mediamtx`.
+
 ---
 
 ## [0.15.1] - 2026-10-08
