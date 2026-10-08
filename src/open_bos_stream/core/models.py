@@ -718,6 +718,7 @@ class OperatingSystemInfo(BaseModel):
 class RuntimeInfo(BaseModel):
     python: str
     ffmpeg: str
+    mediamtx: str = "Unknown"
 
 
 class SystemInfo(BaseModel):
