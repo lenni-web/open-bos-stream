@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.15.1] - 2026-10-08
+
 ### Added
 
 - Die Systemseite zeigt unter „Anwendung & Laufzeit“ die installierte
