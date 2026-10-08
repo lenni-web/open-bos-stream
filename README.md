@@ -744,6 +744,12 @@ vor jeder neuen Aufnahme und jedem Snapshot, auch ohne geöffnete Oberfläche.
 Jede Löschung erscheint im Anwendungsjournal; die letzte Bereinigung wird auf
 der Systemseite angezeigt. Reicht das nicht aus, bleibt die Sperre bestehen.
 
+Browserkompatible Wiedergabekopien in `recordings/.playback-cache` zählen
+ebenfalls zum Speicherschutz. Sie werden bei Speichermangel immer zuerst
+entfernt, unabhängig davon, ob die automatische Bereinigung aktiviert ist, da
+sie beim nächsten Abspielen neu erzeugt werden können. Kopien, die sieben
+Tage nicht abgespielt wurden, entfernt die Anwendung automatisch.
+
 Wichtige Medien lassen sich in der Mediathek mit dem Schloss-Symbol als
 „Behalten“ markieren. Sie werden nie automatisch gelöscht; manuelles Löschen
 bleibt möglich. Die Markierung wird als versteckte Datei

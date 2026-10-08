@@ -21,6 +21,11 @@ logger = logging.getLogger(__name__)
 # nicht bei jeder neuen Datei erneut einzelne Medien löscht.
 CLEANUP_MARGIN_PERCENT = 2
 
+# Browserkompatible Wiedergabekopien lassen sich jederzeit neu erzeugen.
+# Länger ungenutzte Kopien werden deshalb unabhängig vom Füllstand entfernt.
+PLAYBACK_CACHE_MAX_AGE_SECONDS = 7 * 24 * 60 * 60
+PLAYBACK_CACHE_PRUNE_INTERVAL_SECONDS = 60 * 60
+
 
 class StorageFullError(RuntimeError):
     """Neue Medien können wegen zu wenig freiem Speicher nicht entstehen."""
@@ -48,6 +53,7 @@ class MediaStorageService:
         self._lock = threading.Lock()
         self._last_cleanup: dict | None = None
         self._last_level = "ok"
+        self._last_cache_prune = 0.0
 
     # -----------------------------------------------------
     # Schwellwerte
@@ -121,6 +127,11 @@ class MediaStorageService:
         snapshot_count, snapshot_bytes = self._directory_size(
             self._snapshots
         )
+        cache_count, cache_bytes = (
+            self._playback_cache.size()
+            if self._playback_cache is not None
+            else (0, 0)
+        )
         free_percent = (
             usage.free / usage.total * 100
             if usage.total
@@ -154,6 +165,8 @@ class MediaStorageService:
             "media_bytes": recording_bytes + snapshot_bytes,
             "recordings": recording_count,
             "snapshots": snapshot_count,
+            "playback_cache_files": cache_count,
+            "playback_cache_bytes": cache_bytes,
         }
 
     # -----------------------------------------------------
@@ -167,6 +180,10 @@ class MediaStorageService:
         settings = self.settings
         if free >= settings.minimum_free_percent:
             return
+        self.clear_playback_cache()
+        free = self.free_percent()
+        if free >= settings.minimum_free_percent:
+            return
         if settings.auto_cleanup:
             self.cleanup()
             free = self.free_percent()
@@ -177,8 +194,13 @@ class MediaStorageService:
     def enforce(self) -> bool:
         """Periodische Prüfung. Liefert False, solange Medien gesperrt sind."""
 
+        self.prune_playback_cache()
         free = self.free_percent()
         settings = self.settings
+        if free < settings.minimum_free_percent:
+            # Zuerst nur neu erzeugbare Wiedergabekopien entfernen.
+            self.clear_playback_cache()
+            free = self.free_percent()
         if (
             free < settings.minimum_free_percent
             and settings.auto_cleanup
@@ -206,14 +228,75 @@ class MediaStorageService:
 
         return level != "critical"
 
-    def cleanup(self) -> list[str]:
-        """Älteste nicht geschützte Medien löschen, bis genug frei ist."""
-
+    def _cleanup_target(self) -> float:
         settings = self.settings
-        target = min(
+        return min(
             settings.minimum_free_percent + CLEANUP_MARGIN_PERCENT,
             settings.warning_free_percent,
         )
+
+    def clear_playback_cache(self) -> int:
+        """Wiedergabekopien entfernen, bis wieder genug Speicher frei ist."""
+
+        if self._playback_cache is None:
+            return 0
+        target = self._cleanup_target()
+        removed = 0
+        freed = 0
+        for item in self._playback_cache.entries():
+            if self.free_percent() >= target:
+                break
+            try:
+                size = item.stat().st_size
+                item.unlink()
+            except OSError:
+                continue
+            removed += 1
+            freed += size
+        if removed:
+            logger.warning(
+                "Speichermangel: %s Wiedergabekopien entfernt (%s Bytes).",
+                removed,
+                freed,
+            )
+        return removed
+
+    def prune_playback_cache(self, *, force: bool = False) -> int:
+        """Länger ungenutzte Wiedergabekopien entfernen."""
+
+        if self._playback_cache is None:
+            return 0
+        now = time.time()
+        if (
+            not force
+            and now - self._last_cache_prune
+            < PLAYBACK_CACHE_PRUNE_INTERVAL_SECONDS
+        ):
+            return 0
+        self._last_cache_prune = now
+        removed = 0
+        for item in self._playback_cache.entries():
+            try:
+                if (
+                    now - item.stat().st_mtime
+                    < PLAYBACK_CACHE_MAX_AGE_SECONDS
+                ):
+                    break
+                item.unlink()
+            except OSError:
+                continue
+            removed += 1
+        if removed:
+            logger.info(
+                "%s ungenutzte Wiedergabekopien entfernt.",
+                removed,
+            )
+        return removed
+
+    def cleanup(self) -> list[str]:
+        """Älteste nicht geschützte Medien löschen, bis genug frei ist."""
+
+        target = self._cleanup_target()
         deleted: list[str] = []
         freed = 0
 

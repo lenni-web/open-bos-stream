@@ -167,3 +167,81 @@ def test_protection_marker_is_listed_and_removed_with_file(tmp_path) -> None:
 def test_storage_thresholds_are_validated() -> None:
     with pytest.raises(ValueError):
         StorageConfig(warning_free_percent=5, minimum_free_percent=5)
+
+
+
+from open_bos_stream.recording.playback import RecordingPlaybackCache
+
+
+def cache_setup(tmp_path, *, total: int, auto_cleanup: bool):
+    service, recordings, snapshots = media_setup(
+        tmp_path,
+        total=total,
+        auto_cleanup=auto_cleanup,
+    )
+    cache = RecordingPlaybackCache(recordings)
+    cache_dir = recordings / ".playback-cache"
+    cache_dir.mkdir()
+    service._playback_cache = cache
+
+    original = service._disk_usage
+
+    def disk_usage(path):
+        usage = original(path)
+        cached = sum(item.stat().st_size for item in cache_dir.iterdir())
+        return Usage(total, usage.used + cached, usage.free - cached)
+
+    service._disk_usage = disk_usage
+    return service, recordings, cache_dir
+
+
+def test_playback_cache_is_reported_in_status(tmp_path) -> None:
+    service, _recordings, cache_dir = cache_setup(
+        tmp_path,
+        total=1000,
+        auto_cleanup=False,
+    )
+    write_media(cache_dir / "a-1-1.mp4", 40, 100)
+
+    status = service.status()
+
+    assert status["playback_cache_files"] == 1
+    assert status["playback_cache_bytes"] == 40
+    assert status["recordings"] == 0
+
+
+def test_playback_cache_is_cleared_before_blocking_or_deleting_media(
+    tmp_path,
+) -> None:
+    service, recordings, cache_dir = cache_setup(
+        tmp_path,
+        total=1000,
+        auto_cleanup=False,
+    )
+    write_media(recordings / "einsatz.mp4", 500, 100)
+    write_media(cache_dir / "alt-1-1.mp4", 300, 100)
+    write_media(cache_dir / "neu-1-1.mp4", 150, 200)
+
+    # 950 von 1000 Bytes belegt; ohne Cache wären 50 % frei.
+    service.ensure_capacity()
+
+    assert (recordings / "einsatz.mp4").exists()
+    assert not (cache_dir / "alt-1-1.mp4").exists()
+    assert service.free_percent() >= 12
+
+
+def test_unused_playback_copies_expire(tmp_path) -> None:
+    service, _recordings, cache_dir = cache_setup(
+        tmp_path,
+        total=10_000,
+        auto_cleanup=False,
+    )
+    now = __import__("time").time()
+    write_media(cache_dir / "alt-1-1.mp4", 10, now - 8 * 24 * 3600)
+    write_media(cache_dir / "frisch-1-1.mp4", 10, now - 3600)
+
+    removed = service.prune_playback_cache(force=True)
+
+    assert removed == 1
+    assert not (cache_dir / "alt-1-1.mp4").exists()
+    assert (cache_dir / "frisch-1-1.mp4").exists()

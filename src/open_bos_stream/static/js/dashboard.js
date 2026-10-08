@@ -319,7 +319,10 @@ function updateStreamDiagnostics(stream, storage, sources = []) {
             "system-storage-media",
             `${storage.recordings} Aufnahmen · ` +
             `${storage.snapshots} Snapshots · ` +
-            formatBytes(storage.media_bytes)
+            formatBytes(storage.media_bytes) +
+            (storage.playback_cache_bytes
+                ? ` · Wiedergabe-Cache ${formatBytes(storage.playback_cache_bytes)}`
+                : "")
         );
 
         const bar =
@@ -740,6 +743,9 @@ function updateDashboardSystemInfo(info) {
 
     document.getElementById("system-runtime-ffmpeg").textContent =
         info.runtime.ffmpeg;
+
+    document.getElementById("system-runtime-mediamtx").textContent =
+        info.runtime.mediamtx ?? "Unknown";
 
 	document.getElementById("system-network-hostname").textContent =
 	    info.network.hostname;
