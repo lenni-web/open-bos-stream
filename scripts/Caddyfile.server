@@ -1,41 +1,41 @@
 {
-    acme_ca https://acme-v02.api.letsencrypt.org/directory
+	acme_ca https://acme-v02.api.letsencrypt.org/directory
 }
 
 __DOMAIN__ {
-    encode zstd gzip
+	encode zstd gzip
 
-    header {
-        -Server
-        Strict-Transport-Security "max-age=31536000"
-        X-Content-Type-Options "nosniff"
-        Referrer-Policy "same-origin"
-        X-Frame-Options "DENY"
-        Permissions-Policy "camera=(), microphone=(), geolocation=()"
-        Content-Security-Policy "frame-ancestors 'none'"
-    }
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "same-origin"
+		X-Frame-Options "DENY"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Content-Security-Policy "frame-ancestors 'none'"
+	}
 
-    handle_path /whep/* {
-        forward_auth 127.0.0.1:8000 {
-            uri /auth/media-access
-        }
-        reverse_proxy {
-            to 127.0.0.1:8889
-            header_down Location ^/ /whep/
-        }
-    }
+	handle_path /whep/* {
+		forward_auth 127.0.0.1:8000 {
+			uri /auth/media-access
+		}
+		reverse_proxy {
+			to 127.0.0.1:8889
+			header_down Location ^/ /whep/
+		}
+	}
 
-    handle_path /hls/* {
-        forward_auth 127.0.0.1:8000 {
-            uri /auth/media-access
-        }
-        reverse_proxy {
-            to 127.0.0.1:8888
-            header_down Location ^/ /hls/
-        }
-    }
+	handle_path /hls/* {
+		forward_auth 127.0.0.1:8000 {
+			uri /auth/media-access
+		}
+		reverse_proxy {
+			to 127.0.0.1:8888
+			header_down Location ^/ /hls/
+		}
+	}
 
-    handle {
-        reverse_proxy 127.0.0.1:8000
-    }
+	handle {
+		reverse_proxy 127.0.0.1:8000
+	}
 }
