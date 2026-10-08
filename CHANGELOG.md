@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.15.3] - 2026-10-08
+
 ### Changed
 
 - Die Ansicht für Zuschauer ist aufgeräumt: Die obere Statusleiste mit
@@ -20,6 +24,7 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   Quellennamen. Admins und Superadmins sehen weiterhin alle Angaben.
 - Die Rolle wird in der Kopfzeile auf Deutsch angezeigt (Zuschauer, Admin,
   Superadmin).
+- Der Zusatz „LB“ hinter der Versionsangabe in der Seitenleiste entfällt.
 
 ---
 
