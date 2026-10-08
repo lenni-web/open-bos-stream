@@ -665,7 +665,9 @@ auf, ein lokales Superadmin-Konto anzulegen. Benutzer und Passwort-Hashes
 werden ausschließlich in `config/users.yaml` gespeichert; die Datei und der
 lokale Sitzungsschlüssel werden nicht in Git übernommen.
 
-- `viewer`: Übersicht, Streams, Karte und Systemstatus ansehen
+- `viewer` (Zuschauer): Livebilder und Karte in einer reduzierten Ansicht
+  ohne technische Statusleiste, Ereignisprotokoll, Protokoll- und
+  Profilangaben
 - `admin`: zusätzlich Quellen anlegen, bearbeiten, sortieren und entfernen
 - `superadmin`: zusätzlich Medien, Benutzer, Streaming-Ausgänge, lokales
   Display und Webzugriff verwalten

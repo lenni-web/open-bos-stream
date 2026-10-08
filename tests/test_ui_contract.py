@@ -680,3 +680,31 @@ def test_admins_can_manage_non_superadmin_users() -> None:
     assert '{% if user.role != "viewer" %}' in (
         ROOT / "templates" / "components" / "settings_card.html"
     ).read_text(encoding="utf-8")
+
+
+def test_viewer_view_hides_technical_details() -> None:
+    index = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
+    header = (
+        ROOT / "templates" / "components" / "header.html"
+    ).read_text(encoding="utf-8")
+    css = (ROOT / "static" / "css" / "modern.css").read_text(encoding="utf-8")
+    sources = (
+        ROOT / "static" / "js" / "multi_source.js"
+    ).read_text(encoding="utf-8")
+
+    assert '<body class="role-{{ user.role }}">' in index
+    assert '"viewer": "Zuschauer"' in header
+    for selector in (
+        ".role-viewer .header-status",
+        ".role-viewer .dashboard-bottom",
+        ".role-viewer .multi-source-placeholder small",
+        ".role-viewer .multi-source-meta [data-value]",
+    ):
+        assert selector in css
+    # Profilnamen wie "rtmp · copy_repair" nur für Admins anzeigen.
+    assert "function sourceSubtitle(input)" in sources
+    assert "return input.drone_type || \"\";" in sources
+    assert "${input.type} · ${input.profile}" not in sources.replace(
+        "`${input.type} · ${input.profile}` +",
+        "",
+    )

@@ -104,7 +104,8 @@
 
     <div class="header-right">
         <div class="header-user">
-            <span>{{ user.username }} · {{ user.role }}</span>
+            {% set role_labels = {"viewer": "Zuschauer", "admin": "Admin", "superadmin": "Superadmin"} %}
+            <span>{{ user.username }} · {{ role_labels.get(user.role, user.role) }}</span>
             <button class="header-logout" type="button" onclick="logoutUser()">
                 Abmelden
             </button>

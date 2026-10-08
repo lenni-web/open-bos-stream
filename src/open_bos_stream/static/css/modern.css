@@ -1690,3 +1690,22 @@ body {
         font-size: 0.6rem;
     }
 }
+
+/* ---------------------------------------------------------
+   Zuschaueransicht: technische Statusangaben ausblenden
+   --------------------------------------------------------- */
+
+.role-viewer .header-status,
+.role-viewer .dashboard-bottom,
+.role-viewer .multi-source-placeholder small,
+.role-viewer .multi-source-meta [data-value] {
+    display: none;
+}
+
+.role-viewer .multi-source-meta {
+    justify-content: flex-end;
+}
+
+.multi-source-card-header small:empty {
+    display: none;
+}
