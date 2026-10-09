@@ -333,9 +333,9 @@ im Menü „Kartenebenen“ zu Gruppen zusammengefasst:
 | Temporäre Einschränkungen | Temporäre Betriebseinschränkungen (z. B. NOTAM) | an |
 | Schutzgebiete | Naturschutz-, FFH- und Vogelschutzgebiete, Nationalparks | an |
 | Infrastruktur | Industrieanlagen, Kraftwerke, Umspannwerke, Stromleitungen, Windkraftanlagen | an |
-| Verkehrswege | Autobahnen, Bundesstraßen, Bahnanlagen, Binnen-/Seewasserstraßen, Schifffahrtsanlagen | aus |
-| Einrichtungen | Krankenhäuser, Polizei, Behörden, JVA, Militär, Vertretungen, BSL-4-Labore u. a. | aus |
-| Sonstiges | Wohngrundstücke, Freibäder, Modellflugplätze, Hängegleiter | aus |
+| Verkehrswege | Autobahnen, Bundesstraßen, Bahnanlagen, Binnen-/Seewasserstraßen, Schifffahrtsanlagen | an |
+| Einrichtungen | Krankenhäuser, Polizei, Behörden, JVA, Militär, Vertretungen, BSL-4-Labore u. a. | an |
+| Sonstiges | Wohngrundstücke, Freibäder, Modellflugplätze, Hängegleiter | an |
 
 Ein Klick auf die Karte zeigt die Geozonen der eingeblendeten Gruppen an
 dieser Stelle mit Name, Art, Höhenbegrenzung und Rechtsgrundlage.

@@ -58,9 +58,7 @@ def test_all_wms_layers_except_inactive_restrictions_are_grouped() -> None:
     assert len(layers) == 33
     assert len(set(layers)) == 33
     assert "inaktive_temporaere_betriebseinschraenkungen" not in layers
-    assert {
-        group.id for group in LAYER_GROUPS if group.visible
-    } == {"luftraum", "temporaer", "schutzgebiete", "infrastruktur"}
+    assert all(group.visible for group in LAYER_GROUPS)
 
 
 def test_tile_bbox_covers_web_mercator_world() -> None:

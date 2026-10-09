@@ -9,6 +9,12 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- In der Karte sind nun alle Ebenen standardmäßig eingeblendet, auch die
+  dipul-Gruppen Verkehrswege, Einrichtungen und Sonstiges. Einzelne Ebenen
+  lassen sich weiterhin im Menü „Kartenebenen“ ausblenden.
+
 ---
 
 ## [0.16.1] - 2026-10-09
