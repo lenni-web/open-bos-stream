@@ -119,6 +119,7 @@ funktional weiterentwickelt.
 
 ### Karte
 
+- [x] Drohnen-Geozonen (dipul) mit Zonenabfrage per Klick
 - [ ] Weitere Overlay-Typen und eigene Marker
 - [ ] Kartenverwaltung (MBTiles hochladen und auswählen)
 

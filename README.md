@@ -321,6 +321,37 @@ sudo install \
 Wenn ein abweichender Kartenpfad konfiguriert wurde, zeigt die Kartenansicht
 bei fehlender Datei den tatsächlich verwendeten Zielpfad an.
 
+### Drohnen-Geozonen (dipul)
+
+Die Karte kann zusätzlich die Geozonen für Drohnen der Digitalen Plattform
+Unbemannte Luftfahrt (dipul) einblenden. Die 33 aktuellen dipul-Ebenen sind
+im Menü „Kartenebenen“ zu Gruppen zusammengefasst:
+
+| Gruppe | Enthaltene Ebenen | Standard |
+|---|---|---|
+| Luftraum | Kontrollzonen, Flughäfen, Flugplätze, Flugbeschränkungsgebiete | an |
+| Temporäre Einschränkungen | Temporäre Betriebseinschränkungen (z. B. NOTAM) | an |
+| Schutzgebiete | Naturschutz-, FFH- und Vogelschutzgebiete, Nationalparks | an |
+| Infrastruktur | Industrieanlagen, Kraftwerke, Umspannwerke, Stromleitungen, Windkraftanlagen | an |
+| Verkehrswege | Autobahnen, Bundesstraßen, Bahnanlagen, Binnen-/Seewasserstraßen, Schifffahrtsanlagen | aus |
+| Einrichtungen | Krankenhäuser, Polizei, Behörden, JVA, Militär, Vertretungen, BSL-4-Labore u. a. | aus |
+| Sonstiges | Wohngrundstücke, Freibäder, Modellflugplätze, Hängegleiter | aus |
+
+Ein Klick auf die Karte zeigt die Geozonen der eingeblendeten Gruppen an
+dieser Stelle mit Name, Art, Höhenbegrenzung und Rechtsgrundlage.
+
+Die Kartenbilder ruft der Open-BOS-Server vom öffentlichen dipul-WMS
+(`https://uas-betrieb.de/geoservices/dipul/wms`) ab und speichert sie eine
+Stunde zwischen. Browser bauen dadurch keine Verbindung zu dipul auf, und
+wiederholte Aufrufe belasten den Dienst nicht. Der Server benötigt dafür
+ausgehenden HTTPS-Zugriff. Ist dipul nicht erreichbar, bleibt die
+Offline-Karte nutzbar und unter der Karte erscheint ein Hinweis.
+
+Die Daten stehen unter der Lizenz CC BY-ND 4.0 und werden unverändert
+angezeigt; die Quellenangabe steht unter der Karte und in der Kartenecke.
+Die Ebene dient nur der Orientierung, ist nicht rechtsverbindlich und
+ersetzt nicht die Prüfung im offiziellen dipul-Map-Tool vor einem Flug.
+
 ---
 
 # Update
