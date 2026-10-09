@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.16.0] - 2026-10-09
+
 ### Added
 
 - Die Karte zeigt optional die Drohnen-Geozonen der Digitalen Plattform

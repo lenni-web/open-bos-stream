@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.16.0** (2026-10-09): Drohnen-Geozonen (dipul) in der Karte mit
+  Zonenabfrage per Klick
 - **0.15.3** (2026-10-08): Aufgeräumte Ansicht für Zuschauer
 - **0.15.2** (2026-10-08): MediaMTX 1.21.1 als Standardversion, Caddyfile
   im `caddy fmt`-Format
