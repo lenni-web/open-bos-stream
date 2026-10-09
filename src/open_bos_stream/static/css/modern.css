@@ -1532,9 +1532,14 @@ body {
     }
 }
 
-@media (min-width: 769px) and (max-width: 900px) {
+@media (min-width: 769px) and (max-width: 1100px) {
+    /* Tablets: nur die kompakte Systemzeile, ohne Umbruch in der Kapsel. */
     .header-status > .status-pill:nth-child(-n + 3) {
         display: none;
+    }
+
+    .header-system-summary {
+        white-space: nowrap;
     }
 }
 
@@ -1708,4 +1713,151 @@ body {
 
 .multi-source-card-header small:empty {
     display: none;
+}
+
+/* ---------------------------------------------------------
+   Quellenkacheln: lange Namen und Profile umbrechen
+   --------------------------------------------------------- */
+
+.multi-source-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.multi-source-card-header > div {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.multi-source-card-header strong,
+.multi-source-card-header small {
+    overflow-wrap: anywhere;
+}
+
+.multi-source-state {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+/* ---------------------------------------------------------
+   Smartphones
+   --------------------------------------------------------- */
+
+@media (max-width: 768px) {
+    /* Kopfzeile: Titel oben, Benutzer, Status und Uhrzeit darunter. */
+    .bos-header {
+        flex-wrap: wrap;
+        row-gap: 6px;
+    }
+
+    .header-right {
+        flex: 1 1 100%;
+        min-width: 0;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .header-user {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .header-user-label {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .header-logout,
+    .header-ready,
+    .header-clock {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    /* Medienbalken: Auswahl umbrechen statt über den Rand laufen. */
+    .media-capture-bar {
+        min-width: 0;
+    }
+
+    .media-capture-selection {
+        min-width: 0;
+        flex-wrap: wrap;
+        row-gap: 2px;
+    }
+
+    .media-capture-selection strong {
+        overflow-wrap: anywhere;
+    }
+
+    /* Kartenkopf (z. B. Ereignisprotokoll) bei Platzmangel umbrechen. */
+    .card-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .event-toolbar {
+        margin-left: auto;
+    }
+
+    /* Quellen in den Einstellungen: Schaltflächen unter den Namen. */
+    .rtmp-input-config-header {
+        flex-wrap: wrap;
+        row-gap: 8px;
+    }
+
+    .rtmp-input-config-header > div:first-of-type {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .rtmp-input-config-header strong,
+    .rtmp-input-config-header small {
+        overflow-wrap: anywhere;
+    }
+
+    .source-order-actions {
+        flex: 1 1 100%;
+        justify-content: flex-end;
+    }
+
+    /* Ereignisliste wächst mit dem Inhalt statt fester 300 px. */
+    .event-log {
+        height: auto;
+        min-height: 60px;
+        max-height: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-user-role {
+        display: none;
+    }
+
+    .header-ready {
+        gap: 6px;
+        font-size: 0.72rem;
+    }
+
+    .header-clock {
+        font-size: 1rem;
+    }
+
+    .offline-source-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 360px) {
+    /* Auf sehr schmalen Geräten zeigt nur der Punkt die Bereitschaft. */
+    .header-ready-label {
+        display: none;
+    }
+
+    .header-ready {
+        padding: 6px;
+    }
 }

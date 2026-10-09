@@ -105,7 +105,10 @@
     <div class="header-right">
         <div class="header-user">
             {% set role_labels = {"viewer": "Zuschauer", "admin": "Admin", "superadmin": "Superadmin"} %}
-            <span>{{ user.username }} · {{ role_labels.get(user.role, user.role) }}</span>
+            <span class="header-user-label">
+                <span class="header-user-name">{{ user.username }}</span>
+                <span class="header-user-role">· {{ role_labels.get(user.role, user.role) }}</span>
+            </span>
             <button class="header-logout" type="button" onclick="logoutUser()">
                 Abmelden
             </button>
@@ -115,7 +118,7 @@
 
             <span class="status-dot status-green"></span>
 
-            Einsatzbereit
+            <span class="header-ready-label">Einsatzbereit</span>
 
         </div>
 
