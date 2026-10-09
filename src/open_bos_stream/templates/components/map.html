@@ -4,7 +4,7 @@
             <span class="page-eyebrow">Lagebild</span>
             <h1>Karte</h1>
         </div>
-        <p>Offline-Karte und einsatzrelevante Wasserentnahmestellen.</p>
+        <p>Offline-Karte, Wasserentnahmestellen und Drohnen-Geozonen.</p>
     </header>
 
     <div class="map-wrapper">
@@ -72,10 +72,27 @@
 
                 <div id="map-layer-list"></div>
 
+                <div id="map-dipul-list" class="map-dipul-list"></div>
+
             </details>
 
         </div>
 
     </div>
+
+    <p
+        id="map-dipul-attribution"
+        class="map-dipul-attribution"
+        hidden
+    >
+        Drohnen-Geozonen:
+        <span data-dipul="attribution">© dipul (DFS), Lizenz CC BY-ND 4.0</span>
+        (<a data-dipul="license" href="https://creativecommons.org/licenses/by-nd/4.0/deed.de" target="_blank" rel="noopener noreferrer">Lizenz</a>).
+        Nur zur Orientierung und nicht rechtsverbindlich – vor dem Flug die
+        offizielle Prüfung im
+        <a data-dipul="maptool" href="https://maptool-dipul.dfs.de/" target="_blank" rel="noopener noreferrer">dipul-Map-Tool</a>
+        durchführen.
+        <strong id="map-dipul-status" class="map-dipul-status" hidden></strong>
+    </p>
 
 </section>

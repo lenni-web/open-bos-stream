@@ -282,6 +282,20 @@ async function createMap() {
 	        }
 
 
+	        // Drohnen-Geozonen liegen unter den Wasserentnahmestellen.
+	        try {
+	            await addDipulLayers(
+	                map,
+	                overlays[0]?.id
+	            );
+	        } catch (error) {
+	            console.error(
+	                "Drohnen-Geozonen konnten nicht geladen werden:",
+	                error
+	            );
+	        }
+
+
 	        requestAnimationFrame(() => {
 	            map.resize();
 	        });

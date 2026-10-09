@@ -1,15 +1,25 @@
 from dataclasses import asdict
 
-from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi import APIRouter, HTTPException, Query, Request, Response
+from starlette.concurrency import run_in_threadpool
 
 from open_bos_stream.core.config import ConfigLoader
 from open_bos_stream.map import MapService
+from open_bos_stream.map.dipul import (
+    ATTRIBUTION as DIPUL_ATTRIBUTION,
+    LICENSE_URL as DIPUL_LICENSE_URL,
+    MAP_TOOL_URL as DIPUL_MAP_TOOL_URL,
+    DipulService,
+    DipulUnavailableError,
+)
 from open_bos_stream.map.mbtiles import MBTilesError
 
 router = APIRouter(
     prefix="/api/map",
     tags=["map"],
 )
+
+dipul_service = DipulService()
 
 
 def _service() -> MapService:
@@ -277,3 +287,62 @@ def map_layer(name: str) -> dict:
             status_code=400,
             detail=str(exc),
         ) from exc
+
+
+# ---------------------------------------------------------
+# Drohnen-Geozonen (dipul)
+# ---------------------------------------------------------
+
+@router.get("/dipul/layers")
+def dipul_layers() -> dict:
+    return {
+        "groups": dipul_service.groups(),
+        "attribution": DIPUL_ATTRIBUTION,
+        "license_url": DIPUL_LICENSE_URL,
+        "map_tool_url": DIPUL_MAP_TOOL_URL,
+    }
+
+
+@router.get("/dipul/tiles/{group}/{z}/{x}/{y}.png")
+async def dipul_tile(group: str, z: int, x: int, y: int) -> Response:
+    try:
+        data = await run_in_threadpool(dipul_service.tile, group, z, x, y)
+    except KeyError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail="Unbekannte Geozonen-Gruppe.",
+        ) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except DipulUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    return Response(
+        content=data,
+        media_type="image/png",
+        headers={"Cache-Control": "private, max-age=3600"},
+    )
+
+
+@router.get("/dipul/info")
+async def dipul_info(
+    lng: float,
+    lat: float,
+    zoom: float = 12,
+    groups: str = Query(default=""),
+) -> dict:
+    group_ids = [item for item in groups.split(",") if item]
+    try:
+        zones = await run_in_threadpool(
+            dipul_service.feature_info,
+            lng,
+            lat,
+            zoom,
+            group_ids,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except DipulUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    return {"zones": zones}

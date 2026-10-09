@@ -237,3 +237,81 @@ body.map-fullscreen-active {
     padding-bottom: env(safe-area-inset-bottom);
 
 }
+
+/* ---------------------------------------------------------
+   Drohnen-Geozonen (dipul)
+   --------------------------------------------------------- */
+
+.map-layer-control {
+    max-height: calc(100% - 2rem);
+    overflow-y: auto;
+}
+
+.map-dipul-list:not(:empty) {
+    margin-top: 0.9rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid #d0d7de;
+}
+
+.map-dipul-heading label {
+    margin-top: 0;
+}
+
+.map-dipul-groups label {
+    margin-top: 0.5rem;
+    padding-left: 1.4rem;
+}
+
+.map-dipul-attribution {
+    margin: 8px 2px 0;
+    color: var(--bos-muted);
+    font-size: 0.74rem;
+    line-height: 1.45;
+}
+
+.map-dipul-attribution a {
+    color: inherit;
+}
+
+.map-dipul-status {
+    display: block;
+    margin-top: 4px;
+    color: var(--bos-red);
+}
+
+.map-dipul-status[hidden] {
+    display: none;
+}
+
+.map-dipul-zones {
+    margin: 6px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.map-dipul-zones li {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 6px 0;
+    border-top: 1px solid #e5e7eb;
+}
+
+.map-dipul-zones li:first-child {
+    border-top: none;
+}
+
+.map-dipul-zones small,
+.map-dipul-popup-note {
+    color: #687385;
+    font-size: 0.72rem;
+}
+
+.map-dipul-popup-note {
+    margin: 6px 0 0;
+}
+
+/* Zonen-Popups dürfen nicht unter dem Ebenen-Menü verschwinden. */
+.map-container .maplibregl-popup {
+    z-index: 1001;
+}

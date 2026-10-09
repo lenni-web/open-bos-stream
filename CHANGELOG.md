@@ -9,6 +9,20 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Die Karte zeigt optional die Drohnen-Geozonen der Digitalen Plattform
+  Unbemannte Luftfahrt (dipul) an, in sieben ein- und ausschaltbaren
+  Gruppen: Luftraum, temporäre Einschränkungen, Schutzgebiete und
+  Infrastruktur sind standardmäßig sichtbar, Verkehrswege, Einrichtungen
+  und Sonstiges lassen sich zuschalten.
+- Ein Klick auf die Karte zeigt die dort geltenden Geozonen mit Name, Art,
+  Höhenbegrenzung und Rechtsgrundlage.
+- Die Kartenbilder werden über den eigenen Server abgerufen und eine Stunde
+  zwischengespeichert. Ist dipul nicht erreichbar, weist die Karte darauf
+  hin. Die Quellenangabe „© dipul (DFS), CC BY-ND 4.0“ und ein Hinweis zur
+  fehlenden Rechtsverbindlichkeit stehen direkt unter der Karte.
+
 ---
 
 ## [0.15.3] - 2026-10-08
