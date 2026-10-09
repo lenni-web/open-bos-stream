@@ -96,7 +96,7 @@ LAYER_GROUPS: tuple[LayerGroup, ...] = (
             "seewasserstrassen",
             "schifffahrtsanlagen",
         ),
-        False,
+        True,
     ),
     LayerGroup(
         "einrichtungen",
@@ -112,7 +112,7 @@ LAYER_GROUPS: tuple[LayerGroup, ...] = (
             "internationale_organisationen",
             "labore",
         ),
-        False,
+        True,
     ),
     LayerGroup(
         "sonstiges",
@@ -123,7 +123,7 @@ LAYER_GROUPS: tuple[LayerGroup, ...] = (
             "modellflugplaetze",
             "haengegleiter",
         ),
-        False,
+        True,
     ),
 )
 
