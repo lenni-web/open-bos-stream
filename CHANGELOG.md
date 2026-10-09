@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.16.1] - 2026-10-09
+
 ### Fixed
 
 - Die Oberfläche ist auf Smartphones und Tablets besser lesbar:

@@ -57,6 +57,7 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.16.1** (2026-10-09): Verbesserte Darstellung auf Smartphones und Tablets
 - **0.16.0** (2026-10-09): Drohnen-Geozonen (dipul) in der Karte mit
   Zonenabfrage per Klick
 - **0.15.3** (2026-10-08): Aufgeräumte Ansicht für Zuschauer
