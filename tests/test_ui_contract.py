@@ -708,3 +708,19 @@ def test_viewer_view_hides_technical_details() -> None:
         "`${input.type} · ${input.profile}` +",
         "",
     )
+
+
+def test_mobile_layout_keeps_long_texts_inside_cards() -> None:
+    css = (ROOT / "static" / "css" / "modern.css").read_text(encoding="utf-8")
+    header = (
+        ROOT / "templates" / "components" / "header.html"
+    ).read_text(encoding="utf-8")
+
+    # Lange Quellennamen und Profile brechen um, der Status bleibt daneben.
+    assert ".multi-source-state {\n    flex: 0 0 auto;\n    white-space: nowrap;" in css
+    assert "overflow-wrap: anywhere;" in css
+    # Smartphones: einspaltige Offline-Quellen, gekürzte Kopfzeile.
+    assert ".offline-source-grid {\n        grid-template-columns: minmax(0, 1fr);" in css
+    assert 'class="header-user-role"' in header
+    assert 'class="header-ready-label"' in header
+    assert ".source-order-actions {\n        flex: 1 1 100%;" in css

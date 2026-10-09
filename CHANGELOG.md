@@ -9,6 +9,23 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Fixed
+
+- Die Oberfläche ist auf Smartphones und Tablets besser lesbar:
+  - Die Kopfzeile passt auf schmale Bildschirme; Rolle und das Wort
+    „Einsatzbereit“ werden bei Platzmangel ausgeblendet, die Uhrzeit bleibt
+    vollständig sichtbar.
+  - Lange Quellennamen und Profile wie `copy_repair_low_latency` brechen um,
+    statt den Online-/Offline-Status zu überdecken oder aus der Kachel zu
+    laufen. Offline-Quellen stehen auf Smartphones untereinander.
+  - Der Medienbalken bricht Quelle und Aufnahmeart sauber um und bleibt
+    innerhalb seiner Karte.
+  - Das Ereignisprotokoll bricht seinen Kopf um und wächst mit seinem
+    Inhalt, statt eine feste Höhe zu belegen.
+  - Die Schaltflächen zum Sortieren und Entfernen von Quellen in den
+    Einstellungen stehen auf Smartphones unter dem Quellennamen.
+  - Auf Tablets passt die Systemzeile in der Kopfzeile in eine Zeile.
+
 ---
 
 ## [0.16.0] - 2026-10-09
