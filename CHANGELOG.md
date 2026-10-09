@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.16.2] - 2026-10-09
+
 ### Changed
 
 - In der Karte sind nun alle Ebenen standardmäßig eingeblendet, auch die
