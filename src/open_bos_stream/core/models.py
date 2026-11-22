@@ -334,11 +334,9 @@ class StreamOutputAudioConfig(BaseModel):
 class StreamOutputConfig(BaseModel):
     model_config = ConfigDict(extra="allow")
 
-    type: str = Field(
-        default="rtmp",
-    )
+    type: Literal["rtmp", "srt", "rtsp"] = "rtmp"
 
-    name: str
+    name: str = Field(min_length=1, max_length=64)
 
     enabled: bool = True
 

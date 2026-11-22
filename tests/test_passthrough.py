@@ -391,3 +391,34 @@ def test_copied_hevc_recording_is_tagged_for_apple_players() -> None:
         copied.index("-tag:v"):copied.index("-tag:v") + 2
     ]
     assert "-tag:v" not in h264
+
+
+def test_rtsp_output_publishes_source_without_reencoding() -> None:
+    from open_bos_stream.core.models import StreamOutputConfig
+
+    config = ConfigLoader().load()
+    output = StreamOutputConfig(
+        type="rtsp",
+        name="RTSP-Test",
+        url="rtsp://media.example.test:8554/einsatz",
+    )
+
+    command = StreamOutputCommandBuilder(config).build(output)
+
+    assert command[-1] == "rtsp://media.example.test:8554/einsatz"
+    assert ["-f", "rtsp"] == command[command.index("-f"):command.index("-f") + 2]
+    assert ["-c:v", "copy"] == command[command.index("-c:v"):command.index("-c:v") + 2]
+
+
+def test_output_type_and_scheme_are_validated() -> None:
+    import pytest
+    from pydantic import ValidationError
+
+    from open_bos_stream.core.models import StreamOutputConfig
+    from open_bos_stream.stream.exceptions import ConfigurationError
+
+    with pytest.raises(ValidationError):
+        StreamOutputConfig(type="hls", name="x", url="http://x")
+    output = StreamOutputConfig(type="rtsp", name="x", url="rtmp://falsch")
+    with pytest.raises(ConfigurationError):
+        StreamOutputCommandBuilder(ConfigLoader().load()).build(output)

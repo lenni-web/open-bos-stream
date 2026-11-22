@@ -63,6 +63,12 @@ function renderStreamOutputs() {
                             SRT
                         </option>
 
+                        <option
+                            value="rtsp"
+                            ${output.type === "rtsp" ? "selected" : ""}>
+                            RTSP
+                        </option>
+
                     </select>
 
                     <label>Weiterzuleitende Quelle</label>
