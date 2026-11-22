@@ -1,3 +1,5 @@
+from urllib.parse import urlsplit
+
 from fastapi import APIRouter, HTTPException, Request
 from starlette.concurrency import run_in_threadpool
 
@@ -13,8 +15,10 @@ from open_bos_stream.core.models import (
 from open_bos_stream.core.container import (
     config_apply_service,
 )
+from open_bos_stream.auth.roles import ADMIN, SUPERADMIN
 
 router = APIRouter(
+    dependencies=[ADMIN],
     prefix="/config",
     tags=["Configuration"],
 )
@@ -45,58 +49,37 @@ async def apply_config(config: AppConfig) -> dict:
     }
 
 
+def mask_url(url: str) -> str:
+    """Ziel-URL ohne Pfad, Stream-Schlüssel und Zugangsdaten."""
+
+    parts = urlsplit(url)
+    if not parts.scheme or not parts.hostname:
+        return "***"
+    host = parts.hostname
+    if parts.port:
+        host = f"{host}:{parts.port}"
+    return f"{parts.scheme}://{host}/***"
+
+
 @router.get("/")
 async def get_config(request: Request):
-    if request.state.user["role"] == "viewer":
-        raise HTTPException(
-            status_code=403,
-            detail="Für die Konfiguration ist die Rolle Admin erforderlich.",
-        )
-
-    return loader.load()
-
-
-@router.put("/")
-async def save_config(config: AppConfig, request: Request):
+    config = loader.load()
     if request.state.user["role"] != "superadmin":
-        current = loader.load()
-        protected = (
-            ("stream_outputs", config.stream_outputs, current.stream_outputs),
-            ("display", config.display, current.display),
-            ("web_access", config.web_access, current.web_access),
-            (
-                "media_capture",
-                config.media_capture,
-                current.media_capture,
-            ),
-        )
-        changed = [
-            name
-            for name, proposed, existing in protected
-            if proposed != existing
-        ]
-        if changed:
-            raise HTTPException(
-                status_code=403,
-                detail={
-                    "code": "superadmin_configuration_required",
-                    "message": (
-                        "Nur Superadmins dürfen folgende Bereiche ändern: "
-                        + ", ".join(changed)
-                    ),
-                },
-            )
+        # Admins dürfen Streaming-Ausgänge weder sehen noch ändern; ihre
+        # Ziel-URLs enthalten in der Regel geheime Stream-Schlüssel.
+        for output in config.stream_outputs:
+            output.url = mask_url(output.url)
+    return config
+
+
+@router.put("/", dependencies=[SUPERADMIN])
+async def save_config(config: AppConfig):
+    # Admins speichern ausschließlich über PUT /config/sources.
     return await apply_config(config)
 
 
 @router.put("/sources")
-async def save_sources(sources: list[SourceConfig], request: Request):
-    if request.state.user["role"] == "viewer":
-        raise HTTPException(
-            status_code=403,
-            detail="Für Quellenänderungen ist die Rolle Admin erforderlich.",
-        )
-
+async def save_sources(sources: list[SourceConfig]):
     # Admins bearbeiten nur die Quellen. Alle ausschließlich für Superadmins
     # bestimmten Konfigurationsbereiche stammen unverändert vom Server.
     current = loader.load().model_dump()
@@ -105,17 +88,10 @@ async def save_sources(sources: list[SourceConfig], request: Request):
     return await apply_config(candidate)
 
 
-@router.put("/media-capture")
+@router.put("/media-capture", dependencies=[SUPERADMIN])
 async def save_media_capture(
     media_capture: MediaCaptureConfig,
-    request: Request,
 ):
-    if request.state.user["role"] != "superadmin":
-        raise HTTPException(
-            status_code=403,
-            detail="Nur Superadmins dürfen die Aufnahmesteuerung ändern.",
-        )
-
     saved = await run_in_threadpool(
         config_apply_service.update_media_capture,
         media_capture,
@@ -127,17 +103,10 @@ async def save_media_capture(
     }
 
 
-@router.put("/storage")
+@router.put("/storage", dependencies=[SUPERADMIN])
 async def save_storage(
     storage: StorageConfig,
-    request: Request,
 ):
-    if request.state.user["role"] != "superadmin":
-        raise HTTPException(
-            status_code=403,
-            detail="Nur Superadmins dürfen den Speicherschutz ändern.",
-        )
-
     saved = await run_in_threadpool(
         config_apply_service.update_storage,
         storage,
@@ -175,7 +144,7 @@ async def test_config(config: AppConfig):
     }
 
 
-@router.post("/restore")
+@router.post("/restore", dependencies=[SUPERADMIN])
 async def restore_config():
     try:
         message = await run_in_threadpool(

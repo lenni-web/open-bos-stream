@@ -3,8 +3,10 @@ from fastapi import APIRouter, HTTPException
 from open_bos_stream.core.container import (
     stream_output_service,
 )
+from open_bos_stream.auth.roles import SUPERADMIN
 
 router = APIRouter(
+    dependencies=[SUPERADMIN],
     prefix="/stream-output",
     tags=["Stream Output"],
 )

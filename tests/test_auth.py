@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -6,12 +7,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
 from open_bos_stream.api.auth import _assert_admin_scope
-from open_bos_stream.auth.middleware import ADMIN_PATHS, ADMIN_PREFIXES
 from open_bos_stream.auth.middleware import AuthMiddleware
 from open_bos_stream.auth.middleware import PUBLIC_PREFIXES
-from open_bos_stream.auth.middleware import SUPERADMIN_PATHS
-from open_bos_stream.auth.middleware import SUPERADMIN_PREFIXES
-from open_bos_stream.auth.middleware import viewer_mutation_allowed
+from open_bos_stream.auth.roles import ADMIN, SUPERADMIN, route_roles
+from open_bos_stream.auth.service import ROLE_LEVEL
 from open_bos_stream.auth.service import AuthError, AuthService
 from open_bos_stream.auth.rate_limit import LoginRateLimiter
 from open_bos_stream.display.ticket import issue_ticket
@@ -37,11 +36,11 @@ def system_admin_client() -> TestClient:
     app = FastAPI()
     app.add_middleware(AuthMiddleware, service=EndpointRoleService())
 
-    @app.get("/system/stream-log")
+    @app.get("/system/stream-log", dependencies=[ADMIN])
     async def stream_log():
         return {"content": "test"}
 
-    @app.post("/system/reboot")
+    @app.post("/system/reboot", dependencies=[SUPERADMIN])
     async def reboot():
         return {"success": True}
 
@@ -195,24 +194,123 @@ def test_duplicate_user_and_short_password_are_rejected(
         auth.create_user("neu", "kurz", "viewer")
 
 
-def test_superadmin_only_routes_cover_sensitive_features() -> None:
-    assert "/display" in SUPERADMIN_PREFIXES
-    assert "/web-access" in SUPERADMIN_PREFIXES
-    assert "/stream-output" in SUPERADMIN_PREFIXES
-    assert "/auth/users" not in SUPERADMIN_PREFIXES
-    assert "/media" in SUPERADMIN_PREFIXES
-    assert "/recording" in SUPERADMIN_PREFIXES
-    assert "/snapshot" in SUPERADMIN_PREFIXES
-    assert "/config/restore" in SUPERADMIN_PATHS
-    assert "/system/reboot" in SUPERADMIN_PATHS
-    assert "/system/stream-log" not in SUPERADMIN_PATHS
-    assert "/config/sources" not in SUPERADMIN_PATHS
+def _required_role(route) -> str:
+    """Strengste deklarierte Rolle einer Route."""
+
+    roles = route_roles(route)
+    if roles == ["public"]:
+        return "public"
+    return max(
+        (role for role in roles if role != "public"),
+        key=lambda role: ROLE_LEVEL[role],
+    )
 
 
-def test_system_diagnostics_require_at_least_admin_role() -> None:
-    assert "/system" in ADMIN_PREFIXES
-    assert "/auth/users" in ADMIN_PREFIXES
-    assert "/dashboard/diagnostics" in ADMIN_PATHS
+def _api_routes(routes=None) -> list:
+    """Alle API-Routen, auch aus eingebundenen Routern."""
+
+    from fastapi.routing import APIRoute
+
+    from open_bos_stream.main import app
+
+    found = []
+    for route in app.routes if routes is None else routes:
+        original = getattr(route, "original_router", None)
+        if original is not None:
+            found.extend(_api_routes(original.routes))
+        elif isinstance(route, APIRoute):
+            found.append(route)
+    return found
+
+
+def _application_routes() -> dict[tuple[str, str], str]:
+    return {
+        (method, route.path): _required_role(route)
+        for route in _api_routes()
+        for method in route.methods
+    }
+
+
+def test_every_route_declares_a_role() -> None:
+    routes = _api_routes()
+    undeclared = [
+        f"{sorted(route.methods)} {route.path}"
+        for route in routes
+        if not route_roles(route)
+    ]
+
+    assert len(routes) > 60
+    assert undeclared == []
+
+
+def test_route_roles_are_enforced_over_http(monkeypatch) -> None:
+    from open_bos_stream.core.container import auth_service
+    from open_bos_stream.main import app
+
+    def fake_verify(token, *, purpose="session"):
+        if purpose == "session" and token in ROLE_LEVEL:
+            return {"username": token, "role": token}
+        return None
+
+    monkeypatch.setattr(auth_service, "verify_token", fake_verify)
+    monkeypatch.setattr(type(auth_service), "configured", property(lambda self: True))
+    client = TestClient(app)
+
+    def status(method: str, path: str, role: str | None) -> int:
+        client.cookies.clear()
+        if role:
+            client.cookies.set(auth_service.COOKIE_NAME, role)
+        return client.request(method, path).status_code
+
+    assert status("GET", "/recording/files", None) == 401
+    assert status("GET", "/recording/files", "viewer") == 403
+    assert status("GET", "/recording/files", "admin") == 403
+    assert status("GET", "/recording/files", "superadmin") == 200
+    assert status("PUT", "/config/storage", "admin") == 403
+    assert status("PUT", "/config/", "admin") == 403
+    assert status("GET", "/system/stream-log", "viewer") == 403
+    assert status("GET", "/stream/inputs", "viewer") == 403
+
+
+@pytest.mark.parametrize(
+    ("method", "path", "role"),
+    [
+        ("GET", "/", "viewer"),
+        ("GET", "/login", "public"),
+        ("POST", "/auth/setup", "public"),
+        ("POST", "/auth/login", "public"),
+        ("GET", "/auth/media-access", "viewer"),
+        ("GET", "/auth/media-token", "viewer"),
+        ("GET", "/auth/users", "admin"),
+        ("POST", "/auth/users", "admin"),
+        ("GET", "/dashboard/status", "viewer"),
+        ("POST", "/dashboard/sources/{source_id}/fullscreen", "viewer"),
+        ("DELETE", "/dashboard/sources/{source_id}/fullscreen/{lease_id}", "viewer"),
+        ("POST", "/dashboard/sources/{source_id}/probe", "admin"),
+        ("GET", "/dashboard/diagnostics", "admin"),
+        ("GET", "/config/", "admin"),
+        ("PUT", "/config/", "superadmin"),
+        ("PUT", "/config/sources", "admin"),
+        ("PUT", "/config/storage", "superadmin"),
+        ("PUT", "/config/media-capture", "superadmin"),
+        ("POST", "/config/restore", "superadmin"),
+        ("GET", "/stream/status", "viewer"),
+        ("POST", "/stream/start", "admin"),
+        ("GET", "/stream/inputs", "admin"),
+        ("GET", "/system/stream-log", "admin"),
+        ("POST", "/system/reboot", "superadmin"),
+        ("GET", "/recording/files", "superadmin"),
+        ("GET", "/snapshot/files", "superadmin"),
+        ("GET", "/media/files", "superadmin"),
+        ("GET", "/stream-output/status", "superadmin"),
+        ("GET", "/display/status", "superadmin"),
+        ("GET", "/web-access/status", "superadmin"),
+        ("GET", "/api/map/maps", "viewer"),
+        ("POST", "/internal/mediamtx/auth", "public"),
+    ],
+)
+def test_route_role_matrix(method: str, path: str, role: str) -> None:
+    assert _application_routes()[(method, path)] == role
 
 
 def test_stream_log_endpoint_requires_admin() -> None:
@@ -237,22 +335,6 @@ def test_reboot_endpoint_requires_superadmin() -> None:
 
 def test_caddy_media_check_is_not_public() -> None:
     assert not "/auth/media-access".startswith(PUBLIC_PREFIXES)
-
-
-def test_viewers_can_only_manage_fullscreen_display_leases() -> None:
-    acquire = "/dashboard/sources/quelle-1/fullscreen"
-    release = acquire + "/abcdef0123456789"
-
-    assert viewer_mutation_allowed("POST", acquire)
-    assert viewer_mutation_allowed("DELETE", release)
-
-    assert not viewer_mutation_allowed("DELETE", acquire)
-    assert not viewer_mutation_allowed("POST", release)
-    assert not viewer_mutation_allowed(
-        "POST",
-        "/dashboard/sources/quelle-1/probe",
-    )
-    assert not viewer_mutation_allowed("PUT", "/config/sources")
 
 
 def test_admin_cannot_manage_or_create_superadmins() -> None:
@@ -328,3 +410,112 @@ def test_loopback_display_requires_valid_ticket(
 
     assert granted.status_code == 200
     assert granted.cookies.get("test_session") == "viewer"
+
+
+def test_setup_requires_one_time_code(tmp_path: Path) -> None:
+    auth = service(tmp_path)
+
+    code = auth.ensure_setup_code()
+
+    assert code and len(code) == 9
+    assert auth.setup_code_file.stat().st_mode & 0o777 == 0o600
+    assert auth.ensure_setup_code() == code
+    with pytest.raises(AuthError):
+        auth.complete_setup("leitung", "sicheres-passwort", None)
+    with pytest.raises(AuthError):
+        auth.complete_setup("leitung", "sicheres-passwort", "FALSCH-00")
+    assert not auth.configured
+
+    # Groß-/Kleinschreibung und Trennzeichen spielen keine Rolle.
+    user = auth.complete_setup(
+        "leitung",
+        "sicheres-passwort",
+        code.lower().replace("-", " "),
+    )
+
+    assert user == {"username": "leitung", "role": "superadmin"}
+    assert not auth.setup_code_file.exists()
+    assert auth.ensure_setup_code() is None
+    with pytest.raises(AuthError):
+        auth.complete_setup("zweiter", "sicheres-passwort", code)
+
+
+def test_logout_revokes_only_that_session(tmp_path: Path) -> None:
+    auth = service(tmp_path)
+    user = auth.create_user("leitung", "sicheres-passwort", "superadmin")
+    first = auth.create_token(user)
+    second = auth.create_token(user)
+
+    auth.revoke_token(first)
+
+    assert auth.verify_token(first) is None
+    assert auth.verify_token(second) == user
+    # Ein zweiter Dienst (Neustart) liest den Widerruf aus der Datei.
+    assert service(tmp_path).verify_token(first) is None
+
+
+def test_media_and_session_tokens_are_not_interchangeable(tmp_path: Path) -> None:
+    auth = service(tmp_path)
+    user = auth.create_user("leitung", "sicheres-passwort", "viewer")
+    session = auth.create_token(user)
+    media = auth.create_media_token(user)
+
+    assert auth.verify_token(media) is None
+    assert auth.verify_token(session, purpose="media") is None
+    assert auth.verify_token(media, purpose="media") == user
+    display = auth.create_media_token({"username": "Lokales Display", "role": "viewer"})
+    assert auth.verify_token(display, purpose="media")["role"] == "viewer"
+
+
+def test_shared_local_proxy_does_not_lock_out_everybody() -> None:
+    limiter = LoginRateLimiter(account_limit=5, ip_limit=20)
+
+    for index in range(30):
+        limiter.record_failure(f"benutzer{index}", "127.0.0.1")
+
+    # Ohne IP-weite Sperre bleibt ein anderes Konto über denselben Proxy nutzbar.
+    assert limiter.retry_after("leitung", "127.0.0.1") == 0
+    for _ in range(5):
+        limiter.record_failure("leitung", "127.0.0.1")
+    assert limiter.retry_after("leitung", "127.0.0.1") > 0
+    # Externe Adressen behalten die IP-weite Grenze.
+    for index in range(20):
+        limiter.record_failure(f"benutzer{index}", "203.0.113.9")
+    assert limiter.retry_after("neu", "203.0.113.9") > 0
+
+
+def test_session_cookie_is_secure_only_over_https(tmp_path, monkeypatch) -> None:
+    from open_bos_stream.api import auth as auth_api
+
+    auth = service(tmp_path)
+    auth.create_user("leitung", "sicheres-passwort", "superadmin")
+    monkeypatch.setattr(auth_api, "auth_service", auth)
+    monkeypatch.setattr(auth_api, "login_rate_limiter", LoginRateLimiter())
+    app = FastAPI()
+    app.include_router(auth_api.router)
+    credentials = {"username": "leitung", "password": "sicheres-passwort"}
+
+    for base_url, secure in (("https://ffw-stream.test", True), ("http://pi.local", False)):
+        response = TestClient(app, base_url=base_url).post(
+            "/auth/login",
+            json=credentials,
+        )
+        cookie = response.headers["set-cookie"].lower()
+        assert response.status_code == 200
+        assert ("; secure" in cookie) is secure
+
+
+def test_admins_receive_masked_stream_output_urls(monkeypatch) -> None:
+    from open_bos_stream.api import config as config_api
+
+    def request_for(role: str):
+        return SimpleNamespace(state=SimpleNamespace(user={"username": role, "role": role}))
+
+    admin_view = asyncio.run(config_api.get_config(request_for("admin")))
+    superadmin_view = asyncio.run(config_api.get_config(request_for("superadmin")))
+
+    assert [output.url for output in admin_view.stream_outputs] == [
+        "rtmp://stream.example.test:1935/***",
+        "srt://srt.example.test:8890/***",
+    ]
+    assert superadmin_view.stream_outputs[0].url.endswith("/live/test")

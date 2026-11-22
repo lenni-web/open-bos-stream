@@ -129,3 +129,28 @@ print_header() {
     echo "========================================"
     echo
 }
+
+print_setup_code() {
+    # Solange kein Benutzerkonto existiert, erzeugt die Anwendung beim Start
+    # einen Einrichtungscode. Ohne ihn lässt sich der erste Superadmin nicht
+    # anlegen, damit kein Fremder einen frisch installierten Server übernimmt.
+    local code_file="${TARGET_DIR}/config/setup.code"
+    local attempt
+
+    for attempt in $(seq 1 15); do
+        if sudo test -s "${code_file}"; then
+            echo
+            echo "Einrichtungscode für den ersten Superadmin:"
+            echo
+            echo "    $(sudo cat "${code_file}")"
+            echo
+            echo "Der Code wird auf der Anmeldeseite bei der Ersteinrichtung"
+            echo "abgefragt und danach automatisch gelöscht."
+            return 0
+        fi
+        if sudo test -s "${TARGET_DIR}/config/users.yaml"; then
+            return 0
+        fi
+        sleep 1
+    done
+}

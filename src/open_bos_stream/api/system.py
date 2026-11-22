@@ -12,8 +12,10 @@ from open_bos_stream.core.installation import (
     installation_profile,
     server_access_settings,
 )
+from open_bos_stream.auth.roles import ADMIN, SUPERADMIN
 
 router = APIRouter(
+    dependencies=[ADMIN],
     prefix="/system",
     tags=["System"],
 )
@@ -50,7 +52,7 @@ async def stream_log():
     }
 
 
-@router.post("/reboot")
+@router.post("/reboot", dependencies=[SUPERADMIN])
 async def reboot_system():
     try:
         await run_in_threadpool(

@@ -197,3 +197,61 @@ def test_migration_persists_shortened_legacy_token(tmp_path) -> None:
 
     assert config.sources[0].publish_token == "abcdefghijkl"
     assert persisted["sources"][0]["publish_token"] == "abcdefghijkl"
+
+
+def read_request(
+    *,
+    protocol: str,
+    ip: str = "203.0.113.10",
+    token: str = "",
+    query: str = "",
+) -> MediaMTXAuthRequest:
+    return MediaMTXAuthRequest(
+        action="read",
+        path="quelle-1",
+        protocol=protocol,
+        token=token,
+        ip=ip,
+        query=query,
+    )
+
+
+@pytest.mark.parametrize("protocol", ["rtmp", "rtsp", "srt", "webrtc", "hls"])
+def test_external_readers_without_token_are_rejected(protocol) -> None:
+    with pytest.raises(HTTPException) as error:
+        authorize(read_request(protocol=protocol))
+
+    assert error.value.status_code == 401
+
+
+@pytest.mark.parametrize("ip", ["127.0.0.1", "::1"])
+def test_local_readers_are_allowed(ip) -> None:
+    # Caddy (nach Sitzungsprüfung) und die internen FFmpeg-Prozesse.
+    assert authorize(read_request(protocol="rtsp", ip=ip)) == {"authorized": True}
+
+
+def test_browser_reader_with_media_token_is_allowed(tmp_path, monkeypatch) -> None:
+    from open_bos_stream.auth.service import AuthService
+
+    auth = AuthService(str(tmp_path / "users.yaml"), str(tmp_path / "auth.secret"))
+    user = auth.create_user("zuschauer", "sicheres-passwort", "viewer")
+    monkeypatch.setattr(mediamtx_auth, "auth_service", auth)
+    media = auth.create_media_token(user)
+    session = auth.create_token(user)
+
+    assert authorize(read_request(protocol="webrtc", token=media)) == {"authorized": True}
+    assert authorize(read_request(protocol="hls", query=f"token={media}")) == {"authorized": True}
+    for payload in (
+        read_request(protocol="webrtc", token=session),
+        read_request(protocol="rtmp", token=media),
+    ):
+        with pytest.raises(HTTPException):
+            authorize(payload)
+
+
+def test_mediamtx_configs_no_longer_exempt_readers() -> None:
+    for name in ("mediamtx.server.yml", "mediamtx.local.yml"):
+        data = yaml.safe_load(open(f"config/{name}", encoding="utf-8"))
+        excluded = {item["action"] for item in data["authHTTPExclude"]}
+        assert "read" not in excluded
+        assert data["authMethod"] == "http"

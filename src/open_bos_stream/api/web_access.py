@@ -8,9 +8,11 @@ from open_bos_stream.core.container import (
     web_access_manager,
 )
 from open_bos_stream.web_access.config import WebAccessConfig
+from open_bos_stream.auth.roles import SUPERADMIN
 
 
-router = APIRouter(prefix="/web-access", tags=["Webzugriff"])
+router = APIRouter(
+    dependencies=[SUPERADMIN],prefix="/web-access", tags=["Webzugriff"])
 loader = ConfigLoader()
 
 

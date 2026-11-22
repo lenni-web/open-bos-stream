@@ -151,3 +151,5 @@ echo
 echo "========================================"
 echo " Open BOS Stream erfolgreich installiert"
 echo "========================================"
+
+print_setup_code

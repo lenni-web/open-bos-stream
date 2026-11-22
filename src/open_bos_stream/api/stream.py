@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from open_bos_stream.core.container import stream_service
+from open_bos_stream.auth.roles import ADMIN, VIEWER
 
 router = APIRouter(
     prefix="/stream",
@@ -8,7 +9,7 @@ router = APIRouter(
 )
 
 
-@router.get("/status")
+@router.get("/status", dependencies=[VIEWER])
 async def status():
     return {
         "running": stream_service.running,
@@ -18,7 +19,7 @@ async def status():
     }
 
 
-@router.post("/start")
+@router.post("/start", dependencies=[ADMIN])
 async def start():
     try:
         running = stream_service.start()
@@ -35,7 +36,7 @@ async def start():
         }
 
 
-@router.post("/stop")
+@router.post("/stop", dependencies=[ADMIN])
 async def stop():
     try:
         stopped = stream_service.stop()

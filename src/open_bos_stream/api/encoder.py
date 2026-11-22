@@ -27,8 +27,10 @@ from open_bos_stream.stream.encoder.models import (
 from open_bos_stream.stream.inputs import (
     registry,
 )
+from open_bos_stream.auth.roles import ADMIN
 
 router = APIRouter(
+    dependencies=[ADMIN],
 
     prefix="/encoder",
 

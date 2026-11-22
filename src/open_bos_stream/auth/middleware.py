@@ -1,5 +1,3 @@
-import re
-
 from fastapi import Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -18,44 +16,15 @@ PUBLIC_PREFIXES = (
     "/display/stream",
     "/internal/mediamtx/auth",
 )
-SUPERADMIN_PREFIXES = (
-    "/display",
-    "/web-access",
-    "/stream-output",
-    "/media",
-    "/recording",
-    "/snapshot",
-)
-SUPERADMIN_PATHS = {
-    "/config/restore",
-    "/system/reboot",
-}
-ADMIN_PREFIXES = (
-    "/system",
-    "/auth/users",
-)
-ADMIN_PATHS = {
-    "/dashboard/diagnostics",
-}
-
-FULLSCREEN_ACQUIRE_PATH = re.compile(
-    r"^/dashboard/sources/[a-z0-9_-]+/fullscreen$"
-)
-FULLSCREEN_RELEASE_PATH = re.compile(
-    r"^/dashboard/sources/[a-z0-9_-]+/fullscreen/[a-f0-9]+$"
-)
 
 
-def viewer_mutation_allowed(method: str, path: str) -> bool:
-    """Erlaubt Viewern ausschließlich ihren Anzeige-Lebenszyklus."""
+def secure_cookies(request: Request) -> bool:
+    """Cookies nur über HTTPS mit dem Secure-Attribut ausliefern.
 
-    return (
-        method == "POST"
-        and FULLSCREEN_ACQUIRE_PATH.fullmatch(path) is not None
-    ) or (
-        method == "DELETE"
-        and FULLSCREEN_RELEASE_PATH.fullmatch(path) is not None
-    )
+    Hinter Caddy liefert uvicorn das Schema aus X-Forwarded-Proto.
+    """
+
+    return request.url.scheme == "https"
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -89,7 +58,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 max_age=self.service.SESSION_SECONDS,
                 httponly=True,
                 samesite="strict",
-                secure=False,
+                secure=secure_cookies(request),
                 path="/",
             )
             return response
@@ -113,31 +82,5 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 status_code=401,
             )
 
-        mutation = request.method not in {"GET", "HEAD", "OPTIONS"}
-        viewer_display_mutation = viewer_mutation_allowed(
-            request.method,
-            path,
-        )
-        admin_only = (
-            (mutation and not viewer_display_mutation)
-            or path.startswith(ADMIN_PREFIXES)
-            or path in ADMIN_PATHS
-        )
-        if admin_only and not self.service.has_role(user, "admin"):
-            return JSONResponse(
-                {"detail": "Für diese Aktion ist die Rolle Admin erforderlich."},
-                status_code=403,
-            )
-        if (
-            (
-                path.startswith(SUPERADMIN_PREFIXES)
-                or path in SUPERADMIN_PATHS
-            )
-            and not self.service.has_role(user, "superadmin")
-        ):
-            return JSONResponse(
-                {"detail": "Diese Aktion ist Superadmins vorbehalten."},
-                status_code=403,
-            )
-
+        # Die Rolle prüft jeder Endpunkt selbst (auth/roles.py).
         return await call_next(request)

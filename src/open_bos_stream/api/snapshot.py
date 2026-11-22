@@ -11,8 +11,10 @@ from open_bos_stream.core.container import (
     snapshot_library,
     snapshot_service,
 )
+from open_bos_stream.auth.roles import SUPERADMIN
 
 router = APIRouter(
+    dependencies=[SUPERADMIN],
     prefix="/snapshot",
     tags=["Snapshot"],
 )

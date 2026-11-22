@@ -10,6 +10,7 @@ from open_bos_stream.core.container import (
     fullscreen_relay_manager,
 )
 from open_bos_stream.stream.probe import ProbeBusyError
+from open_bos_stream.auth.roles import ADMIN, VIEWER
 
 router = APIRouter(
     prefix="/dashboard",
@@ -17,12 +18,12 @@ router = APIRouter(
 )
 
 
-@router.get("/status")
+@router.get("/status", dependencies=[VIEWER])
 async def status():
     return await run_in_threadpool(dashboard_service.status)
 
 
-@router.post("/sources/{source_id}/probe")
+@router.post("/sources/{source_id}/probe", dependencies=[ADMIN])
 async def probe_source(source_id: str):
     try:
         return await run_in_threadpool(
@@ -52,7 +53,7 @@ async def probe_source(source_id: str):
         ) from exc
 
 
-@router.post("/sources/{source_id}/fullscreen")
+@router.post("/sources/{source_id}/fullscreen", dependencies=[VIEWER])
 async def acquire_fullscreen_stream(source_id: str):
     try:
         return await run_in_threadpool(
@@ -70,7 +71,7 @@ async def acquire_fullscreen_stream(source_id: str):
         ) from exc
 
 
-@router.get("/sources/{source_id}/fullscreen/{lease_id}")
+@router.get("/sources/{source_id}/fullscreen/{lease_id}", dependencies=[VIEWER])
 async def fullscreen_stream_status(source_id: str, lease_id: str):
     try:
         return await run_in_threadpool(
@@ -82,7 +83,7 @@ async def fullscreen_stream_status(source_id: str, lease_id: str):
         raise HTTPException(404, "Vollbild-Anforderung ist abgelaufen.") from exc
 
 
-@router.delete("/sources/{source_id}/fullscreen/{lease_id}")
+@router.delete("/sources/{source_id}/fullscreen/{lease_id}", dependencies=[VIEWER])
 async def release_fullscreen_stream(source_id: str, lease_id: str):
     await run_in_threadpool(
         fullscreen_relay_manager.release,
@@ -92,7 +93,7 @@ async def release_fullscreen_stream(source_id: str, lease_id: str):
     return {"success": True}
 
 
-@router.get("/diagnostics")
+@router.get("/diagnostics", dependencies=[ADMIN])
 async def diagnostics():
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),

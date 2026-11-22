@@ -47,6 +47,15 @@
             </p>
         </section>
         <form id="auth-form">
+            <label id="auth-setup-code-field" class="form-field" hidden>
+                <span>Einrichtungscode</span>
+                <input id="auth-setup-code" class="bos-input" autocomplete="one-time-code"
+                    autocapitalize="characters" spellcheck="false" maxlength="32">
+                <small>
+                    Steht am Ende der Installation sowie im Journal des
+                    Dienstes (<code>journalctl -u open-bos-stream</code>).
+                </small>
+            </label>
             <label class="form-field">
                 <span>Benutzername</span>
                 <input id="auth-username" class="bos-input" autocomplete="username" required>
@@ -73,6 +82,8 @@
                 "Dieses Konto erhält die vollständige Systemverwaltung.";
             document.getElementById("auth-password").autocomplete =
                 "new-password";
+            document.getElementById("auth-setup-code-field").hidden = false;
+            document.getElementById("auth-setup-code").required = true;
         }
         document.getElementById("auth-form").addEventListener(
             "submit",
@@ -92,6 +103,9 @@
                                 ).value,
                                 password: document.getElementById(
                                     "auth-password"
+                                ).value,
+                                setup_code: document.getElementById(
+                                    "auth-setup-code"
                                 ).value,
                             }),
                         }

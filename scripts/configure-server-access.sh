@@ -180,7 +180,8 @@ if [ "${HTTPS_MODE}" = "yes" ]; then
     {
         echo "[Service]"
         echo "ExecStart="
-        echo "ExecStart=/opt/open-bos-stream/.venv/bin/python -m uvicorn open_bos_stream.main:app --host 127.0.0.1 --port 8000"
+        # Nur Caddy auf 127.0.0.1 darf X-Forwarded-For/-Proto setzen.
+        echo "ExecStart=/opt/open-bos-stream/.venv/bin/python -m uvicorn open_bos_stream.main:app --host 127.0.0.1 --port 8000 --proxy-headers --forwarded-allow-ips 127.0.0.1"
     } > "${service_override_tmp}"
     sudo install -d -m 0755 \
         /etc/systemd/system/open-bos-stream.service.d
@@ -189,6 +190,11 @@ if [ "${HTTPS_MODE}" = "yes" ]; then
         /etc/systemd/system/open-bos-stream.service.d/server-bind.conf
 else
     echo "HTTPS bleibt deaktiviert."
+    echo
+    echo "WARNUNG: Ohne HTTPS werden Passwörter, Sitzungen und Livebilder"
+    echo "unverschlüsselt übertragen. Für einen über das Internet erreichbaren"
+    echo "Server bitte HTTPS aktivieren (--domain NAME --https)."
+    echo
     if [ "${PREVIOUS_HTTPS}" = "yes" ] &&
         systemctl cat caddy.service >/dev/null 2>&1; then
         sudo systemctl disable --now caddy.service

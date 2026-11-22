@@ -168,3 +168,5 @@ echo
 echo "========================================"
 echo " Update erfolgreich abgeschlossen"
 echo "========================================"
+
+print_setup_code

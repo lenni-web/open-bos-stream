@@ -3,7 +3,7 @@ from dataclasses import asdict
 from fastapi import APIRouter, HTTPException, Query, Request, Response
 from starlette.concurrency import run_in_threadpool
 
-from open_bos_stream.core.config import ConfigLoader
+from open_bos_stream.core.container import config as runtime_config
 from open_bos_stream.map import MapService
 from open_bos_stream.map.dipul import (
     ATTRIBUTION as DIPUL_ATTRIBUTION,
@@ -13,8 +13,10 @@ from open_bos_stream.map.dipul import (
     DipulUnavailableError,
 )
 from open_bos_stream.map.mbtiles import MBTilesError
+from open_bos_stream.auth.roles import VIEWER
 
 router = APIRouter(
+    dependencies=[VIEWER],
     prefix="/api/map",
     tags=["map"],
 )
@@ -23,10 +25,10 @@ dipul_service = DipulService()
 
 
 def _service() -> MapService:
-    config = ConfigLoader().load()
-
+    # Laufzeitkonfiguration statt bei jeder Kachelanfrage die YAML-Datei
+    # neu zu lesen; gespeicherte Änderungen übernimmt ConfigApplyService.
     return MapService(
-        config.map,
+        runtime_config.map,
     )
 
 def _default_map(service: MapService) -> tuple[str, object]:

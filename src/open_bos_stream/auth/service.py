@@ -18,6 +18,9 @@ import yaml
 ROLES = ("viewer", "admin", "superadmin")
 ROLE_LEVEL = {role: index for index, role in enumerate(ROLES)}
 
+# Zeichen ohne Verwechslungsgefahr (kein 0/O, 1/I/l) für den Einrichtungscode.
+SETUP_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
 
 class AuthError(ValueError):
     """Ungültige Anmeldung oder Benutzerkonfiguration."""
@@ -31,20 +34,47 @@ class AuthService:
         self,
         users_file: str = "config/users.yaml",
         secret_file: str = "config/auth.secret",
+        setup_code_file: str | None = None,
+        revoked_file: str | None = None,
     ) -> None:
         self.users_file = Path(users_file)
         self.secret_file = Path(secret_file)
+        self.setup_code_file = Path(
+            setup_code_file
+            or self.users_file.with_name("setup.code")
+        )
+        self.revoked_file = Path(
+            revoked_file
+            or self.users_file.with_name("revoked_sessions.json")
+        )
+        self._users_cache: tuple[tuple[int, int], list[dict]] | None = None
+        self._revoked_cache: tuple[tuple[int, int], dict[str, int]] | None = None
+        self._secret_cache: bytes | None = None
 
     @property
     def configured(self) -> bool:
         return bool(self._read_users())
 
+    @staticmethod
+    def _file_key(path: Path) -> tuple[int, int] | None:
+        try:
+            stat = path.stat()
+        except FileNotFoundError:
+            return None
+        return (stat.st_mtime_ns, stat.st_size)
+
     def _read_users(self) -> list[dict]:
-        if not self.users_file.exists():
+        # Jede Anfrage prüft die Sitzung; die Datei wird nur nach einer
+        # Änderung neu gelesen.
+        key = self._file_key(self.users_file)
+        if key is None:
+            self._users_cache = None
             return []
-        with self.users_file.open(encoding="utf-8") as file:
-            data = yaml.safe_load(file) or {}
-        return list(data.get("users", []))
+        if self._users_cache is None or self._users_cache[0] != key:
+            with self.users_file.open(encoding="utf-8") as file:
+                data = yaml.safe_load(file) or {}
+            self._users_cache = (key, list(data.get("users", [])))
+        return [dict(item) for item in self._users_cache[1]]
 
     def _write_users(self, users: list[dict]) -> None:
         self.users_file.parent.mkdir(parents=True, exist_ok=True)
@@ -71,11 +101,123 @@ class AuthService:
             temporary_path.unlink(missing_ok=True)
 
     def _secret(self) -> bytes:
+        if self._secret_cache is not None:
+            return self._secret_cache
         if not self.secret_file.exists():
             self.secret_file.parent.mkdir(parents=True, exist_ok=True)
             self.secret_file.write_bytes(secrets.token_bytes(32))
             os.chmod(self.secret_file, 0o600)
-        return self.secret_file.read_bytes()
+        self._secret_cache = self.secret_file.read_bytes()
+        return self._secret_cache
+
+    # -----------------------------------------------------
+    # Einrichtungscode für die Ersteinrichtung
+    # -----------------------------------------------------
+
+    def ensure_setup_code(self) -> str | None:
+        """Code für die Ersteinrichtung bereitstellen, solange sie fehlt."""
+
+        if self.configured:
+            self.setup_code_file.unlink(missing_ok=True)
+            return None
+        if self.setup_code_file.exists():
+            return self.setup_code_file.read_text(encoding="utf-8").strip()
+        raw = "".join(
+            secrets.choice(SETUP_CODE_ALPHABET) for _ in range(8)
+        )
+        code = f"{raw[:4]}-{raw[4:]}"
+        self.setup_code_file.parent.mkdir(parents=True, exist_ok=True)
+        descriptor = os.open(
+            self.setup_code_file,
+            os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
+            0o600,
+        )
+        with os.fdopen(descriptor, "w", encoding="utf-8") as file:
+            file.write(code + "\n")
+        return code
+
+    @staticmethod
+    def _normalize_setup_code(code: str) -> str:
+        return "".join(
+            character for character in code.upper() if character.isalnum()
+        )
+
+    def setup_code_valid(self, code: str | None) -> bool:
+        if not code or not self.setup_code_file.exists():
+            return False
+        expected = self.setup_code_file.read_text(encoding="utf-8")
+        return hmac.compare_digest(
+            self._normalize_setup_code(code).encode(),
+            self._normalize_setup_code(expected).encode(),
+        )
+
+    def complete_setup(
+        self,
+        username: str,
+        password: str,
+        setup_code: str | None,
+    ) -> dict:
+        """Ersten Superadmin nur mit gültigem Einrichtungscode anlegen."""
+
+        if not self.setup_code_valid(setup_code):
+            raise AuthError("Der Einrichtungscode ist ungültig.")
+        user = self.create_user(
+            username,
+            password,
+            "superadmin",
+            initial=True,
+        )
+        self.setup_code_file.unlink(missing_ok=True)
+        return user
+
+    # -----------------------------------------------------
+    # Widerrufene Sitzungen (Abmelden)
+    # -----------------------------------------------------
+
+    def _revoked(self) -> dict[str, int]:
+        key = self._file_key(self.revoked_file)
+        if key is None:
+            self._revoked_cache = None
+            return {}
+        if self._revoked_cache is None or self._revoked_cache[0] != key:
+            try:
+                data = json.loads(self.revoked_file.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                data = {}
+            self._revoked_cache = (
+                key,
+                {str(k): int(v) for k, v in dict(data).items()},
+            )
+        return self._revoked_cache[1]
+
+    def revoke_token(self, token: str | None) -> None:
+        """Eine Sitzung bis zu ihrem Ablauf serverseitig ungültig machen."""
+
+        payload = self._verified_payload(token)
+        if payload is None or not payload.get("jti"):
+            return
+        now = int(time.time())
+        revoked = {
+            jti: expires
+            for jti, expires in self._revoked().items()
+            if expires >= now
+        }
+        revoked[str(payload["jti"])] = int(payload["exp"])
+        self.revoked_file.parent.mkdir(parents=True, exist_ok=True)
+        descriptor, temporary = tempfile.mkstemp(
+            prefix=".revoked.",
+            suffix=".tmp",
+            dir=self.revoked_file.parent,
+            text=True,
+        )
+        temporary_path = Path(temporary)
+        try:
+            with os.fdopen(descriptor, "w", encoding="utf-8") as file:
+                json.dump(revoked, file)
+            os.chmod(temporary_path, 0o600)
+            os.replace(temporary_path, self.revoked_file)
+        finally:
+            temporary_path.unlink(missing_ok=True)
 
     @staticmethod
     def _normalize_username(username: str) -> str:
@@ -230,7 +372,12 @@ class AuthService:
         self._write_users(users)
         return {"username": username, "role": target["role"]}
 
-    def create_token(self, user: dict) -> str:
+    def create_token(
+        self,
+        user: dict,
+        *,
+        purpose: str = "session",
+    ) -> str:
         if user["username"] == "__display__":
             stamp = "display"
         else:
@@ -250,6 +397,8 @@ class AuthService:
             "sub": user["username"],
             "role": user["role"],
             "stamp": stamp,
+            "use": purpose,
+            "jti": secrets.token_urlsafe(12),
             "exp": int(time.time()) + self.SESSION_SECONDS,
         }
         raw = base64.urlsafe_b64encode(
@@ -272,18 +421,32 @@ class AuthService:
             "role": "viewer",
         })
 
-    def verify_token(self, token: str | None) -> dict | None:
+    def create_media_token(self, user: dict) -> str:
+        """Kurzer Ausweis für direkte MediaMTX-Abrufe (WHEP/HLS)."""
+
+        username = (
+            "__display__"
+            if user.get("username") == "Lokales Display"
+            else user["username"]
+        )
+        return self.create_token(
+            {"username": username, "role": user["role"]},
+            purpose="media",
+        )
+
+    def _verified_payload(self, token: str | None) -> dict | None:
+        """Signatur und Ablauf prüfen; liefert die Nutzdaten."""
+
         if not token:
             return None
         try:
             raw_value, signature_value = token.split(".", 1)
-            raw = raw_value.encode()
             signature = base64.urlsafe_b64decode(
                 signature_value + "=" * (-len(signature_value) % 4)
             )
             expected = hmac.new(
                 self._secret(),
-                raw,
+                raw_value.encode(),
                 hashlib.sha256,
             ).digest()
             if not hmac.compare_digest(signature, expected):
@@ -294,6 +457,25 @@ class AuthService:
                 )
             )
             if int(payload["exp"]) < int(time.time()):
+                return None
+            return payload
+        except (ValueError, KeyError, TypeError, json.JSONDecodeError):
+            return None
+
+    def verify_token(
+        self,
+        token: str | None,
+        *,
+        purpose: str = "session",
+    ) -> dict | None:
+        payload = self._verified_payload(token)
+        if payload is None:
+            return None
+        try:
+            # Ältere Sitzungstoken tragen noch keinen Verwendungszweck.
+            if payload.get("use", "session") != purpose:
+                return None
+            if payload.get("jti") and payload["jti"] in self._revoked():
                 return None
             stored = next(
                 (
@@ -332,7 +514,7 @@ class AuthService:
             if payload.get("stamp") != expected_stamp:
                 return None
             return current
-        except (ValueError, KeyError, json.JSONDecodeError):
+        except (KeyError, TypeError):
             return None
 
     @staticmethod

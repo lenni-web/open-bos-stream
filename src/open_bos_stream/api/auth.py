@@ -3,8 +3,10 @@ import logging
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
+from open_bos_stream.auth.middleware import secure_cookies
 from open_bos_stream.auth.service import AuthError
 from open_bos_stream.core.container import auth_service, login_rate_limiter
+from open_bos_stream.auth.roles import ADMIN, PUBLIC, VIEWER
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -14,6 +16,10 @@ logger = logging.getLogger(__name__)
 class Credentials(BaseModel):
     username: str = Field(min_length=1, max_length=64)
     password: str = Field(min_length=1, max_length=1024)
+
+
+class SetupRequest(Credentials):
+    setup_code: str = Field(default="", max_length=32)
 
 
 class UserCreate(Credentials):
@@ -45,7 +51,7 @@ def _assert_admin_scope(
         )
 
 
-@router.get("/status")
+@router.get("/status", dependencies=[PUBLIC])
 async def status(request: Request):
     return {
         "configured": auth_service.configured,
@@ -53,22 +59,23 @@ async def status(request: Request):
     }
 
 
-@router.post("/setup")
-async def setup(payload: Credentials, response: Response):
+@router.post("/setup", dependencies=[PUBLIC])
+async def setup(payload: SetupRequest, request: Request, response: Response):
+    # Der Einrichtungscode steht im Journal bzw. in config/setup.code und
+    # verhindert, dass ein Fremder einen frisch installierten Server übernimmt.
     try:
-        user = auth_service.create_user(
+        user = auth_service.complete_setup(
             payload.username,
             payload.password,
-            "superadmin",
-            initial=True,
+            payload.setup_code,
         )
     except AuthError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
-    _set_session(response, auth_service.create_token(user))
+    _set_session(request, response, auth_service.create_token(user))
     return {"success": True, "user": user}
 
 
-@router.post("/login")
+@router.post("/login", dependencies=[PUBLIC])
 async def login(payload: Credentials, request: Request, response: Response):
     client_ip = request.client.host if request.client else "unknown"
     retry_after = login_rate_limiter.retry_after(
@@ -112,24 +119,36 @@ async def login(payload: Credentials, request: Request, response: Response):
             detail="Benutzername oder Passwort ist falsch.",
         )
     login_rate_limiter.record_success(payload.username, client_ip)
-    _set_session(response, auth_service.create_token(user))
+    _set_session(request, response, auth_service.create_token(user))
     return {"success": True, "user": user}
 
 
-@router.get("/media-access", status_code=204)
+@router.get("/media-access", status_code=204, dependencies=[VIEWER])
 async def media_access():
     """Sitzungsprüfung für Caddys HLS-/WHEP-Weiterleitung."""
 
     return Response(status_code=204)
 
 
-@router.post("/logout")
-async def logout(response: Response):
+@router.get("/media-token", dependencies=[VIEWER])
+async def media_token(request: Request):
+    """Token für direkte WHEP-/HLS-Abrufe bei MediaMTX ohne Caddy."""
+
+    return {
+        "token": auth_service.create_media_token(request.state.user),
+        "expires_in": auth_service.SESSION_SECONDS,
+    }
+
+
+@router.post("/logout", dependencies=[PUBLIC])
+async def logout(request: Request, response: Response):
+    # Die Sitzung wird serverseitig widerrufen, nicht nur das Cookie gelöscht.
+    auth_service.revoke_token(request.cookies.get(auth_service.COOKIE_NAME))
     response.delete_cookie(auth_service.COOKIE_NAME, path="/")
     return {"success": True}
 
 
-@router.get("/users")
+@router.get("/users", dependencies=[ADMIN])
 async def users(request: Request):
     result = auth_service.users()
     if request.state.user["role"] != "superadmin":
@@ -137,7 +156,7 @@ async def users(request: Request):
     return result
 
 
-@router.post("/users")
+@router.post("/users", dependencies=[ADMIN])
 async def create_user(payload: UserCreate, request: Request):
     _assert_admin_scope(request, desired_role=payload.role)
     try:
@@ -151,7 +170,7 @@ async def create_user(payload: UserCreate, request: Request):
     return {"success": True, "user": user}
 
 
-@router.delete("/users/{username}")
+@router.delete("/users/{username}", dependencies=[ADMIN])
 async def delete_user(username: str, request: Request):
     target = auth_service.user(username)
     if target is None:
@@ -167,7 +186,7 @@ async def delete_user(username: str, request: Request):
     return {"success": True}
 
 
-@router.patch("/users/{username}")
+@router.patch("/users/{username}", dependencies=[ADMIN])
 async def update_user(
     username: str,
     payload: UserUpdate,
@@ -192,13 +211,13 @@ async def update_user(
     return {"success": True, "user": user}
 
 
-def _set_session(response: Response, token: str) -> None:
+def _set_session(request: Request, response: Response, token: str) -> None:
     response.set_cookie(
         auth_service.COOKIE_NAME,
         token,
         max_age=auth_service.SESSION_SECONDS,
         httponly=True,
         samesite="strict",
-        secure=False,
+        secure=secure_cookies(request),
         path="/",
     )

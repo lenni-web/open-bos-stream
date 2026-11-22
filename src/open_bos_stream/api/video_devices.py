@@ -11,8 +11,10 @@ from fastapi import (
 from open_bos_stream.stream.inputs.device_manager import (
     DeviceManager,
 )
+from open_bos_stream.auth.roles import ADMIN
 
 router = APIRouter(
+    dependencies=[ADMIN],
 
     prefix="/system",
 

@@ -10,8 +10,10 @@ from fastapi import APIRouter
 
 from open_bos_stream.stream.inputs import registry
 from open_bos_stream.core.installation import installation_profile
+from open_bos_stream.auth.roles import ADMIN
 
 router = APIRouter(
+    dependencies=[ADMIN],
     prefix="/stream",
     tags=["Stream Inputs"],
 )

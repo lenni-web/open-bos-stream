@@ -100,6 +100,13 @@ async def storage_protection_loop() -> None:
 async def lifespan(app: FastAPI):
     """Initialisiert die Anwendung."""
 
+    setup_code = auth_service.ensure_setup_code()
+    if setup_code:
+        logger.warning(
+            "Ersteinrichtung ausstehend. Einrichtungscode: %s",
+            setup_code,
+        )
+
     if stream_service.managed:
         try:
             if not stream_service.running:

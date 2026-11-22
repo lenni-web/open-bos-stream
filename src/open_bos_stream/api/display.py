@@ -10,9 +10,11 @@ from open_bos_stream.core.container import (
     display_manager,
 )
 from open_bos_stream.display.config import DisplayConfig
+from open_bos_stream.auth.roles import SUPERADMIN
 
 
 router = APIRouter(
+    dependencies=[SUPERADMIN],
     prefix="/display",
     tags=["Display"],
 )

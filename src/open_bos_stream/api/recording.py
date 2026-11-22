@@ -15,8 +15,10 @@ from open_bos_stream.core.container import (
     recording_service,
 )
 from open_bos_stream.recording.playback import PlaybackPreparationError
+from open_bos_stream.auth.roles import SUPERADMIN
 
 router = APIRouter(
+    dependencies=[SUPERADMIN],
     prefix="/recording",
     tags=["Recording"],
 )

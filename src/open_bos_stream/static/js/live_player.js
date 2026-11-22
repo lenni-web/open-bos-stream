@@ -1,15 +1,49 @@
+/*
+ * Medien-Token für direkte MediaMTX-Abrufe (WHEP/HLS ohne Caddy).
+ * Über HTTPS prüft Caddy die Sitzung; das Token ist dort nicht nötig.
+ */
+const OpenBosMediaToken = {
+    refreshMs: 30 * 60 * 1000,
+
+    value() {
+        return window.openBosMediaToken || "";
+    },
+
+    needed() {
+        return window.location.protocol !== "https:" && this.value() !== "";
+    },
+
+    async refresh() {
+        try {
+            const response = await fetch("/auth/media-token", {
+                credentials: "same-origin",
+                cache: "no-store",
+            });
+            if (response.ok) {
+                window.openBosMediaToken = (await response.json()).token;
+            }
+        } catch (error) {
+            console.debug("Medien-Token konnte nicht erneuert werden:", error);
+        }
+    },
+};
+
+if (window.openBosMediaToken) {
+    setInterval(() => OpenBosMediaToken.refresh(), OpenBosMediaToken.refreshMs);
+}
+
 class LivePlayer {
 
     constructor(videoElement = null) {
 
         this.mode = null;
-		this.resetting = false;
-		this.currentStream = null;
-		this.hls = null;
-		this.webrtc = null;
+        this.resetting = false;
+        this.currentStream = null;
+        this.hls = null;
+        this.webrtc = null;
         this.unavailableTimer = null;
-		this.state = "idle";
-		this.stateListeners = [];
+        this.state = "idle";
+        this.stateListeners = [];
         this.transportDiagnostics = {
             protocol: null,
             connection_state: "idle",
@@ -21,7 +55,7 @@ class LivePlayer {
             frames_dropped: 0,
         };
         this.previousTransportSample = null;
-		this.video =
+        this.video =
             videoElement ??
             document.getElementById(
                 "live-video"
@@ -36,146 +70,150 @@ class LivePlayer {
         // Livestreams starten stumm. Audio wird pro Player bewusst aktiviert.
         this.video.muted = true;
         this.video.defaultMuted = true;
-			
-		this.video.addEventListener(
-		    "playing",
-		    () => {
 
-		        console.log("▶ playing");
+        this.video.addEventListener(
+            "playing",
+            () => {
 
-		        this.setState("playing");
+                console.log("▶ playing");
+
+                this.setState("playing");
                 if (this.mode === "hls") {
                     this.transportDiagnostics.connection_state =
                         "playing";
                 }
 
-		    }
-		);
+            }
+        );
 
         this.diagnosticsTimer = window.setInterval(
             () => this.refreshTransportDiagnostics(),
             2000
         );
 
-		this.video.addEventListener(
-		    "pause",
-		    () => console.log("⏸ pause")
-		);
+        this.video.addEventListener(
+            "pause",
+            () => console.log("⏸ pause")
+        );
 
-		this.video.addEventListener(
-		    "ended",
-		    () => console.log("■ ended")
-		);
+        this.video.addEventListener(
+            "ended",
+            () => console.log("■ ended")
+        );
 
-		this.video.addEventListener(
-		    "error",
-		    () => {
+        this.video.addEventListener(
+            "error",
+            () => {
 
-		        if (this.resetting) {
-		            return;
-		        }
+                if (this.resetting) {
+                    return;
+                }
 
-		        console.error(
-		            "Video error:",
-		            this.video.error
-		        );
+                console.error(
+                    "Video error:",
+                    this.video.error
+                );
 
-		        console.log(
-		            "Quelle:",
-		            this.video.currentSrc
-		        );
+                console.log(
+                    "Quelle:",
+                    this.video.currentSrc
+                );
 
-		        this.setState("error");
+                this.setState("error");
 
-		    }
-		);
+            }
+        );
 
     }
 
-	setState(state) {
+    setState(state) {
 
-	    if (this.state === state) {
-	        return;
-	    }
+        if (this.state === state) {
+            return;
+        }
 
-	    const previousState =
-	        this.state;
+        const previousState =
+            this.state;
 
-	    this.state = state;
+        this.state = state;
 
-	    console.debug(
-	        `[LivePlayer] ${previousState} → ${state}`
-	    );
+        console.debug(
+            `[LivePlayer] ${previousState} → ${state}`
+        );
 
-	    for (const listener of this.stateListeners) {
+        for (const listener of this.stateListeners) {
 
-	        try {
+            try {
 
-	            listener({
-	                state: this.state,
-	                previousState: previousState,
-	                protocol: this.mode,
-	                stream: this.currentStream
-	            });
+                listener({
+                    state: this.state,
+                    previousState: previousState,
+                    protocol: this.mode,
+                    stream: this.currentStream
+                });
 
-	        } catch (err) {
+            } catch (err) {
 
-	            console.error(err);
+                console.error(err);
 
-	        }
+            }
 
-	    }
+        }
 
-	}
-	
-	onStateChanged(listener) {
+    }
 
-	    this.stateListeners.push(listener);
+    onStateChanged(listener) {
 
-	}
-	
-	getStreamUrl(streamName, protocol) {
+        this.stateListeners.push(listener);
 
-	    const host = window.location.hostname;
+    }
+
+    getStreamUrl(streamName, protocol) {
+
+        const host = window.location.hostname;
         const path = streamName
             .split("/")
             .map(segment => encodeURIComponent(segment))
             .join("/");
         const secure = window.location.protocol === "https:";
 
-	    switch (protocol) {
+        switch (protocol) {
 
-	        case "webrtc":
+            case "webrtc":
                 return secure
                     ? `${window.location.origin}/whep/${path}/whep`
                     : `http://${host}:8889/${path}/whep`;
 
-	        case "hls":
-	        default:
+            case "hls":
+            default:
                 return secure
                     ? `${window.location.origin}/hls/${path}/index.m3u8`
-                    : `http://${host}:8888/${path}/index.m3u8`;
+                    : `http://${host}:8888/${path}/index.m3u8` + (
+                        OpenBosMediaToken.needed()
+                            ? `?token=${encodeURIComponent(OpenBosMediaToken.value())}`
+                            : ""
+                    );
 
-	    }
+        }
 
-	}
-	
-	play(streamName, protocol = "hls", force = false) {
+    }
+
+    play(streamName, protocol = "hls", force = false) {
 
         this.cancelUnavailableStop();
 
-		if (
-		    !force &&
-		    this.mode === protocol &&
-		    this.currentStream === streamName
-		) {
-		    return;
-		}
+        if (
+            !force &&
+            this.mode === protocol &&
+            this.currentStream === streamName
+        ) {
+            return;
+        }
 
-		this.reset();
+        this.reset();
         this.setState("connecting");
-		this.mode = protocol;
-		this.currentStream = streamName;
+        this.mode = protocol;
+        this.currentStream = streamName;
         this.transportDiagnostics = {
             protocol: protocol,
             connection_state: "connecting",
@@ -186,24 +224,24 @@ class LivePlayer {
             frames_decoded: 0,
             frames_dropped: 0,
         };
-		
-		switch (protocol) {
 
-	        case "webrtc":
+        switch (protocol) {
 
-	            this.playWebRTC(streamName);
-	            break;
+            case "webrtc":
 
-	        case "hls":
+                this.playWebRTC(streamName);
+                break;
 
-	        default:
+            case "hls":
 
-	            this.playHls(streamName);
-	            break;
+            default:
 
-	    }
+                this.playHls(streamName);
+                break;
 
-	}
+        }
+
+    }
 
     reconnect(reason = "manual") {
         if (!this.currentStream || !this.mode) {
@@ -218,111 +256,123 @@ class LivePlayer {
         this.play(streamName, protocol, true);
         return true;
     }
-	
-	playHls(streamName) {
 
-	    if (!this.video) {
-	        return;
-	    }
+    playHls(streamName) {
 
-	const url =
-	    this.getStreamUrl(
-	        streamName,
-	        "hls"
-	    );
+        if (!this.video) {
+            return;
+        }
 
-	    console.log(
-	        "Start HLS:",
-	        url
-	    );
+    const url =
+        this.getStreamUrl(
+            streamName,
+            "hls"
+        );
 
-	    //
-	    // Safari unterstützt HLS direkt.
-	    //
-	    if (
-	        this.video.canPlayType(
-	            "application/vnd.apple.mpegurl"
-	        )
-	    ) {
-	        this.video.src = url;
-	        this.video.play().catch(
-	            console.error
-	        );
-	        return;
-	    }
+        console.log(
+            "Start HLS:",
+            url
+        );
 
-	    //
-	    // Chromium und Firefox verwenden hls.js.
-	    //
-	    if (
-	        typeof Hls !== "undefined" &&
-	        Hls.isSupported()
-	    ) {
-	        this.hls = new Hls({
-	            lowLatencyMode: true,
-	        });
+        //
+        // Safari unterstützt HLS direkt.
+        //
+        if (
+            this.video.canPlayType(
+                "application/vnd.apple.mpegurl"
+            )
+        ) {
+            this.video.src = url;
+            this.video.play().catch(
+                console.error
+            );
+            return;
+        }
 
-	        this.hls.on(
-	            Hls.Events.MANIFEST_PARSED,
-	            () => {
-	                this.video.play().catch(
-	                    console.error
-	                );
-	            }
-	        );
+        //
+        // Chromium und Firefox verwenden hls.js.
+        //
+        if (
+            typeof Hls !== "undefined" &&
+            Hls.isSupported()
+        ) {
+            this.hls = new Hls({
+                lowLatencyMode: true,
+                xhrSetup: xhr => {
+                    if (OpenBosMediaToken.needed()) {
+                        xhr.setRequestHeader(
+                            "Authorization",
+                            `Bearer ${OpenBosMediaToken.value()}`
+                        );
+                    }
+                },
+            });
 
-	        this.hls.on(
-	            Hls.Events.ERROR,
-	            (_event, data) => {
-	                console.error(
-	                    "HLS:",
-	                    data
-	                );
+            this.hls.on(
+                Hls.Events.MANIFEST_PARSED,
+                () => {
+                    this.video.play().catch(
+                        console.error
+                    );
+                }
+            );
 
-	                if (data.fatal) {
-	                    this.setState("error");
-	                }
-	            }
-	        );
+            this.hls.on(
+                Hls.Events.ERROR,
+                (_event, data) => {
+                    console.error(
+                        "HLS:",
+                        data
+                    );
 
-	        this.hls.loadSource(url);
-	        this.hls.attachMedia(this.video);
-	        return;
-	    }
+                    if (data.fatal) {
+                        this.setState("error");
+                    }
+                }
+            );
 
-	    console.error(
-	        "HLS wird von diesem Browser nicht unterstützt."
-	    );
-	    this.setState("error");
+            this.hls.loadSource(url);
+            this.hls.attachMedia(this.video);
+            return;
+        }
 
-	}
+        console.error(
+            "HLS wird von diesem Browser nicht unterstützt."
+        );
+        this.setState("error");
 
-	playWebRTC(streamName) {
+    }
 
-	const url =
-	    this.getStreamUrl(
-	        streamName,
-	        "webrtc"
-	    );
+    playWebRTC(streamName) {
 
-	    console.log("Verbinde WebRTC:", url);
+    const url =
+        this.getStreamUrl(
+            streamName,
+            "webrtc"
+        );
 
-	    this.webrtc = new MediaMTXWebRTCReader({
+        console.log("Verbinde WebRTC:", url);
 
-	        url: url,
+        this.webrtc = new MediaMTXWebRTCReader({
 
-			onError: (err) => {
+            url: url,
 
-			    console.error(
-			        "WebRTC:",
-			        err
-			    );
+            token: OpenBosMediaToken.needed()
+                ? OpenBosMediaToken.value()
+                : undefined,
 
-			    this.setState("error");
+            onError: (err) => {
+
+                console.error(
+                    "WebRTC:",
+                    err
+                );
+
+                this.setState("error");
                 this.transportDiagnostics.connection_state =
                     "reconnecting";
 
-			},
+            },
 
             onState: state => {
                 this.transportDiagnostics.connection_state =
@@ -343,7 +393,7 @@ class LivePlayer {
                 }
             },
 
-	        onTrack: (evt) => {
+            onTrack: (evt) => {
 
                 const receiver = evt.receiver;
                 if (receiver) {
@@ -370,17 +420,17 @@ class LivePlayer {
                     }
                 }
 
-	            this.video.srcObject =
-	                evt.streams[0];
+                this.video.srcObject =
+                    evt.streams[0];
 
-	            this.video.play()
-	                .catch(console.error);
+                this.video.play()
+                    .catch(console.error);
 
-	        }
+            }
 
-	    });
+        });
 
-	}
+    }
 
     async refreshTransportDiagnostics() {
         const quality =
@@ -443,7 +493,7 @@ class LivePlayer {
 
     diagnostics() {
         return {...this.transportDiagnostics};
-	}
+    }
 
     cancelUnavailableStop() {
         if (this.unavailableTimer !== null) {
@@ -476,41 +526,41 @@ class LivePlayer {
         return true;
     }
 
-	reset() {
+    reset() {
 
         this.cancelUnavailableStop();
-		this.resetting = true;
-	    if (this.hls) {
-	        this.hls.destroy();
-	        this.hls = null;
-	    }
+        this.resetting = true;
+        if (this.hls) {
+            this.hls.destroy();
+            this.hls = null;
+        }
 
-	    if (this.webrtc) {
-	        this.webrtc.close();
-	        this.webrtc = null;
-	    }
+        if (this.webrtc) {
+            this.webrtc.close();
+            this.webrtc = null;
+        }
         this.previousTransportSample = null;
 
-	    this.video.pause();
+        this.video.pause();
 
-	    this.video.removeAttribute("src");
-	    this.video.srcObject = null;
-	    this.video.load();
+        this.video.removeAttribute("src");
+        this.video.srcObject = null;
+        this.video.load();
         this.resetting = false;
-	}
-	
-	stop() {
+    }
 
-	    this.reset();
+    stop() {
 
-	    this.mode = null;
-	    this.currentStream = null;
+        this.reset();
 
-	    this.setState("idle");
+        this.mode = null;
+        this.currentStream = null;
+
+        this.setState("idle");
         this.transportDiagnostics.protocol = null;
         this.transportDiagnostics.connection_state = "idle";
 
-	}
+    }
 
     destroy() {
         this.stop();
