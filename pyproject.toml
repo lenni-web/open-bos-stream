@@ -14,7 +14,14 @@ dependencies = [
     "jinja2",
     "pyyaml",
     "psutil",
-    "pillow"
+    "pillow",
+    "requests",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "httpx2",
 ]
 
 [tool.setuptools]

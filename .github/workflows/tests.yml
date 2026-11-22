@@ -28,12 +28,27 @@ jobs:
           cache: pip
 
       - name: Abhängigkeiten installieren
-        run: pip install -r requirements.txt
+        run: pip install -r requirements-dev.txt
 
       - name: Tests ausführen
         env:
           PYTHONPATH: src
         run: python -m pytest -q
+
+  frontend:
+    name: Frontend-Prüfung
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: JavaScript-Syntax und Formatierung prüfen
+        run: ./scripts/check-frontend.sh
 
   scripts:
     name: Shell-Syntax
