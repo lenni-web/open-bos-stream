@@ -47,7 +47,6 @@ open_bos_stream = [
     "static/vendor/maplibre/*.css",
     "templates/*.html",
     "templates/components/*.html",
-    "templates/components/video/*.html",
 ]
 
 [tool.pytest.ini_options]

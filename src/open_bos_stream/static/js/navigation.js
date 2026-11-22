@@ -56,9 +56,9 @@ function showPage(page) {
         page
     );
 
-	if (page === "map" && typeof initMapPage === "function") {
-	    initMapPage();
-	}
+    if (page === "map" && typeof initMapPage === "function") {
+        initMapPage();
+    }
 
 }
 

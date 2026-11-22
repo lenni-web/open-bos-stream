@@ -200,137 +200,137 @@ function checkServiceEvents(
     lastDashboardState.mediamtx =
         services.mediamtx.online;
 
-	    // ---------------------------------------------------------
-	    // Capture Card
-	    // ---------------------------------------------------------
+        // ---------------------------------------------------------
+        // Capture Card
+        // ---------------------------------------------------------
 
-	    if (
-	        lastDashboardState.capture !== null
-	    ) {
+        if (
+            lastDashboardState.capture !== null
+        ) {
 
-	        if (
-	            !lastDashboardState.capture &&
-	            services.capture.online
-	        ) {
+            if (
+                !lastDashboardState.capture &&
+                services.capture.online
+            ) {
 
-	            addEvent(
-	                "success",
-	                "🎥 Capture Card verbunden"
-	            );
+                addEvent(
+                    "success",
+                    "🎥 Capture Card verbunden"
+                );
 
-	        }
+            }
 
-	        if (
-	            lastDashboardState.capture &&
-	            !services.capture.online
-	        ) {
+            if (
+                lastDashboardState.capture &&
+                !services.capture.online
+            ) {
 
-	            addEvent(
-	                "warning",
-	                "🎥 Capture Card getrennt"
-	            );
+                addEvent(
+                    "warning",
+                    "🎥 Capture Card getrennt"
+                );
 
-	        }
+            }
 
-	    }
+        }
 
-	    lastDashboardState.capture =
-	        services.capture.online;
+        lastDashboardState.capture =
+            services.capture.online;
 
-	    // ---------------------------------------------------------
-	    // FFmpeg
-	    // ---------------------------------------------------------
+        // ---------------------------------------------------------
+        // FFmpeg
+        // ---------------------------------------------------------
 
-	    if (
-	        lastDashboardState.ffmpeg !== null
-	    ) {
+        if (
+            lastDashboardState.ffmpeg !== null
+        ) {
 
-	        if (
-	            !lastDashboardState.ffmpeg &&
-	            services.ffmpeg.online
-	        ) {
+            if (
+                !lastDashboardState.ffmpeg &&
+                services.ffmpeg.online
+            ) {
 
-	            addEvent(
-	                "success",
-	                "🎬 FFmpeg gestartet"
-	            );
+                addEvent(
+                    "success",
+                    "🎬 FFmpeg gestartet"
+                );
 
-	        }
+            }
 
-	        if (
-	            lastDashboardState.ffmpeg &&
-	            !services.ffmpeg.online
-	        ) {
+            if (
+                lastDashboardState.ffmpeg &&
+                !services.ffmpeg.online
+            ) {
 
-	            addEvent(
-	                "warning",
-	                "🎬 FFmpeg beendet"
-	            );
+                addEvent(
+                    "warning",
+                    "🎬 FFmpeg beendet"
+                );
 
-	        }
+            }
 
-	    }
+        }
 
-	    lastDashboardState.ffmpeg =
-	        services.ffmpeg.online;
+        lastDashboardState.ffmpeg =
+            services.ffmpeg.online;
 
-	}
+    }
 
-	// ==========================================================
-	// Streaming Output Events
-	// ==========================================================
+    // ==========================================================
+    // Streaming Output Events
+    // ==========================================================
 
-	function checkStreamOutputEvents(
-	    outputs
-	) {
+    function checkStreamOutputEvents(
+        outputs
+    ) {
 
-	    if (!outputs) {
-	        return;
-	    }
+        if (!outputs) {
+            return;
+        }
 
-	    for (const output of outputs) {
+        for (const output of outputs) {
 
-	        const previous =
-	            lastDashboardState.streamOutputs[
-	                output.name
-	            ];
+            const previous =
+                lastDashboardState.streamOutputs[
+                    output.name
+                ];
 
-	        if (previous !== undefined) {
+            if (previous !== undefined) {
 
-	            if (
-	                !previous &&
-	                output.running
-	            ) {
+                if (
+                    !previous &&
+                    output.running
+                ) {
 
-	                addEvent(
-	                    "success",
-	                    "📺 " +
-	                    output.name +
-	                    " gestartet"
-	                );
+                    addEvent(
+                        "success",
+                        "📺 " +
+                        output.name +
+                        " gestartet"
+                    );
 
-	            }
+                }
 
-	            if (
-	                previous &&
-	                !output.running
-	            ) {
+                if (
+                    previous &&
+                    !output.running
+                ) {
 
-	                addEvent(
-	                    "warning",
-	                    "📺 " +
-	                    output.name +
-	                    " gestoppt"
-	                );
+                    addEvent(
+                        "warning",
+                        "📺 " +
+                        output.name +
+                        " gestoppt"
+                    );
 
-	            }
+                }
 
-	        }
+            }
 
-	        lastDashboardState.streamOutputs[
-	            output.name
-	        ] = output.running;
+            lastDashboardState.streamOutputs[
+                output.name
+            ] = output.running;
 
-	    }
+        }
 
-	}
+    }

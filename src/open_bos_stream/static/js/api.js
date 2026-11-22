@@ -301,13 +301,13 @@ class OBSApi {
 
     }
 
-	async mediaFiles() {
+    async mediaFiles() {
 
-	    return this.get(
-	        "/media/files"
-	    );
+        return this.get(
+            "/media/files"
+        );
 
-	}
+    }
 
     async saveConfig(config) {
 
@@ -367,12 +367,12 @@ class OBSApi {
 
     async encoders(source) {
 
-	    return await this.post(
-	        "/encoder/",
-	        source,
-	    );
+        return await this.post(
+            "/encoder/",
+            source,
+        );
 
-	}
+    }
 
     async displayConfig() {
         return await this.get(

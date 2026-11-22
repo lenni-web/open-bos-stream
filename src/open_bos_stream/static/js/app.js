@@ -28,18 +28,18 @@ window.addEventListener("load", async () => {
     // ------------------------------------------------------
 
     await refreshDashboard();
-	
+
     // ------------------------------------------------------
     // Event Log
     // ------------------------------------------------------
 
-	addEvent(
+    addEvent(
 
-	    "info",
+        "info",
 
-	    "🚒 Open BOS Stream gestartet"
+        "🚒 Open BOS Stream gestartet"
 
-	);
+    );
 
     const initialSources =
         window.dashboard?.sources ?? [];
@@ -72,18 +72,18 @@ window.addEventListener("load", async () => {
         2000
     );
 
-	setInterval(
-	    () => {
-	        if (
-	            document
-	                .getElementById("page-media")
-	                ?.classList.contains("active")
-	        ) {
-	            refreshMediaLibrary();
-	        }
-	    },
-	    2000
-	);
+    setInterval(
+        () => {
+            if (
+                document
+                    .getElementById("page-media")
+                    ?.classList.contains("active")
+            ) {
+                refreshMediaLibrary();
+            }
+        },
+        2000
+    );
 
     if (
         window.currentUser?.role === "superadmin" &&

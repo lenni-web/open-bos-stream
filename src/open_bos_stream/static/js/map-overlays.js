@@ -18,270 +18,193 @@
 window.OpenBosStream =
     window.OpenBosStream || {};
 
-	function createOverlayControls(
-	    overlays
-	) {
-
-	    const container =
-	        document.getElementById(
-	            "map-overlay-controls"
-	        );
-
-
-	    if (!container) {
-
-	        console.warn(
-	            "Overlay-Control Container fehlt."
-	        );
-
-	        return;
-
-	    }
-
-
-	    container.innerHTML = "";
-
-
-	    for (const overlay of overlays) {
-
-
-	        const label =
-	            document.createElement(
-	                "label"
-	            );
-
-
-	        const checkbox =
-	            document.createElement(
-	                "input"
-	            );
-
-
-	        checkbox.type =
-	            "checkbox";
-
-
-	        checkbox.id =
-	            `overlay-${overlay.id}`;
-
-
-	        checkbox.checked =
-	            overlay.defaultVisible !== false;
-
-
-	        checkbox.dataset.overlay =
-	            overlay.id;
-
-
-	        label.appendChild(
-	            checkbox
-	        );
-
-
-	        label.append(
-	            " " +
-	            (overlay.icon || "") +
-	            " " +
-	            overlay.title
-	        );
-
-
-	        container.appendChild(
-	            label
-	        );
-
-
-	    }
-
-	}
-
 window.OpenBosStream.mapOverlays = [
 
-	    {
-	        id: "hydranten",
+        {
+            id: "hydranten",
 
-	        title: "Hydranten",
+            title: "Hydranten",
 
-	        category: "infrastructure",
+            category: "infrastructure",
 
-	        type: "circle",
+            type: "circle",
 
-	        icon: "🚒",
+            icon: "🚒",
 
-	        endpoint: "/api/map/layers/hydranten",
+            endpoint: "/api/map/layers/hydranten",
 
-	        defaultVisible: true,
+            defaultVisible: true,
 
-	        minzoom: 14,
+            minzoom: 14,
 
-	        paint: {
-	            "circle-radius": 5,
-	            "circle-color": "#d32f2f",
-	            "circle-stroke-width": 1.5,
-	            "circle-stroke-color": "#ffffff"
-	        }
-	    },
+            paint: {
+                "circle-radius": 5,
+                "circle-color": "#d32f2f",
+                "circle-stroke-width": 1.5,
+                "circle-stroke-color": "#ffffff"
+            }
+        },
 
-		{
-		    id: "brunnen",
+        {
+            id: "brunnen",
 
-		    title: "Brunnen",
+            title: "Brunnen",
 
-		    category: "infrastructure",
+            category: "infrastructure",
 
-		    type: "circle",
+            type: "circle",
 
-		    icon: "🪣",
+            icon: "🪣",
 
-		    endpoint: "/api/map/layers/brunnen",
+            endpoint: "/api/map/layers/brunnen",
 
-		    defaultVisible: true,
+            defaultVisible: true,
 
-		    minzoom: 13,
+            minzoom: 13,
 
-		    paint: {
-		        "circle-radius": [
-		            "interpolate",
-		            ["linear"],
-		            ["zoom"],
-		            13, 2,
-		            16, 4,
-		            18, 7
-		        ],
-		        "circle-color": "#8d6e63",
-		        "circle-stroke-width": 1.5,
-		        "circle-stroke-color": "#ffffff"
-		    }
-		},
+            paint: {
+                "circle-radius": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    13, 2,
+                    16, 4,
+                    18, 7
+                ],
+                "circle-color": "#8d6e63",
+                "circle-stroke-width": 1.5,
+                "circle-stroke-color": "#ffffff"
+            }
+        },
 
-		{
-		    id: "saugstellen",
+        {
+            id: "saugstellen",
 
-		    title: "Saugstellen",
+            title: "Saugstellen",
 
-		    category: "infrastructure",
+            category: "infrastructure",
 
-		    type: "circle",
+            type: "circle",
 
-		    icon: "🌊",
+            icon: "🌊",
 
-		    endpoint: "/api/map/layers/saugstellen",
+            endpoint: "/api/map/layers/saugstellen",
 
-		    defaultVisible: true,
+            defaultVisible: true,
 
-		    minzoom: 13,
+            minzoom: 13,
 
-		    paint: {
-		        "circle-radius": [
-		            "interpolate",
-		            ["linear"],
-		            ["zoom"],
-		            13, 2,
-		            16, 4,
-		            18, 7
-		        ],
-		        "circle-color": "#009688",
-		        "circle-stroke-width": 1.5,
-		        "circle-stroke-color": "#ffffff"
-		    }
-		},
-		
-		{
-		    id: "offene_wasserentnahmestellen",
+            paint: {
+                "circle-radius": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    13, 2,
+                    16, 4,
+                    18, 7
+                ],
+                "circle-color": "#009688",
+                "circle-stroke-width": 1.5,
+                "circle-stroke-color": "#ffffff"
+            }
+        },
 
-		    title: "Offene Wasserentnahmestellen",
+        {
+            id: "offene_wasserentnahmestellen",
 
-		    category: "infrastructure",
+            title: "Offene Wasserentnahmestellen",
 
-		    type: "circle",
+            category: "infrastructure",
 
-		    icon: "🏞",
+            type: "circle",
 
-		    endpoint: "/api/map/layers/offene_wasserentnahmestellen",
+            icon: "🏞",
 
-		    defaultVisible: true,
+            endpoint: "/api/map/layers/offene_wasserentnahmestellen",
 
-		    minzoom: 12,
+            defaultVisible: true,
 
-		    paint: {
-		        "circle-radius": [
-		            "interpolate",
-		            ["linear"],
-		            ["zoom"],
-		            12, 3,
-		            16, 5,
-		            18, 8
-		        ],
-		        "circle-color": "#2196f3",
-		        "circle-stroke-width": 1.5,
-		        "circle-stroke-color": "#ffffff"
-		    }
-		},
-		
-		{
-		    id: "loeschwasserbehaelter_teiche",
+            minzoom: 12,
 
-		    title: "Behälter / Teiche",
+            paint: {
+                "circle-radius": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    12, 3,
+                    16, 5,
+                    18, 8
+                ],
+                "circle-color": "#2196f3",
+                "circle-stroke-width": 1.5,
+                "circle-stroke-color": "#ffffff"
+            }
+        },
 
-		    category: "infrastructure",
+        {
+            id: "loeschwasserbehaelter_teiche",
 
-		    type: "circle",
+            title: "Behälter / Teiche",
 
-		    icon: "🏞",
+            category: "infrastructure",
 
-		    endpoint: "/api/map/layers/loeschwasserbehaelter_teiche",
+            type: "circle",
 
-		    defaultVisible: true,
+            icon: "🏞",
 
-		    minzoom: 12,
+            endpoint: "/api/map/layers/loeschwasserbehaelter_teiche",
 
-		    paint: {
-		        "circle-radius": [
-		            "interpolate",
-		            ["linear"],
-		            ["zoom"],
-		            12, 3,
-		            16, 5,
-		            18, 8
-		        ],
-		        "circle-color": "#3f51b5",
-		        "circle-stroke-width": 1.5,
-		        "circle-stroke-color": "#ffffff"
-		    }
-		},
-		
-		{
-		    id: "sonstige_wasserstellen",
+            defaultVisible: true,
 
-		    title: "Sonstige Wasserstellen",
+            minzoom: 12,
 
-		    category: "infrastructure",
+            paint: {
+                "circle-radius": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    12, 3,
+                    16, 5,
+                    18, 8
+                ],
+                "circle-color": "#3f51b5",
+                "circle-stroke-width": 1.5,
+                "circle-stroke-color": "#ffffff"
+            }
+        },
 
-		    type: "circle",
+        {
+            id: "sonstige_wasserstellen",
 
-		    icon: "💦",
+            title: "Sonstige Wasserstellen",
 
-		    endpoint: "/api/map/layers/sonstige_wasserstellen",
+            category: "infrastructure",
 
-		    defaultVisible: true,
+            type: "circle",
 
-		    minzoom: 13,
+            icon: "💦",
 
-		    paint: {
-		        "circle-radius": [
-		            "interpolate",
-		            ["linear"],
-		            ["zoom"],
-		            13, 2,
-		            16, 4,
-		            18, 7
-		        ],
-		        "circle-color": "#9c27b0",
-		        "circle-stroke-width": 1.5,
-		        "circle-stroke-color": "#ffffff"
-		    }
-		},
-		
+            endpoint: "/api/map/layers/sonstige_wasserstellen",
+
+            defaultVisible: true,
+
+            minzoom: 13,
+
+            paint: {
+                "circle-radius": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    13, 2,
+                    16, 4,
+                    18, 7
+                ],
+                "circle-color": "#9c27b0",
+                "circle-stroke-width": 1.5,
+                "circle-stroke-color": "#ffffff"
+            }
+        },
+
 ];
 
 function formatPopupLabel(key) {
@@ -347,20 +270,20 @@ function formatPopupValue(key, value) {
                 permissive: "Eingeschränkt"
             })[value] ?? value;
 
-		case "diameter":
-		    return `DN ${value}`;
+        case "diameter":
+            return `DN ${value}`;
 
-		case "capacity": {
+        case "capacity": {
 
-		    const number =
-		        Number(value);
+            const number =
+                Number(value);
 
-		    if (Number.isFinite(number)) {
-		        return `${number.toLocaleString("de-DE")} l`;
-		    }
+            if (Number.isFinite(number)) {
+                return `${number.toLocaleString("de-DE")} l`;
+            }
 
-		    return value;
-		}
+            return value;
+        }
 
         default:
             return value;
@@ -371,21 +294,21 @@ async function addOverlayLayer(
     mapInstance,
     overlay
 ) {
-	if (
-	    mapInstance.getLayer(
-	        overlay.id
-	    )
-	) {
+    if (
+        mapInstance.getLayer(
+            overlay.id
+        )
+    ) {
 
-	    console.warn(
-	        "Overlay existiert bereits:",
-	        overlay.id
-	    );
+        console.warn(
+            "Overlay existiert bereits:",
+            overlay.id
+        );
 
-	    return;
+        return;
 
-	}
-	
+    }
+
     const response = await fetch(
         overlay.endpoint,
         {
@@ -417,49 +340,49 @@ async function addOverlayLayer(
     );
 
 
-	const layerDefinition = {
+    const layerDefinition = {
 
-	    id:
-	        overlay.id,
+        id:
+            overlay.id,
 
-	    type:
-	        overlay.type || "circle",
+        type:
+            overlay.type || "circle",
 
-	    source:
-	        overlay.id,
+        source:
+            overlay.id,
 
-	    paint:
-	        overlay.paint || {}
+        paint:
+            overlay.paint || {}
 
-	};
-
-
-	if (overlay.layout) {
-
-	    layerDefinition.layout =
-	        overlay.layout;
-
-	}
+    };
 
 
-	if (overlay.minzoom) {
+    if (overlay.layout) {
 
-	    layerDefinition.minzoom =
-	        overlay.minzoom;
+        layerDefinition.layout =
+            overlay.layout;
 
-	}
+    }
 
 
-	if (overlay.maxzoom) {
+    if (overlay.minzoom) {
 
-	    layerDefinition.maxzoom =
-	        overlay.maxzoom;
+        layerDefinition.minzoom =
+            overlay.minzoom;
 
-	}
+    }
 
-	mapInstance.addLayer(
-	    layerDefinition
-	);
+
+    if (overlay.maxzoom) {
+
+        layerDefinition.maxzoom =
+            overlay.maxzoom;
+
+    }
+
+    mapInstance.addLayer(
+        layerDefinition
+    );
 
     mapInstance.on("mouseenter", overlay.id, () => {
         mapInstance.getCanvas().style.cursor = "pointer";
@@ -478,72 +401,72 @@ async function addOverlayLayer(
         }
 
     const p = feature.properties;
-	
-	const labels = {
 
-	    type: "Typ",
-	    type_de: "Typ",
+    const labels = {
 
-	    ref: "Bezeichnung",
+        type: "Typ",
+        type_de: "Typ",
 
-	    operator: "Betreiber",
+        ref: "Bezeichnung",
 
-	    diameter: "Durchmesser",
+        operator: "Betreiber",
 
-	    fire_hydrant_diameter: "Nennweite",
+        diameter: "Durchmesser",
 
-	    fire_hydrant_position: "Kennzeichnung",
+        fire_hydrant_diameter: "Nennweite",
 
-	    fire_hydrant_type: "Hydrantentyp",
+        fire_hydrant_position: "Kennzeichnung",
 
-	    access: "Zugang",
+        fire_hydrant_type: "Hydrantentyp",
+
+        access: "Zugang",
 
         diameter: "Durchmesser",
 
         capacity: "Volumen",
 
-	    access_status: "Zugänglichkeit",
+        access_status: "Zugänglichkeit",
 
-	    water_source: "Wasserquelle",
+        water_source: "Wasserquelle",
 
-	    capacity: "Volumen",
+        capacity: "Volumen",
 
-	    note: "Hinweis"
+        note: "Hinweis"
 
-	};
+    };
 
-	const ignored = new Set([
-	    "all_tags",
-	    "lat",
-	    "lon",
-	    "osm_id",
-	    "osm_type"
-	]);
+    const ignored = new Set([
+        "all_tags",
+        "lat",
+        "lon",
+        "osm_id",
+        "osm_type"
+    ]);
 
-	let html = `<strong>${overlay.title}</strong><table>`;
+    let html = `<strong>${overlay.title}</strong><table>`;
 
-	for (const [key, value] of Object.entries(p)) {
+    for (const [key, value] of Object.entries(p)) {
 
-	    if (ignored.has(key)) {
-	        continue;
-	    }
+        if (ignored.has(key)) {
+            continue;
+        }
 
-	    if (value === null || value === "") {
-	        continue;
-	    }
+        if (value === null || value === "") {
+            continue;
+        }
 
-	const displayValue =
-	    formatPopupValue(key, value);
+    const displayValue =
+        formatPopupValue(key, value);
 
-	html += `
-	    <tr>
-	        <td><strong>${formatPopupLabel(key)}</strong></td>
-	        <td>${displayValue}</td>
-	    </tr>
-	`;
-	}
+    html += `
+        <tr>
+            <td><strong>${formatPopupLabel(key)}</strong></td>
+            <td>${displayValue}</td>
+        </tr>
+    `;
+    }
 
-	html += "</table>";
+    html += "</table>";
 
     new maplibregl.Popup()
         .setLngLat(event.lngLat)
@@ -551,50 +474,4 @@ async function addOverlayLayer(
         .addTo(mapInstance);
 
     });
-}
-
-function bindOverlayToggle(
-    overlay
-) {
-
-    const checkbox =
-        document.getElementById(
-            `overlay-${overlay.id}`
-        );
-
-
-    if (!checkbox) {
-
-        console.warn(
-            "Overlay-Schalter fehlt:",
-            overlay.id
-        );
-
-        return;
-
-    }
-
-
-    checkbox.addEventListener(
-        "change",
-        () => {
-
-
-            if (!map.getLayer(overlay.id)) {
-                return;
-            }
-
-
-            map.setLayoutProperty(
-                overlay.id,
-                "visibility",
-                checkbox.checked
-                    ? "visible"
-                    : "none"
-            );
-
-
-        }
-    );
-
 }

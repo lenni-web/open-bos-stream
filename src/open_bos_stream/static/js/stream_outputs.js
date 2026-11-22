@@ -19,50 +19,50 @@ function updateStreamOutputs(outputs) {
         return;
     }
 
-	container.innerHTML = outputs.map(output => `
+    container.innerHTML = outputs.map(output => `
 
-	    <div class="info-row">
+        <div class="info-row">
 
-	        <div>
+            <div>
 
-	            <strong>${output.name}</strong>
+                <strong>${output.name}</strong>
 
-	            <div class="text-muted">
-	                Quelle: ${escapeHTML(output.source_name ?? "Nicht gewählt")}
-	            </div>
+                <div class="text-muted">
+                    Quelle: ${escapeHTML(output.source_name ?? "Nicht gewählt")}
+                </div>
 
-	            <div class="stream-output-status">
+                <div class="stream-output-status">
 
-	                <span class="
-	                    stream-output-indicator
-	                    ${output.running ? "running" : "stopped"}
-	                "></span>
+                    <span class="
+                        stream-output-indicator
+                        ${output.running ? "running" : "stopped"}
+                    "></span>
 
-	                ${output.running ? "Läuft" : "Gestoppt"}
+                    ${output.running ? "Läuft" : "Gestoppt"}
 
-	            </div>
+                </div>
 
-	        </div>
+            </div>
 
-				<button
-				    class="bos-button ${
-				        output.running
-				            ? "bos-button-red"
-				            : "bos-button-green"
-				    }"
-				    onclick="${
-				        output.running
-				            ? `stopStreamOutput('${output.name}')`
-				            : `startStreamOutput('${output.name}')`
-				    }">
+                <button
+                    class="bos-button ${
+                        output.running
+                            ? "bos-button-red"
+                            : "bos-button-green"
+                    }"
+                    onclick="${
+                        output.running
+                            ? `stopStreamOutput('${output.name}')`
+                            : `startStreamOutput('${output.name}')`
+                    }">
 
-				    ${output.running ? "Stop" : "Start"}
+                    ${output.running ? "Stop" : "Start"}
 
-				</button>
+                </button>
 
-	    </div>
+        </div>
 
-	`).join("");
+    `).join("");
 
 }
 

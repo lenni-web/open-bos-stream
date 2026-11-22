@@ -223,3 +223,13 @@ function streamLabel(
     return "🟢 Stream aktiv";
 
 }
+
+function formatRecordingDuration(seconds) {
+    const total = Number(seconds ?? 0);
+    const hours = Math.floor(total / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
+    const secs = total % 60;
+    return [hours, minutes, secs]
+        .map(value => String(value).padStart(2, "0"))
+        .join(":");
+}

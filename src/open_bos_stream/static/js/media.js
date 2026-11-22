@@ -189,11 +189,11 @@ function renderMediaLibrary(containerId, files, actions) {
         const row =
             document.createElement("div");
 
-		row.addEventListener("click", () => {
+        row.addEventListener("click", () => {
 
-		    setActiveMediaEntry(row);
+            setActiveMediaEntry(row);
 
-		});
+        });
 
         row.className =
             "library-entry";

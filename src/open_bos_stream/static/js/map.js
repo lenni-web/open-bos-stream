@@ -215,14 +215,14 @@ async function createMap() {
         center: center.slice(0, 2),
         zoom: center[2] ?? 7,
         minZoom: Number(config.metadata.min_zoom),
-		maxZoom: Math.max(
-		    18,
-		    Number(config.metadata.max_zoom)
-		),
+        maxZoom: Math.max(
+            18,
+            Number(config.metadata.max_zoom)
+        ),
         attributionControl: false
     });
-	
-	bindFullscreenButton();
+
+    bindFullscreenButton();
 
     map.addControl(
         new maplibregl.NavigationControl(),
@@ -244,72 +244,72 @@ async function createMap() {
         );
     });
 
-	map.once("load", async () => {
-	    try {
+    map.once("load", async () => {
+        try {
 
-	        const overlays =
-	            window.OpenBosStream?.mapOverlays;
-
-
-	        if (!Array.isArray(overlays)) {
-	            throw new Error(
-	                "Die Overlay-Registry wurde nicht geladen."
-	            );
-	        }
+            const overlays =
+                window.OpenBosStream?.mapOverlays;
 
 
-	        createOverlayControls(
-	            overlays
-	        );
+            if (!Array.isArray(overlays)) {
+                throw new Error(
+                    "Die Overlay-Registry wurde nicht geladen."
+                );
+            }
 
 
-			for (const overlay of overlays) {
-
-			    await addOverlayLayer(
-			        map,
-			        overlay
-			    );
-
-			}
+            createOverlayControls(
+                overlays
+            );
 
 
-	        for (const overlay of overlays) {
+            for (const overlay of overlays) {
 
-	            bindOverlayToggle(
-	                overlay
-	            );
+                await addOverlayLayer(
+                    map,
+                    overlay
+                );
 
-	        }
-
-
-	        // Drohnen-Geozonen liegen unter den Wasserentnahmestellen.
-	        try {
-	            await addDipulLayers(
-	                map,
-	                overlays[0]?.id
-	            );
-	        } catch (error) {
-	            console.error(
-	                "Drohnen-Geozonen konnten nicht geladen werden:",
-	                error
-	            );
-	        }
+            }
 
 
-	        requestAnimationFrame(() => {
-	            map.resize();
-	        });
+            for (const overlay of overlays) {
+
+                bindOverlayToggle(
+                    overlay
+                );
+
+            }
 
 
-	    } catch (error) {
+            // Drohnen-Geozonen liegen unter den Wasserentnahmestellen.
+            try {
+                await addDipulLayers(
+                    map,
+                    overlays[0]?.id
+                );
+            } catch (error) {
+                console.error(
+                    "Drohnen-Geozonen konnten nicht geladen werden:",
+                    error
+                );
+            }
 
-	        console.error(
-	            "Kartenlayer konnten nicht geladen werden:",
-	            error
-	        );
 
-	    }
-	});
+            requestAnimationFrame(() => {
+                map.resize();
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "Kartenlayer konnten nicht geladen werden:",
+                error
+            );
+
+        }
+    });
 }
 
 function resizeMap() {

@@ -134,13 +134,13 @@
             </div>
             {% endif %}
 
-			<div
-			    id="page-map"
-			    class="page">
+            <div
+                id="page-map"
+                class="page">
 
-			    {% include "components/map.html" %}
+                {% include "components/map.html" %}
 
-			</div>
+            </div>
 
             {% if user.role != "viewer" %}
             <div
@@ -231,7 +231,6 @@ window.openBosMediaToken = {{ media_token | tojson }};
 
 <script src="/static/js/live_player.js?v={{ version }}"></script>
 
-<script src="/static/js/dashboard_stream.js?v={{ version }}"></script>
 
 <script src="/static/js/multi_source.js?v={{ version }}"></script>
 

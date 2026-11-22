@@ -468,16 +468,16 @@ async function refreshAvailableEncoders() {
     //
     // Aktuelle Formulareingaben ins Modell übernehmen
     //
-	
+
     if (!currentConfig) {
         return;
     }
 
     saveInputConfig();
 
-	await loadEncoders(
-	        true,
-	    );
+    await loadEncoders(
+            true,
+        );
 
     loadEncoderConfig();
 

@@ -90,17 +90,17 @@ function updateDashboard(data) {
         updateTestLogging(data);
     }
 
-	checkServiceEvents(
-	    data.services
-	);
+    checkServiceEvents(
+        data.services
+    );
 
     checkSourceEvents(
         data.sources ?? []
     );
 
-	checkStreamOutputEvents(
-	    data.stream_outputs
-	);
+    checkStreamOutputEvents(
+        data.stream_outputs
+    );
 
     updateRecordingUI(
         data.recording
@@ -747,17 +747,17 @@ function updateDashboardSystemInfo(info) {
     document.getElementById("system-runtime-mediamtx").textContent =
         info.runtime.mediamtx ?? "Unknown";
 
-	document.getElementById("system-network-hostname").textContent =
-	    info.network.hostname;
+    document.getElementById("system-network-hostname").textContent =
+        info.network.hostname;
 
-	document.getElementById("system-network-interface").textContent =
-	    info.network.interface;
+    document.getElementById("system-network-interface").textContent =
+        info.network.interface;
 
-	document.getElementById("system-network-ipv4").textContent =
-	    info.network.ipv4;
+    document.getElementById("system-network-ipv4").textContent =
+        info.network.ipv4;
 
-	document.getElementById("system-network-mac").textContent =
-	    info.network.mac;
+    document.getElementById("system-network-mac").textContent =
+        info.network.mac;
 }
 
 function updateSystemWebAccess(info) {

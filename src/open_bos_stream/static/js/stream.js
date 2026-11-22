@@ -4,18 +4,18 @@
 
 async function toggleStream() {
 
-	    const status =
-	        await api.status();
+        const status =
+            await api.status();
 
-	    if (status.controllable === false) {
-	        addEvent(
-	            "info",
-	            status.running
-	                ? "Passthrough-Stream wird vom externen Sender gesteuert."
-	                : "Warte auf den externen Passthrough-Stream."
-	        );
-	        return;
-	    }
+        if (status.controllable === false) {
+            addEvent(
+                "info",
+                status.running
+                    ? "Passthrough-Stream wird vom externen Sender gesteuert."
+                    : "Warte auf den externen Passthrough-Stream."
+            );
+            return;
+        }
 
     if (status.running) {
 
@@ -34,38 +34,38 @@ async function toggleStream() {
 // ==========================================================
 
 async function startStream() {
-	
+
     const result =
         await api.start();
 
     if (!result.success) {
-		addEvent(
-		    "error",
-		    result.error ??
-		    "Stream konnte nicht gestartet werden."
-		);
+        addEvent(
+            "error",
+            result.error ??
+            "Stream konnte nicht gestartet werden."
+        );
 
         return;
 
     }
 
-	await refreshDashboard();
+    await refreshDashboard();
 
-	const pid =
+    const pid =
 
-	    window.dashboard?.stream?.pid;
+        window.dashboard?.stream?.pid;
 
-	addEvent(
+    addEvent(
 
-	    "success",
+        "success",
 
-	    pid
+        pid
 
-	        ? `📡 Stream gestartet (PID ${pid})`
+            ? `📡 Stream gestartet (PID ${pid})`
 
-	        : "📡 Stream gestartet"
+            : "📡 Stream gestartet"
 
-	);
+    );
 
 }
 
