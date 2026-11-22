@@ -9,6 +9,12 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Die Anmeldeseite verlinkt eine einseitige Funktionsübersicht der Software
+  als PDF („Was ist Open BOS Stream?“). Sie ist ohne Anmeldung abrufbar; die
+  Druckvorlage liegt unter `docs/funktionsuebersicht.html`.
+
 ### Security
 
 - Livebilder lassen sich nicht mehr ohne Anmeldung abrufen. Bisher erlaubte
@@ -40,6 +46,11 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 ### Added
 
 - Streaming-Ausgänge unterstützen neben RTMP und SRT nun auch RTSP.
+
+### Fixed
+
+- Das Feld für den Einrichtungscode erscheint nur noch bei der
+  Ersteinrichtung und nicht mehr bei jeder normalen Anmeldung.
 
 ### Changed
 

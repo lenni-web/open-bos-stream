@@ -724,3 +724,15 @@ def test_mobile_layout_keeps_long_texts_inside_cards() -> None:
     assert 'class="header-user-role"' in header
     assert 'class="header-ready-label"' in header
     assert ".source-order-actions {\n        flex: 1 1 100%;" in css
+
+
+def test_login_page_links_public_feature_overview_pdf() -> None:
+    login = (ROOT / "templates" / "login.html").read_text(encoding="utf-8")
+    css = (ROOT / "static" / "css" / "modern.css").read_text(encoding="utf-8")
+    pdf = ROOT / "static" / "docs" / "open-bos-stream-funktionsuebersicht.pdf"
+
+    assert 'href="/static/docs/open-bos-stream-funktionsuebersicht.pdf' in login
+    assert pdf.read_bytes().startswith(b"%PDF")
+    # Das Einrichtungscode-Feld bleibt bei der normalen Anmeldung verborgen.
+    assert 'id="auth-setup-code-field" class="form-field" hidden' in login
+    assert ".auth-card [hidden] {\n    display: none;" in css

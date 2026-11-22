@@ -907,6 +907,14 @@ die Testsuite, eine Syntax- und Formatprüfung des Frontends
 (`.github/workflows/tests.yml`). `requirements.txt` enthält nur die
 Laufzeitpakete, `requirements-dev.txt` zusätzlich die Testwerkzeuge.
 
+Die Funktionsübersicht auf der Anmeldeseite
+(`src/open_bos_stream/static/docs/open-bos-stream-funktionsuebersicht.pdf`)
+wird aus `docs/funktionsuebersicht.html` erzeugt, z. B. mit Chrome:
+
+```bash
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --no-pdf-header-footer --virtual-time-budget=15000 --print-to-pdf=src/open_bos_stream/static/docs/open-bos-stream-funktionsuebersicht.pdf "file://$PWD/docs/funktionsuebersicht.html"
+```
+
 Entwicklungsserver starten:
 
 ```bash

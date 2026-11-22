@@ -588,6 +588,45 @@ body {
     text-align: center;
 }
 
+/* Das hidden-Attribut muss auch gegen display-Regeln wie .form-field greifen. */
+.auth-card [hidden] {
+    display: none;
+}
+
+.auth-info-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 22px;
+    padding: 12px 14px;
+    border: 1px solid var(--bos-gray);
+    border-radius: 12px;
+    background: var(--bos-gray-soft);
+    color: var(--bos-dark);
+    text-decoration: none;
+}
+
+.auth-info-link:hover,
+.auth-info-link:focus-visible {
+    border-color: var(--bos-red);
+    color: var(--bos-red);
+}
+
+.auth-info-link svg {
+    flex: 0 0 auto;
+}
+
+.auth-info-link span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.auth-info-link small {
+    color: var(--bos-muted);
+    font-size: 0.75rem;
+}
+
 .auth-footer {
     margin-top: 22px;
     color: #8a93a1;
