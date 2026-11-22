@@ -9,11 +9,9 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
-### Added
+---
 
-- Die Anmeldeseite verlinkt eine einseitige Funktionsübersicht der Software
-  als PDF („Was ist Open BOS Stream?“). Sie ist ohne Anmeldung abrufbar; die
-  Druckvorlage liegt unter `docs/funktionsuebersicht.html`.
+## [0.17.0] - 2026-11-22
 
 ### Security
 
@@ -46,11 +44,9 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 ### Added
 
 - Streaming-Ausgänge unterstützen neben RTMP und SRT nun auch RTSP.
-
-### Fixed
-
-- Das Feld für den Einrichtungscode erscheint nur noch bei der
-  Ersteinrichtung und nicht mehr bei jeder normalen Anmeldung.
+- Die Anmeldeseite verlinkt eine einseitige Funktionsübersicht der Software
+  als PDF („Was ist Open BOS Stream?“). Sie ist ohne Anmeldung abrufbar; die
+  Druckvorlage liegt unter `docs/funktionsuebersicht.html`.
 
 ### Changed
 
@@ -62,6 +58,11 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   von JavaScript, CSS und Templates.
 - Benutzerdaten und Kartenkonfiguration werden nicht mehr bei jeder Anfrage
   neu von der Festplatte gelesen.
+- Die Git-Historie wurde bereinigt: Ein früher versehentlich eingecheckter
+  Stream-Schlüssel ist aus allen Commits und Tags entfernt. Bestehende Klone,
+  etwa auf dem Server, müssen einmalig mit
+  `git fetch origin && git reset --hard origin/main` angeglichen werden, da
+  `update.sh` sonst beim `git pull --ff-only` abbricht.
 
 ### Deprecated
 

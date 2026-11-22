@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.17.0** (2026-11-22): Sicherheitshärtung (Streams nur mit Anmeldung,
+  Einrichtungscode, Rollen pro Endpunkt), RTSP-Ausgänge, Funktionsübersicht
 - **0.16.2** (2026-10-09): Alle Kartenebenen standardmäßig eingeblendet
 - **0.16.1** (2026-10-09): Verbesserte Darstellung auf Smartphones und Tablets
 - **0.16.0** (2026-10-09): Drohnen-Geozonen (dipul) in der Karte mit
