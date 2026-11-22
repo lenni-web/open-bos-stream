@@ -235,17 +235,26 @@ die öffentliche Domain automatisch als `webrtcAdditionalHosts`.
 
 Caddy versieht öffentliche Antworten mit HSTS, MIME-Schutz, restriktiven
 Frame-, Referrer- und Berechtigungsrichtlinien. HLS- und WHEP-Anfragen werden
-vor der Weiterleitung gegen die Open-BOS-Sitzung geprüft. Dadurch können auch
-direkte Medien-URLs nur von angemeldeten Viewern, Admins oder Superadmins
-verwendet werden.
+vor der Weiterleitung gegen die Open-BOS-Sitzung geprüft. Das Sitzungscookie
+trägt hinter HTTPS das Attribut `Secure`.
+
+MediaMTX fragt bei jedem Lesezugriff die Anwendung. Erlaubt sind nur Leser
+auf dem Server selbst (Caddy nach Sitzungsprüfung, interne FFmpeg-Prozesse,
+lokales Display) sowie Browser mit einem kurzlebigen Medien-Token aus ihrer
+Anmeldung. Streams lassen sich deshalb weder über den RTMP-Port 1935 noch
+über RTSP, SRT oder die direkten HLS-/WHEP-Ports ohne Anmeldung abspielen.
 
 Nach fünf fehlgeschlagenen Anmeldungen derselben Benutzer-/IP-Kombination
 wird diese für 15 Minuten gesperrt. Zusätzlich greift eine IP-weite Grenze
-gegen das Durchprobieren vieler Konten. Fehlversuche und temporäre Sperren
-werden ohne Passwörter im Anwendungsjournal protokolliert.
+gegen das Durchprobieren vieler Konten; über den lokalen Port-80-Proxy, der
+alle Geräte als `127.0.0.1` erscheinen lässt, gilt nur die Sperre je Konto.
+Fehlversuche und temporäre Sperren werden ohne Passwörter im
+Anwendungsjournal protokolliert. Abmelden macht die Sitzung serverseitig
+ungültig.
 
 Wenn HTTPS deaktiviert bleibt, verwendet die Anwendung weiterhin die direkten
-Ports 8000, 8888 und 8889.
+Ports 8000, 8888 und 8889. Passwörter und Bilder werden dann unverschlüsselt
+übertragen; der Installer weist darauf hin.
 
 ### Firewall-Regeln
 
@@ -692,7 +701,12 @@ Transcoding-Profil oder der Kamera-Substream geprüft werden.
 ## Benutzer und Rollen
 
 Beim ersten Aufruf nach Installation oder Update fordert Open BOS Stream dazu
-auf, ein lokales Superadmin-Konto anzulegen. Benutzer und Passwort-Hashes
+auf, ein lokales Superadmin-Konto anzulegen. Dafür ist ein einmaliger
+**Einrichtungscode** nötig, damit niemand einen frisch installierten Server
+vor dem Betreiber übernehmen kann. Der Installer zeigt den Code am Ende an;
+er steht außerdem in `config/setup.code` und im Journal
+(`journalctl -u open-bos-stream`). Nach der Einrichtung wird er gelöscht.
+Benutzer und Passwort-Hashes
 werden ausschließlich in `config/users.yaml` gespeichert; die Datei und der
 lokale Sitzungsschlüssel werden nicht in Git übernommen.
 
@@ -703,11 +717,12 @@ lokale Sitzungsschlüssel werden nicht in Git übernommen.
 - `superadmin`: zusätzlich Medien, Benutzer, Streaming-Ausgänge, lokales
   Display und Webzugriff verwalten
 
-Die Rechte werden sowohl in der Oberfläche als auch an den API-Endpunkten
-geprüft. Ein Admin kann geschützte Superadmin-Felder daher nicht über einen
-direkten API-Aufruf verändern. Quellenänderungen von Admins werden über einen
-eigenen Endpunkt gespeichert, der die übrige Systemkonfiguration unverändert
-vom Server übernimmt.
+Die Rechte werden sowohl in der Oberfläche als auch an jedem API-Endpunkt
+geprüft. Jede Route deklariert ihre Mindestrolle (`auth/roles.py`); ein Test
+schlägt fehl, sobald eine Route ohne Rolle hinzukommt. Admins speichern
+ausschließlich Quellen über einen eigenen Endpunkt, der die übrige
+Systemkonfiguration unverändert vom Server übernimmt. Die Ziel-URLs der
+Streaming-Ausgänge sehen Admins nur maskiert.
 
 Superadmins können bestehende Konten in den Einstellungen aufklappen, deren
 Rolle ändern oder ein neues Passwort vergeben. Mindestens ein Superadmin muss
@@ -877,7 +892,7 @@ Lokale Python-Umgebung erstellen:
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 Tests ausführen:
@@ -887,8 +902,10 @@ PYTHONPATH=src python -m pytest -q
 ```
 
 Auf GitHub laufen bei jedem Push auf `main` und bei Pull Requests automatisch
-die Testsuite sowie eine Syntaxprüfung der Shell-Skripte
-(`.github/workflows/tests.yml`).
+die Testsuite, eine Syntax- und Formatprüfung des Frontends
+(`scripts/check-frontend.sh`) sowie eine Syntaxprüfung der Shell-Skripte
+(`.github/workflows/tests.yml`). `requirements.txt` enthält nur die
+Laufzeitpakete, `requirements-dev.txt` zusätzlich die Testwerkzeuge.
 
 Entwicklungsserver starten:
 

@@ -9,6 +9,62 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Security
+
+- Livebilder lassen sich nicht mehr ohne Anmeldung abrufen. Bisher erlaubte
+  MediaMTX jedes Lesen ohne Rückfrage, sodass Streams z. B. über den offenen
+  RTMP-Port 1935 oder ohne HTTPS über die Ports 8888/8889 abspielbar waren.
+  Lesen ist nun nur noch auf dem Server selbst (Caddy nach Sitzungsprüfung,
+  interne Prozesse, lokales Display) oder im Browser mit einem kurzlebigen
+  Medien-Token aus der Anmeldung erlaubt.
+- Die Ersteinrichtung verlangt einen einmaligen Einrichtungscode. Ein frisch
+  installierter Server kann dadurch nicht mehr von Fremden übernommen werden.
+  Der Installer zeigt den Code an; er steht auch im Journal.
+- Das Sitzungscookie trägt hinter HTTPS das Attribut `Secure`. Der Installer
+  warnt, wenn ein Server ohne HTTPS betrieben wird.
+- Nur noch Superadmins dürfen die Gesamtkonfiguration speichern. Admins
+  konnten darüber bisher z. B. die automatische Bereinigung einschalten und
+  so Aufnahmen löschen lassen; sie speichern nun ausschließlich Quellen.
+- Admins sehen die Ziel-URLs der Streaming-Ausgänge nur noch maskiert, ohne
+  Stream-Schlüssel.
+- Jeder API-Endpunkt deklariert seine Mindestrolle selbst. Ein Test schlägt
+  fehl, wenn eine Route ohne Rolle hinzukommt; neue Endpunkte sind dadurch
+  nicht mehr versehentlich für Zuschauer offen.
+- uvicorn wertet Weiterleitungs-Header nur noch hinter Caddy aus. Über den
+  lokalen Port-80-Proxy ließ sich die Anmeldesperre bisher mit gefälschten
+  Adressen umgehen; zugleich sperrt dort die IP-weite Grenze nicht mehr alle
+  Geräte auf einmal aus.
+- Abmelden macht die Sitzung serverseitig ungültig, statt nur das Cookie zu
+  löschen.
+
+### Added
+
+- Streaming-Ausgänge unterstützen neben RTMP und SRT nun auch RTSP.
+
+### Changed
+
+- `requirements.txt` enthält nur noch Laufzeitpakete; Testwerkzeuge stehen
+  in `requirements-dev.txt`. `pyproject.toml` nennt `requests` als
+  Abhängigkeit. Nicht genutzte Pakete (`pydantic-settings`,
+  `python-dotenv`) wurden entfernt.
+- Die CI prüft zusätzlich JavaScript-Syntax und einheitliche Formatierung
+  von JavaScript, CSS und Templates.
+- Benutzerdaten und Kartenkonfiguration werden nicht mehr bei jeder Anfrage
+  neu von der Festplatte gelesen.
+
+### Deprecated
+
+- Konfigurationsdateien im Format vor Version 0.11 (`capture`/`input` als
+  Einzelstream, `rtmp_inputs`) werden weiterhin eingelesen, erzeugen aber
+  eine Warnung im Journal. Version 1.0 liest sie nicht mehr; ein einmaliges
+  Speichern der Einstellungen überführt sie ins aktuelle Format.
+
+### Removed
+
+- Nicht mehr verwendeter Code der früheren Einzelstream-Ansicht
+  (`dashboard_stream.js` und fünf ungenutzte Templates) sowie doppelte
+  Kartenfunktionen.
+
 ---
 
 ## [0.16.2] - 2026-10-09
