@@ -1,10 +1,32 @@
 from pathlib import Path
+import logging
 import os
 import tempfile
 
 import yaml
 
 from open_bos_stream.core.models import AppConfig
+
+
+logger = logging.getLogger(__name__)
+
+# Veraltete Konfigurationsformate aus den Versionen vor 0.11 (Einzelstream
+# mit `capture`/`input` sowie RTMP-Slots unter `rtmp_inputs`). Sie werden
+# noch eingelesen und beim nächsten Speichern ins aktuelle Format überführt;
+# Version 1.0 liest sie nicht mehr.
+_deprecation_logged: set[str] = set()
+
+
+def _warn_deprecated(key: str, message: str) -> None:
+    if key in _deprecation_logged:
+        return
+    _deprecation_logged.add(key)
+    logger.warning(
+        "Veraltetes Konfigurationsformat (%s): %s Die Unterstützung "
+        "entfällt mit Version 1.0; bitte die Einstellungen einmal speichern.",
+        key,
+        message,
+    )
 
 
 class ConfigLoader:
@@ -37,6 +59,10 @@ class ConfigLoader:
 
         if "input" not in data:
 
+            _warn_deprecated(
+                "capture",
+                "Der Abschnitt `capture` wird nach `input` übertragen.",
+            )
             capture = data.get(
                 "capture",
                 {},
@@ -120,6 +146,10 @@ class ConfigLoader:
                 and not sources_configured
             )
         ):
+            _warn_deprecated(
+                "sources",
+                "Hauptquelle und `rtmp_inputs` werden in `sources` überführt.",
+            )
             sources: list[dict] = []
             input_config = data.get("input", {})
             stream_config = data.get("stream", {})
