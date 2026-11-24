@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.18.8] - 2026-11-24
+
 ### Added
 
 - Automatische Aufnahme pro Quelle: In den Einstellungen unter

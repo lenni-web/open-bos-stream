@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.18.8** (2026-11-24): Automatische Aufnahme pro Quelle, bis zu vier
+  Aufnahmen parallel
 - **0.18.7** (2026-11-24): Dokumentation und Funktionsübersicht aktualisiert
 - **0.18.6** (2026-11-24): Uhrzeiten in deutscher Zeit statt Server-UTC
 - **0.18.5** (2026-11-24): Kompakte Speichern-Leiste der Einstellungen auf
