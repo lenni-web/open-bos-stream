@@ -19,6 +19,7 @@ eigenständige Web-App mit Open-BOS-Stream-Icon abgelegt werden.
 - Individuelle RTMP-Empfangspfade mit Publisher-Token
 - Rollenbasierter Zugriff für Viewer, Admins und Superadmins
 - E-Mail-Benachrichtigung bei Störungen mit Entwarnung
+- Zeitlich begrenzte Gastlinks für ausgewählte Livebilder, ohne Konto
 - Offline-Kartenansicht mit MapLibre und MBTiles
 - Raspberry-Pi-Profil mit optionalem Wayland/labwc-Display
 - Debian-Serverprofil mit optionalem Caddy/HTTPS, WebRTC und UFW
@@ -735,6 +736,29 @@ Display-Dienst bei jedem Start neu erzeugt. Im normalen Chromium-Modus ist eine 
 wenn Einstellungen bedient werden sollen.
 Eine vorübergehend nicht erreichbare Quelle wird unabhängig mit begrenztem
 Backoff neu verbunden und unterbricht die übrigen Quellen nicht.
+
+### Gastlinks für externe Stellen
+
+Admins und Superadmins erstellen in der Übersicht über „Gastlink teilen“ einen
+Link für Stellen ohne eigenes Konto, z. B. Polizei oder Kreisbrandmeister:
+Bezeichnung, freigegebene Quellen und Gültigkeit (2, 8, 24 oder höchstens
+48 Stunden). Der Link wird einmalig mit QR-Code angezeigt und lässt sich
+kopieren oder auf dem Handy direkt teilen.
+
+Gäste sehen eine reduzierte Ansicht mit den freigegebenen Livebildern
+(einschließlich Vollbild) und der Karte – ohne Ereignisprotokoll, Mediathek,
+Einstellungen oder Systemangaben. Die Freigabe gilt pro Quelle auch für die
+Videoabrufe selbst: Caddy (`/auth/media-access`) und die
+MediaMTX-Leserprüfung lassen Gäste nur die Streams der gewählten Quellen
+abrufen. Nach Ablauf oder Sperrung endet die Gastansicht innerhalb weniger
+Sekunden.
+
+Unter Einstellungen → „Gastlinks“ stehen alle Links der letzten sieben Tage
+mit Ersteller, Ablauf und letztem Zugriff; jeder Admin kann aktive Links
+sperren. Gespeichert wird nur ein Hash des Links in `config/guest_links.json`
+(Rechte 0600). Öffnet ein angemeldeter Benutzer einen Gastlink im selben
+Browser, bleibt seine Anmeldung erhalten; zum Ausprobieren eignet sich ein
+privates Fenster.
 
 ### Snapshots und Aufnahmen einer ausgewählten Quelle
 

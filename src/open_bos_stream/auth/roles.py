@@ -13,6 +13,7 @@ from open_bos_stream.auth.service import ROLE_LEVEL
 
 
 ROLE_MESSAGES = {
+    "guest": "Anmeldung erforderlich.",
     "viewer": "Anmeldung erforderlich.",
     "admin": "Für diese Aktion ist die Rolle Admin erforderlich.",
     "superadmin": "Diese Aktion ist Superadmins vorbehalten.",
@@ -40,6 +41,7 @@ def _public_dependency() -> None:
 
 _public_dependency.minimum_role = "public"
 
+GUEST = Depends(_role_dependency("guest"))
 VIEWER = Depends(_role_dependency("viewer"))
 ADMIN = Depends(_role_dependency("admin"))
 SUPERADMIN = Depends(_role_dependency("superadmin"))

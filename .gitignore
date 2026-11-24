@@ -9,6 +9,7 @@ config/auth.secret
 config/setup.code
 config/revoked_sessions.json
 config/notifications.secret
+config/guest_links.json
 recordings/*
 snapshots/*
 !snapshots/.gitkeep

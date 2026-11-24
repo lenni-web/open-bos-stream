@@ -9,6 +9,23 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Gastlinks: Admins und Superadmins teilen ausgewählte Livebilder zeitlich
+  begrenzt (höchstens 48 Stunden) mit externen Stellen ohne eigenes Konto.
+  Erstellen in der Übersicht mit Link, QR-Code und Teilen-Funktion;
+  Verwaltung und Sperren unter Einstellungen → „Gastlinks“.
+- Reduzierte Gastansicht mit den freigegebenen Livebildern und der Karte,
+  Anzeige der Restgültigkeit und Hell/Dunkel-Umschalter.
+
+### Security
+
+- Gäste erhalten nur die Streams der freigegebenen Quellen: Caddy und die
+  MediaMTX-Leserprüfung kontrollieren den angefragten Pfad. Abgelaufene oder
+  gesperrte Gastlinks beenden die Gastansicht sofort.
+- Gastlinks werden nur als SHA-256-Hash gespeichert (`config/guest_links.json`,
+  Rechte 0600). „Gast“ ist keine zuweisbare Benutzerrolle.
+
 ---
 
 ## [0.18.2] - 2026-11-24

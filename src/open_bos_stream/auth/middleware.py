@@ -15,6 +15,7 @@ PUBLIC_PREFIXES = (
     "/login",
     "/display/stream",
     "/internal/mediamtx/auth",
+    "/g/",
 )
 
 
@@ -81,6 +82,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 {"detail": "Anmeldung erforderlich."},
                 status_code=401,
             )
+
+        # Gäste haben nur die reduzierte Gastansicht.
+        if user.get("role") == "guest" and path == "/":
+            return RedirectResponse("/guest", status_code=303)
 
         # Die Rolle prüft jeder Endpunkt selbst (auth/roles.py).
         return await call_next(request)

@@ -31,6 +31,7 @@ from open_bos_stream.media.library import (
 )
 from open_bos_stream.media.storage import MediaStorageService
 from open_bos_stream.auth.service import AuthService
+from open_bos_stream.auth.guest_links import GuestLinkStore
 from open_bos_stream.notifications.service import NotificationService
 from open_bos_stream.auth.rate_limit import LoginRateLimiter
 from open_bos_stream.stream_output.service import (
@@ -49,6 +50,8 @@ from open_bos_stream.system.administration import (
 
 config = ConfigLoader().load()
 auth_service = AuthService()
+guest_link_store = GuestLinkStore()
+auth_service.guest_links = guest_link_store
 login_rate_limiter = LoginRateLimiter()
 
 

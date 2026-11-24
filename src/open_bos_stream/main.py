@@ -59,6 +59,7 @@ from open_bos_stream.api.mediamtx_auth import (
 from open_bos_stream.api.notifications import (
     router as notifications_router,
 )
+from open_bos_stream.api.guest import router as guest_router
 from open_bos_stream.logging.logger import setup_logging
 import logging
 
@@ -214,3 +215,4 @@ app.include_router(web_access_router)
 app.include_router(map_router)
 app.include_router(mediamtx_auth_router)
 app.include_router(notifications_router)
+app.include_router(guest_router)

@@ -13,10 +13,10 @@ from open_bos_stream.map.dipul import (
     DipulUnavailableError,
 )
 from open_bos_stream.map.mbtiles import MBTilesError
-from open_bos_stream.auth.roles import VIEWER
+from open_bos_stream.auth.roles import GUEST
 
 router = APIRouter(
-    dependencies=[VIEWER],
+    dependencies=[GUEST],
     prefix="/api/map",
     tags=["map"],
 )

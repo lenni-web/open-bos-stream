@@ -15,8 +15,14 @@ from pathlib import Path
 import yaml
 
 
+# Zuweisbare Benutzerrollen. "guest" ist keine Benutzerrolle, sondern
+# entsteht nur über einen zeitlich begrenzten Gastlink.
 ROLES = ("viewer", "admin", "superadmin")
-ROLE_LEVEL = {role: index for index, role in enumerate(ROLES)}
+ROLE_LEVEL = {
+    role: index
+    for index, role in enumerate(("guest", *ROLES))
+}
+GUEST_PREFIX = "__guest__:"
 
 # Zeichen ohne Verwechslungsgefahr (kein 0/O, 1/I/l) für den Einrichtungscode.
 SETUP_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -38,6 +44,8 @@ class AuthService:
         revoked_file: str | None = None,
     ) -> None:
         self.users_file = Path(users_file)
+        # Wird vom Container gesetzt (auth/guest_links.py).
+        self.guest_links = None
         self.secret_file = Path(secret_file)
         self.setup_code_file = Path(
             setup_code_file
@@ -401,6 +409,9 @@ class AuthService:
             "jti": secrets.token_urlsafe(12),
             "exp": int(time.time()) + self.SESSION_SECONDS,
         }
+        return self._sign(payload)
+
+    def _sign(self, payload: dict) -> str:
         raw = base64.urlsafe_b64encode(
             json.dumps(payload, separators=(",", ":")).encode()
         ).rstrip(b"=")
@@ -415,6 +426,34 @@ class AuthService:
             + base64.urlsafe_b64encode(signature).rstrip(b"=").decode()
         )
 
+    def create_guest_token(self, link, *, purpose: str = "session") -> str:
+        """Sitzung für einen Gastlink; endet spätestens mit dem Link."""
+
+        return self._sign({
+            "sub": GUEST_PREFIX + link.id,
+            "role": "guest",
+            "stamp": "guest",
+            "use": purpose,
+            "jti": secrets.token_urlsafe(12),
+            "exp": int(link.expires_at),
+        })
+
+    def _guest_user(self, payload: dict) -> dict | None:
+        if payload.get("role") != "guest" or payload.get("stamp") != "guest":
+            return None
+        if self.guest_links is None:
+            return None
+        link = self.guest_links.active_link(payload["sub"][len(GUEST_PREFIX):])
+        if link is None:
+            return None
+        return {
+            "username": f"Gast: {link.label}",
+            "role": "guest",
+            "guest_link": link.id,
+            "source_ids": list(link.source_ids),
+            "expires_at": link.expires_at,
+        }
+
     def create_display_token(self) -> str:
         return self.create_token({
             "username": "__display__",
@@ -423,6 +462,16 @@ class AuthService:
 
     def create_media_token(self, user: dict) -> str:
         """Kurzer Ausweis für direkte MediaMTX-Abrufe (WHEP/HLS)."""
+
+        if user.get("role") == "guest":
+            link = (
+                self.guest_links.active_link(user.get("guest_link", ""))
+                if self.guest_links is not None
+                else None
+            )
+            if link is None:
+                raise AuthError("Der Gastlink ist nicht mehr gültig.")
+            return self.create_guest_token(link, purpose="media")
 
         username = (
             "__display__"
@@ -477,6 +526,8 @@ class AuthService:
                 return None
             if payload.get("jti") and payload["jti"] in self._revoked():
                 return None
+            if str(payload.get("sub", "")).startswith(GUEST_PREFIX):
+                return self._guest_user(payload)
             stored = next(
                 (
                     item for item in self._read_users()

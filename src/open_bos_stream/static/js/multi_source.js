@@ -458,7 +458,8 @@ function toggleSourceFullscreen(entry) {
 }
 
 function isViewerRole() {
-    return window.currentUser?.role === "viewer";
+    // Zuschauer und Gäste sehen keine technischen Angaben.
+    return ["viewer", "guest"].includes(window.currentUser?.role);
 }
 
 function sourceSubtitle(input) {

@@ -1548,11 +1548,14 @@ body {
 
 .role-viewer .dashboard-bottom,
 .role-viewer .multi-source-placeholder small,
-.role-viewer .multi-source-meta [data-value] {
+.role-viewer .multi-source-meta [data-value],
+.role-guest .multi-source-placeholder small,
+.role-guest .multi-source-meta [data-value] {
     display: none;
 }
 
-.role-viewer .multi-source-meta {
+.role-viewer .multi-source-meta,
+.role-guest .multi-source-meta {
     justify-content: flex-end;
 }
 

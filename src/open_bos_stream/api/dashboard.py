@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import Response
 from starlette.concurrency import run_in_threadpool
 
@@ -10,7 +10,8 @@ from open_bos_stream.core.container import (
     fullscreen_relay_manager,
 )
 from open_bos_stream.stream.probe import ProbeBusyError
-from open_bos_stream.auth.roles import ADMIN, VIEWER
+from open_bos_stream.auth.guest_access import require_guest_source
+from open_bos_stream.auth.roles import ADMIN, GUEST, VIEWER
 
 router = APIRouter(
     prefix="/dashboard",
@@ -53,8 +54,9 @@ async def probe_source(source_id: str):
         ) from exc
 
 
-@router.post("/sources/{source_id}/fullscreen", dependencies=[VIEWER])
-async def acquire_fullscreen_stream(source_id: str):
+@router.post("/sources/{source_id}/fullscreen", dependencies=[GUEST])
+async def acquire_fullscreen_stream(source_id: str, request: Request):
+    require_guest_source(request.state.user, source_id)
     try:
         return await run_in_threadpool(
             fullscreen_relay_manager.acquire,
@@ -71,8 +73,13 @@ async def acquire_fullscreen_stream(source_id: str):
         ) from exc
 
 
-@router.get("/sources/{source_id}/fullscreen/{lease_id}", dependencies=[VIEWER])
-async def fullscreen_stream_status(source_id: str, lease_id: str):
+@router.get("/sources/{source_id}/fullscreen/{lease_id}", dependencies=[GUEST])
+async def fullscreen_stream_status(
+    source_id: str,
+    lease_id: str,
+    request: Request,
+):
+    require_guest_source(request.state.user, source_id)
     try:
         return await run_in_threadpool(
             fullscreen_relay_manager.status,
@@ -83,8 +90,13 @@ async def fullscreen_stream_status(source_id: str, lease_id: str):
         raise HTTPException(404, "Vollbild-Anforderung ist abgelaufen.") from exc
 
 
-@router.delete("/sources/{source_id}/fullscreen/{lease_id}", dependencies=[VIEWER])
-async def release_fullscreen_stream(source_id: str, lease_id: str):
+@router.delete("/sources/{source_id}/fullscreen/{lease_id}", dependencies=[GUEST])
+async def release_fullscreen_stream(
+    source_id: str,
+    lease_id: str,
+    request: Request,
+):
+    require_guest_source(request.state.user, source_id)
     await run_in_threadpool(
         fullscreen_relay_manager.release,
         source_id,

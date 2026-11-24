@@ -164,6 +164,60 @@
 
 </div>
 
+{% if user.role in ("admin", "superadmin") %}
+<dialog id="guest-link-dialog" class="guest-link-dialog" aria-labelledby="guest-link-title">
+    <form id="guest-link-form" method="dialog">
+        <div>
+            <h2 id="guest-link-title">Gastlink teilen</h2>
+            <p>
+                Externe Stellen sehen ohne eigenes Konto nur die gewählten
+                Livebilder und die Karte. Der Link läuft automatisch ab und
+                lässt sich jederzeit in den Einstellungen sperren.
+            </p>
+        </div>
+        <label class="form-field">
+            <span>Bezeichnung</span>
+            <input id="guest-link-label" class="bos-input" maxlength="80" required
+                placeholder="z. B. Polizei Stade">
+        </label>
+        <fieldset id="guest-link-sources" class="guest-link-sources">
+            <legend>Freigegebene Quellen</legend>
+        </fieldset>
+        <label class="form-field">
+            <span>Gültig für</span>
+            <select id="guest-link-hours" class="bos-input">
+                <option value="2">2 Stunden</option>
+                <option value="8" selected>8 Stunden</option>
+                <option value="24">24 Stunden</option>
+                <option value="48">48 Stunden</option>
+            </select>
+        </label>
+        <p id="guest-link-status" role="status"></p>
+        <div class="guest-link-actions">
+            <button class="bos-button" type="button" onclick="closeGuestLinkDialog()">Abbrechen</button>
+            <button class="bos-button bos-button-red" type="submit">Link erstellen</button>
+        </div>
+    </form>
+    <div id="guest-link-result" class="guest-link-result" hidden>
+        <div>
+            <h2>Gastlink erstellt</h2>
+            <p id="guest-link-summary"></p>
+        </div>
+        <input id="guest-link-url" class="bos-input guest-link-url" readonly>
+        <div id="guest-link-qr" class="guest-link-qr" aria-label="QR-Code des Gastlinks"></div>
+        <p>
+            Der Link wird nur jetzt angezeigt. Wer ihn kennt, kann die
+            freigegebenen Livebilder bis zum Ablauf ansehen.
+        </p>
+        <div class="guest-link-actions">
+            <button id="guest-link-share" class="bos-button" type="button" onclick="shareGuestLink()" hidden>Teilen</button>
+            <button class="bos-button" type="button" onclick="copyGuestLink()">Kopieren</button>
+            <button class="bos-button bos-button-red" type="button" onclick="closeGuestLinkDialog()">Fertig</button>
+        </div>
+    </div>
+</dialog>
+{% endif %}
+
 <script>
 window.currentUser = {{ user | tojson }};
 window.installationProfile = {{ installation_profile | tojson }};
@@ -212,6 +266,10 @@ window.openBosMediaToken = {{ media_token | tojson }};
 {% endif %}
 
 <script src="/static/js/navigation.js?v={{ version }}"></script>
+{% if user.role in ("admin", "superadmin") %}
+<script src="/static/vendor/qrcode.js?v={{ version }}"></script>
+<script src="/static/js/guest_links.js?v={{ version }}"></script>
+{% endif %}
 
 <script src="/static/js/stream_outputs.js?v={{ version }}"></script>
 

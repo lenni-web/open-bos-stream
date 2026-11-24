@@ -1,12 +1,22 @@
 import logging
+import time
 
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
 from open_bos_stream.auth.middleware import secure_cookies
 from open_bos_stream.auth.service import AuthError
-from open_bos_stream.core.container import auth_service, login_rate_limiter
-from open_bos_stream.auth.roles import ADMIN, PUBLIC, VIEWER
+from open_bos_stream.core.container import (
+    auth_service,
+    config,
+    login_rate_limiter,
+)
+from open_bos_stream.auth.guest_access import (
+    guest_paths,
+    is_guest,
+    media_uri_allowed,
+)
+from open_bos_stream.auth.roles import ADMIN, GUEST, PUBLIC, VIEWER
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -123,21 +133,40 @@ async def login(payload: Credentials, request: Request, response: Response):
     return {"success": True, "user": user}
 
 
-@router.get("/media-access", status_code=204, dependencies=[VIEWER])
-async def media_access():
-    """Sitzungsprüfung für Caddys HLS-/WHEP-Weiterleitung."""
+@router.get("/media-access", status_code=204, dependencies=[GUEST])
+async def media_access(request: Request):
+    """Sitzungsprüfung für Caddys HLS-/WHEP-Weiterleitung.
 
+    Gäste erhalten nur die Streams der Quellen ihres Gastlinks. Caddy
+    reicht die angefragte Adresse in X-Forwarded-Uri weiter.
+    """
+
+    user = request.state.user
+    if is_guest(user):
+        uri = request.headers.get("x-forwarded-uri", "")
+        if not media_uri_allowed(uri, guest_paths(user, config)):
+            raise HTTPException(
+                status_code=403,
+                detail="Dieser Stream ist für den Gastzugang nicht freigegeben.",
+            )
     return Response(status_code=204)
 
 
-@router.get("/media-token", dependencies=[VIEWER])
+@router.get("/media-token", dependencies=[GUEST])
 async def media_token(request: Request):
     """Token für direkte WHEP-/HLS-Abrufe bei MediaMTX ohne Caddy."""
 
-    return {
-        "token": auth_service.create_media_token(request.state.user),
-        "expires_in": auth_service.SESSION_SECONDS,
-    }
+    user = request.state.user
+    try:
+        token = auth_service.create_media_token(user)
+    except AuthError as exc:
+        raise HTTPException(status_code=401, detail=str(exc)) from exc
+    expires_in = (
+        max(0, int(user["expires_at"] - time.time()))
+        if is_guest(user)
+        else auth_service.SESSION_SECONDS
+    )
+    return {"token": token, "expires_in": expires_in}
 
 
 @router.post("/logout", dependencies=[PUBLIC])

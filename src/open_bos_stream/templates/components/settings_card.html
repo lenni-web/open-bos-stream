@@ -333,6 +333,30 @@
         {% endif %}
 
         {% if user.role != "viewer" %}
+        <section class="bos-card settings-section settings-section-guest-links">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">{{ icon("globe", 20) }}</span>
+                <div>
+                    <span class="section-kicker">Zugriff</span>
+                    <h2>Gastlinks</h2>
+                    <p>Zeitlich begrenzter Zugang zu ausgewählten Livebildern, ohne Konto.</p>
+                </div>
+            </div>
+            <div id="guest-link-list" class="guest-link-list">
+                <p class="service-inline-status">Noch keine Gastlinks.</p>
+            </div>
+            <div class="inline-action">
+                <p id="guest-link-list-status" class="service-inline-status">
+                    Neue Gastlinks entstehen in der Übersicht über „Gastlink teilen“.
+                </p>
+                <button class="bos-button" type="button" onclick="openGuestLinkDialog()">
+                    Gastlink teilen
+                </button>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if user.role != "viewer" %}
         <section class="bos-card settings-section settings-section-users">
             <div class="settings-section-header">
                 <span class="settings-icon" aria-hidden="true">{{ icon("users", 20) }}</span>

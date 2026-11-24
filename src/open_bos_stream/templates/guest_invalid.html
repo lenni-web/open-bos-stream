@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>Gastlink ungültig · Open BOS Stream</title>
+    <link rel="icon" href="/static/icons/open-bos-stream.svg?v={{ version }}" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/css/obds.css?v={{ version }}">
+    <link rel="stylesheet" href="/static/css/modern.css?v={{ version }}">
+    <link rel="stylesheet" href="/static/css/theme.css?v={{ version }}">
+    <script src="/static/js/theme.js?v={{ version }}"></script>
+</head>
+<body class="auth-page">
+    <main class="auth-card bos-card">
+        <header class="auth-brand">
+            <span class="auth-brand-icon" aria-hidden="true">
+                <img
+                    src="/static/icons/open-bos-stream.svg?v={{ version }}"
+                    alt=""
+                    width="54"
+                    height="54">
+            </span>
+            <div>
+                <strong>Open BOS Stream</strong>
+                <span>Gastzugang</span>
+            </div>
+        </header>
+
+        <div class="auth-divider"></div>
+
+        <section class="auth-heading">
+            <span class="page-eyebrow">Gastzugang</span>
+            {% if signed_in %}
+            <h1>Bereits angemeldet</h1>
+            <p>
+                Sie sind in diesem Browser als „{{ signed_in }}“ angemeldet.
+                Der Gastlink würde diese Anmeldung ersetzen. Öffnen Sie ihn
+                zum Ausprobieren in einem privaten Fenster oder melden Sie
+                sich vorher ab.
+            </p>
+            <p><a href="/">Zur Übersicht</a></p>
+            {% else %}
+            <h1>Link nicht mehr gültig</h1>
+            <p>
+                Dieser Gastlink ist abgelaufen, wurde gesperrt oder ist
+                unvollständig. Bitte wenden Sie sich an die Person, die Ihnen
+                den Link geschickt hat.
+            </p>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>
