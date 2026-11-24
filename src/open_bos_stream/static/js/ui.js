@@ -75,7 +75,8 @@ function restoreCards() {
 
 function addEvent(
     type,
-    message
+    message,
+    timestamp = null
 ) {
 
     const log =
@@ -104,8 +105,12 @@ function addEvent(
     time.className =
         "event-time";
 
+    // Serverereignisse bringen ihren eigenen Zeitpunkt mit (Sekunden).
+    const at = timestamp ? timestamp * 1000 : Date.now();
+    entry.dataset.at = String(at);
+
     time.textContent =
-        new Date().toLocaleTimeString(
+        new Date(at).toLocaleTimeString(
             "de-DE"
         );
 
@@ -128,9 +133,11 @@ function addEvent(
         text
     );
 
-    log.prepend(
-        entry
+    // Neueste oben; ältere Serverereignisse an der richtigen Stelle.
+    const newer = Array.from(log.children).find(
+        item => Number(item.dataset.at || 0) <= at
     );
+    log.insertBefore(entry, newer ?? null);
 
     updateEventCount();
 

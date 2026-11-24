@@ -8,7 +8,9 @@ from starlette.concurrency import run_in_threadpool
 from open_bos_stream.core.container import (
     dashboard_service,
     fullscreen_relay_manager,
+    server_event_log,
 )
+from open_bos_stream.auth.service import ROLE_LEVEL
 from open_bos_stream.stream.probe import ProbeBusyError
 from open_bos_stream.auth.guest_access import require_guest_source
 from open_bos_stream.auth.roles import ADMIN, GUEST, VIEWER
@@ -20,8 +22,13 @@ router = APIRouter(
 
 
 @router.get("/status", dependencies=[VIEWER])
-async def status():
-    return await run_in_threadpool(dashboard_service.status)
+async def status(request: Request):
+    data = await run_in_threadpool(dashboard_service.status)
+    user = request.state.user
+    if ROLE_LEVEL.get(user.get("role"), -1) >= ROLE_LEVEL["admin"]:
+        # Kopie: der Status wird zwischen Anfragen zwischengespeichert.
+        data = {**data, "server_events": server_event_log.recent()}
+    return data
 
 
 @router.post("/sources/{source_id}/probe", dependencies=[ADMIN])

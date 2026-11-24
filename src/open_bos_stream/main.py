@@ -19,6 +19,8 @@ from open_bos_stream.core.container import recording_service
 from open_bos_stream.core.container import media_storage_service
 from open_bos_stream.core.container import dashboard_service
 from open_bos_stream.core.container import notification_service
+from open_bos_stream.core.container import guest_link_store
+from open_bos_stream.core.container import server_event_log
 from open_bos_stream.notifications.monitor import NotificationMonitor
 from open_bos_stream.auth.middleware import AuthMiddleware
 from open_bos_stream.api.auth import router as auth_router
@@ -104,10 +106,32 @@ async def storage_protection_loop() -> None:
         await asyncio.sleep(30)
 
 
+def report_expired_guest_links(previously_active: set[str]) -> set[str]:
+    """Meldet Gastlinks, die seit der letzten Prüfung abgelaufen sind."""
+
+    links = guest_link_store.list()
+    active = {link.id for link in links if link.active()}
+    for link in links:
+        if (
+            link.id in previously_active
+            and link.id not in active
+            and link.revoked_at is None
+        ):
+            server_event_log.record(
+                "info",
+                f"🔗 Gastlink „{link.label}“ abgelaufen",
+            )
+    return active
+
+
 async def notification_loop() -> None:
     """Erkennt Störungen und meldet sie per E-Mail (falls eingerichtet)."""
 
     monitor = NotificationMonitor()
+    active_guest_links = await asyncio.to_thread(
+        report_expired_guest_links,
+        set(),
+    )
     # Dienste beim Start kurz hochfahren lassen, damit MediaMTX und Quellen
     # nicht fälschlich als gestört gelten.
     await asyncio.sleep(15)
@@ -116,6 +140,10 @@ async def notification_loop() -> None:
             status = await asyncio.to_thread(dashboard_service.status)
             for notice in monitor.evaluate(status, time.monotonic()):
                 notification_service.enqueue(notice)
+            active_guest_links = await asyncio.to_thread(
+                report_expired_guest_links,
+                active_guest_links,
+            )
         except asyncio.CancelledError:
             raise
         except Exception:

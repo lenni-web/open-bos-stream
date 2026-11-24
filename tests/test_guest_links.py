@@ -356,3 +356,74 @@ def test_guest_link_does_not_replace_existing_login(guest_env, monkeypatch) -> N
     assert response.status_code == 409
     assert "Bereits angemeldet" in response.text
     assert "set-cookie" not in response.headers
+
+
+# ----------------------------------------------------------------------
+# Ereignisprotokoll
+# ----------------------------------------------------------------------
+
+
+def test_guest_link_events_reach_admins_only(guest_env, monkeypatch) -> None:
+    client, store, link, token, source_id = guest_env
+    from open_bos_stream.api import dashboard as dashboard_api
+    from open_bos_stream.api import guest as guest_api
+    from open_bos_stream.core.container import auth_service, dashboard_service
+    from open_bos_stream.core.event_log import ServerEventLog
+
+    events = ServerEventLog()
+    monkeypatch.setattr(guest_api, "server_event_log", events)
+    monkeypatch.setattr(dashboard_api, "server_event_log", events)
+    monkeypatch.setattr(dashboard_service, "status", lambda: {"sources": []})
+
+    client.get(f"/g/{token}", follow_redirects=False)
+    original = auth_service.verify_token
+
+    def fake_verify(value, *, purpose="session"):
+        if value in {"viewer", "admin"}:
+            return {"username": value, "role": value}
+        return original(value, purpose=purpose)
+
+    monkeypatch.setattr(auth_service, "verify_token", fake_verify)
+    client.cookies.set(auth_service.COOKIE_NAME, "admin")
+    created = client.post(
+        "/guest-links",
+        json={"label": "Rettungsdienst", "source_ids": [source_id], "hours": 2},
+    ).json()
+    client.delete(f"/guest-links/{created['link']['id']}")
+
+    feed = client.get("/dashboard/status").json()["server_events"]
+    messages = [event["message"] for event in feed["events"]]
+    assert messages[0] == "🔗 Gastlink „Polizei“ geöffnet"
+    assert messages[1].startswith("🔗 Gastlink „Rettungsdienst“ von admin erstellt")
+    assert messages[2] == "🔗 Gastlink „Rettungsdienst“ von admin gesperrt"
+    assert [event["id"] for event in feed["events"]] == [1, 2, 3]
+
+    client.cookies.set(auth_service.COOKIE_NAME, "viewer")
+    assert "server_events" not in client.get("/dashboard/status").json()
+
+
+def test_expired_guest_links_are_reported_once(tmp_path, monkeypatch) -> None:
+    import open_bos_stream.main as main
+    from open_bos_stream.core.event_log import ServerEventLog
+
+    store = store_in(tmp_path)
+    events = ServerEventLog()
+    monkeypatch.setattr(main, "guest_link_store", store)
+    monkeypatch.setattr(main, "server_event_log", events)
+    expiring, _ = store.create(
+        label="Kurz", source_ids=["q"], hours=1, created_by="admin"
+    )
+    revoked, _ = store.create(
+        label="Gesperrt", source_ids=["q"], hours=1, created_by="admin"
+    )
+
+    active = main.report_expired_guest_links(set())
+    assert active == {expiring.id, revoked.id}
+    store.revoke(revoked.id, "admin")
+    now = time.time()
+    monkeypatch.setattr(time, "time", lambda: now + 3601)
+    active = main.report_expired_guest_links(active)
+    active = main.report_expired_guest_links(active)
+
+    messages = [event["message"] for event in events.recent()["events"]]
+    assert messages == ["🔗 Gastlink „Kurz“ abgelaufen"]

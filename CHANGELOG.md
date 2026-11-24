@@ -9,6 +9,14 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Gastlinks im Ereignisprotokoll: Erstellen, Öffnen durch einen Gast,
+  Sperren und Ablauf erscheinen bei allen Admins und Superadmins mit
+  Uhrzeit, auch wenn ein anderer Admin den Link erstellt hat. Nach dem
+  Neuladen der Seite werden die Ereignisse der letzten 24 Stunden erneut
+  angezeigt. Zuschauer und Gäste erhalten diese Meldungen nicht.
+
 ---
 
 ## [0.18.3] - 2026-11-24

@@ -46,6 +46,28 @@ async function refreshDashboard() {
 // Dashboard
 // ==========================================================
 
+let lastServerEventId = 0;
+let serverEventInstance = null;
+
+function updateServerEvents(feed) {
+    // Nur Admins erhalten Serverereignisse (z. B. Gastlinks).
+    if (!feed) {
+        return;
+    }
+    if (feed.instance !== serverEventInstance) {
+        // Server neu gestartet: Nummerierung beginnt von vorn.
+        serverEventInstance = feed.instance;
+        lastServerEventId = 0;
+    }
+    for (const event of feed.events ?? []) {
+        if (event.id <= lastServerEventId) {
+            continue;
+        }
+        lastServerEventId = event.id;
+        addEvent(event.level, event.message, event.at);
+    }
+}
+
 function updateDashboard(data) {
 
     if (!data) {
@@ -71,6 +93,8 @@ function updateDashboard(data) {
     updateMultiSources(
         data.sources ?? []
     );
+
+    updateServerEvents(data.server_events);
 
     // Systemdiagnosen existieren für Viewer absichtlich nicht im DOM.
     // Die Streamplayer müssen unabhängig davon immer aktualisiert werden.

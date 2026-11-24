@@ -755,7 +755,9 @@ Sekunden.
 
 Unter Einstellungen → „Gastlinks“ stehen alle Links der letzten sieben Tage
 mit Ersteller, Ablauf und letztem Zugriff; jeder Admin kann aktive Links
-sperren. Gespeichert wird nur ein Hash des Links in `config/guest_links.json`
+sperren. Erstellen, Öffnen, Sperren und Ablauf eines Gastlinks
+erscheinen zusätzlich im Ereignisprotokoll der Übersicht (für Admins und
+Superadmins, Ereignisse der letzten 24 Stunden). Gespeichert wird nur ein Hash des Links in `config/guest_links.json`
 (Rechte 0600). Öffnet ein angemeldeter Benutzer einen Gastlink im selben
 Browser, bleibt seine Anmeldung erhalten; zum Ausprobieren eignet sich ein
 privates Fenster.

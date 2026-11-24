@@ -115,7 +115,8 @@ async function submitGuestLink(event) {
         document.getElementById("guest-link-share").hidden =
             typeof navigator.share !== "function";
         renderGuestLinkQr(result.url);
-        addEvent("success", `Gastlink „${result.link.label}“ erstellt`);
+        // Das Ereignisprotokoll erhält die Meldung vom Server.
+        refreshDashboard?.();
         loadGuestLinks();
     } catch (error) {
         status.textContent = "Erstellen fehlgeschlagen: " + error.message;
@@ -203,10 +204,10 @@ async function revokeGuestLink(linkId) {
         await api.request(`/guest-links/${encodeURIComponent(linkId)}`, {
             method: "DELETE",
         });
-        addEvent("success", "Gastlink gesperrt");
     } catch (error) {
         addEvent("error", "Gastlink konnte nicht gesperrt werden: " + error.message);
     }
+    refreshDashboard?.();
     loadGuestLinks();
 }
 

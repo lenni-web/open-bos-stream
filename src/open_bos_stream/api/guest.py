@@ -20,6 +20,7 @@ from open_bos_stream.core.container import (
     config,
     dashboard_service,
     guest_link_store,
+    server_event_log,
 )
 from open_bos_stream.version import VERSION
 
@@ -61,6 +62,10 @@ def _link_url(request: Request, token: str) -> str:
 
 def _source_names() -> dict[str, str]:
     return {source.id: source.name for source in config.sources}
+
+
+def _until(link) -> str:
+    return time.strftime("%d.%m. %H:%M", time.localtime(link.expires_at))
 
 
 def _describe(link) -> dict:
@@ -115,6 +120,13 @@ async def create_guest_link(payload: GuestLinkCreate, request: Request) -> dict:
         ", ".join(link.source_ids),
         time.strftime("%d.%m.%Y %H:%M", time.localtime(link.expires_at)),
     )
+    names = _source_names()
+    server_event_log.record(
+        "info",
+        f"🔗 Gastlink „{link.label}“ von {creator} erstellt · "
+        + ", ".join(names.get(item, item) for item in link.source_ids)
+        + f" · gültig bis {_until(link)} Uhr",
+    )
     return {
         "success": True,
         # Der Link wird nur einmal ausgeliefert; gespeichert ist nur der Hash.
@@ -135,6 +147,10 @@ async def revoke_guest_link(link_id: str, request: Request) -> dict:
     except KeyError as exc:
         raise HTTPException(404, "Gastlink wurde nicht gefunden.") from exc
     logger.info("Gastlink „%s“ von %s gesperrt.", link.label, user)
+    server_event_log.record(
+        "warning",
+        f"🔗 Gastlink „{link.label}“ von {user} gesperrt",
+    )
     return {"success": True, "link": _describe(link)}
 
 
@@ -163,6 +179,10 @@ async def open_guest_link(token: str, request: Request):
             status_code=409,
         )
     logger.info("Gastlink „%s“ geöffnet.", link.label)
+    server_event_log.record(
+        "success",
+        f"🔗 Gastlink „{link.label}“ geöffnet",
+    )
     await run_in_threadpool(guest_link_store.touch, link.id)
     response = RedirectResponse("/guest", status_code=303)
     response.set_cookie(
