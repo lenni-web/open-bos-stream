@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.17.3** (2026-11-24): Schlankere, aufgeräumte Eingabefelder auf der
+  Anmeldeseite
 - **0.17.2** (2026-11-24): Kartenebenen beim Öffnen der Karte eingeklappt
 - **0.17.1** (2026-11-24): Anmeldefenster und Aussetzer beim Abspielen
   von Livestreams behoben

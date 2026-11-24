@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.17.3] - 2026-11-24
+
 ### Changed
 
 - Die Eingabefelder der Anmeldeseite sind schmaler und schlichter gestaltet
