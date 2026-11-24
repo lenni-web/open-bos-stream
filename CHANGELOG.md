@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.18.2] - 2026-11-24
+
 ### Added
 
 - E-Mail-Benachrichtigungen bei Störungen: Quelle ohne Signal, Streaming-

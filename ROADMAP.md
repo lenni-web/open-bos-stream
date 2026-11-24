@@ -57,6 +57,7 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.18.2** (2026-11-24): E-Mail-Benachrichtigungen bei Störungen
 - **0.18.1** (2026-11-24): MediaMTX 1.21.4, aktualisierte Python- und
   Browser-Bibliotheken, maskierte Ausgangsnamen, Aufräumarbeiten
 - **0.18.0** (2026-11-24): Neue Oberfläche mit fester Seitenleiste,
