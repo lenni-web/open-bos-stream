@@ -123,6 +123,97 @@
             </div>
         </section>
 
+        {% if user.role == "superadmin" %}
+        <section class="bos-card settings-section settings-section-notifications">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">{{ icon("mail", 20) }}</span>
+                <div>
+                    <span class="section-kicker">Alarmierung</span>
+                    <h2>Benachrichtigungen</h2>
+                    <p>E-Mail bei Störungen, mit Entwarnung sobald wieder alles läuft.</p>
+                </div>
+            </div>
+
+            <label class="switch-row">
+                <input id="cfg-notify-enabled" type="checkbox">
+                <span>
+                    <strong>E-Mail-Benachrichtigungen senden</strong>
+                    <small>
+                        Kurze Aussetzer werden abgewartet, und jede Störung wird
+                        höchstens alle zehn Minuten gemeldet.
+                    </small>
+                </span>
+            </label>
+
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="cfg-notify-host">SMTP-Server</label>
+                    <input id="cfg-notify-host" class="bos-input" autocomplete="off" placeholder="smtp.beispiel.de">
+                </div>
+                <div class="form-field">
+                    <label for="cfg-notify-port">Port</label>
+                    <input id="cfg-notify-port" class="bos-input" type="number" min="1" max="65535" step="1">
+                </div>
+                <div class="form-field">
+                    <label for="cfg-notify-security">Verschlüsselung</label>
+                    <select id="cfg-notify-security" class="bos-input">
+                        <option value="starttls">STARTTLS (meist Port 587)</option>
+                        <option value="ssl">SSL/TLS (meist Port 465)</option>
+                        <option value="none">Keine (nur im internen Netz)</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="cfg-notify-username">Benutzername</label>
+                    <input id="cfg-notify-username" class="bos-input" autocomplete="off">
+                </div>
+                <div class="form-field">
+                    <label for="cfg-notify-password">Passwort</label>
+                    <input id="cfg-notify-password" class="bos-input" type="password" autocomplete="new-password">
+                    <small id="cfg-notify-password-hint">Leer lassen, um das gespeicherte Passwort zu behalten.</small>
+                </div>
+                <div class="form-field">
+                    <label for="cfg-notify-sender">Absender</label>
+                    <input id="cfg-notify-sender" class="bos-input" type="email" placeholder="stream@beispiel.de">
+                </div>
+                <div class="form-field form-field-wide">
+                    <label for="cfg-notify-recipients">Empfänger</label>
+                    <input id="cfg-notify-recipients" class="bos-input" placeholder="name@beispiel.de, zweite@beispiel.de">
+                    <small>Bis zu zehn Adressen, durch Komma getrennt.</small>
+                </div>
+            </div>
+
+            <fieldset class="notification-events">
+                <legend>Melden bei</legend>
+                <label><input type="checkbox" data-notify-event="source_offline"> Quelle ohne Signal (nach 30 s)</label>
+                <label><input type="checkbox" data-notify-event="mediamtx_offline"> Streaming-Server nicht erreichbar (nach 20 s)</label>
+                <label><input type="checkbox" data-notify-event="storage_low"> Speicher knapp oder erschöpft</label>
+                <label><input type="checkbox" data-notify-event="recording_problem"> Aufnahme abgebrochen oder fehlgeschlagen</label>
+                <label><input type="checkbox" data-notify-event="output_failed"> Streaming-Ausgang unerwartet beendet</label>
+                <label><input type="checkbox" data-notify-event="server_started"> Server gestartet (z. B. nach Neustart)</label>
+            </fieldset>
+
+            <div class="settings-inline-actions">
+                <button
+                    id="cfg-notify-save"
+                    class="bos-button bos-button-small"
+                    type="button"
+                    onclick="saveNotificationSettings()">
+                    Benachrichtigungen speichern
+                </button>
+                <button
+                    id="cfg-notify-test"
+                    class="bos-button bos-button-small"
+                    type="button"
+                    onclick="sendTestNotification()">
+                    Speichern und Testnachricht senden
+                </button>
+                <small id="cfg-notify-status" role="status">
+                    Wird separat und ohne Neustart gespeichert.
+                </small>
+            </div>
+        </section>
+        {% endif %}
+
         <section class="bos-card settings-section">
             <div class="settings-section-header">
                 <span class="settings-icon" aria-hidden="true">⇥</span>

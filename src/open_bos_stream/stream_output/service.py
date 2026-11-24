@@ -171,6 +171,10 @@ class StreamOutputService:
                         output.name
                     ),
 
+                    failed=self._manager.failed(
+                        output.name
+                    ),
+
                 )
 
             )

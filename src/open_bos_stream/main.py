@@ -4,6 +4,7 @@ Application Entry Point
 """
 
 import asyncio
+import time
 from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI
@@ -16,6 +17,9 @@ from open_bos_stream.core.container import auth_service
 from open_bos_stream.core.container import fullscreen_relay_manager
 from open_bos_stream.core.container import recording_service
 from open_bos_stream.core.container import media_storage_service
+from open_bos_stream.core.container import dashboard_service
+from open_bos_stream.core.container import notification_service
+from open_bos_stream.notifications.monitor import NotificationMonitor
 from open_bos_stream.auth.middleware import AuthMiddleware
 from open_bos_stream.api.auth import router as auth_router
 from open_bos_stream.api.input import (
@@ -51,6 +55,9 @@ from open_bos_stream.api.stream_output import (
 )
 from open_bos_stream.api.mediamtx_auth import (
     router as mediamtx_auth_router,
+)
+from open_bos_stream.api.notifications import (
+    router as notifications_router,
 )
 from open_bos_stream.logging.logger import setup_logging
 import logging
@@ -96,6 +103,25 @@ async def storage_protection_loop() -> None:
         await asyncio.sleep(30)
 
 
+async def notification_loop() -> None:
+    """Erkennt Störungen und meldet sie per E-Mail (falls eingerichtet)."""
+
+    monitor = NotificationMonitor()
+    # Dienste beim Start kurz hochfahren lassen, damit MediaMTX und Quellen
+    # nicht fälschlich als gestört gelten.
+    await asyncio.sleep(15)
+    while True:
+        try:
+            status = await asyncio.to_thread(dashboard_service.status)
+            for notice in monitor.evaluate(status, time.monotonic()):
+                notification_service.enqueue(notice)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("Störungsüberwachung fehlgeschlagen.")
+        await asyncio.sleep(5)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialisiert die Anwendung."""
@@ -118,13 +144,15 @@ async def lifespan(app: FastAPI):
 
     recording_task = asyncio.create_task(automatic_recording_loop())
     storage_task = asyncio.create_task(storage_protection_loop())
+    notification_task = asyncio.create_task(notification_loop())
 
     try:
         yield
     finally:
-        for task in (recording_task, storage_task):
+        tasks = (recording_task, storage_task, notification_task)
+        for task in tasks:
             task.cancel()
-        for task in (recording_task, storage_task):
+        for task in tasks:
             with suppress(asyncio.CancelledError):
                 await task
 
@@ -185,3 +213,4 @@ app.include_router(display_router)
 app.include_router(web_access_router)
 app.include_router(map_router)
 app.include_router(mediamtx_auth_router)
+app.include_router(notifications_router)

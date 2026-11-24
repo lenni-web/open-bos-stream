@@ -116,6 +116,10 @@ async function refreshConfig() {
 
         renderStorageSettings();
 
+        if (typeof loadNotificationSettings === "function") {
+            loadNotificationSettings();
+        }
+
         setConfigDirty(false);
         setConfigSaveStatus("");
 

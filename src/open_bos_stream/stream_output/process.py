@@ -31,6 +31,15 @@ class StreamOutputProcess:
         )
 
     @property
+    def exited_unexpectedly(self) -> bool:
+        """FFmpeg hat sich selbst beendet (nicht über stop())."""
+
+        return (
+            self._process is not None
+            and self._process.poll() is not None
+        )
+
+    @property
     def pid(self) -> int | None:
 
         if self._process is None:

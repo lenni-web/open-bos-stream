@@ -131,6 +131,13 @@ class StreamOutputManager:
 
         return process.pid if process else None
 
+    def failed(
+        self,
+        name: str,
+    ) -> bool:
+        process = self.process(name)
+        return process.exited_unexpectedly if process else False
+
     def last_error(
         self,
         name: str,

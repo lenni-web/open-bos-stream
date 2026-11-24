@@ -8,6 +8,7 @@ config/users.yaml
 config/auth.secret
 config/setup.code
 config/revoked_sessions.json
+config/notifications.secret
 recordings/*
 snapshots/*
 !snapshots/.gitkeep

@@ -18,6 +18,7 @@ eigenständige Web-App mit Open-BOS-Stream-Icon abgelegt werden.
   Transcoding je Quelle
 - Individuelle RTMP-Empfangspfade mit Publisher-Token
 - Rollenbasierter Zugriff für Viewer, Admins und Superadmins
+- E-Mail-Benachrichtigung bei Störungen mit Entwarnung
 - Offline-Kartenansicht mit MapLibre und MBTiles
 - Raspberry-Pi-Profil mit optionalem Wayland/labwc-Display
 - Debian-Serverprofil mit optionalem Caddy/HTTPS, WebRTC und UFW
@@ -802,6 +803,36 @@ Wichtige Medien lassen sich in der Mediathek mit dem Schloss-Symbol als
 „Behalten“ markieren. Sie werden nie automatisch gelöscht; manuelles Löschen
 bleibt möglich. Die Markierung wird als versteckte Datei
 `.<dateiname>.keep` neben der Mediendatei gespeichert.
+
+### E-Mail-Benachrichtigungen bei Störungen
+
+In den Einstellungen richtet ein Superadmin unter „Benachrichtigungen“ den
+Versand über einen eigenen SMTP-Server ein (Server, Port, Verschlüsselung,
+Benutzername, Passwort, Absender und bis zu zehn Empfänger). „Speichern und
+Testnachricht senden“ prüft die Einstellungen sofort.
+
+Gemeldet werden, jeweils einzeln abschaltbar:
+
+| Ereignis | Auslöser |
+|---|---|
+| Quelle ohne Signal | Eine Quelle, die gesendet hat, ist 30 s ohne Signal |
+| Streaming-Server nicht erreichbar | MediaMTX ist 20 s nicht erreichbar |
+| Speicher knapp oder erschöpft | Warnschwelle bzw. Mindestgrenze unterschritten |
+| Aufnahme abgebrochen oder fehlgeschlagen | Streamabbruch, Speichermangel oder ungültige Datei |
+| Streaming-Ausgang unerwartet beendet | FFmpeg einer Weiterleitung beendet sich selbst |
+| Server gestartet | Dienststart, z. B. nach Neustart, Update oder Absturz |
+
+Kurze Aussetzer werden abgewartet, jede Störung wird höchstens alle zehn
+Minuten gemeldet, und nach einer gemeldeten Störung folgt eine Entwarnung.
+Quellen, die seit dem Start nie gesendet haben (Drohne nicht in der Luft),
+gelten nicht als gestört. Die Überwachung läuft im Server, auch ohne geöffnete
+Oberfläche; der Versand erfolgt im Hintergrund und bremst Streaming und
+Aufnahme nicht aus.
+
+Das SMTP-Passwort steht nicht in `config/stream.yaml`, sondern in
+`config/notifications.secret` (Rechte 0600) und wird nie an den Browser
+ausgeliefert. Ziel-URLs in Fehlermeldungen von Weiterleitungen werden ohne
+Stream-Schlüssel versendet. Admins sehen weder Mailserver noch Empfänger.
 
 ## Webzugriff im lokalen Profil
 

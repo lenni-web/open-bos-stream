@@ -9,6 +9,22 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- E-Mail-Benachrichtigungen bei Störungen: Quelle ohne Signal, Streaming-
+  Server nicht erreichbar, Speicher knapp, Aufnahme abgebrochen,
+  Streaming-Ausgang unerwartet beendet und Serverstart. Mit Wartezeit gegen
+  kurze Aussetzer, höchstens einer Meldung je Störung alle zehn Minuten und
+  Entwarnung, sobald wieder alles läuft. Einrichtung und Testnachricht in den
+  Einstellungen (nur Superadmin).
+
+### Security
+
+- Das SMTP-Passwort liegt getrennt in `config/notifications.secret`
+  (Rechte 0600) und wird nie an den Browser ausgeliefert. Admins sehen
+  weder Mailserver noch Empfängeradressen; Stream-Schlüssel in
+  FFmpeg-Fehlermeldungen werden vor dem Versand entfernt.
+
 ---
 
 ## [0.18.1] - 2026-11-24

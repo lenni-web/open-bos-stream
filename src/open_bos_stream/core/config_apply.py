@@ -14,6 +14,7 @@ from open_bos_stream.core.config_preflight import (
 from open_bos_stream.core.models import (
     AppConfig,
     MediaCaptureConfig,
+    NotificationConfig,
     StorageConfig,
 )
 from open_bos_stream.core.installation import installation_profile
@@ -191,6 +192,20 @@ class ConfigApplyService:
             self._loader.save_last_known_good(candidate)
             self._runtime.storage = candidate.storage
             return candidate.storage.model_copy(deep=True)
+
+    def update_notifications(
+        self,
+        notifications: NotificationConfig,
+    ) -> NotificationConfig:
+        """Benachrichtigungen ohne Neustart des Streamers speichern."""
+
+        with self._lock:
+            candidate = self._runtime.model_copy(deep=True)
+            candidate.notifications = notifications.model_copy(deep=True)
+            self._loader.save(candidate)
+            self._loader.save_last_known_good(candidate)
+            self._runtime.notifications = candidate.notifications
+            return candidate.notifications.model_copy(deep=True)
 
     def test(self, candidate: AppConfig) -> list[str]:
         """Prüft eine Konfiguration ohne sie zu speichern."""

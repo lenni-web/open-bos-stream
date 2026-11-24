@@ -338,6 +338,27 @@ class OBSApi {
 
     }
 
+    async notificationSettings() {
+
+        return await this.get("/config/notifications");
+
+    }
+
+    async saveNotificationSettings(settings) {
+
+        return await this.put(
+            "/config/notifications",
+            settings
+        );
+
+    }
+
+    async sendTestNotification() {
+
+        return await this.post("/config/notifications/test");
+
+    }
+
     async saveStorage(storage) {
 
         return await this.put(

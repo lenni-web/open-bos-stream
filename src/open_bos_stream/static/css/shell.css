@@ -571,6 +571,45 @@ body {
     height: 20px;
 }
 
+.notification-events {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 16px;
+    margin: 16px 0 4px;
+    padding: 12px 14px;
+    border: 1px solid var(--bos-gray);
+    border-radius: var(--shell-radius-small);
+}
+
+.notification-events legend {
+    padding: 0 6px;
+    color: var(--bos-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.notification-events label {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: var(--bos-dark);
+    font-size: 0.84rem;
+}
+
+.notification-events input {
+    margin-top: 2px;
+}
+
+.settings-section-notifications .settings-inline-actions {
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .notification-events {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 /* Ladezustand der Videokacheln, bis das erste Bild da ist */
 .multi-source-frame.is-loading::after {
     position: absolute;

@@ -8,6 +8,7 @@ from open_bos_stream.core.config_apply import ConfigApplyError
 from open_bos_stream.core.models import (
     AppConfig,
     MediaCaptureConfig,
+    NotificationConfig,
     StorageConfig,
     SourceConfig,
 )
@@ -69,12 +70,19 @@ async def get_config(request: Request):
         # Ziel-URLs enthalten in der Regel geheime Stream-Schlüssel.
         for output in config.stream_outputs:
             output.url = mask_url(output.url)
+        # Mailserver und Empfängeradressen sind nur für Superadmins.
+        config.notifications = NotificationConfig.model_construct(
+            enabled=config.notifications.enabled,
+        )
     return config
 
 
 @router.put("/", dependencies=[SUPERADMIN])
 async def save_config(config: AppConfig):
     # Admins speichern ausschließlich über PUT /config/sources.
+    # Benachrichtigungen haben einen eigenen Endpunkt; ein veralteter Stand
+    # aus dem Browser darf sie hier nicht überschreiben.
+    config.notifications = loader.load().notifications
     return await apply_config(config)
 
 

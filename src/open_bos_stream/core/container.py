@@ -31,6 +31,7 @@ from open_bos_stream.media.library import (
 )
 from open_bos_stream.media.storage import MediaStorageService
 from open_bos_stream.auth.service import AuthService
+from open_bos_stream.notifications.service import NotificationService
 from open_bos_stream.auth.rate_limit import LoginRateLimiter
 from open_bos_stream.stream_output.service import (
     StreamOutputService,
@@ -156,6 +157,8 @@ snapshot_service = SnapshotService(
     storage=media_storage_service,
     relays=fullscreen_relay_manager,
 )
+
+notification_service = NotificationService(config)
 
 dashboard_service = DashboardService(
     config=config,

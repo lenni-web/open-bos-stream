@@ -23,3 +23,5 @@ class StreamOutputStatus(BaseModel):
     pid: int | None = None
 
     error: str | None = None
+
+    failed: bool = False

@@ -375,6 +375,70 @@ class StorageConfig(BaseModel):
         return self
 
 
+EMAIL_ADDRESS_PATTERN = re.compile(r"^[^@\s<>,;\"']+@[^@\s<>,;\"']+\.[^@\s<>,;\"']+$")
+
+
+class NotificationEventsConfig(BaseModel):
+    """Welche Störungen per E-Mail gemeldet werden."""
+
+    source_offline: bool = True
+    mediamtx_offline: bool = True
+    storage_low: bool = True
+    recording_problem: bool = True
+    output_failed: bool = True
+    server_started: bool = True
+
+
+class NotificationConfig(BaseModel):
+    """E-Mail-Benachrichtigung bei Störungen (Passwort separat gespeichert)."""
+
+    enabled: bool = False
+    smtp_host: str = Field(default="", max_length=255)
+    smtp_port: int = Field(default=587, ge=1, le=65535)
+    security: Literal["starttls", "ssl", "none"] = "starttls"
+    username: str = Field(default="", max_length=255)
+    sender: str = Field(default="", max_length=255)
+    recipients: list[str] = Field(default_factory=list, max_length=10)
+    events: NotificationEventsConfig = Field(
+        default_factory=NotificationEventsConfig,
+    )
+
+    @field_validator("smtp_host", "username", "sender", mode="before")
+    @classmethod
+    def _strip_single_line(cls, value):
+        text = str(value or "").strip()
+        # Zeilenumbrüche würden zusätzliche Mail-Header einschleusen.
+        if "\r" in text or "\n" in text:
+            raise ValueError("Zeilenumbrüche sind nicht erlaubt.")
+        return text
+
+    @field_validator("recipients", mode="before")
+    @classmethod
+    def _normalize_recipients(cls, value):
+        if isinstance(value, str):
+            value = re.split(r"[,;\s]+", value)
+        recipients = []
+        for item in value or []:
+            address = str(item).strip()
+            if address and address not in recipients:
+                recipients.append(address)
+        return recipients
+
+    @model_validator(mode="after")
+    def _validate_addresses(self) -> "NotificationConfig":
+        for address in [*self.recipients, *([self.sender] if self.sender else [])]:
+            if not EMAIL_ADDRESS_PATTERN.match(address):
+                raise ValueError(f"Ungültige E-Mail-Adresse: {address}")
+        if self.enabled:
+            if not self.smtp_host:
+                raise ValueError("Für E-Mail-Benachrichtigungen fehlt der SMTP-Server.")
+            if not self.sender:
+                raise ValueError("Für E-Mail-Benachrichtigungen fehlt der Absender.")
+            if not self.recipients:
+                raise ValueError("Mindestens ein Empfänger ist erforderlich.")
+        return self
+
+
 class AppConfig(BaseModel):
 
     source_profile: Literal[
@@ -398,6 +462,10 @@ class AppConfig(BaseModel):
 
     storage: StorageConfig = Field(
         default_factory=StorageConfig,
+    )
+
+    notifications: NotificationConfig = Field(
+        default_factory=NotificationConfig,
     )
 
     capture: CaptureConfig
