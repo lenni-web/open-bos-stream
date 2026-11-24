@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.18.9] - 2026-11-24
+
 ### Changed
 
 - Das Ereignisprotokoll wird jetzt vom Server geführt statt vom Browser.

@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.18.9** (2026-11-24): Dauerhaftes Ereignisprotokoll auf dem Server
+  (30 Tage, für alle Admins)
 - **0.18.8** (2026-11-24): Automatische Aufnahme pro Quelle, bis zu vier
   Aufnahmen parallel
 - **0.18.7** (2026-11-24): Dokumentation und Funktionsübersicht aktualisiert
