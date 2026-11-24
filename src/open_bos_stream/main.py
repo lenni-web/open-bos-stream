@@ -7,6 +7,12 @@ import asyncio
 import time
 from contextlib import asynccontextmanager, suppress
 
+# Vor allen anderen Modulen: Uhrzeiten in Mails, Dateinamen und Journal in
+# deutscher Zeit statt der (oft UTC-)Systemzeit des Servers.
+from open_bos_stream.core.timezone import apply_timezone
+
+ACTIVE_TIMEZONE = apply_timezone()
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 

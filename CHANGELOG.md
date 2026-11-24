@@ -9,6 +9,16 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Fixed
+
+- Uhrzeiten vom Server stimmen jetzt mit der deutschen Zeit überein. Läuft
+  der Server in UTC, lagen Zeitangaben in E-Mails, Gastlink-Meldungen, den
+  Dateinamen von Aufnahmen und Snapshots sowie im Journal im Winter eine und
+  im Sommer zwei Stunden zurück. Die Anwendung verwendet nun Europe/Berlin
+  mit automatischer Sommer-/Winterzeit (änderbar über die
+  Umgebungsvariable `OPEN_BOS_TIMEZONE`). Die Systemzeit des Servers bleibt
+  unverändert.
+
 ---
 
 ## [0.18.5] - 2026-11-24

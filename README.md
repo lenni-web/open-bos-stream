@@ -737,6 +737,17 @@ wenn Einstellungen bedient werden sollen.
 Eine vorübergehend nicht erreichbare Quelle wird unabhängig mit begrenztem
 Backoff neu verbunden und unterbricht die übrigen Quellen nicht.
 
+### Zeitzone
+
+Server laufen oft in UTC. Damit Uhrzeiten in E-Mails, Gastlink-Meldungen,
+Dateinamen von Aufnahmen und Snapshots sowie im Journal der deutschen Zeit
+entsprechen, verwendet Open BOS Stream unabhängig von der Systemzeitzone
+`Europe/Berlin` mit automatischer Sommer-/Winterzeit. Eine andere Zone lässt
+sich über die Umgebungsvariable `OPEN_BOS_TIMEZONE` setzen, z. B. per
+systemd-Override des Dienstes. Die Systemzeit des Servers bleibt unverändert;
+wer auch Systemprotokolle in deutscher Zeit möchte, kann zusätzlich
+`sudo timedatectl set-timezone Europe/Berlin` ausführen.
+
 ### Gastlinks für externe Stellen
 
 Admins und Superadmins erstellen in der Übersicht über „Gastlink teilen“ einen
