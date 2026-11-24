@@ -57,6 +57,7 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.18.4** (2026-11-24): Gastlinks im Ereignisprotokoll
 - **0.18.3** (2026-11-24): Zeitlich begrenzte Gastlinks für ausgewählte
   Livebilder
 - **0.18.2** (2026-11-24): E-Mail-Benachrichtigungen bei Störungen

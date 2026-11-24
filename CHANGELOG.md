@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.18.4] - 2026-11-24
+
 ### Added
 
 - Gastlinks im Ereignisprotokoll: Erstellen, Öffnen durch einen Gast,
