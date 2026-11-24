@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.17.1] - 2026-11-24
+
 ### Fixed
 
 - Beim Abspielen eines Livestreams erschien im Browser ein Anmeldefenster und

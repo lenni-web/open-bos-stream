@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.17.1** (2026-11-24): Anmeldefenster und Aussetzer beim Abspielen
+  von Livestreams behoben
 - **0.17.0** (2026-11-22): Sicherheitshärtung (Streams nur mit Anmeldung,
   Einrichtungscode, Rollen pro Endpunkt), RTSP-Ausgänge, Funktionsübersicht
 - **0.16.2** (2026-10-09): Alle Kartenebenen standardmäßig eingeblendet
