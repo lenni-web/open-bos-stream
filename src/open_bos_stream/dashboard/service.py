@@ -148,6 +148,9 @@ class DashboardService:
         )
 
         recording = self._recording.status
+        recordings = {
+            item.source_id: item for item in self._recording.statuses()
+        }
         selected_media_source = next(
             (
                 item
@@ -359,6 +362,17 @@ class DashboardService:
                     "height": mediamtx_statuses[item.viewer_path].height,
                     "tracks": mediamtx_statuses[item.viewer_path].tracks,
                     "runtime": runtime_statuses.get(item.id),
+                    "recording": (
+                        {
+                            "active": recordings[item.id].recording,
+                            "duration": recordings[item.id].duration,
+                            "automatic": (
+                                recordings[item.id].mode == "automatic"
+                            ),
+                        }
+                        if item.id in recordings
+                        else None
+                    ),
                     "managed": item.requires_process,
                     "health": source_health(
                         ready=mediamtx_statuses[item.viewer_path].ready,
@@ -408,6 +422,23 @@ class DashboardService:
 
             },
 
+            "recordings": [
+                {
+                    "source_id": item.source_id,
+                    "source_name": item.source_name,
+                    "active": item.recording,
+                    "duration": item.duration,
+                    "mode": item.mode,
+                    "automatic_waiting": item.automatic_waiting,
+                    "automatic_error": item.automatic_error,
+                    "end_reason": item.end_reason,
+                    "end_message": item.end_message,
+                    "completed_filename": item.completed_filename,
+                    "finished_at": item.finished_at,
+                }
+                for item in recordings.values()
+            ],
+
             "media_capture": {
                 "source_id": (
                     selected_media_source.id
@@ -427,6 +458,9 @@ class DashboardService:
                     else False
                 ),
                 "recording_mode": self._config.media_capture.recording_mode,
+                "automatic_source_ids": (
+                    self._recording.automatic_source_ids()
+                ),
             },
 
             # -------------------------------------------------

@@ -813,19 +813,32 @@ Bedienung, Medienseite sowie Snapshot- und Aufnahme-API bleiben ausschließlich
 für Superadmins verfügbar. Ist die ausgewählte Quelle offline, bleiben die
 Schaltflächen deaktiviert.
 
-Für Aufnahmen stehen zwei Betriebsarten zur Verfügung:
+Aufnahmen lassen sich manuell und automatisch steuern:
 
-- **Manuell:** Ein Superadmin startet und stoppt die Aufnahme im Medienbalken.
-- **Automatisch:** Die Anwendung überwacht die gewählte Medienquelle
-  serverseitig. Sobald ihr Signal verfügbar ist, beginnt eine neue Aufnahme.
-  Endet das Signal, wird die Datei kontrolliert abgeschlossen und in der
-  Mediathek veröffentlicht. Kehrt das Signal später zurück, entsteht eine neue
-  Aufnahme. Manuelle Start-/Stopp-Befehle sind in dieser Betriebsart gesperrt.
+- **Manuell:** Ein Superadmin startet und stoppt die Aufnahme der gewählten
+  Medienquelle im Medienbalken.
+- **Automatisch pro Quelle:** Unter „Automatisch aufnehmen“ werden die
+  Quellen angehakt, die selbstständig aufnehmen sollen (höchstens vier). Die
+  Anwendung überwacht jede dieser Quellen serverseitig: Sobald ihr Signal
+  verfügbar ist, beginnt eine neue Aufnahme; endet das Signal, wird die Datei
+  kontrolliert abgeschlossen und in der Mediathek veröffentlicht. Kehrt das
+  Signal zurück, entsteht eine neue Aufnahme. Für automatisch aufnehmende
+  Quellen sind manuelle Start-/Stopp-Befehle gesperrt.
 
-Der Betriebsartenschalter wird unmittelbar gespeichert und benötigt nicht den
-allgemeinen Button „Änderungen speichern“. Dabei werden weder laufende Streams
-noch der Mehrquellen-Streamer neu gestartet. Eine Statuszeile direkt am
-Schalter bestätigt den aktiven Modus oder meldet einen Speicherfehler.
+Mehrere Aufnahmen laufen parallel, z. B. zwei Drohnen gleichzeitig oder eine
+automatische Quelle und die manuelle Aufnahme einer anderen Medienquelle.
+Insgesamt laufen höchstens vier Aufnahmen gleichzeitig. Jede Videokachel
+zeigt eine laufende Aufnahme mit Dauer an („● Auto-Aufnahme 12:34“). Da
+H.264 und H.265 unverändert kopiert werden, kostet jede weitere Aufnahme kaum
+Rechenleistung, aber entsprechend Speicherplatz. Bei Speichermangel werden
+alle laufenden Aufnahmen sauber abgeschlossen.
+
+Die Auswahl wird unmittelbar gespeichert und benötigt nicht den allgemeinen
+Button „Änderungen speichern“. Dabei werden weder laufende Streams noch der
+Mehrquellen-Streamer neu gestartet. Wird eine Quelle aus der Automatik
+genommen, endet ihre automatisch gestartete Aufnahme. Konfigurationen bis
+Version 0.18 mit „Aufnahme automatisch steuern“ werden beim Update
+übernommen: Die bisherige Medienquelle nimmt weiter automatisch auf.
 
 Ein einzelner kurzzeitig fehlender Statuswert beendet die Aufnahme nicht;
 erst ein bestätigter Signalverlust löst den Abschluss aus. Die Automatik läuft

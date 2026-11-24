@@ -148,7 +148,9 @@ function updateMediaCaptureBar(mediaCapture, storage = null) {
         "media-capture-source-name",
         mediaCapture?.source_name || "Keine Quelle ausgewählt"
     );
-    const automatic = mediaCapture?.recording_mode === "automatic";
+    const automatic = (mediaCapture?.automatic_source_ids ?? []).includes(
+        mediaCapture?.source_id
+    );
     const previewQuality = Boolean(
         window.dashboard?.recording?.active
         && window.dashboard.recording.full_quality === false

@@ -1128,3 +1128,45 @@ body {
         display: inline;
     }
 }
+
+/* ----------------------------------------------------------
+   Aufnahmeanzeige an den Videokacheln
+   ---------------------------------------------------------- */
+
+.multi-source-recording {
+    flex: 0 0 auto;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--shell-danger-soft);
+    color: var(--bos-red);
+    font-size: 0.72rem;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.multi-source-recording[hidden] {
+    display: none;
+}
+
+.automatic-recording-sources {
+    display: grid;
+    gap: 6px;
+    margin: 12px 0 0;
+    padding: 10px 12px;
+    border: 1px solid var(--bos-gray);
+    border-radius: var(--shell-radius-small);
+}
+
+.automatic-recording-sources legend {
+    padding: 0 6px;
+    color: var(--bos-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.automatic-recording-sources small {
+    color: var(--bos-muted);
+    font-size: 0.76rem;
+    line-height: 1.45;
+}

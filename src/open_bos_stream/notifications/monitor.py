@@ -66,7 +66,9 @@ class NotificationMonitor:
     _mediamtx: _Tracked = field(default_factory=_Tracked)
     _storage_level: str = "ok"
     _storage_alerted: bool = False
-    _recording_finished_at: float | None = None
+    _recording_finished_at: dict[str, float | None] = field(
+        default_factory=dict
+    )
     _outputs: dict[str, _Tracked] = field(default_factory=dict)
     _last_alert: dict[str, float] = field(default_factory=dict)
 
@@ -87,9 +89,10 @@ class NotificationMonitor:
                 )
             )
             # Bereits vor dem Start beendete Aufnahmen nicht melden.
-            self._recording_finished_at = (
-                status.get("recording") or {}
-            ).get("finished_at")
+            self._recording_finished_at = {
+                str(item.get("source_id")): item.get("finished_at")
+                for item in self._recordings(status)
+            }
 
         notices += self._check_mediamtx(status, now)
         notices += self._check_sources(status, now)
@@ -255,29 +258,45 @@ class NotificationMonitor:
             )
         ]
 
+    @staticmethod
+    def _recordings(status: dict) -> list[dict]:
+        """Aufnahmen aller Quellen (ältere Statusform: nur eine Aufnahme)."""
+
+        recordings = status.get("recordings")
+        if recordings is None:
+            single = status.get("recording") or {}
+            recordings = [single] if single else []
+        return recordings
+
     def _check_recording(self, status: dict, now: float) -> list[Notice]:
-        recording = status.get("recording") or {}
-        finished_at = recording.get("finished_at")
-        reason = recording.get("end_reason")
-        if not finished_at or finished_at == self._recording_finished_at:
-            return []
-        self._recording_finished_at = finished_at
-        title = RECORDING_PROBLEM_REASONS.get(reason)
-        if title is None:
-            return []
-        source = recording.get("source_name")
-        details = [recording.get("end_message") or title]
-        if source:
-            details.append(f"Quelle: {source}")
-        if recording.get("completed_filename"):
-            details.append(f"Datei: {recording['completed_filename']}")
-        return [
-            Notice(
-                event="recording_problem",
-                subject=title,
-                body="\n".join(details),
+        notices: list[Notice] = []
+        for recording in self._recordings(status):
+            key = str(recording.get("source_id"))
+            finished_at = recording.get("finished_at")
+            reason = recording.get("end_reason")
+            if (
+                not finished_at
+                or finished_at == self._recording_finished_at.get(key)
+            ):
+                continue
+            self._recording_finished_at[key] = finished_at
+            title = RECORDING_PROBLEM_REASONS.get(reason)
+            if title is None:
+                continue
+            source = recording.get("source_name")
+            details = [recording.get("end_message") or title]
+            if source:
+                details.append(f"Quelle: {source}")
+            if recording.get("completed_filename"):
+                details.append(f"Datei: {recording['completed_filename']}")
+            notices.append(
+                Notice(
+                    event="recording_problem",
+                    subject=f"{title} ({source})" if source else title,
+                    body="\n".join(details),
+                )
             )
-        ]
+        return notices
 
     def _check_outputs(self, status: dict, now: float) -> list[Notice]:
         notices: list[Notice] = []

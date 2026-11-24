@@ -9,6 +9,30 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Automatische Aufnahme pro Quelle: In den Einstellungen unter
+  „Automatisch aufnehmen“ lassen sich bis zu vier Quellen anhaken, die
+  beim Eingangssignal selbstständig aufnehmen. Mehrere Aufnahmen laufen
+  parallel, auch neben der manuellen Aufnahme der Medienquelle (insgesamt
+  höchstens vier gleichzeitig).
+- Videokacheln zeigen eine laufende Aufnahme mit Dauer an.
+
+### Changed
+
+- Speicherschutz, Herunterfahren und E-Mail-Benachrichtigungen
+  berücksichtigen alle laufenden Aufnahmen; Meldungen nennen die Quelle.
+- Die bisherige Einstellung „Aufnahme automatisch steuern“ wird beim
+  Update übernommen: Die gewählte Medienquelle nimmt weiter automatisch auf.
+
+### Fixed
+
+- „Konfiguration testen“ und „Änderungen speichern“ behalten nach dem
+  Prüfen ihre kurzen Beschriftungen auf dem Smartphone.
+- Änderungen an Benachrichtigungen und automatischer Aufnahme markieren
+  die allgemeine Konfiguration nicht mehr als „ungespeichert“; sie werden
+  separat gespeichert.
+
 ---
 
 ## [0.18.7] - 2026-11-24

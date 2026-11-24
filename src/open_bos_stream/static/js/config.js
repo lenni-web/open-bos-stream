@@ -66,8 +66,12 @@ function bindConfigChangeTracking() {
                 event.target.id?.startsWith(
                     "cfg-display-"
                 )
-                || event.target.id === "cfg-recording-automatic"
                 || event.target.id?.startsWith("cfg-storage-")
+                // Separat und sofort gespeicherte Bereiche:
+                || event.target.closest?.(
+                    "#cfg-recording-automatic-list, " +
+                    ".settings-section-notifications"
+                )
             ) {
                 return;
             }
@@ -148,11 +152,7 @@ async function saveConfig() {
         );
 
     try {
-        if (button) {
-            button.disabled = true;
-            button.textContent =
-                "Wird gespeichert …";
-        }
+        setButtonBusy(button, true, "Wird gespeichert …");
 
         setConfigSaveStatus(
             "Konfiguration wird geprüft und aktiviert. " +
@@ -202,11 +202,7 @@ async function saveConfig() {
         );
 
     } finally {
-        if (button) {
-            button.disabled = false;
-            button.textContent =
-                "Änderungen speichern";
-        }
+        setButtonBusy(button, false);
     }
 
 }
@@ -241,21 +237,53 @@ function renderMediaCaptureConfig() {
         select.value = sources[0]?.id ?? "";
     }
 
-    const automatic = document.getElementById(
-        "cfg-recording-automatic"
-    );
-    if (automatic) {
-        automatic.checked = (
-            currentConfig.media_capture?.recording_mode === "automatic"
-        );
-        if (!automatic.dataset.immediateSaveBound) {
-            automatic.dataset.immediateSaveBound = "true";
-            automatic.addEventListener(
-                "change",
-                () => saveRecordingModeImmediately()
-            );
-        }
+    renderAutomaticRecordingSources(sources);
+}
+
+const MAX_AUTOMATIC_RECORDINGS = 4;
+
+function renderAutomaticRecordingSources(sources) {
+    const list = document.getElementById("cfg-recording-automatic-list");
+    if (!list) {
+        return;
     }
+    const selected = new Set(
+        currentConfig.media_capture?.automatic_source_ids ?? []
+    );
+    list.innerHTML = sources.length
+        ? sources.map(source => `
+            <label class="switch-row">
+                <input type="checkbox" value="${escapeHTML(source.id)}"
+                    ${selected.has(source.id) ? "checked" : ""}>
+                <span><strong>${escapeHTML(source.name)}</strong></span>
+            </label>
+        `).join("")
+        : "<small>Keine aktive Quelle.</small>";
+    updateAutomaticRecordingLimit();
+    if (!list.dataset.immediateSaveBound) {
+        list.dataset.immediateSaveBound = "true";
+        list.addEventListener("change", () => {
+            updateAutomaticRecordingLimit();
+            saveRecordingModeImmediately();
+        });
+    }
+}
+
+function automaticRecordingSelection() {
+    return Array.from(
+        document.querySelectorAll(
+            "#cfg-recording-automatic-list input:checked"
+        )
+    ).map(input => input.value);
+}
+
+function updateAutomaticRecordingLimit() {
+    const full = automaticRecordingSelection().length >= MAX_AUTOMATIC_RECORDINGS;
+    document
+        .querySelectorAll("#cfg-recording-automatic-list input")
+        .forEach(input => {
+            input.disabled = full && !input.checked;
+        });
 }
 
 function renderStorageSettings() {
@@ -318,45 +346,44 @@ async function saveStorageSettings() {
 }
 
 async function saveRecordingModeImmediately() {
-    const automatic = document.getElementById(
-        "cfg-recording-automatic"
-    );
+    const list = document.getElementById("cfg-recording-automatic-list");
     const source = document.getElementById("cfg-media-source");
     const status = document.getElementById(
         "cfg-recording-mode-status"
     );
-    if (!automatic || !source || !currentConfig) {
+    if (!list || !source || !currentConfig) {
         return;
     }
 
-    const previous = currentConfig.media_capture?.recording_mode ?? "manual";
     const payload = {
         source_id: source.value || null,
-        recording_mode: automatic.checked ? "automatic" : "manual",
+        recording_mode: "manual",
+        automatic_source_ids: automaticRecordingSelection(),
     };
 
-    automatic.disabled = true;
+    list.querySelectorAll("input").forEach(input => {
+        input.disabled = true;
+    });
     if (status) status.textContent = "Wird gespeichert …";
     try {
         const result = await api.saveMediaCapture(payload);
         currentConfig.media_capture = result.media_capture;
-        automatic.checked = (
-            result.media_capture.recording_mode === "automatic"
-        );
+        const count = result.media_capture.automatic_source_ids.length;
         if (status) {
-            status.textContent = automatic.checked
-                ? "Automatische Aufnahme ist aktiv."
-                : "Manuelle Aufnahme ist aktiv.";
+            status.textContent = count === 0
+                ? "Keine automatische Aufnahme aktiv."
+                : count === 1
+                    ? "Eine Quelle nimmt automatisch auf."
+                    : `${count} Quellen nehmen automatisch auf.`;
         }
         addEvent("success", "⏺ " + result.message);
     } catch (err) {
-        automatic.checked = previous === "automatic";
         if (status) {
             status.textContent = "Speichern fehlgeschlagen: " + err.message;
         }
         addEvent("error", "⏺ " + err.message);
     } finally {
-        automatic.disabled = false;
+        renderMediaCaptureConfig();
     }
 }
 
@@ -366,11 +393,29 @@ function saveMediaCaptureConfig() {
         return;
     }
     currentConfig.media_capture = {
+        ...(currentConfig.media_capture ?? {}),
         source_id: select.value || null,
-        recording_mode: document.getElementById(
-            "cfg-recording-automatic"
-        )?.checked ? "automatic" : "manual",
+        recording_mode: "manual",
+        automatic_source_ids: automaticRecordingSelection(),
     };
+}
+
+function setButtonBusy(button, busy, text = "") {
+    // Beschriftung samt Kurzform (Smartphone) erhalten.
+    if (!button) {
+        return;
+    }
+    if (busy) {
+        button.dataset.idleHtml = button.innerHTML;
+        button.textContent = text;
+        button.disabled = true;
+        return;
+    }
+    if (button.dataset.idleHtml) {
+        button.innerHTML = button.dataset.idleHtml;
+        delete button.dataset.idleHtml;
+    }
+    button.disabled = false;
 }
 
 async function testConfig() {
@@ -378,10 +423,7 @@ async function testConfig() {
         document.getElementById("config-test-button");
 
     try {
-        if (button) {
-            button.disabled = true;
-            button.textContent = "Wird geprüft …";
-        }
+        setButtonBusy(button, true, "Wird geprüft …");
         collectConfigForm();
         const result = await api.testConfig(currentConfig);
         setConfigSaveStatus(
@@ -391,10 +433,7 @@ async function testConfig() {
     } catch (err) {
         setConfigSaveStatus(err.message, "error");
     } finally {
-        if (button) {
-            button.disabled = false;
-            button.textContent = "Konfiguration testen";
-        }
+        setButtonBusy(button, false);
     }
 }
 

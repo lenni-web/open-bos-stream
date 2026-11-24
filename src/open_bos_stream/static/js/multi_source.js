@@ -490,6 +490,34 @@ function sourceStateLabel(entry, ready) {
     return ready ? "Online" : "Offline";
 }
 
+function formatRecordingClock(seconds) {
+    const total = Math.max(0, Number(seconds) || 0);
+    const hours = Math.floor(total / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
+    const rest = String(total % 60).padStart(2, "0");
+    return hours > 0
+        ? `${hours}:${String(minutes).padStart(2, "0")}:${rest}`
+        : `${minutes}:${rest}`;
+}
+
+function updateSourceRecordingBadge(card, recording) {
+    const badge = card.querySelector(".multi-source-recording");
+    if (!badge) {
+        return;
+    }
+    const active = Boolean(recording?.active);
+    badge.hidden = !active;
+    card.classList.toggle("is-recording", active);
+    if (active) {
+        badge.textContent =
+            `● ${recording.automatic ? "Auto-Aufnahme" : "Aufnahme"} ` +
+            formatRecordingClock(recording.duration);
+        badge.title = recording.automatic
+            ? "Automatische Aufnahme läuft"
+            : "Aufnahme läuft";
+    }
+}
+
 function multiSourceCard(input) {
     const card = document.createElement("article");
     card.className = "multi-source-card";
@@ -500,6 +528,7 @@ function multiSourceCard(input) {
                 <strong>${escapeHTML(input.name)}</strong>
                 <small>${escapeHTML(sourceSubtitle(input))}</small>
             </div>
+            <span class="multi-source-recording" hidden></span>
             <span class="multi-source-state">Offline</span>
         </header>
         <div class="multi-source-frame">
@@ -680,6 +709,7 @@ function updateMultiSources(inputs = []) {
             "is-online",
             input.ready
         );
+        updateSourceRecordingBadge(entry.card, input.recording);
         state.textContent = sourceStateLabel(entry, input.ready);
 
         const frame =

@@ -96,10 +96,10 @@ async def storage_protection_loop() -> None:
             available = await asyncio.to_thread(
                 media_storage_service.enforce
             )
-            if not available and recording_service.status.recording:
+            if not available and recording_service.recording_active:
                 message = media_storage_service.blocked_message()
                 logger.warning(
-                    "Laufende Aufnahme wird wegen Speichermangel beendet."
+                    "Laufende Aufnahmen werden wegen Speichermangel beendet."
                 )
                 await asyncio.to_thread(
                     recording_service.stop_for_storage,
@@ -191,12 +191,12 @@ async def lifespan(app: FastAPI):
             with suppress(asyncio.CancelledError):
                 await task
 
-    if recording_service.status.recording:
+    if recording_service.recording_active:
         try:
-            recording_service.stop(automatic=True)
+            recording_service.stop_all()
         except Exception:
             logger.exception(
-                "Die laufende Aufnahme konnte nicht sauber beendet werden."
+                "Laufende Aufnahmen konnten nicht sauber beendet werden."
             )
 
     fullscreen_relay_manager.close()

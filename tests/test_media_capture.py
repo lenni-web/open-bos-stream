@@ -108,7 +108,7 @@ def test_recording_uses_and_remembers_selected_source(
     config, source = selected_second_source()
     service = RecordingService(config, FakeMediaMTX())
     manager = FakeRecordingManager()
-    service._manager = manager
+    service._manager_factory = lambda: manager
     service._recorder = FakeRecorder(tmp_path)
 
     service.start()
@@ -160,7 +160,7 @@ def test_h265_recording_keeps_original_video(tmp_path: Path) -> None:
 
     service = RecordingService(config, H265MediaMTX())
     manager = FakeRecordingManager()
-    service._manager = manager
+    service._manager_factory = lambda: manager
     service._recorder = FakeRecorder(tmp_path)
 
     service.start()
@@ -175,7 +175,7 @@ def test_automatic_recording_follows_source_signal(
     tmp_path: Path,
 ) -> None:
     config, source = selected_second_source()
-    config.media_capture.recording_mode = "automatic"
+    config.media_capture.automatic_source_ids = [source.id]
 
     class SwitchableMediaMTX:
         ready = True
@@ -191,7 +191,7 @@ def test_automatic_recording_follows_source_signal(
     mediamtx = SwitchableMediaMTX()
     service = RecordingService(config, mediamtx)
     manager = FakeRecordingManager()
-    service._manager = manager
+    service._manager_factory = lambda: manager
     service._recorder = FakeRecorder(tmp_path)
 
     service.reconcile_automatic()
@@ -213,9 +213,9 @@ def test_manual_recording_commands_are_blocked_in_automatic_mode(
     tmp_path: Path,
 ) -> None:
     config, _source = selected_second_source()
-    config.media_capture.recording_mode = "automatic"
+    config.media_capture.automatic_source_ids = [_source.id]
     service = RecordingService(config, FakeMediaMTX())
-    service._manager = FakeRecordingManager()
+    service._manager_factory = FakeRecordingManager
     service._recorder = FakeRecorder(tmp_path)
 
     try:
@@ -251,7 +251,7 @@ def test_full_storage_blocks_recordings_and_snapshots(
     config, _source = selected_second_source()
     recording = RecordingService(config, FakeMediaMTX(), FullStorage())
     manager = FakeRecordingManager()
-    recording._manager = manager
+    recording._manager_factory = lambda: manager
     recording._recorder = FakeRecorder(tmp_path)
     runner = FakeRunner()
     snapshot = SnapshotService(
@@ -290,7 +290,7 @@ def test_storage_stop_finishes_running_recording(tmp_path: Path) -> None:
             self.running = False
             return True
 
-    service._manager = Manager()
+    service._manager_factory = Manager
     service._recorder = FakeRecorder(tmp_path)
     service.start()
 
@@ -341,7 +341,7 @@ def test_recording_uses_original_stream_of_preview_source(
     service = RecordingService(config, FakeMediaMTX(), relays=relays)
     service._capture._sleep = lambda _seconds: None
     manager = FakeRecordingManager()
-    service._manager = manager
+    service._manager_factory = lambda: manager
     service._recorder = FakeRecorder(tmp_path)
 
     service.start()
@@ -390,7 +390,7 @@ def test_unavailable_original_stream_falls_back_to_preview(
     service = RecordingService(config, FakeMediaMTX(), relays=relays)
     service._capture._timeout = 0
     manager = FakeRecordingManager()
-    service._manager = manager
+    service._manager_factory = lambda: manager
     service._recorder = FakeRecorder(tmp_path)
 
     service.start()
@@ -409,7 +409,7 @@ def test_unexpectedly_ended_recording_releases_original_stream(
     relays = FakeRelays(ready_after=0)
     service = RecordingService(config, FakeMediaMTX(), relays=relays)
     manager = FakeRecordingManager()
-    service._manager = manager
+    service._manager_factory = lambda: manager
     service._recorder = FakeRecorder(tmp_path)
     service.start()
 
@@ -417,3 +417,154 @@ def test_unexpectedly_ended_recording_releases_original_stream(
     service.maintain()
 
     assert relays.released == [(source.id, "lease-1")]
+
+
+
+# ----------------------------------------------------------------------
+# Mehrere automatische Aufnahmen
+# ----------------------------------------------------------------------
+
+
+class SwitchableReadyMediaMTX:
+    def __init__(self) -> None:
+        self.ready: dict[str, bool] = {}
+
+    def path(self, name: str):
+        return {
+            "name": name,
+            "ready": self.ready.get(name, True),
+            "codec": "H264",
+            "tracks": ["H264", "MPEG-4 Audio"],
+        }
+
+
+def sources_config(count: int):
+    config = ConfigLoader().load()
+    first = config.sources[0]
+    config.sources = [
+        first.model_copy(update={"id": f"drohne-{index}", "name": f"Drohne {index}"})
+        for index in range(1, count + 1)
+    ]
+    config.media_capture.source_id = "drohne-1"
+    return config
+
+
+def multi_service(tmp_path: Path, config, mediamtx):
+    managers: list[FakeRecordingManager] = []
+
+    def factory():
+        manager = FakeRecordingManager()
+        managers.append(manager)
+        return manager
+
+    service = RecordingService(config, mediamtx, manager_factory=factory)
+    service._recorder = FakeRecorder(tmp_path)
+    return service, managers
+
+
+def test_two_sources_record_automatically_in_parallel(tmp_path: Path) -> None:
+    config = sources_config(3)
+    config.media_capture.automatic_source_ids = ["drohne-1", "drohne-2"]
+    mediamtx = SwitchableReadyMediaMTX()
+    service, _ = multi_service(tmp_path, config, mediamtx)
+
+    service.reconcile_automatic()
+
+    running = {item.source_id: item.recording for item in service.statuses()}
+    assert running == {"drohne-1": True, "drohne-2": True, "drohne-3": False}
+    assert service.recording_active
+
+    # Drohne 2 verliert das Signal: nur ihre Aufnahme endet.
+    viewer = next(s for s in config.sources if s.id == "drohne-2").viewer_path
+    mediamtx.ready[viewer] = False
+    service.reconcile_automatic()
+    service.reconcile_automatic()
+    running = {item.source_id: item.recording for item in service.statuses()}
+    assert running["drohne-1"] is True
+    assert running["drohne-2"] is False
+
+
+def test_manual_recording_of_other_source_runs_alongside(tmp_path: Path) -> None:
+    config = sources_config(2)
+    config.media_capture.source_id = "drohne-2"
+    config.media_capture.automatic_source_ids = ["drohne-1"]
+    service, _ = multi_service(tmp_path, config, SwitchableReadyMediaMTX())
+
+    service.reconcile_automatic()
+    service.start()  # manuelle Aufnahme der Medienquelle Drohne 2
+
+    assert service.status.source_id == "drohne-2"
+    assert service.status.recording is True
+    assert service.status.mode == "manual"
+    assert [s.recording for s in service.statuses()] == [True, True]
+
+
+def test_at_most_four_parallel_recordings(tmp_path: Path) -> None:
+    config = sources_config(5)
+    config.media_capture.source_id = "drohne-5"
+    config.media_capture.automatic_source_ids = [
+        "drohne-1", "drohne-2", "drohne-3", "drohne-4",
+    ]
+    service, _ = multi_service(tmp_path, config, SwitchableReadyMediaMTX())
+    service.reconcile_automatic()
+
+    try:
+        service.start()
+    except RuntimeError as exc:
+        assert "4 Aufnahmen" in str(exc)
+    else:
+        raise AssertionError("Fünfte Aufnahme hätte gesperrt sein müssen.")
+
+
+def test_removing_source_from_automatic_stops_its_recording(tmp_path: Path) -> None:
+    config = sources_config(2)
+    config.media_capture.automatic_source_ids = ["drohne-1", "drohne-2"]
+    service, _ = multi_service(tmp_path, config, SwitchableReadyMediaMTX())
+    service.reconcile_automatic()
+
+    config.media_capture.automatic_source_ids = ["drohne-1"]
+    service.reconcile_automatic()
+
+    running = {item.source_id: item.recording for item in service.statuses()}
+    assert running == {"drohne-1": True, "drohne-2": False}
+
+
+def test_storage_stop_and_shutdown_finish_all_recordings(tmp_path: Path) -> None:
+    config = sources_config(2)
+    config.media_capture.automatic_source_ids = ["drohne-1", "drohne-2"]
+    service, managers = multi_service(tmp_path, config, SwitchableReadyMediaMTX())
+    service.reconcile_automatic()
+    assert sum(manager.running for manager in managers) == 2
+
+    stops = []
+    for manager in managers:
+        manager.stop = (
+            lambda manager=manager, **kwargs: (
+                stops.append(kwargs), setattr(manager, "running", False)
+            )
+        )
+    service.stop_for_storage("Speicher voll.")
+    assert len(stops) == 2
+    assert all(item["reason"] == "storage_low" for item in stops)
+    assert not service.recording_active
+
+
+def test_legacy_automatic_mode_is_migrated() -> None:
+    from open_bos_stream.core.models import MediaCaptureConfig
+
+    legacy = MediaCaptureConfig(source_id="drohne-1", recording_mode="automatic")
+    assert legacy.automatic_source_ids == ["drohne-1"]
+
+    config = sources_config(2).model_dump()
+    config["media_capture"] = {"recording_mode": "automatic"}
+    from open_bos_stream.core.models import AppConfig
+
+    migrated = AppConfig.model_validate(config).media_capture
+    assert migrated.automatic_source_ids == ["drohne-1"]
+
+    try:
+        MediaCaptureConfig(automatic_source_ids=["a", "b", "c", "d", "e"])
+    except ValueError as exc:
+        assert "Höchstens 4" in str(exc)
+    else:
+        raise AssertionError("Mehr als vier Quellen hätten abgelehnt werden müssen.")

@@ -349,12 +349,54 @@ class StreamOutputConfig(BaseModel):
     )
 
 
+MAX_AUTOMATIC_RECORDINGS = 4
+
+
 class MediaCaptureConfig(BaseModel):
-    """Superadmin-Auswahl für Snapshots und Aufzeichnungen."""
+    """Superadmin-Auswahl für Snapshots und Aufzeichnungen.
+
+    ``source_id`` ist die Medienquelle für Snapshot und manuelle Aufnahme.
+    ``automatic_source_ids`` sind die Quellen, die bei Eingangssignal
+    selbstständig aufnehmen (höchstens vier gleichzeitig).
+    ``recording_mode`` stammt aus Versionen bis 0.18 und wird nur noch zur
+    Übernahme älterer Konfigurationen ausgewertet.
+    """
 
     source_id: str | None = None
 
     recording_mode: Literal["manual", "automatic"] = "manual"
+
+    automatic_source_ids: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _normalize_automatic_sources(self) -> "MediaCaptureConfig":
+        ids = list(dict.fromkeys(
+            item for item in self.automatic_source_ids if item
+        ))
+        if (
+            not ids
+            and self.recording_mode == "automatic"
+            and self.source_id
+        ):
+            # Bis 0.18: Automatik galt für die gewählte Medienquelle.
+            ids = [self.source_id]
+        if len(ids) > MAX_AUTOMATIC_RECORDINGS:
+            raise ValueError(
+                "Höchstens "
+                f"{MAX_AUTOMATIC_RECORDINGS} Quellen können automatisch "
+                "aufnehmen."
+            )
+        legacy_without_source = (
+            not ids
+            and self.recording_mode == "automatic"
+            and not self.source_id
+        )
+        self.automatic_source_ids = ids
+        # Ohne gewählte Quelle übernimmt AppConfig die Migration.
+        self.recording_mode = (
+            "automatic" if ids or legacy_without_source else "manual"
+        )
+        return self
 
 
 class StorageConfig(BaseModel):
@@ -497,6 +539,23 @@ class AppConfig(BaseModel):
     ] = Field(
         default_factory=list,
     )
+
+    @model_validator(mode="after")
+    def migrate_automatic_recording(self) -> "AppConfig":
+        """Ältere Automatik ohne gewählte Quelle auf die erste Quelle legen."""
+
+        capture = self.media_capture
+        if (
+            capture.recording_mode == "automatic"
+            and not capture.automatic_source_ids
+        ):
+            first = next(
+                (item.id for item in self.sources if item.enabled),
+                None,
+            )
+            capture.automatic_source_ids = [first] if first else []
+            capture.recording_mode = "automatic" if first else "manual"
+        return self
 
     @model_validator(mode="after")
     def normalize_capture_card_mode(self) -> "AppConfig":

@@ -57,20 +57,18 @@
                 <select id="cfg-media-source" class="bos-input"></select>
                 <small>Die Auswahl kann nur ein Superadmin ändern.</small>
             </label>
-            <label class="switch-row">
-                <input id="cfg-recording-automatic" type="checkbox">
-                <span>
-                    <strong>Aufnahme automatisch steuern</strong>
-                    <small>
-                        Startet beim Eingangssignal und schließt die Datei beim
-                        Signalende selbstständig ab. Ausgeschaltet bleibt die
-                        Aufnahme manuell steuerbar.
-                    </small>
-                    <small id="cfg-recording-mode-status" role="status">
-                        Der Schalter wird sofort gespeichert.
-                    </small>
-                </span>
-            </label>
+            <fieldset class="automatic-recording-sources">
+                <legend>Automatisch aufnehmen</legend>
+                <div id="cfg-recording-automatic-list"></div>
+                <small>
+                    Angehakte Quellen starten die Aufnahme beim
+                    Eingangssignal und schließen sie beim Signalende
+                    selbstständig ab. Höchstens vier Quellen; mehrere
+                    Aufnahmen laufen parallel. Die Auswahl wird sofort
+                    gespeichert.
+                </small>
+                <small id="cfg-recording-mode-status" role="status"></small>
+            </fieldset>
         </section>
 
         <section class="bos-card settings-section">
