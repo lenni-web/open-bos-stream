@@ -15,12 +15,18 @@ eigenständige Web-App mit Open-BOS-Stream-Icon abgelegt werden.
 - Bis zu acht gleichwertige Live-Quellen mit RTMP, RTSP, SRT, UDP, HTTP,
   HLS oder lokaler Capture Card
 - WebRTC-Wiedergabe mit optionalem Stream Copy, Zeitstempel-Reparatur oder
-  Transcoding je Quelle
+  Transcoding je Quelle; Vollbild im Originalstream
 - Individuelle RTMP-Empfangspfade mit Publisher-Token
+- Weiterleitung einzelner Quellen an weitere Ziele per RTMP, SRT oder RTSP
+- Aufnahmen und Snapshots in voller Qualität mit Mediathek,
+  „Behalten“-Markierung und Speicherschutz
+- Offline-Kartenansicht mit MapLibre und MBTiles, Wasserentnahmestellen und
+  Drohnen-Geozonen (dipul)
 - Rollenbasierter Zugriff für Viewer, Admins und Superadmins
-- E-Mail-Benachrichtigung bei Störungen mit Entwarnung
 - Zeitlich begrenzte Gastlinks für ausgewählte Livebilder, ohne Konto
-- Offline-Kartenansicht mit MapLibre und MBTiles
+- E-Mail-Benachrichtigung bei Störungen mit Entwarnung
+- Moderne Oberfläche mit Hell-/Dunkelmodus, optimiert für Smartphone,
+  Tablet und Desktop
 - Raspberry-Pi-Profil mit optionalem Wayland/labwc-Display
 - Debian-Serverprofil mit optionalem Caddy/HTTPS, WebRTC und UFW
 - Produktionsbetrieb über systemd sowie automatische Installationsprüfung
@@ -700,6 +706,29 @@ kann die Latenz aber geringfügig erhöhen. Erst wenn die Systemdiagnose danach
 weiterhin Drop-/Dup-Frames oder fehlenden Fortschritt meldet, sollte ein
 Transcoding-Profil oder der Kamera-Substream geprüft werden.
 
+## Oberfläche
+
+- **Seitenleiste:** Übersicht, Medien, Karte, Einstellungen und System mit
+  einheitlichen Symbolen. Am Desktop sitzt sie fest am linken Rand und lässt
+  sich unten über „Einklappen“ auf Symbole reduzieren; der Browser merkt sich
+  die Wahl. Auf Tablets zeigt sie nur Symbole, auf Smartphones wird sie zur
+  Leiste am unteren Bildschirmrand.
+- **Kopfzeile:** links der Seitentitel, rechts Uhrzeit, Status und
+  Benutzermenü. Die Uhrzeit kommt vom Gerät, auf dem die Seite geöffnet ist.
+- **Status:** eine einzige Anzeige „Einsatzbereit“ (grün) oder „Störung“
+  (rot), sobald der Streaming-Server nicht erreichbar ist. Admins und
+  Superadmins öffnen per Klick die Details (Streaming-Server, Prozessor,
+  Arbeitsspeicher, Temperatur sofern ein Sensor vorhanden ist) mit einem
+  Sprung zur Systemseite.
+- **Benutzermenü:** Name und Rolle, Darstellung und Abmelden.
+- **Darstellung:** Hell, Dunkel oder Auto. „Auto“ folgt der Einstellung des
+  Geräts; die Wahl gilt pro Browser. Die Anmeldeseite folgt ebenfalls der
+  Geräteeinstellung.
+- **Ereignisprotokoll:** Meldungen aus dem eigenen Browser sowie für Admins
+  serverseitige Ereignisse wie Gastlinks, jeweils mit Uhrzeit.
+- **Smartphones:** kompakte Darstellung; die Speichern-Leiste der
+  Einstellungen schwebt nur bei ungespeicherten Änderungen über dem Inhalt.
+
 ## Benutzer und Rollen
 
 Beim ersten Aufruf nach Installation oder Update fordert Open BOS Stream dazu
@@ -712,9 +741,9 @@ Benutzer und Passwort-Hashes
 werden ausschließlich in `config/users.yaml` gespeichert; die Datei und der
 lokale Sitzungsschlüssel werden nicht in Git übernommen.
 
-- `viewer` (Zuschauer): Livebilder und Karte in einer reduzierten Ansicht
-  ohne technische Statusleiste, Ereignisprotokoll, Protokoll- und
-  Profilangaben
+- `viewer` (Zuschauer): Livebilder und Karte in einer reduzierten Ansicht.
+  Der Status zeigt nur „Einsatzbereit“ oder „Störung“ ohne Details; kein
+  Ereignisprotokoll, keine Protokoll- und Profilangaben
 - `admin`: zusätzlich Quellen anlegen, bearbeiten, sortieren und entfernen
 - `superadmin`: zusätzlich Medien, Benutzer, Streaming-Ausgänge, lokales
   Display und Webzugriff verwalten
@@ -736,17 +765,6 @@ Display-Dienst bei jedem Start neu erzeugt. Im normalen Chromium-Modus ist eine 
 wenn Einstellungen bedient werden sollen.
 Eine vorübergehend nicht erreichbare Quelle wird unabhängig mit begrenztem
 Backoff neu verbunden und unterbricht die übrigen Quellen nicht.
-
-### Zeitzone
-
-Server laufen oft in UTC. Damit Uhrzeiten in E-Mails, Gastlink-Meldungen,
-Dateinamen von Aufnahmen und Snapshots sowie im Journal der deutschen Zeit
-entsprechen, verwendet Open BOS Stream unabhängig von der Systemzeitzone
-`Europe/Berlin` mit automatischer Sommer-/Winterzeit. Eine andere Zone lässt
-sich über die Umgebungsvariable `OPEN_BOS_TIMEZONE` setzen, z. B. per
-systemd-Override des Dienstes. Die Systemzeit des Servers bleibt unverändert;
-wer auch Systemprotokolle in deutscher Zeit möchte, kann zusätzlich
-`sudo timedatectl set-timezone Europe/Berlin` ausführen.
 
 ### Gastlinks für externe Stellen
 
@@ -772,6 +790,8 @@ Superadmins, Ereignisse der letzten 24 Stunden). Gespeichert wird nur ein Hash d
 (Rechte 0600). Öffnet ein angemeldeter Benutzer einen Gastlink im selben
 Browser, bleibt seine Anmeldung erhalten; zum Ausprobieren eignet sich ein
 privates Fenster.
+
+## Aufnahmen und Snapshots
 
 ### Snapshots und Aufnahmen einer ausgewählten Quelle
 
@@ -841,6 +861,8 @@ Wichtige Medien lassen sich in der Mediathek mit dem Schloss-Symbol als
 bleibt möglich. Die Markierung wird als versteckte Datei
 `.<dateiname>.keep` neben der Mediendatei gespeichert.
 
+## Betrieb
+
 ### E-Mail-Benachrichtigungen bei Störungen
 
 In den Einstellungen richtet ein Superadmin unter „Benachrichtigungen“ den
@@ -870,6 +892,17 @@ Das SMTP-Passwort steht nicht in `config/stream.yaml`, sondern in
 `config/notifications.secret` (Rechte 0600) und wird nie an den Browser
 ausgeliefert. Ziel-URLs in Fehlermeldungen von Weiterleitungen werden ohne
 Stream-Schlüssel versendet. Admins sehen weder Mailserver noch Empfänger.
+
+### Zeitzone
+
+Server laufen oft in UTC. Damit Uhrzeiten in E-Mails, Gastlink-Meldungen,
+Dateinamen von Aufnahmen und Snapshots sowie im Journal der deutschen Zeit
+entsprechen, verwendet Open BOS Stream unabhängig von der Systemzeitzone
+`Europe/Berlin` mit automatischer Sommer-/Winterzeit. Eine andere Zone lässt
+sich über die Umgebungsvariable `OPEN_BOS_TIMEZONE` setzen, z. B. per
+systemd-Override des Dienstes. Die Systemzeit des Servers bleibt unverändert;
+wer auch Systemprotokolle in deutscher Zeit möchte, kann zusätzlich
+`sudo timedatectl set-timezone Europe/Berlin` ausführen.
 
 ## Webzugriff im lokalen Profil
 
