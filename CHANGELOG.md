@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.18.5] - 2026-11-24
+
 ### Changed
 
 - Smartphone: Die Speichern-Leiste der Einstellungen ist deutlich kompakter
