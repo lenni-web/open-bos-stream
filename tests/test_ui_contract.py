@@ -736,3 +736,13 @@ def test_login_page_links_public_feature_overview_pdf() -> None:
     # Das Einrichtungscode-Feld bleibt bei der normalen Anmeldung verborgen.
     assert 'id="auth-setup-code-field" class="form-field" hidden' in login
     assert ".auth-card [hidden] {\n    display: none;" in css
+
+
+def test_map_layer_control_starts_collapsed() -> None:
+    template = (
+        ROOT / "templates" / "components" / "map.html"
+    ).read_text(encoding="utf-8")
+    start = template.index('id="map-layer-control"')
+    tag = template[start:template.index(">", start)]
+
+    assert "open" not in tag.split()

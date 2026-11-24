@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- Die Kartenebenen sind beim Öffnen der Karte zunächst eingeklappt.
+
 ---
 
 ## [0.17.1] - 2026-11-24
