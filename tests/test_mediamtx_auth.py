@@ -255,3 +255,26 @@ def test_mediamtx_configs_no_longer_exempt_readers() -> None:
         excluded = {item["action"] for item in data["authHTTPExclude"]}
         assert "read" not in excluded
         assert data["authMethod"] == "http"
+
+
+@pytest.mark.parametrize("protocol", ["hls", "webrtc"])
+def test_reader_payload_with_null_id_from_mediamtx_is_accepted(protocol):
+    """MediaMTX 1.21 sendet vor dem Sitzungsaufbau "id": null."""
+
+    payload = MediaMTXAuthRequest.model_validate(
+        {
+            "ip": "127.0.0.1",
+            "user": "",
+            "password": "",
+            "token": "",
+            "action": "read",
+            "path": "quelle-1",
+            "protocol": protocol,
+            "id": None,
+            "query": "",
+            "userAgent": "Safari",
+        }
+    )
+
+    assert payload.id == ""
+    assert authorize(payload) == {"authorized": True}

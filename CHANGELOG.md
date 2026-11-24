@@ -9,6 +9,17 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Fixed
+
+- Beim Abspielen eines Livestreams erschien im Browser ein Anmeldefenster und
+  das Bild lief stockend oder brach ab. MediaMTX sendet bei einigen
+  Leseanfragen (WebRTC-Verbindungsaufbau, HLS-Startseite) eine leere
+  Sitzungs-ID, die die Anmeldeprüfung von Open BOS Stream fälschlich als
+  ungültige Anfrage abwies.
+- Der Browser sendet das Medien-Token jetzt immer mit, auch über HTTPS. Eine
+  Ablehnung löst damit nie mehr den Anmeldedialog des Browsers aus.
+- Abgelehnte Leser werden mit ihrer Adresse protokolliert.
+
 ---
 
 ## [0.17.0] - 2026-11-22

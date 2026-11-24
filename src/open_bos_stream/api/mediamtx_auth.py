@@ -7,7 +7,7 @@ import secrets
 from urllib.parse import parse_qs
 
 from fastapi import APIRouter, HTTPException, Request, status
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from open_bos_stream.core.container import auth_service, config
 from open_bos_stream.auth.roles import PUBLIC
@@ -35,6 +35,14 @@ class MediaMTXAuthRequest(BaseModel):
     id: str = ""
     query: str = ""
     userAgent: str = ""
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def _null_as_empty(cls, value):
+        # MediaMTX sendet z. B. "id": null, wenn noch keine Sitzung besteht
+        # (HLS-Startseite, WHEP-OPTIONS). Ohne diese Umwandlung lehnt die
+        # Validierung die Anfrage mit 422 ab und der Leser wird abgewiesen.
+        return "" if value is None else value
 
 
 def _publisher_credentials(
@@ -137,9 +145,11 @@ def _authorize_reader(payload: MediaMTXAuthRequest) -> dict[str, bool]:
         return {"authorized": True}
 
     logger.warning(
-        "Leser für Pfad %r abgelehnt (Protokoll %s, Token vorhanden=%s)",
+        "Leser für Pfad %r abgelehnt (Protokoll %s, Adresse %s, "
+        "Token vorhanden=%s)",
         payload.path.strip("/").partition("?")[0],
         payload.protocol or "unbekannt",
+        reader_ip or "unbekannt",
         bool(token),
     )
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)

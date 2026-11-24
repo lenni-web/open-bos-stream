@@ -1,6 +1,8 @@
 /*
- * Medien-Token für direkte MediaMTX-Abrufe (WHEP/HLS ohne Caddy).
- * Über HTTPS prüft Caddy die Sitzung; das Token ist dort nicht nötig.
+ * Medien-Token für MediaMTX-Abrufe (WHEP/HLS).
+ * Wird immer mitgesendet, auch hinter Caddy über HTTPS: MediaMTX fordert
+ * dann bei einer Ablehnung keine Zugangsdaten per Browser-Dialog an, und
+ * die Freigabe hängt nicht davon ab, welche Adresse MediaMTX sieht.
  */
 const OpenBosMediaToken = {
     refreshMs: 30 * 60 * 1000,
@@ -10,7 +12,7 @@ const OpenBosMediaToken = {
     },
 
     needed() {
-        return window.location.protocol !== "https:" && this.value() !== "";
+        return this.value() !== "";
     },
 
     async refresh() {
@@ -186,13 +188,15 @@ class LivePlayer {
 
             case "hls":
             default:
-                return secure
-                    ? `${window.location.origin}/hls/${path}/index.m3u8`
-                    : `http://${host}:8888/${path}/index.m3u8` + (
-                        OpenBosMediaToken.needed()
-                            ? `?token=${encodeURIComponent(OpenBosMediaToken.value())}`
-                            : ""
-                    );
+                return (
+                    secure
+                        ? `${window.location.origin}/hls/${path}/index.m3u8`
+                        : `http://${host}:8888/${path}/index.m3u8`
+                ) + (
+                    OpenBosMediaToken.needed()
+                        ? `?token=${encodeURIComponent(OpenBosMediaToken.value())}`
+                        : ""
+                );
 
         }
 
