@@ -9,6 +9,12 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- Funktionsübersicht (PDF auf der Anmeldeseite) aktualisiert: Gastlinks
+  unter „Zugriff & Sicherheit“, E-Mail-Benachrichtigung bei Störungen unter
+  „Betrieb & Diagnose“ und Hell-/Dunkelmodus unter „Überall nutzbar“.
+
 ---
 
 ## [0.18.6] - 2026-11-24
