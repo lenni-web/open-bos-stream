@@ -1070,3 +1070,61 @@ body {
     align-items: center;
     gap: 8px;
 }
+
+/* ----------------------------------------------------------
+   Einstellungen: Speichern-Leiste
+   ---------------------------------------------------------- */
+
+.settings-actionbar .label-short {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .app-content .settings-actionbar {
+        position: static;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1.25fr;
+        gap: 8px;
+        padding: 10px;
+        border-radius: 14px;
+    }
+
+    /* Nur mit ungespeicherten Änderungen über dem Inhalt schweben. */
+    .app-content .settings-actionbar.is-dirty {
+        position: sticky;
+        bottom: calc(84px + env(safe-area-inset-bottom));
+    }
+
+    .app-content .settings-actionbar > div {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 2px 8px;
+        min-width: 0;
+    }
+
+    .app-content .settings-actionbar .dirty-indicator,
+    .app-content .settings-actionbar .save-status {
+        font-size: 0.72rem;
+        line-height: 1.35;
+    }
+
+    .app-content .settings-actionbar .save-status:empty {
+        display: none;
+    }
+
+    .app-content .settings-actionbar .bos-button {
+        width: auto;
+        min-height: 40px;
+        padding: 0 8px;
+        font-size: 0.84rem;
+    }
+
+    .settings-actionbar .label-long {
+        display: none;
+    }
+
+    .settings-actionbar .label-short {
+        display: inline;
+    }
+}

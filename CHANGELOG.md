@@ -9,6 +9,13 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- Smartphone: Die Speichern-Leiste der Einstellungen ist deutlich kompakter
+  (Statuszeile und drei Knöpfe „Testen“, „Wiederherstellen“, „Speichern“
+  in einer Reihe) und schwebt nur noch bei ungespeicherten Änderungen über
+  dem Inhalt. Sonst steht sie am Seitenende.
+
 ---
 
 ## [0.18.4] - 2026-11-24

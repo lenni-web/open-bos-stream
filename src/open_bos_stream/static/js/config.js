@@ -24,6 +24,11 @@ function setConfigDirty(dirty) {
         "is-dirty",
         dirty
     );
+
+    // Mobil schwebt die Leiste nur bei ungespeicherten Änderungen.
+    indicator
+        .closest(".settings-actionbar")
+        ?.classList.toggle("is-dirty", dirty);
 }
 
 function setConfigSaveStatus(message, type = "") {
