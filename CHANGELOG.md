@@ -9,6 +9,11 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- Die Eingabefelder der Anmeldeseite sind schmaler und schlichter gestaltet
+  und ragen nicht mehr über den Button hinaus.
+
 ---
 
 ## [0.17.2] - 2026-11-24

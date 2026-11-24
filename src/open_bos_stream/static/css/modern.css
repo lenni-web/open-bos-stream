@@ -588,6 +588,50 @@ body {
     text-align: center;
 }
 
+/* Login lädt kein globales Reset; ohne border-box wären die Felder 63 px hoch
+   und breiter als der Button. */
+.auth-card,
+.auth-card *,
+.auth-card *::before,
+.auth-card *::after {
+    box-sizing: border-box;
+}
+
+.auth-card .form-field {
+    gap: 6px;
+}
+
+.auth-card .form-field > span {
+    color: #465264;
+    font-size: 0.8rem;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+}
+
+.auth-card .bos-input {
+    min-height: 0;
+    height: 42px;
+    padding: 0 13px;
+    border-color: #dde3ea;
+    border-radius: 10px;
+    background: #f7f9fb;
+    font-size: 0.95rem;
+}
+
+.auth-card .bos-input:hover {
+    border-color: #c9d1db;
+}
+
+.auth-card .bos-input:focus {
+    border-color: var(--bos-blue);
+    background: #fff;
+}
+
+.auth-card .bos-button-primary {
+    height: 42px;
+    border-radius: 10px;
+}
+
 /* Das hidden-Attribut muss auch gegen display-Regeln wie .form-field greifen. */
 .auth-card [hidden] {
     display: none;
