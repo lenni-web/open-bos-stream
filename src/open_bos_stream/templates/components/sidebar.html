@@ -1,110 +1,91 @@
-<div id="sidebar" class="sidebar">
+{% from "components/icons.html" import icon %}
+<aside id="sidebar" class="app-sidebar" aria-label="Hauptnavigation">
 
-    <div class="bos-card">
-
-        <div class="sidebar-brand">
-
-    <div class="sidebar-logo" aria-hidden="true">
-
+    <div class="app-sidebar-brand">
         <img
+            class="app-sidebar-logo"
             src="/static/icons/open-bos-stream.svg?v={{ version }}"
             alt=""
-            width="40"
-            height="40">
-
-    </div>
-
-    <div>
-
-        <div class="sidebar-title">
-
-            Open BOS Stream
-
+            width="36"
+            height="36">
+        <div class="app-sidebar-name">
+            <strong>Open BOS Stream</strong>
+            <span>BOS Streaming Suite</span>
         </div>
-
-        <div class="sidebar-subtitle">
-
-            BOS Streaming Suite
-
-        </div>
-
     </div>
 
-</div>
+    <nav class="bos-nav app-nav">
 
-<hr class="sidebar-divider">
+        <a
+            id="nav-dashboard"
+            class="bos-nav-item app-nav-item active"
+            href="#"
+            title="Übersicht"
+            onclick="showPage('dashboard'); return false;">
+            {{ icon("home") }}
+            <span class="nav-label">Übersicht</span>
+        </a>
 
-        <nav class="bos-nav">
+        {% if user.role == "superadmin" %}
+        <a
+            id="nav-media"
+            class="bos-nav-item app-nav-item"
+            href="#"
+            title="Medien"
+            onclick="showPage('media'); return false;">
+            {{ icon("media") }}
+            <span class="nav-label">Medien</span>
+        </a>
+        {% endif %}
 
-            <a
-                id="nav-dashboard"
-                class="bos-nav-item active"
-                href="#"
-                onclick="showPage('dashboard'); return false;">
+        <a
+            id="nav-map"
+            class="bos-nav-item app-nav-item"
+            href="#"
+            title="Karte"
+            onclick="showPage('map'); return false;">
+            {{ icon("map") }}
+            <span class="nav-label">Karte</span>
+        </a>
 
-                <span class="nav-icon" aria-hidden="true">⌂</span>
-                <span class="nav-label">Übersicht</span>
+        {% if user.role != "viewer" %}
+        <a
+            id="nav-settings"
+            class="bos-nav-item app-nav-item"
+            href="#"
+            title="Einstellungen"
+            onclick="showPage('settings'); return false;">
+            {{ icon("settings") }}
+            <span class="nav-label">Einstellungen</span>
+        </a>
+        {% endif %}
 
-            </a>
+        {% if user.role != "viewer" %}
+        <a
+            id="nav-system"
+            class="bos-nav-item app-nav-item"
+            href="#"
+            title="System"
+            onclick="showPage('system'); return false;">
+            {{ icon("system") }}
+            <span class="nav-label">System</span>
+        </a>
+        {% endif %}
 
-            {% if user.role == "superadmin" %}
-            <a
-                id="nav-media"
-                class="bos-nav-item"
-                href="#"
-                onclick="showPage('media'); return false;">
+    </nav>
 
-                <span class="nav-icon" aria-hidden="true">▶</span>
-                <span class="nav-label">Medien</span>
-
-            </a>
-            {% endif %}
-
-            <a
-                id="nav-map"
-                class="bos-nav-item"
-                href="#"
-                onclick="showPage('map'); return false;">
-
-                <span class="nav-icon" aria-hidden="true">◇</span>
-                <span class="nav-label">Karte</span>
-
-            </a>
-
-            {% if user.role != "viewer" %}
-            <a
-                id="nav-settings"
-                class="bos-nav-item"
-                href="#"
-                onclick="showPage('settings'); return false;">
-
-                <span class="nav-icon" aria-hidden="true">⚙</span>
-                <span class="nav-label">Einstellungen</span>
-
-            </a>
-            {% endif %}
-
-            {% if user.role != "viewer" %}
-            <a
-                id="nav-system"
-                class="bos-nav-item"
-                href="#"
-                onclick="showPage('system'); return false;">
-
-                <span class="nav-icon" aria-hidden="true">▣</span>
-                <span class="nav-label">System</span>
-
-            </a>
-            {% endif %}
-
-        </nav>
-
+    <div class="app-sidebar-footer">
+        <button
+            id="sidebar-collapse"
+            class="app-sidebar-collapse"
+            type="button"
+            aria-pressed="false"
+            title="Seitenleiste einklappen"
+            aria-label="Seitenleiste einklappen">
+            {{ icon("collapse") }}
+            <span class="nav-label">Einklappen</span>
+        </button>
+        <span class="app-sidebar-version">Version {{ version }}</span>
     </div>
 
-    <span class="header-version" style="text-align: center;">
-
-        Version {{ version }}
-
-    </span>
-
-</div>
+</aside>

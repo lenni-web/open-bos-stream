@@ -20,7 +20,7 @@ function updateDashboardHealth(data) {
 }
 
 // ==========================================================
-// Header
+// Kopfzeile
 // ==========================================================
 
 function updateDashboardHeader(
@@ -28,56 +28,9 @@ function updateDashboardHeader(
     system
 ) {
 
-    if (!services || !system) {
-        return;
+    if (typeof updateShellStatus === "function") {
+        updateShellStatus(services, system);
     }
-
-    updateClass(
-        "mediamtx-dot",
-        services.mediamtx.online
-            ? "status-dot status-green"
-            : "status-dot status-red"
-    );
-
-    const temperature = Number.isFinite(system.temperature)
-        ? `${system.temperature.toFixed(1)} °C`
-        : "Temperatur n/v";
-
-    updateValue(
-        "mediamtx-text",
-        services.mediamtx.online
-            ? "MediaMTX"
-            : "Offline"
-    );
-
-    updateValue(
-        "header-cpu",
-        "CPU " +
-        system.cpu.toFixed(1) +
-        "%"
-    );
-
-    updateValue(
-        "header-ram",
-        "RAM " +
-        system.ram.toFixed(1) +
-        "%"
-    );
-
-    updateValue(
-        "header-temp",
-        temperature
-    );
-
-    updateValue(
-        "header-system-summary",
-        "System · CPU " +
-        system.cpu.toFixed(1) +
-        " % · RAM " +
-        system.ram.toFixed(1) +
-        " % · " +
-        temperature
-    );
 
 }
 

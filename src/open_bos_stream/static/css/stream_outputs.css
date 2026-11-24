@@ -12,7 +12,7 @@
 
     padding: 0.75rem 0;
 
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid var(--bos-gray);
 
 }
 
@@ -48,7 +48,7 @@
 
     font-size: 0.9rem;
 
-    color: #666;
+    color: var(--bos-muted);
 
 }
 

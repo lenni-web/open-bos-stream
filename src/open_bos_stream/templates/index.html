@@ -32,14 +32,6 @@
 
 <link
     rel="stylesheet"
-    href="/static/css/header.css?v={{ version }}">
-
-<link
-    rel="stylesheet"
-    href="/static/css/sidebar.css?v={{ version }}">
-
-<link
-    rel="stylesheet"
     href="/static/css/dashboard.css?v={{ version }}">
 
 <link
@@ -71,25 +63,29 @@
     rel="stylesheet"
     href="/static/css/modern.css?v={{ version }}">
 
+<link
+    rel="stylesheet"
+    href="/static/css/shell.css?v={{ version }}">
+
+<link
+    rel="stylesheet"
+    href="/static/css/theme.css?v={{ version }}">
+
+<script src="/static/js/theme.js?v={{ version }}"></script>
+
 </head>
 
 <body class="role-{{ user.role }}">
 
-<div class="container">
+<div id="app-shell" class="app-shell">
 
-    <div class="dashboard-header">
+    {% include "components/sidebar.html" %}
+
+    <div class="app-main">
 
         {% include "components/header.html" %}
 
-    </div>
-
-    <div
-        id="dashboard-grid"
-        class="dashboard-grid">
-
-        {% include "components/sidebar.html" %}
-
-        <div class="content">
+        <main class="content app-content">
 
             <div
                 id="page-dashboard"
@@ -162,7 +158,7 @@
             </div>
             {% endif %}
 
-        </div>
+        </main>
 
     </div>
 
@@ -177,6 +173,7 @@ window.openBosMediaToken = {{ media_token | tojson }};
 <script src="/static/js/auth_users.js?v={{ version }}"></script>
 
 <script src="/static/js/ui.js?v={{ version }}"></script>
+<script src="/static/js/shell.js?v={{ version }}"></script>
 
 <script src="/static/js/recording.js?v={{ version }}"></script>
 

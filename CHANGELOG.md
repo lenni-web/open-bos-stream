@@ -9,10 +9,36 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Dunkelmodus für die gesamte Oberfläche und die Anmeldeseite. Er folgt
+  automatisch der Systemeinstellung und lässt sich im Benutzermenü fest auf
+  Hell oder Dunkel stellen.
+- Ladeanzeige in den Videokacheln, bis das erste Bild eines Livestreams da
+  ist.
+
 ### Changed
 
+- Neue, ruhigere Oberfläche:
+  - Die Seitenleiste sitzt fest am linken Rand und lässt sich auf Symbole
+    einklappen; auf Tablets zeigt sie nur Symbole, auf Smartphones bleibt sie
+    als Leiste am unteren Rand.
+  - Die Kopfzeile zeigt links den Seitentitel und rechts Uhrzeit, Status und
+    ein Benutzermenü mit Abmelden.
+  - Statt der dunklen Statuskapseln (Quelle, Encoder, Streaming, CPU, RAM,
+    Temperatur) gibt es eine einzige Anzeige „Einsatzbereit“ bzw. „Störung“.
+    Admins sehen die Details per Klick; die Temperatur erscheint nur, wenn
+    ein Sensor vorhanden ist.
+  - Einheitliche Linien-Symbole in Navigation und Einstellungen statt
+    gemischter Schriftzeichen und Emojis.
+  - Einheitliche Abstände, Ecken, Schatten und Kartenüberschriften.
 - Die Karte nutzt auf großen Bildschirmen die volle verfügbare Fensterhöhe
   statt fest 520 Pixel; auf Smartphones belegt sie 70 % der Höhe.
+
+### Removed
+
+- Nicht mehr genutzte Stylesheets `header.css` und `sidebar.css` sowie die
+  alte, ungenutzte Funktion zum Ausblenden der Seitenleiste.
 
 ---
 

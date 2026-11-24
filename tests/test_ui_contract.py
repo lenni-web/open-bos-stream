@@ -116,7 +116,9 @@ def test_system_diagnostics_controls_remain_available() -> None:
     health = (
         ROOT / "static" / "js" / "dashboard_health.js"
     ).read_text(encoding="utf-8")
-    assert "Temperatur n/v" in health
+    shell = (ROOT / "static" / "js" / "shell.js").read_text(encoding="utf-8")
+    # Ohne Sensor (Server) wird die Temperatur ausgeblendet statt "n/v".
+    assert "temperatureRow.hidden = !hasTemperature;" in shell
     assert '"Nicht verfügbar"' in health
     assert "function updateSystemWebAccess(info)" in dashboard
     assert "HTTPS erreichbar" in dashboard
@@ -129,15 +131,39 @@ def test_system_diagnostics_controls_remain_available() -> None:
     assert system_admin.count("window.confirm(") == 2
 
 
-def test_compact_header_keeps_responsive_system_summary() -> None:
+def test_app_shell_has_status_user_menu_and_theme_switch() -> None:
     ids = template_ids("header.html")
     index = (
         ROOT / "templates" / "index.html"
     ).read_text(encoding="utf-8")
+    sidebar = (
+        ROOT / "templates" / "components" / "sidebar.html"
+    ).read_text(encoding="utf-8")
+    header = (
+        ROOT / "templates" / "components" / "header.html"
+    ).read_text(encoding="utf-8")
 
-    assert "header-system-summary" in ids
+    for element_id in (
+        "clock",
+        "topbar-title",
+        "status-button",
+        "status-label",
+        "user-button",
+        "user-panel",
+    ):
+        assert element_id in ids
+    # Systemdetails nur für Admins, Zuschauer sehen nur den Gesamtstatus.
+    assert '{% if user.role != "viewer" %}\n            <div id="status-panel"' in header
+    for choice in ("auto", "light", "dark"):
+        assert f'data-theme-choice="{choice}"' in header
+    # Farbschema wird im <head> gesetzt, damit nichts aufblitzt.
+    assert index.index("/static/js/theme.js") < index.index("<body")
+    assert "/static/css/theme.css" in index
+    assert "/static/css/shell.css" in index
     assert "<h1>Übersicht</h1>" in index
-    assert "<h1>Livebetrieb</h1>" not in index
+    assert 'id="sidebar-collapse"' in sidebar
+    assert 'import icon' in sidebar
+    assert "nav-icon" not in sidebar
 
 
 def test_stream_output_uses_shared_api_error_handling() -> None:
@@ -721,8 +747,10 @@ def test_mobile_layout_keeps_long_texts_inside_cards() -> None:
     assert "overflow-wrap: anywhere;" in css
     # Smartphones: einspaltige Offline-Quellen, gekürzte Kopfzeile.
     assert ".offline-source-grid {\n        grid-template-columns: minmax(0, 1fr);" in css
-    assert 'class="header-user-role"' in header
-    assert 'class="header-ready-label"' in header
+    shell_css = (ROOT / "static" / "css" / "shell.css").read_text(encoding="utf-8")
+    assert 'class="app-user-name"' in header
+    assert 'class="app-status-label"' in header
+    assert ".app-status-label,\n    .app-user-name," in shell_css
     assert ".source-order-actions {\n        flex: 1 1 100%;" in css
 
 

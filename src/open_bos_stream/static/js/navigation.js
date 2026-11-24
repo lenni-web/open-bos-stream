@@ -56,6 +56,10 @@ function showPage(page) {
         page
     );
 
+    if (typeof updateTopbarTitle === "function") {
+        updateTopbarTitle(page);
+    }
+
     if (page === "map" && typeof initMapPage === "function") {
         initMapPage();
     }

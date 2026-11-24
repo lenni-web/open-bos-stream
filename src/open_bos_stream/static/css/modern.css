@@ -278,7 +278,7 @@ body {
 #media-placeholder {
     flex-direction: column;
     gap: 8px;
-    border: 1px dashed #cbd2dc;
+    border: 1px dashed var(--bos-gray);
 }
 
 #media-placeholder .empty-state-icon {
@@ -329,7 +329,7 @@ body {
     padding: 0 11px;
     border: 1px solid var(--bos-gray);
     border-radius: 10px;
-    background: #fff;
+    background: var(--bos-white);
     color: var(--bos-muted);
 }
 
@@ -355,7 +355,7 @@ body {
     padding: 0 10px;
     border: 1px solid var(--bos-gray);
     border-radius: 10px;
-    background: #fff;
+    background: var(--bos-white);
     color: var(--bos-dark);
 }
 
@@ -608,7 +608,7 @@ body {
 }
 
 .auth-card .form-field > span {
-    color: #465264;
+    color: var(--bos-muted);
     font-size: 0.8rem;
     font-weight: 650;
     letter-spacing: 0.01em;
@@ -618,19 +618,19 @@ body {
     min-height: 0;
     height: 42px;
     padding: 0 13px;
-    border-color: #dde3ea;
+    border-color: var(--shell-input-border);
     border-radius: 10px;
-    background: #f7f9fb;
+    background: var(--shell-surface-muted);
     font-size: 0.95rem;
 }
 
 .auth-card .bos-input:hover {
-    border-color: #c9d1db;
+    border-color: var(--shell-input-border);
 }
 
 .auth-card .bos-input:focus {
     border-color: var(--bos-blue);
-    background: #fff;
+    background: var(--bos-white);
 }
 
 .auth-card .bos-button-primary {
@@ -679,7 +679,7 @@ body {
 
 .auth-footer {
     margin-top: 22px;
-    color: #8a93a1;
+    color: var(--bos-muted);
     font-size: 0.72rem;
     text-align: center;
 }
@@ -708,7 +708,7 @@ body {
     padding: 3px 7px;
     border: 1px solid var(--bos-gray);
     border-radius: 7px;
-    background: #fff;
+    background: var(--bos-white);
     cursor: pointer;
 }
 
@@ -732,7 +732,7 @@ body {
     padding: 14px;
     border: 1px solid var(--bos-gray);
     border-radius: 12px;
-    background: #f8fafc;
+    background: var(--shell-surface-muted);
 }
 
 .rtmp-input-config-header {
@@ -835,7 +835,7 @@ body {
 
 .form-field label,
 .settings-section > label {
-    color: #465264;
+    color: var(--bos-muted);
     font-size: 0.78rem;
     font-weight: 750;
 }
@@ -844,9 +844,9 @@ body {
     width: 100%;
     min-height: 43px;
     padding: 9px 11px;
-    border: 1px solid #cfd6df;
+    border: 1px solid var(--shell-input-border);
     border-radius: 9px;
-    background: #fff;
+    background: var(--bos-white);
     color: var(--bos-dark);
     font: inherit;
     outline: none;
@@ -880,7 +880,7 @@ body {
     padding: 13px 14px;
     border: 1px solid var(--bos-gray);
     border-radius: 11px;
-    background: #fafbfc;
+    background: var(--shell-surface-muted);
     cursor: pointer;
 }
 

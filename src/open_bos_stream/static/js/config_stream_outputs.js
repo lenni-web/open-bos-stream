@@ -138,7 +138,7 @@ function renderStreamOutputs() {
                         class="bos-button bos-button-red"
                         onclick="removeStreamOutput(${index})">
 
-                        🗑 Entfernen
+                        Entfernen
 
                     </button>
 

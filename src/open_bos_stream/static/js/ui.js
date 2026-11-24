@@ -23,39 +23,6 @@ function updateClock() {
 
 }
 
-function toggleSidebar() {
-
-    const sidebar = document.getElementById("sidebar");
-    const grid = document.getElementById("dashboard-grid");
-
-    sidebar.classList.toggle("sidebar-hidden");
-    grid.classList.toggle("sidebar-collapsed");
-
-    localStorage.setItem(
-        "sidebarHidden",
-        sidebar.classList.contains("sidebar-hidden")
-    );
-
-}
-
-function restoreSidebar() {
-
-    const hidden = localStorage.getItem("sidebarHidden");
-
-    if (hidden === "true") {
-
-        document
-            .getElementById("sidebar")
-            ?.classList.add("sidebar-hidden");
-
-        document
-            .getElementById("dashboard-grid")
-            ?.classList.add("sidebar-collapsed");
-
-    }
-
-}
-
 function toggleCard(id) {
 
     const content = document.getElementById(id + "-content");

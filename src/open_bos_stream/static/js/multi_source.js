@@ -528,6 +528,13 @@ function multiSourceCard(input) {
     const video = card.querySelector("video");
     video.muted = true;
     video.defaultMuted = true;
+    // Ladeanzeige ausblenden, sobald das erste Bild da ist.
+    ["playing", "loadeddata"].forEach(eventName => {
+        video.addEventListener(eventName, () => {
+            card.querySelector(".multi-source-frame")
+                ?.classList.remove("is-loading");
+        });
+    });
     return card;
 }
 
@@ -674,11 +681,15 @@ function updateMultiSources(inputs = []) {
         );
         state.textContent = sourceStateLabel(entry, input.ready);
 
+        const frame =
+            entry.card.querySelector(".multi-source-frame");
+
         let displayedOnline = input.ready;
         if (input.ready) {
             onlineCount += 1;
             placeholder.hidden = true;
             video.hidden = false;
+            frame?.classList.toggle("is-loading", video.readyState < 2);
             const desiredViewerPath = sourceCardIsFullscreen(entry)
                 && entry.fullscreenMainReady
                 ? entry.fullscreenViewerPath
@@ -704,6 +715,7 @@ function updateMultiSources(inputs = []) {
                 state.textContent = "Player verbindet neu";
             }
         } else {
+            frame?.classList.remove("is-loading");
             const awaitingSignal =
                 entry.player.deferUnavailableStop(4000);
             displayedOnline = awaitingSignal;

@@ -1,3 +1,4 @@
+{% from "components/icons.html" import icon %}
 <section class="settings-page">
     <header class="page-header">
         <div>
@@ -10,7 +11,7 @@
     <div id="settings-content" class="settings-grid">
         <section class="bos-card settings-section settings-section-rtmp-inputs">
             <div class="settings-section-header">
-                <span class="settings-icon" aria-hidden="true">▦</span>
+                <span class="settings-icon" aria-hidden="true">{{ icon("layers", 20) }}</span>
                 <div>
                     <span class="section-kicker">Mehrquellenempfang</span>
                     <h2>Quellen</h2>
@@ -44,7 +45,7 @@
         {% if user.role == "superadmin" %}
         <section class="bos-card settings-section">
             <div class="settings-section-header">
-                <span class="settings-icon" aria-hidden="true">●</span>
+                <span class="settings-icon" aria-hidden="true">{{ icon("camera", 20) }}</span>
                 <div>
                     <span class="section-kicker">Mediathek</span>
                     <h2>Snapshot- und Aufnahmequelle</h2>
@@ -74,7 +75,7 @@
 
         <section class="bos-card settings-section">
             <div class="settings-section-header">
-                <span class="settings-icon" aria-hidden="true">▤</span>
+                <span class="settings-icon" aria-hidden="true">{{ icon("storage", 20) }}</span>
                 <div>
                     <span class="section-kicker">Mediathek</span>
                     <h2>Speicherschutz</h2>
@@ -145,7 +146,7 @@
         {% if installation_profile == "local" %}
         <section class="bos-card settings-section settings-section-display">
             <div class="settings-section-header">
-                <span class="settings-icon" aria-hidden="true">▣</span>
+                <span class="settings-icon" aria-hidden="true">{{ icon("auto", 20) }}</span>
                 <div>
                     <span class="section-kicker">Vor Ort</span>
                     <h2>Lokales Display</h2>
@@ -207,7 +208,7 @@
         {% if installation_profile == "local" %}
         <section class="bos-card settings-section settings-section-web">
             <div class="settings-section-header">
-                <span class="settings-icon" aria-hidden="true">◎</span>
+                <span class="settings-icon" aria-hidden="true">{{ icon("globe", 20) }}</span>
                 <div>
                     <span class="section-kicker">Erreichbarkeit</span>
                     <h2>Webzugriff</h2>
@@ -243,7 +244,7 @@
         {% if user.role != "viewer" %}
         <section class="bos-card settings-section settings-section-users">
             <div class="settings-section-header">
-                <span class="settings-icon" aria-hidden="true">♙</span>
+                <span class="settings-icon" aria-hidden="true">{{ icon("users", 20) }}</span>
                 <div>
                     <span class="section-kicker">Zugriff</span>
                     <h2>Benutzer und Rollen</h2>
