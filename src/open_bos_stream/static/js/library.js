@@ -81,10 +81,6 @@ async function deleteRecording(filename) {
             stopMediaPreview();
         }
 
-        addEvent(
-            "warning",
-            "🗑 Aufzeichnung gelöscht"
-        );
 
     } else {
 

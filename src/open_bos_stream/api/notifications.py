@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import Field
 from starlette.concurrency import run_in_threadpool
 
@@ -10,6 +10,7 @@ from open_bos_stream.auth.roles import SUPERADMIN
 from open_bos_stream.core.container import (
     config_apply_service,
     notification_service,
+    server_event_log,
 )
 from open_bos_stream.core.models import NotificationConfig
 from open_bos_stream.notifications.mailer import MailDeliveryError
@@ -46,7 +47,10 @@ async def get_notifications() -> dict:
 
 
 @router.put("")
-async def save_notifications(update: NotificationUpdate) -> dict:
+async def save_notifications(
+    update: NotificationUpdate,
+    request: Request,
+) -> dict:
     settings = NotificationConfig.model_validate(
         update.model_dump(exclude={"password", "clear_password"})
     )
@@ -61,6 +65,13 @@ async def save_notifications(update: NotificationUpdate) -> dict:
     await run_in_threadpool(
         config_apply_service.update_notifications,
         settings,
+    )
+    server_event_log.record(
+        "success",
+        "✉ Benachrichtigungen gespeichert ("
+        + ("eingeschaltet" if settings.enabled else "ausgeschaltet")
+        + ")",
+        actor=request.state.user["username"],
     )
     return {
         "success": True,

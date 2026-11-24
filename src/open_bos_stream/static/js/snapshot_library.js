@@ -80,10 +80,6 @@ async function deleteSnapshot(filename) {
             stopMediaPreview();
         }
 
-        addEvent(
-            "warning",
-            "🗑 Snapshot gelöscht"
-        );
 
     } else {
 

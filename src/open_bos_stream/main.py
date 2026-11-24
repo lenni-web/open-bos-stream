@@ -28,6 +28,7 @@ from open_bos_stream.core.container import notification_service
 from open_bos_stream.core.container import guest_link_store
 from open_bos_stream.core.container import server_event_log
 from open_bos_stream.notifications.monitor import NotificationMonitor
+from open_bos_stream.core.status_events import StatusEventTracker
 from open_bos_stream.auth.middleware import AuthMiddleware
 from open_bos_stream.api.auth import router as auth_router
 from open_bos_stream.api.input import (
@@ -134,6 +135,7 @@ async def notification_loop() -> None:
     """Erkennt Störungen und meldet sie per E-Mail (falls eingerichtet)."""
 
     monitor = NotificationMonitor()
+    tracker = StatusEventTracker()
     active_guest_links = await asyncio.to_thread(
         report_expired_guest_links,
         set(),
@@ -146,6 +148,8 @@ async def notification_loop() -> None:
             status = await asyncio.to_thread(dashboard_service.status)
             for notice in monitor.evaluate(status, time.monotonic()):
                 notification_service.enqueue(notice)
+            for level, message in tracker.evaluate(status):
+                server_event_log.record(level, message)
             active_guest_links = await asyncio.to_thread(
                 report_expired_guest_links,
                 active_guest_links,
@@ -160,6 +164,11 @@ async def notification_loop() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialisiert die Anwendung."""
+
+    server_event_log.record(
+        "info",
+        f"🚒 Open BOS Stream gestartet · Version {VERSION}",
+    )
 
     setup_code = auth_service.ensure_setup_code()
     if setup_code:
@@ -190,6 +199,8 @@ async def lifespan(app: FastAPI):
         for task in tasks:
             with suppress(asyncio.CancelledError):
                 await task
+
+    server_event_log.record("info", "🚒 Open BOS Stream wird beendet")
 
     if recording_service.recording_active:
         try:

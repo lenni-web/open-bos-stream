@@ -188,13 +188,18 @@ function clearEvents() {
 
     if (
         !confirm(
-            "Ereignisprotokoll wirklich leeren?"
+            "Ereignisprotokoll in diesem Browser leeren?\n" +
+            "Für andere Admins bleiben die Einträge erhalten."
         )
     ) {
         return;
     }
 
     log.replaceChildren();
+
+    if (typeof rememberClearedEvents === "function") {
+        rememberClearedEvents();
+    }
 
     updateEventCount();
 

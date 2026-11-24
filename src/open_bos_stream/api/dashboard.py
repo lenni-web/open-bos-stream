@@ -22,12 +22,16 @@ router = APIRouter(
 
 
 @router.get("/status", dependencies=[VIEWER])
-async def status(request: Request):
+async def status(request: Request, events_after: int | None = None):
     data = await run_in_threadpool(dashboard_service.status)
     user = request.state.user
     if ROLE_LEVEL.get(user.get("role"), -1) >= ROLE_LEVEL["admin"]:
         # Kopie: der Status wird zwischen Anfragen zwischengespeichert.
-        data = {**data, "server_events": server_event_log.recent()}
+        # Der Browser fragt nur Einträge nach seinem letzten Stand ab.
+        data = {
+            **data,
+            "server_events": server_event_log.since(events_after),
+        }
     return data
 
 

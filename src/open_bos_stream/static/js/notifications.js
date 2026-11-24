@@ -115,7 +115,6 @@ async function saveNotificationSettings() {
                 ? "Gespeichert. Störungen werden per E-Mail gemeldet."
                 : "Gespeichert. Benachrichtigungen sind ausgeschaltet."
         );
-        addEvent("success", result.message);
     } catch (error) {
         const message = cleanValidationMessage(error.message);
         setNotificationStatus("Speichern fehlgeschlagen: " + message);
@@ -132,7 +131,6 @@ async function sendTestNotification() {
         await persistNotificationSettings();
         const result = await api.sendTestNotification();
         setNotificationStatus(result.message);
-        addEvent("success", result.message);
     } catch (error) {
         const message = cleanValidationMessage(error.message);
         setNotificationStatus("Test fehlgeschlagen: " + message);

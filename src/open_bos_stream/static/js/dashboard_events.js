@@ -23,18 +23,6 @@ function checkSourceEvents(sources = []) {
             lastDashboardState.sources[source.id];
 
         if (previous) {
-            if (!previous.ready && source.ready) {
-                addEvent(
-                    "success",
-                    `🟢 ${source.name}: Signal verfügbar`
-                );
-            }
-            if (previous.ready && !source.ready) {
-                addEvent(
-                    "warning",
-                    `🔴 ${source.name}: Signal verloren`
-                );
-            }
             if (source.viewers > previous.viewers) {
                 addEvent(
                     "info",
@@ -79,34 +67,6 @@ function checkStreamEvents(
 
     if (!stream) {
         return;
-    }
-
-    if (lastDashboardState.streamRunning !== null) {
-
-        if (
-            !lastDashboardState.streamRunning &&
-            stream.running
-        ) {
-
-            addEvent(
-                "success",
-                "🟢 Stream gestartet"
-            );
-
-        }
-
-        if (
-            lastDashboardState.streamRunning &&
-            !stream.running
-        ) {
-
-            addEvent(
-                "warning",
-                "🔴 Stream gestoppt"
-            );
-
-        }
-
     }
 
     if (
@@ -166,36 +126,6 @@ function checkServiceEvents(
     // ---------------------------------------------------------
     // MediaMTX
     // ---------------------------------------------------------
-
-    if (
-        lastDashboardState.mediamtx !== null
-    ) {
-
-        if (
-            !lastDashboardState.mediamtx &&
-            services.mediamtx.online
-        ) {
-
-            addEvent(
-                "success",
-                "📡 MediaMTX verbunden"
-            );
-
-        }
-
-        if (
-            lastDashboardState.mediamtx &&
-            !services.mediamtx.online
-        ) {
-
-            addEvent(
-                "warning",
-                "📡 MediaMTX getrennt"
-            );
-
-        }
-
-    }
 
     lastDashboardState.mediamtx =
         services.mediamtx.online;
@@ -294,38 +224,6 @@ function checkServiceEvents(
                 lastDashboardState.streamOutputs[
                     output.name
                 ];
-
-            if (previous !== undefined) {
-
-                if (
-                    !previous &&
-                    output.running
-                ) {
-
-                    addEvent(
-                        "success",
-                        "📺 " +
-                        output.name +
-                        " gestartet"
-                    );
-
-                }
-
-                if (
-                    previous &&
-                    !output.running
-                ) {
-
-                    addEvent(
-                        "warning",
-                        "📺 " +
-                        output.name +
-                        " gestoppt"
-                    );
-
-                }
-
-            }
 
             lastDashboardState.streamOutputs[
                 output.name

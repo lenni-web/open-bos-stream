@@ -78,10 +78,6 @@ async function createSnapshot() {
 
         }
 
-        addEvent(
-            "info",
-            "📸 Snapshot erstellt"
-        );
 
         if (button) button.disabled = false;
 

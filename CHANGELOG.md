@@ -9,6 +9,20 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- Das Ereignisprotokoll wird jetzt vom Server geführt statt vom Browser.
+  Einträge entstehen auch ohne geöffnete Oberfläche, sind für alle Admins
+  und Superadmins gleich, überstehen Neustarts und Updates und bleiben
+  30 Tage erhalten (`config/event_log.jsonl`). Bisher war das Protokoll
+  nach dem Schließen des Tabs leer.
+- Erfasst werden Signalwechsel der Quellen, Aufnahmen, Snapshots,
+  Löschungen, Weiterleitungen, Streaming-Server, Speicher,
+  Konfigurationsänderungen, Gastlinks, E-Mail-Benachrichtigungen sowie
+  Start und Ende des Dienstes. Bedienaktionen nennen den auslösenden
+  Benutzer.
+- „Leeren“ blendet Einträge nur im eigenen Browser aus.
+
 ---
 
 ## [0.18.8] - 2026-11-24

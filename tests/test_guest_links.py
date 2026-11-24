@@ -370,7 +370,7 @@ def test_guest_link_events_reach_admins_only(guest_env, monkeypatch) -> None:
     from open_bos_stream.core.container import auth_service, dashboard_service
     from open_bos_stream.core.event_log import ServerEventLog
 
-    events = ServerEventLog()
+    events = ServerEventLog(None)
     monkeypatch.setattr(guest_api, "server_event_log", events)
     monkeypatch.setattr(dashboard_api, "server_event_log", events)
     monkeypatch.setattr(dashboard_service, "status", lambda: {"sources": []})
@@ -407,7 +407,7 @@ def test_expired_guest_links_are_reported_once(tmp_path, monkeypatch) -> None:
     from open_bos_stream.core.event_log import ServerEventLog
 
     store = store_in(tmp_path)
-    events = ServerEventLog()
+    events = ServerEventLog(None)
     monkeypatch.setattr(main, "guest_link_store", store)
     monkeypatch.setattr(main, "server_event_log", events)
     expiring, _ = store.create(

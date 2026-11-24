@@ -10,7 +10,7 @@ async function refreshDashboard() {
     try {
 
         const dashboard =
-            await api.dashboard();
+            await api.dashboard(serverEventCursor());
 
         window.dashboard = dashboard;
 
@@ -46,25 +46,65 @@ async function refreshDashboard() {
 // Dashboard
 // ==========================================================
 
-let lastServerEventId = 0;
+let lastServerEventId = null;
 let serverEventInstance = null;
 
+function clearedEventsKey() {
+    return `openBosEventsCleared:${window.currentUser?.username ?? ""}`;
+}
+
+function clearedEventsMarker() {
+    try {
+        return JSON.parse(localStorage.getItem(clearedEventsKey()) || "null");
+    } catch (error) {
+        return null;
+    }
+}
+
+function rememberClearedEvents() {
+    // „Leeren“ blendet bisherige Einträge nur in diesem Browser aus; das
+    // gemeinsame Protokoll auf dem Server bleibt für alle erhalten.
+    if (serverEventInstance === null || lastServerEventId === null) {
+        return;
+    }
+    try {
+        localStorage.setItem(
+            clearedEventsKey(),
+            JSON.stringify({
+                instance: serverEventInstance,
+                id: lastServerEventId,
+            })
+        );
+    } catch (error) {
+        // Ohne Speicher gilt das Ausblenden nur bis zum Neuladen.
+    }
+}
+
+function serverEventCursor() {
+    return lastServerEventId;
+}
+
 function updateServerEvents(feed) {
-    // Nur Admins erhalten Serverereignisse (z. B. Gastlinks).
+    // Nur Admins und Superadmins erhalten das Ereignisprotokoll des Servers.
     if (!feed) {
         return;
     }
     if (feed.instance !== serverEventInstance) {
-        // Server neu gestartet: Nummerierung beginnt von vorn.
+        // Neues Protokoll auf dem Server: Zählung von vorn beginnen.
         serverEventInstance = feed.instance;
         lastServerEventId = 0;
     }
+    const cleared = clearedEventsMarker();
+    const hiddenUpTo =
+        cleared?.instance === feed.instance ? Number(cleared.id) : 0;
     for (const event of feed.events ?? []) {
         if (event.id <= lastServerEventId) {
             continue;
         }
         lastServerEventId = event.id;
-        addEvent(event.level, event.message, event.at);
+        if (event.id > hiddenUpTo) {
+            addEvent(event.level, event.message, event.at);
+        }
     }
 }
 

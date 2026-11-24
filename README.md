@@ -724,8 +724,8 @@ Transcoding-Profil oder der Kamera-Substream geprüft werden.
 - **Darstellung:** Hell, Dunkel oder Auto. „Auto“ folgt der Einstellung des
   Geräts; die Wahl gilt pro Browser. Die Anmeldeseite folgt ebenfalls der
   Geräteeinstellung.
-- **Ereignisprotokoll:** Meldungen aus dem eigenen Browser sowie für Admins
-  serverseitige Ereignisse wie Gastlinks, jeweils mit Uhrzeit.
+- **Ereignisprotokoll:** gemeinsames Protokoll des Servers für Admins und
+  Superadmins (siehe „Betrieb“).
 - **Smartphones:** kompakte Darstellung; die Speichern-Leiste der
   Einstellungen schwebt nur bei ungespeicherten Änderungen über dem Inhalt.
 
@@ -875,6 +875,30 @@ bleibt möglich. Die Markierung wird als versteckte Datei
 `.<dateiname>.keep` neben der Mediendatei gespeichert.
 
 ## Betrieb
+
+### Ereignisprotokoll
+
+Das Ereignisprotokoll in der Übersicht wird vom Server geführt – auch dann,
+wenn keine Oberfläche geöffnet ist – und ist für alle Admins und Superadmins
+gleich. Erfasst werden unter anderem:
+
+- Signal einer Quelle verfügbar oder verloren (Verlust nach zwei Prüfungen)
+- Aufnahme gestartet, gespeichert, abgebrochen oder fehlgeschlagen
+- Snapshot erstellt, Aufnahmen und Snapshots gelöscht
+- Weiterleitung gestartet, gestoppt oder unerwartet beendet
+- Streaming-Server nicht erreichbar, Speicher knapp oder erschöpft
+- Konfiguration, Speicherschutz, Aufnahmesteuerung und Benachrichtigungen
+  gespeichert
+- Gastlinks erstellt, geöffnet, gesperrt oder abgelaufen
+- versendete und fehlgeschlagene E-Mail-Benachrichtigungen
+- Start und Ende des Dienstes
+
+Bei Bedienaktionen steht der auslösende Benutzer am Ende der Meldung. Die
+Einträge liegen in `config/event_log.jsonl`, überstehen Neustarts und
+Updates und werden nach 30 Tagen automatisch entfernt. Die Oberfläche zeigt
+beim Öffnen die letzten 200 Einträge und lädt danach nur neue nach.
+„Leeren“ blendet die bisherigen Einträge nur im eigenen Browser aus; für
+andere bleiben sie erhalten. Zuschauer und Gäste sehen das Protokoll nicht.
 
 ### E-Mail-Benachrichtigungen bei Störungen
 

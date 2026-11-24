@@ -254,8 +254,13 @@ def test_dashboard_uses_only_unified_source_players() -> None:
     assert 'components/stream_card.html' not in index
     assert "function moveSource(index, direction)" in source_js
     assert "function checkSourceEvents(sources = [])" in events
-    assert "Signal verfügbar" in events
-    assert "Signal verloren" in events
+    # Signalwechsel protokolliert der Server (core/status_events.py).
+    status_events = (ROOT / "core" / "status_events.py").read_text(
+        encoding="utf-8"
+    )
+    assert "Signal verfügbar" in status_events
+    assert "Signal verloren" in status_events
+    assert "Signal verfügbar" not in events
     assert "defaultLiveVideo" in player
 
 

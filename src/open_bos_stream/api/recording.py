@@ -4,7 +4,7 @@ Recording API
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from fastapi.responses import FileResponse
 from starlette.concurrency import run_in_threadpool
@@ -13,6 +13,7 @@ from open_bos_stream.core.container import (
     playback_cache,
     recording_library,
     recording_service,
+    server_event_log,
 )
 from open_bos_stream.recording.playback import PlaybackPreparationError
 from open_bos_stream.auth.roles import SUPERADMIN
@@ -35,13 +36,17 @@ async def status():
 
 
 @router.post("/start")
-async def start():
+async def start(request: Request):
 
     try:
 
         # Das Öffnen des Hauptstreams kann einige Sekunden dauern und darf
         # die übrigen Anfragen nicht blockieren.
-        await run_in_threadpool(recording_service.start)
+        await run_in_threadpool(
+            lambda: recording_service.start(
+                actor=request.state.user["username"]
+            )
+        )
 
         return {
             "success": True,
@@ -58,11 +63,15 @@ async def start():
 
 
 @router.post("/stop")
-async def stop():
+async def stop(request: Request):
 
     try:
 
-        await run_in_threadpool(recording_service.stop)
+        await run_in_threadpool(
+            lambda: recording_service.stop(
+                actor=request.state.user["username"]
+            )
+        )
 
         return {
             "success": True,
@@ -145,9 +154,15 @@ async def play_compatible(filename: str):
 
 
 @router.delete("/{filename}")
-async def delete(filename: str):
+async def delete(filename: str, request: Request):
     file = recording_library.get_file(filename)
     success = recording_library.delete(filename)
+    if success:
+        server_event_log.record(
+            "warning",
+            f"🗑 Aufnahme gelöscht · {filename}",
+            actor=request.state.user["username"],
+        )
 
     if success and file is not None:
         await run_in_threadpool(playback_cache.remove, file)

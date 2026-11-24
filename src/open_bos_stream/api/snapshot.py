@@ -2,12 +2,13 @@
 Snapshot API
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
 from open_bos_stream.core.container import (
+    server_event_log,
     snapshot_library,
     snapshot_service,
 )
@@ -32,7 +33,7 @@ async def status():
 
 
 @router.post("/create")
-async def create():
+async def create(request: Request):
     """Neuen Snapshot erstellen."""
 
     try:
@@ -46,6 +47,11 @@ async def create():
             },
         ) from exc
 
+    server_event_log.record(
+        "info",
+        f"📸 Snapshot erstellt · {filename.name}",
+        actor=request.state.user["username"],
+    )
     return {
         "success": True,
         "filename": filename.name,
@@ -98,10 +104,16 @@ async def view(filename: str):
 
 
 @router.delete("/{filename}")
-async def delete(filename: str):
+async def delete(filename: str, request: Request):
     """Snapshot löschen."""
 
     success = snapshot_library.delete(filename)
+    if success:
+        server_event_log.record(
+            "warning",
+            f"🗑 Snapshot gelöscht · {filename}",
+            actor=request.state.user["username"],
+        )
 
     return {
         "success": success,

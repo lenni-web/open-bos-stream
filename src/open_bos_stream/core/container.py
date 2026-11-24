@@ -52,7 +52,10 @@ from open_bos_stream.system.administration import (
 config = ConfigLoader().load()
 auth_service = AuthService()
 guest_link_store = GuestLinkStore()
-server_event_log = ServerEventLog()
+# Neben stream.yaml (Tests: temporäres Verzeichnis).
+server_event_log = ServerEventLog(
+    ConfigLoader().config_file.parent / "event_log.jsonl"
+)
 auth_service.guest_links = guest_link_store
 login_rate_limiter = LoginRateLimiter()
 
@@ -153,6 +156,7 @@ recording_service = RecordingService(
     mediamtx=mediamtx_client,
     storage=media_storage_service,
     relays=fullscreen_relay_manager,
+    event_log=server_event_log,
 )
 
 snapshot_service = SnapshotService(
@@ -163,7 +167,10 @@ snapshot_service = SnapshotService(
     relays=fullscreen_relay_manager,
 )
 
-notification_service = NotificationService(config)
+notification_service = NotificationService(
+    config,
+    event_log=server_event_log,
+)
 
 dashboard_service = DashboardService(
     config=config,

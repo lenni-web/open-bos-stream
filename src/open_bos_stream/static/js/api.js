@@ -147,10 +147,14 @@ class OBSApi {
     // Dashboard
     // ---------------------------------------------------------
 
-    async dashboard() {
+    async dashboard(eventsAfter = null) {
 
+        // Nur neue Einträge des Ereignisprotokolls abholen.
+        const query = Number.isInteger(eventsAfter)
+            ? `?events_after=${eventsAfter}`
+            : "";
         return await this.get(
-            "/dashboard/status"
+            "/dashboard/status" + query
         );
 
     }

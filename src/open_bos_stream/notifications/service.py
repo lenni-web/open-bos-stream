@@ -35,6 +35,7 @@ class NotificationService:
         config: AppConfig,
         secret_file: str | Path = "config/notifications.secret",
         sender=send_mail,
+        event_log=None,
     ) -> None:
         self._config = config
         self._secret_file = Path(secret_file)
@@ -43,6 +44,7 @@ class NotificationService:
         self._worker: threading.Thread | None = None
         self._lock = threading.Lock()
         self._last_result: dict | None = None
+        self._events = event_log
 
     # ------------------------------------------------------------------
     # Einstellungen und Passwort
@@ -180,6 +182,16 @@ class NotificationService:
                 "success": error is None,
                 "error": error,
             }
+        if self._events is not None:
+            # Betreff ohne Serverkennung "[Open BOS Stream …]".
+            short = subject.split("] ", 1)[-1]
+            if error is None:
+                self._events.record("info", f"✉ E-Mail versendet: {short}")
+            else:
+                self._events.record(
+                    "error",
+                    f"✉ E-Mail nicht versendet: {short} ({error})",
+                )
 
     @staticmethod
     def _server_label() -> tuple[str, str | None]:

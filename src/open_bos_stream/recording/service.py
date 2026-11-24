@@ -51,6 +51,7 @@ class RecordingService:
         storage: MediaStorageService | None = None,
         relays=None,
         manager_factory=RecordingManager,
+        event_log=None,
     ) -> None:
         self._config = config
         self._recorder = Recorder()
@@ -59,6 +60,7 @@ class RecordingService:
         self._storage = storage
         self._capture = CaptureInputProvider(mediamtx, relays)
         self._channels: dict[str, _Channel] = {}
+        self._events = event_log
         self._control_lock = RLock()
 
     # ------------------------------------------------------------------
@@ -113,6 +115,48 @@ class RecordingService:
     @property
     def recording_active(self) -> bool:
         return self._running_count() > 0
+
+    def _event(self, level: str, message: str, actor: str | None = None) -> None:
+        if self._events is not None:
+            self._events.record(level, message, actor=actor)
+
+    def _report_outcome(
+        self,
+        channel: _Channel,
+        actor: str | None = None,
+    ) -> None:
+        """Abschluss einer Aufnahme ins Ereignisprotokoll schreiben."""
+
+        outcome = getattr(channel.manager, "last_outcome", None)
+        name = channel.status.source_name or channel.source_id
+        if outcome is None:
+            self._event("info", f"⏹ Aufnahme beendet · {name}", actor)
+            return
+        file_name = (
+            outcome.filename.rsplit("/", 1)[-1] if outcome.filename else None
+        )
+        saved = f" · {file_name}" if file_name else ""
+        if outcome.reason == "stream_interrupted":
+            self._event(
+                "warning",
+                f"⚠ Aufnahme durch Streamabbruch beendet · {name}{saved}",
+            )
+        elif outcome.reason == "failed":
+            self._event(
+                "error",
+                f"⛔ Aufnahme fehlgeschlagen, keine gültige Datei · {name}",
+            )
+        elif outcome.reason == "storage_low":
+            self._event(
+                "warning",
+                f"⚠ Aufnahme wegen Speichermangel beendet · {name}{saved}",
+            )
+        else:
+            self._event(
+                "info",
+                f"⏹ Aufnahme gespeichert · {name}{saved}",
+                actor,
+            )
 
     # ------------------------------------------------------------------
     # Status
@@ -177,6 +221,7 @@ class RecordingService:
         *,
         automatic: bool = False,
         source_id: str | None = None,
+        actor: str | None = None,
     ) -> None:
         """Aufnahme starten (ohne Quelle: gewählte Medienquelle)."""
 
@@ -188,9 +233,15 @@ class RecordingService:
             )
             if source is None:
                 raise RuntimeError("Quelle ist nicht aktiv.")
-            self._start(source, automatic=automatic)
+            self._start(source, automatic=automatic, actor=actor)
 
-    def _start(self, source, *, automatic: bool) -> None:
+    def _start(
+        self,
+        source,
+        *,
+        automatic: bool,
+        actor: str | None = None,
+    ) -> None:
         if self.is_automatic(source.id) and not automatic:
             raise RuntimeError(
                 "Die Aufnahme wird automatisch durch das Eingangssignal gesteuert."
@@ -279,12 +330,19 @@ class RecordingService:
         status.finished_at = None
         status.automatic_error = None
         status.automatic_waiting = False
+        self._event(
+            "success",
+            f"⏺ Aufnahme gestartet · {source.name}"
+            + (" · automatisch" if automatic else ""),
+            actor=None if automatic else actor,
+        )
 
     def stop(
         self,
         *,
         automatic: bool = False,
         source_id: str | None = None,
+        actor: str | None = None,
     ) -> None:
         """Aufnahme stoppen (ohne Quelle: gewählte Medienquelle)."""
 
@@ -296,9 +354,16 @@ class RecordingService:
                     "Die Aufnahme wird automatisch durch das Eingangssignal "
                     "gesteuert."
                 )
-            self._stop(self._channel(source_id))
+            self._stop(self._channel(source_id), actor=actor)
 
-    def _stop(self, channel: _Channel, **stop_kwargs) -> None:
+    def _stop(
+        self,
+        channel: _Channel,
+        *,
+        actor: str | None = None,
+        **stop_kwargs,
+    ) -> None:
+        was_running = channel.manager.running
         try:
             channel.manager.stop(**stop_kwargs)
         finally:
@@ -309,6 +374,8 @@ class RecordingService:
             status.started_at = None
             status.duration = 0
             status.pid = None
+        if was_running:
+            self._report_outcome(channel, actor)
 
     def stop_all(self) -> None:
         """Alle laufenden Aufnahmen sauber abschließen (z. B. beim Beenden)."""
@@ -349,6 +416,7 @@ class RecordingService:
             # Aufnahme wurde ohne Bedienaktion beendet (z. B. Streamabbruch).
             self._release_capture(channel)
             channel.started_automatically = False
+            self._report_outcome(channel)
             return
         now = time.monotonic()
         if now - channel.capture_renewed_at >= CAPTURE_RENEW_SECONDS:

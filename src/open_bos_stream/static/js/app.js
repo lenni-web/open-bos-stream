@@ -29,27 +29,6 @@ window.addEventListener("load", async () => {
 
     await refreshDashboard();
 
-    // ------------------------------------------------------
-    // Event Log
-    // ------------------------------------------------------
-
-    addEvent(
-
-        "info",
-
-        "🚒 Open BOS Stream gestartet"
-
-    );
-
-    const initialSources =
-        window.dashboard?.sources ?? [];
-    const initialOnline =
-        initialSources.filter(source => source.ready).length;
-    addEvent(
-        initialOnline > 0 ? "success" : "info",
-        `📡 ${initialOnline} von ${initialSources.length} Quellen online`
-    );
-
     if (window.currentUser?.role !== "viewer") {
         await refreshConfig();
         await loadUsers();

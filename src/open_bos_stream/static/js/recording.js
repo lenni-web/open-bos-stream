@@ -1,8 +1,6 @@
 // ==========================================================
 // Recording Helper
 // ==========================================================
-let lastRecordingState = null;
-let lastRecordingOutcome = null;
 let recordingTimerState = {
     active: false,
     baseSeconds: 0,
@@ -104,64 +102,7 @@ function updateRecordingUI(
         return;
     }
 
-    // -----------------------------------------------------
-// Event Log
-// -----------------------------------------------------
-
-if (lastRecordingState !== null) {
-
-    if (
-        !lastRecordingState &&
-        recording.active
-    ) {
-
-        addEvent(
-            "success",
-            "⏺ Aufnahme gestartet"
-        );
-
-    }
-
-    if (
-        lastRecordingState &&
-        !recording.active &&
-        !recording.end_reason
-    ) {
-
-        addEvent(
-            "warning",
-            "⏹ Aufnahme beendet"
-        );
-
-    }
-
-}
-
-const outcomeKey = recording.finished_at
-    ? `${recording.finished_at}:${recording.end_reason}`
-    : null;
-if (outcomeKey && outcomeKey !== lastRecordingOutcome) {
-    if (recording.end_reason === "stream_interrupted") {
-        addEvent(
-            "warning",
-            "⚠ Aufnahme durch Streamabbruch beendet und gespeichert"
-        );
-    } else if (recording.end_reason === "failed") {
-        addEvent(
-            "error",
-            "⛔ Abgebrochene Aufnahme war nicht verwertbar"
-        );
-    } else if (recording.end_reason === "storage_low") {
-        addEvent(
-            "warning",
-            "⚠ Aufnahme wegen Speichermangel beendet und gespeichert"
-        );
-    }
-    lastRecordingOutcome = outcomeKey;
-}
-
-lastRecordingState =
-    recording.active;
+    // Aufnahmeereignisse kommen vom Server (Ereignisprotokoll).
 
     const active =
         recording.active;

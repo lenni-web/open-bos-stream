@@ -177,10 +177,6 @@ async function saveConfig() {
             "success"
         );
 
-        addEvent(
-            "success",
-            "⚙️ " + result.message
-        );
 
     }
 
@@ -333,7 +329,6 @@ async function saveStorageSettings() {
                 ? "Gespeichert. Älteste Medien werden bei Speichermangel gelöscht."
                 : "Gespeichert. Bei Speichermangel werden neue Medien gesperrt.";
         }
-        addEvent("success", "▤ " + result.message);
     } catch (err) {
         renderStorageSettings();
         if (status) {
@@ -376,7 +371,6 @@ async function saveRecordingModeImmediately() {
                     ? "Eine Quelle nimmt automatisch auf."
                     : `${count} Quellen nehmen automatisch auf.`;
         }
-        addEvent("success", "⏺ " + result.message);
     } catch (err) {
         if (status) {
             status.textContent = "Speichern fehlgeschlagen: " + err.message;

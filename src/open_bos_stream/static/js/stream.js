@@ -55,17 +55,6 @@ async function startStream() {
 
         window.dashboard?.stream?.pid;
 
-    addEvent(
-
-        "success",
-
-        pid
-
-            ? `📡 Stream gestartet (PID ${pid})`
-
-            : "📡 Stream gestartet"
-
-    );
 
 }
 
@@ -91,10 +80,6 @@ async function stopStream() {
 
     await refreshDashboard();
 
-    addEvent(
-        "warning",
-        "🛑 Stream gestoppt"
-    );
 
 }
 
