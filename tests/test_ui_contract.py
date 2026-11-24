@@ -721,7 +721,6 @@ def test_viewer_view_hides_technical_details() -> None:
     assert '<body class="role-{{ user.role }}">' in index
     assert '"viewer": "Zuschauer"' in header
     for selector in (
-        ".role-viewer .header-status",
         ".role-viewer .dashboard-bottom",
         ".role-viewer .multi-source-placeholder small",
         ".role-viewer .multi-source-meta [data-value]",
@@ -774,3 +773,20 @@ def test_map_layer_control_starts_collapsed() -> None:
     tag = template[start:template.index(">", start)]
 
     assert "open" not in tag.split()
+
+
+def test_stream_output_names_are_escaped_and_not_inlined_in_handlers() -> None:
+    """Review N1: Ausgangsnamen dürfen kein HTML oder Skript einschleusen."""
+
+    outputs = (ROOT / "static" / "js" / "stream_outputs.js").read_text(
+        encoding="utf-8"
+    )
+    settings = (
+        ROOT / "static" / "js" / "config_stream_outputs.js"
+    ).read_text(encoding="utf-8")
+
+    assert "<strong>${escapeHTML(output.name)}</strong>" in outputs
+    assert 'data-output-name="${escapeHTML(output.name)}"' in outputs
+    assert "StreamOutput('${output.name}')" not in outputs
+    assert 'value="${escapeHTML(output.name)}"' in settings
+    assert 'value="${escapeHTML(output.url)}"' in settings

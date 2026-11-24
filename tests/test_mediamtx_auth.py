@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from pathlib import Path
 
 import pytest
 import yaml
@@ -251,7 +252,7 @@ def test_browser_reader_with_media_token_is_allowed(tmp_path, monkeypatch) -> No
 
 def test_mediamtx_configs_no_longer_exempt_readers() -> None:
     for name in ("mediamtx.server.yml", "mediamtx.local.yml"):
-        data = yaml.safe_load(open(f"config/{name}", encoding="utf-8"))
+        data = yaml.safe_load(Path(f"config/{name}").read_text(encoding="utf-8"))
         excluded = {item["action"] for item in data["authHTTPExclude"]}
         assert "read" not in excluded
         assert data["authMethod"] == "http"

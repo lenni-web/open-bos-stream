@@ -19,13 +19,15 @@ function updateStreamOutputs(outputs) {
         return;
     }
 
+    // Namen nur maskiert einsetzen und nicht in onclick-Code einbauen:
+    // ein Name wie  x'); alert(1); ('  würde sonst als Skript ausgeführt.
     container.innerHTML = outputs.map(output => `
 
         <div class="info-row">
 
             <div>
 
-                <strong>${output.name}</strong>
+                <strong>${escapeHTML(output.name)}</strong>
 
                 <div class="text-muted">
                     Quelle: ${escapeHTML(output.source_name ?? "Nicht gewählt")}
@@ -44,25 +46,39 @@ function updateStreamOutputs(outputs) {
 
             </div>
 
-                <button
-                    class="bos-button ${
-                        output.running
-                            ? "bos-button-red"
-                            : "bos-button-green"
-                    }"
-                    onclick="${
-                        output.running
-                            ? `stopStreamOutput('${output.name}')`
-                            : `startStreamOutput('${output.name}')`
-                    }">
+            <button
+                class="bos-button ${
+                    output.running
+                        ? "bos-button-red"
+                        : "bos-button-green"
+                }"
+                type="button"
+                data-output-action="${output.running ? "stop" : "start"}"
+                data-output-name="${escapeHTML(output.name)}">
 
-                    ${output.running ? "Stop" : "Start"}
+                ${output.running ? "Stop" : "Start"}
 
-                </button>
+            </button>
 
         </div>
 
     `).join("");
+
+    if (!container.dataset.outputActionsBound) {
+        container.dataset.outputActionsBound = "true";
+        container.addEventListener("click", event => {
+            const button = event.target.closest("[data-output-action]");
+            if (!button) {
+                return;
+            }
+            const name = button.dataset.outputName;
+            if (button.dataset.outputAction === "stop") {
+                stopStreamOutput(name);
+            } else {
+                startStreamOutput(name);
+            }
+        });
+    }
 
 }
 

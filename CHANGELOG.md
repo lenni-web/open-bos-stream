@@ -9,6 +9,31 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Security
+
+- Namen und Ziel-URLs von Streaming-Ausgängen werden in der Übersicht und in
+  den Einstellungen maskiert eingesetzt. Ein präparierter Ausgangsname konnte
+  bisher HTML oder Skriptcode in die Seite einschleusen (Review N1). Start
+  und Stopp laufen nicht mehr über im HTML zusammengesetzten Code.
+- MediaMTX 1.21.4 schreibt Passwörter und Tokens aus Anmeldeanfragen nicht
+  mehr ins Debug-Protokoll.
+
+### Changed
+
+- MediaMTX-Standardversion von 1.21.1 auf 1.21.4 angehoben (Fehlerbehebungen
+  u. a. bei UDP/WebRTC, HTTP/2 und Weiterleitungen). Bestehende Installationen
+  aktualisieren MediaMTX mit `./scripts/update.sh --install-mediamtx`.
+- Python-Abhängigkeiten auf aktuelle Fehlerbehebungsversionen aktualisiert,
+  u. a. certifi, urllib3, idna, anyio, pydantic, PyYAML und click.
+- Browser-Bibliotheken aktualisiert: hls.js 1.6.16 → 1.7.4 und MapLibre GL JS
+  5.8.0 → 5.24.1.
+
+### Removed
+
+- Ungenutzte Module `core/logging.py` und `stream/filter_request.py`.
+- Wirkungslose CSS-Regeln für die frühere Kopfzeile und Seitenleiste
+  (rund 460 Zeilen).
+
 ---
 
 ## [0.18.0] - 2026-11-24

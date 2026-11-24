@@ -24,74 +24,6 @@ body {
 }
 
 /* ==========================================================
-   Root Container
-   ========================================================== */
-
-.container {
-
-    display: flex;
-
-    flex-direction: column;
-
-    height: 100vh;
-
-    padding: 20px;
-
-    overflow: hidden;
-
-}
-
-/* ==========================================================
-   Header
-   ========================================================== */
-
-.dashboard-header {
-
-    flex: 0 0 auto;
-
-    margin-bottom: 20px;
-
-}
-
-/* ==========================================================
-   Main Layout
-   ========================================================== */
-
-.dashboard-grid {
-
-    flex: 1;
-
-    display: flex;
-
-    gap: 24px;
-
-    min-height: 0;
-
-    align-items: stretch;
-
-}
-
-/* ==========================================================
-   Sidebar
-   ========================================================== */
-
-.sidebar {
-
-    flex: 0 0 280px;
-
-    width: 280px;
-
-    min-width: 280px;
-
-    max-width: 280px;
-
-    min-height: 0;
-
-    overflow-y: auto;
-
-}
-
-/* ==========================================================
    Main Content
    ========================================================== */
 
@@ -154,36 +86,6 @@ body {
    ========================================================== */
 
 @media (max-width: 1100px) {
-
-    .container {
-
-        height: auto;
-
-        min-height: 100vh;
-
-        overflow: visible;
-
-    }
-
-    .dashboard-grid {
-
-        flex-direction: column;
-
-        gap: 20px;
-
-    }
-
-    .sidebar {
-
-        width: 100%;
-
-        min-width: 0;
-
-        max-width: none;
-
-        flex: none;
-
-    }
 
     .content {
 

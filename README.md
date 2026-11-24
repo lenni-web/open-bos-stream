@@ -90,12 +90,12 @@ automatisierte Installationen stehen folgende Optionen zur Verfügung:
 ./scripts/install.sh --profile server --install-mediamtx
 
 # Eine bestimmte kompatible Version installieren
-./scripts/install.sh --install-mediamtx --mediamtx-version 1.21.1
+./scripts/install.sh --install-mediamtx --mediamtx-version 1.21.4
 
 # Bereits heruntergeladenes offizielles Archiv verwenden
 ./scripts/install.sh \
-  --mediamtx-version 1.21.1 \
-  --mediamtx-archive /pfad/mediamtx_v1.21.1_linux_arm64.tar.gz
+  --mediamtx-version 1.21.4 \
+  --mediamtx-archive /pfad/mediamtx_v1.21.4_linux_arm64.tar.gz
 
 # Download deaktivieren und eine vorhandene Installation verlangen
 ./scripts/install.sh --no-install-mediamtx

@@ -42,7 +42,7 @@ function renderStreamOutputs() {
                         class="bos-input"
                         data-index="${index}"
                         data-field="name"
-                        value="${output.name}">
+                        value="${escapeHTML(output.name)}">
 
                     <label>Protokoll</label>
 
@@ -93,7 +93,7 @@ function renderStreamOutputs() {
                         class="bos-input"
                         data-index="${index}"
                         data-field="url"
-                        value="${output.url}">
+                        value="${escapeHTML(output.url)}">
 
                     <label>Audio</label>
 
