@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.18.6] - 2026-11-24
+
 ### Fixed
 
 - Uhrzeiten vom Server stimmen jetzt mit der deutschen Zeit überein. Läuft

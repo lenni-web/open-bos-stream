@@ -57,6 +57,7 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.18.6** (2026-11-24): Uhrzeiten in deutscher Zeit statt Server-UTC
 - **0.18.5** (2026-11-24): Kompakte Speichern-Leiste der Einstellungen auf
   Smartphones
 - **0.18.4** (2026-11-24): Gastlinks im Ereignisprotokoll
