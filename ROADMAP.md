@@ -57,6 +57,7 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.18.7** (2026-11-24): Dokumentation und Funktionsübersicht aktualisiert
 - **0.18.6** (2026-11-24): Uhrzeiten in deutscher Zeit statt Server-UTC
 - **0.18.5** (2026-11-24): Kompakte Speichern-Leiste der Einstellungen auf
   Smartphones
@@ -124,6 +125,12 @@ funktional weiterentwickelt.
 
 # Mittelfristig: Betrieb und Bedienung
 
+### Oberfläche
+
+- [x] Feste, einklappbare Seitenleiste, Statusanzeige mit Details und Benutzermenü
+- [x] Hell-/Dunkelmodus nach Geräteeinstellung oder fest gewählt
+- [ ] Einsatzprotokoll-Export (Ereignisse, Aufnahmen und Snapshots eines Einsatzes)
+
 ### Konfiguration
 
 - [ ] Vollständige Konfigurationssicherung (Export/Import inkl. Benutzer)
@@ -132,10 +139,12 @@ funktional weiterentwickelt.
 ### Monitoring
 
 - [ ] Netzwerkdurchsatz und Speicherplatz auf der Systemseite im Zeitverlauf
-- [ ] Benachrichtigung bei Quellenausfall oder Systemproblemen (z. B. Webhook, E-Mail)
+- [x] E-Mail-Benachrichtigung bei Quellenausfall oder Systemproblemen, mit Entwarnung
+- [ ] Weitere Benachrichtigungskanäle (z. B. Push über ntfy, Webhook)
 
 ### Benutzer
 
+- [x] Zeitlich begrenzte Gastlinks für ausgewählte Livebilder, ohne Konto
 - [ ] Protokoll sicherheitsrelevanter Aktionen (Anmeldung, Benutzer- und Konfigurationsänderungen)
 - [ ] Optionale Zwei-Faktor-Anmeldung für Admins und Superadmins
 

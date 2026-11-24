@@ -9,11 +9,22 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.18.7] - 2026-11-24
+
 ### Changed
 
 - Funktionsübersicht (PDF auf der Anmeldeseite) aktualisiert: Gastlinks
   unter „Zugriff & Sicherheit“, E-Mail-Benachrichtigung bei Störungen unter
   „Betrieb & Diagnose“ und Hell-/Dunkelmodus unter „Überall nutzbar“.
+- README überarbeitet: vollständige Funktionsliste, neuer Abschnitt
+  „Oberfläche“ (Seitenleiste, Status, Benutzermenü, Dunkelmodus),
+  aktualisierte Beschreibung der Zuschauerrolle und eigene Kapitel
+  „Aufnahmen und Snapshots“ sowie „Betrieb“ (Benachrichtigungen, Zeitzone).
+- Roadmap: E-Mail-Benachrichtigungen, Gastlinks und neue Oberfläche als
+  erledigt markiert; Einsatzprotokoll-Export und weitere
+  Benachrichtigungskanäle als nächste Schritte aufgenommen.
 
 ---
 
