@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.18.1] - 2026-11-24
+
 ### Security
 
 - Namen und Ziel-URLs von Streaming-Ausgängen werden in der Übersicht und in
