@@ -370,6 +370,12 @@ body {
 }
 
 .map-wrapper {
+    /* Karte füllt die verfügbare Fensterhöhe; --map-offset ist der Platz für
+       Kopfzeile, Seitentitel und Quellenhinweis darunter. */
+    --map-offset: 172px;
+    flex: none;
+    height: calc(100vh - var(--map-offset));
+    height: calc(100dvh - var(--map-offset));
     min-height: 520px;
     overflow: hidden;
     border: 1px solid var(--bos-gray);
@@ -1715,7 +1721,9 @@ body {
     }
 
     .map-wrapper {
-        min-height: 65vh;
+        height: 70vh;
+        height: 70dvh;
+        min-height: 360px;
     }
 
     .system-services,

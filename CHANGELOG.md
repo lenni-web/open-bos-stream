@@ -9,6 +9,11 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- Die Karte nutzt auf großen Bildschirmen die volle verfügbare Fensterhöhe
+  statt fest 520 Pixel; auf Smartphones belegt sie 70 % der Höhe.
+
 ---
 
 ## [0.17.3] - 2026-11-24
