@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.18.3] - 2026-11-24
+
 ### Added
 
 - Gastlinks: Admins und Superadmins teilen ausgewählte Livebilder zeitlich
