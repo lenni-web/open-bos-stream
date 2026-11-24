@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.18.0** (2026-11-24): Neue Oberfläche mit fester Seitenleiste,
+  Statusanzeige, Benutzermenü und Dunkelmodus; Karte in voller Fensterhöhe
 - **0.17.3** (2026-11-24): Schlankere, aufgeräumte Eingabefelder auf der
   Anmeldeseite
 - **0.17.2** (2026-11-24): Kartenebenen beim Öffnen der Karte eingeklappt

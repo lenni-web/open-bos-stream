@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.18.0] - 2026-11-24
+
 ### Added
 
 - Dunkelmodus für die gesamte Oberfläche und die Anmeldeseite. Er folgt
