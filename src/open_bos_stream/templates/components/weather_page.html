@@ -9,6 +9,10 @@
     </header>
 
     <div class="weather-page-grid">
+        {# Reihenfolge: Zusammenfassung, Radar, Vorhersage. #}
+        {% set weather_card_variant = "page" %}
+        {% include "components/weather_card.html" %}
+
         <section class="bos-card weather-radar-card" aria-labelledby="weather-radar-title">
             <div class="weather-radar-header">
                 <h2 id="weather-radar-title">Niederschlagsradar</h2>
@@ -48,7 +52,27 @@
             </p>
         </section>
 
-        {% set weather_card_variant = "page" %}
-        {% include "components/weather_card.html" %}
+        <section class="bos-card weather-forecast-card" data-weather-forecast-card
+            data-forecast-hours="24" aria-labelledby="weather-forecast-title" hidden>
+            <div class="weather-radar-header">
+                <h2 id="weather-forecast-title">Vorhersage nächste 24 Stunden</h2>
+                <small>Modell DWD ICON über Open-Meteo</small>
+            </div>
+            <div class="weather-forecast weather-forecast-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Uhrzeit</th>
+                            <th scope="col">Wind 10 m</th>
+                            <th scope="col">Wind 120 m</th>
+                            <th scope="col">Böen</th>
+                            <th scope="col">Niederschlag</th>
+                            <th scope="col">Temperatur</th>
+                        </tr>
+                    </thead>
+                    <tbody data-weather="forecast"></tbody>
+                </table>
+            </div>
+        </section>
     </div>
 </section>

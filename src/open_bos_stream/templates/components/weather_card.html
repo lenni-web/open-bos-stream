@@ -10,7 +10,8 @@
     data-weather-card
     data-forecast-hours="{{ 24 if weather_page else 7 }}"
     aria-label="Wetter für den Flugbetrieb"
-    hidden>
+    {# Auf der Wetterseite sofort sichtbar, damit das Radar nicht springt. #}
+    {% if not weather_page %}hidden{% endif %}>
     <div class="weather-header">
         <span class="weather-icon" aria-hidden="true">{{ icon("weather", 22) }}</span>
         <div class="weather-heading">
@@ -33,8 +34,10 @@
             <ul data-weather="alert-list"></ul>
         </details>
 
-        <details class="weather-forecast" {% if weather_page %}open{% endif %}>
-            <summary>{{ "Vorhersage nächste 24 Stunden" if weather_page else "Vorhersage nächste Stunden" }}</summary>
+        {# Auf der Wetterseite steht die Vorhersage als eigene Karte unter dem Radar. #}
+        {% if not weather_page %}
+        <details class="weather-forecast">
+            <summary>Vorhersage nächste Stunden</summary>
             <div class="weather-forecast-scroll">
                 <table>
                     <thead>
@@ -51,6 +54,7 @@
                 </table>
             </div>
         </details>
+        {% endif %}
     </div>
 
     <p class="weather-footer">

@@ -548,6 +548,12 @@ def test_weather_page_is_in_the_menu_for_everyone() -> None:
     assert 'id="weather-radar-slider"' in page
     assert 'id="weather-radar-play"' in page
     assert 'weather_card_variant = "page"' in page
+    # Reihenfolge: Zusammenfassung, Radar, 24-Stunden-Vorhersage.
+    assert (
+        page.index("weather_card.html")
+        < page.index('id="weather-radar-map"')
+        < page.index("data-weather-forecast-card")
+    )
     assert "setWeatherPageActive(page === \"weather\")" in navigation
 
 

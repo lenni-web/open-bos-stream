@@ -195,8 +195,19 @@ function renderWeatherCard(card, report) {
         `)
         .join("");
 
-    const hours = Number(card.dataset.forecastHours) || 7;
-    weatherPart(card, "forecast").innerHTML =
+    renderWeatherForecast(card, report);
+
+    weatherPart(card, "attribution").textContent =
+        `${report.attribution ?? ""}.`;
+}
+
+function renderWeatherForecast(container, report) {
+    const body = weatherPart(container, "forecast");
+    if (!body) {
+        return;
+    }
+    const hours = Number(container.dataset.forecastHours) || 7;
+    body.innerHTML =
         (report.forecast ?? [])
             .slice(0, hours)
             .map(hour => `
@@ -215,8 +226,6 @@ function renderWeatherCard(card, report) {
             `)
             .join("");
 
-    weatherPart(card, "attribution").textContent =
-        `${report.attribution ?? ""}.`;
 }
 
 function weatherSourceName(kind) {
@@ -253,6 +262,10 @@ async function loadWeatherCard() {
         const report = await response.json();
         document.getElementById("nav-weather")?.removeAttribute("hidden");
         cards.forEach(card => renderWeatherCard(card, report));
+        document.querySelectorAll("[data-weather-forecast-card]").forEach(card => {
+            card.hidden = !(report.forecast ?? []).length;
+            renderWeatherForecast(card, report);
+        });
     } catch (error) {
         cards.forEach(card => {
             card.hidden = false;

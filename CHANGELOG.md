@@ -9,6 +9,12 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- Wetterseite: Zusammenfassung „Wetter für den Flugbetrieb“ oben, darunter
+  das Niederschlagsradar und danach die Vorhersage der nächsten 24 Stunden
+  als eigene Karte.
+
 ---
 
 ## [0.20.2] - 2026-11-26

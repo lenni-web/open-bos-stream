@@ -506,3 +506,17 @@ html[data-color-scheme="dark"] .map-weather-controls {
         font-size: 0;
     }
 }
+
+.weather-forecast-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.weather-forecast-card[hidden] {
+    display: none !important;
+}
+
+.weather-forecast-card .weather-forecast-scroll {
+    margin-top: 0;
+}
