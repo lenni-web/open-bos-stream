@@ -2,8 +2,8 @@
 #
 # Raspberry Pi vor Ort: Netzwerkanschluss für einen Drohnen-Controller.
 #
-# Der Pi holt den RTSP-Stream des Controllers über eine eigene
-# Netzwerkschnittstelle ab (meist ein USB-Ethernet-Adapter) und sendet ihn
+# Der Pi holt den RTSP-Stream des Controllers über seine LAN-Buchse ab
+# (Netzwerkkabel zu einem USB-C-Ethernet-Adapter am Controller) und sendet ihn
 # per SRT über Mobilfunk an den Server. Damit der Mobilfunk die
 # Standardroute bleibt, bekommt die Controller-Verbindung nie eine
 # Standardroute (ipv4.never-default).

@@ -372,8 +372,9 @@ Autel Smart Controller oder DJI Pilot 2. Der Server im Internet erreicht den
 Controller nicht direkt. Ein Raspberry Pi vor Ort holt den Stream ab und
 sendet ihn **ohne Neukodieren** per SRT an den Server.
 
-1. **Netzwerk zum Controller** (USB-Ethernet-Adapter am Pi; die
-   Standardroute bleibt beim Mobilfunk):
+1. **Netzwerk zum Controller:** Netzwerkkabel von der LAN-Buchse des Pi zu
+   einem USB-C-Ethernet-Adapter am Controller. Das Skript richtet die
+   Verbindung ein; der Weg ins Internet bleibt beim Mobilfunk:
 
    ```bash
    # Controller vergibt die Adresse (Parrot SkyController)

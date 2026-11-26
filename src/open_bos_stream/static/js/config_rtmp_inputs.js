@@ -191,7 +191,8 @@ const RTSP_CONTROLLER_PRESETS = [
         url: "rtsp://192.168.53.1/live",
         transport: "udp",
         hint:
-            "Den Pi per USB-Ethernet-Adapter mit dem SkyController verbinden; " +
+            "Netzwerkkabel von der LAN-Buchse des Pi zu einem USB-C-Ethernet-" +
+            "Adapter am SkyController; " +
             "der Controller vergibt die Adresse selbst (Netzwerk-Skript: " +
             "Modus dhcp). Parrot erlaubt nur eine RTSP-Verbindung – Open BOS " +
             "Stream hält sie und verteilt das Bild weiter.",
