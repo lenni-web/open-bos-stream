@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.18.11** (2026-11-26): Wasser-Ebenen bereinigt (keine Gülle- und
+  Gastanks mehr), Bibliotheken aktualisiert, Karten-HTML abgesichert
 - **0.18.10** (2026-11-26): SRT-Empfang auf dem Server, latenzarmes Senden vom
   Raspberry Pi
 - **0.18.9** (2026-11-24): Dauerhaftes Ereignisprotokoll auf dem Server
@@ -160,7 +162,9 @@ funktional weiterentwickelt.
 
 - [x] Drohnen-Geozonen (dipul) mit Zonenabfrage per Klick
 - [ ] Weitere Overlay-Typen und eigene Marker
+- [x] Wasser-Ebenen ohne Gülle-, Gas- und andere Fremdtanks
 - [ ] Kartenverwaltung (MBTiles hochladen und auswählen)
+- [ ] Umstieg auf MapLibre 6 (ESM, WebGL2)
 
 ---
 

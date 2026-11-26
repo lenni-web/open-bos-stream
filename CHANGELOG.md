@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.18.11] - 2026-11-26
+
 ### Fixed
 
 - Karte: Die Ebene „Sonstige Wasserstellen“ zeigte alle Lagertanks aus
