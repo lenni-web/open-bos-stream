@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.19.1] - 2026-11-26
+
 ### Added
 
 - Neuer Menüpunkt **Wetter** (für alle Rollen): alle Wetterangaben der
