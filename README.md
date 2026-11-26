@@ -364,6 +364,40 @@ Liefert die Capture-Card MJPEG, dekodiert der Pi jedes Bild vor dem Kodieren;
 bei 1080p kann das die CPU des Pi 4 stark belasten, 720p ist die sichere
 Wahl.
 
+### Raspberry Pi vor Ort: RTSP vom Controller weiterleiten
+
+Manche Controller senden nicht selbst per RTMP, sondern stellen einen
+RTSP-Stream bereit, z. B. Parrot SkyController, Skydio Enterprise Controller,
+Autel Smart Controller oder DJI Pilot 2. Der Server im Internet erreicht den
+Controller nicht direkt. Ein Raspberry Pi vor Ort holt den Stream ab und
+sendet ihn **ohne Neukodieren** per SRT an den Server.
+
+1. **Netzwerk zum Controller** (USB-Ethernet-Adapter am Pi; die
+   Standardroute bleibt beim Mobilfunk):
+
+   ```bash
+   # Controller vergibt die Adresse (Parrot SkyController)
+   ./scripts/pi-controller-network.sh dhcp
+   # Pi vergibt die Adresse 10.42.0.x (Skydio und andere)
+   ./scripts/pi-controller-network.sh share
+   # Verbindung, Standardroute und vergebene Adressen prüfen
+   ./scripts/pi-controller-network.sh status
+   ```
+
+   Alternativ hängen Pi und Controller im selben WLAN, etwa am
+   Mobilfunk-Router.
+2. **Server:** eine Quelle „Sender → Server (RTMP oder SRT)“ mit
+   Empfangsprotokoll **SRT** anlegen und die SRT-Empfangsadresse kopieren.
+3. **Pi, Quelle:** Typ **RTSP**, unter „Controller-Vorlage“ den Controller
+   wählen. Die Vorlage setzt Transport und das Profil „Copy-Reparatur ·
+   geringe Latenz“; die genaue RTSP-Adresse zeigt die Controller-App.
+4. **Pi, Streaming-Ausgang:** Typ **SRT**, als Quelle die RTSP-Quelle, als
+   Ziel die SRT-Adresse des Servers.
+
+Die Vorlagen beruhen auf Herstellerangaben und sind noch nicht mit echten
+Geräten geprüft. Autel und DJI können alternativ direkt per RTMP an den
+Server senden; das ist meist einfacher.
+
 ## Offline-Karte Landkreis Stade
 
 Die Kartendaten sind wegen ihrer Größe nicht Bestandteil des Repositorys.

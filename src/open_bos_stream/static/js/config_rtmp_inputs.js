@@ -169,6 +169,115 @@ function sourcePreviewProfileHint(source) {
     `;
 }
 
+// Vorlagen für Drohnen-Controller, die selbst einen RTSP-Stream
+// bereitstellen (Abholen statt Senden). Adressen ohne feste IP werden nur
+// als Platzhalter vorgegeben; die genaue Adresse zeigt die Controller-App.
+const RTSP_CONTROLLER_PRESETS = [
+    {
+        id: "dji-pilot2",
+        label: "DJI Pilot 2 (RTSP)",
+        placeholder:
+            "rtsp://benutzer:passwort@<IP der Fernsteuerung>:8554/streaming/live/1",
+        transport: "tcp",
+        hint:
+            "In DJI Pilot 2 unter Live-Stream „RTSP“ wählen, Benutzer und " +
+            "Passwort festlegen (Port 8554). Die IP der Fernsteuerung steht " +
+            "in den WLAN- bzw. Netzwerkeinstellungen. Senden per RTMP an den " +
+            "Server ist bei DJI meist einfacher.",
+    },
+    {
+        id: "parrot",
+        label: "Parrot SkyController (Anafi USA/UKR)",
+        url: "rtsp://192.168.53.1/live",
+        transport: "udp",
+        hint:
+            "Den Pi per USB-Ethernet-Adapter mit dem SkyController verbinden; " +
+            "der Controller vergibt die Adresse selbst (Netzwerk-Skript: " +
+            "Modus dhcp). Parrot erlaubt nur eine RTSP-Verbindung – Open BOS " +
+            "Stream hält sie und verteilt das Bild weiter.",
+    },
+    {
+        id: "skydio",
+        label: "Skydio Enterprise Controller (X10)",
+        placeholder: "rtsp://<IP des Controllers>:<Port>/<Streamname>",
+        transport: "tcp",
+        hint:
+            "In der Skydio-App RTSP-Streaming aktivieren; die App zeigt die " +
+            "Adresse an. Der Controller braucht eine Adresse aus dem Netzwerk " +
+            "(Netzwerk-Skript: Modus share).",
+    },
+    {
+        id: "autel",
+        label: "Autel Smart Controller (EVO Max)",
+        placeholder: "rtsp://<IP des Controllers>/<Pfad aus der App>",
+        transport: "tcp",
+        hint:
+            "Die RTSP-Adresse zeigt die Autel-App unter Live-Stream. Autel " +
+            "kann alternativ wie DJI direkt per RTMP an den Server senden.",
+    },
+];
+
+function rtspPresetOptions() {
+    return [
+        `<option value="">Eigene Adresse</option>`,
+        ...RTSP_CONTROLLER_PRESETS.map(preset => `
+            <option value="${escapeHTML(preset.id)}">
+                ${escapeHTML(preset.label)}
+            </option>
+        `),
+    ].join("");
+}
+
+function applyRtspPreset(card, presetId) {
+    const preset = RTSP_CONTROLLER_PRESETS.find(item => item.id === presetId);
+    const hint = card.querySelector('[data-role="rtsp-preset-hint"]');
+    if (!preset) {
+        if (hint) {
+            hint.textContent = RTSP_PRESET_DEFAULT_HINT;
+        }
+        return;
+    }
+    // Werte einer zuvor gewählten Vorlage ersetzen, eigene Eingaben behalten.
+    const presetUrls = RTSP_CONTROLLER_PRESETS.map(item => item.url).filter(Boolean);
+    const presetLabels = RTSP_CONTROLLER_PRESETS.map(item => item.label);
+    const url = card.querySelector('[data-field="url"]');
+    if (url) {
+        url.type = "text";
+        url.placeholder = preset.placeholder ?? preset.url ?? "";
+        if (preset.url) {
+            url.value = preset.url;
+        } else if (presetUrls.includes(url.value.trim())) {
+            url.value = "";
+        }
+        url.focus();
+    }
+    const transport = card.querySelector('[data-field="transport"]');
+    if (transport) {
+        transport.value = preset.transport;
+    }
+    // Weiterleiten ohne Neukodieren und mit minimalem Puffer.
+    const profile = card.querySelector('[data-field="profile"]');
+    if (profile) {
+        profile.value = "copy_repair_low_latency";
+    }
+    const droneType = card.querySelector('[data-field="drone_type"]');
+    if (
+        droneType &&
+        (!droneType.value.trim() || presetLabels.includes(droneType.value.trim()))
+    ) {
+        droneType.value = preset.label;
+    }
+    if (hint) {
+        hint.textContent = preset.hint;
+    }
+    setConfigDirty(true);
+}
+
+const RTSP_PRESET_DEFAULT_HINT =
+    "Für Controller, die selbst einen RTSP-Stream bereitstellen. Auf einem " +
+    "Raspberry Pi vor Ort lässt sich das Bild so per SRT an den Server " +
+    "weiterleiten.";
+
 function sourceSpecificFields(source) {
     if (source.type === "rtmp") {
         const publishUrl = sourcePublishUrl(source);
@@ -245,6 +354,13 @@ function sourceSpecificFields(source) {
 
     if (source.type === "rtsp") {
         return `
+            <div class="form-field form-field-wide">
+                <label>Controller-Vorlage</label>
+                <select class="bos-input" data-role="rtsp-preset">
+                    ${rtspPresetOptions()}
+                </select>
+                <small data-role="rtsp-preset-hint">${escapeHTML(RTSP_PRESET_DEFAULT_HINT)}</small>
+            </div>
             <div class="form-field form-field-wide">
                 <label>RTSP-URL</label>
                 <input
@@ -504,6 +620,10 @@ function renderSources() {
                 renderSources();
                 setConfigDirty(true);
             }
+        );
+        card.querySelector('[data-role="rtsp-preset"]')?.addEventListener(
+            "change",
+            event => applyRtspPreset(card, event.target.value)
         );
         card.querySelector('[data-field="id"]')?.addEventListener(
             "input",

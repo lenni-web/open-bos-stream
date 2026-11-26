@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from open_bos_stream.core.config import ConfigLoader
 from open_bos_stream.core.models import SourceConfig, StreamOutputConfig
 from open_bos_stream.stream.command import FFmpegCommandBuilder
 from open_bos_stream.stream_output.command import StreamOutputCommandBuilder
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def capture_source(**overrides) -> SourceConfig:
@@ -94,3 +97,56 @@ def test_srt_uplink_to_open_bos_server_keeps_token_and_adds_latency() -> None:
     assert command.index("nobuffer") < command.index("-i")
     assert option(command, "-flush_packets") == "1"
     assert option(command, "-f") == "mpegts"
+
+
+def test_rtsp_controller_presets_relay_without_transcoding() -> None:
+    script = (
+        ROOT / "src" / "open_bos_stream" / "static" / "js"
+        / "config_rtmp_inputs.js"
+    ).read_text(encoding="utf-8")
+
+    assert "RTSP_CONTROLLER_PRESETS" in script
+    for preset in ('id: "dji-pilot2"', 'id: "parrot"', 'id: "skydio"', 'id: "autel"'):
+        assert preset in script
+    assert 'url: "rtsp://192.168.53.1/live"' in script
+    assert 'profile.value = "copy_repair_low_latency"' in script
+    assert 'data-role="rtsp-preset"' in script
+
+
+def test_rtsp_source_relays_to_srt_output_unchanged() -> None:
+    config = ConfigLoader().load().model_copy(deep=True)
+    config.sources = [
+        SourceConfig(
+            id="parrot",
+            name="Parrot",
+            type="rtsp",
+            profile="copy_repair_low_latency",
+            transport="udp",
+            url="rtsp://192.168.53.1/live",
+        )
+    ]
+    output = StreamOutputConfig(
+        type="srt",
+        name="Zum Server",
+        source_id="parrot",
+        url="srt://ffw.example:8890?streamid=publish:pi:token=ABCdef123456",
+    )
+
+    relay = StreamOutputCommandBuilder(config).build(output)
+    assert "rtsp://127.0.0.1:8554/parrot-view" in relay
+    assert option(relay, "-c:v") == "copy"
+
+    pull = FFmpegCommandBuilder(config).build_source(config.sources[0])
+    assert option(pull, "-rtsp_transport") == "udp"
+    assert option(pull, "-c:v") == "copy"
+
+
+def test_pi_controller_network_keeps_mobile_default_route() -> None:
+    script = (ROOT / "scripts" / "pi-controller-network.sh").read_text(
+        encoding="utf-8"
+    )
+
+    assert "ipv4.never-default yes" in script
+    assert "configure auto" in script
+    assert "configure shared" in script
+    assert "lokales Profil" in script

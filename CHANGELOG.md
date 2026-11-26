@@ -9,6 +9,18 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- RTSP vom Controller weiterleiten: RTSP-Quellen bieten Vorlagen für
+  DJI Pilot 2, Parrot SkyController, Skydio Enterprise Controller und Autel
+  Smart Controller. Die Vorlage setzt Transport und das Profil
+  „Copy-Reparatur · geringe Latenz“; zusammen mit einem SRT-Ausgang leitet
+  ein Raspberry Pi vor Ort das Bild ohne Neukodieren an den Server weiter.
+- `scripts/pi-controller-network.sh`: richtet am Pi die Netzwerkverbindung
+  zum Controller ein (Controller vergibt die Adresse oder Pi vergibt sie),
+  ohne dem Mobilfunk die Standardroute zu nehmen; mit Statusanzeige.
+- Noch nicht mit echten Controllern getestet.
+
 ---
 
 ## [0.18.11] - 2026-11-26

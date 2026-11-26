@@ -123,6 +123,8 @@ funktional weiterentwickelt.
 - [x] SRT-Empfang mit Token für Sender über Mobilfunk
 - [ ] Verschlüsselter Quellenempfang über RTMPS oder SRT mit Passphrase
 - [ ] Latenzarmes Senden vom Raspberry Pi per SRT mit echter Hardware validieren
+- [x] RTSP-Stream vom Controller über den Pi weiterleiten (Vorlagen, Netzwerk-Skript)
+- [ ] RTSP-Weiterleitung mit echten Controllern validieren (Parrot, Skydio, Autel, DJI)
 - [ ] Empfehlungen zur Absender-IP-Beschränkung für Port 1935 in der Oberfläche
 
 ### Speicher
