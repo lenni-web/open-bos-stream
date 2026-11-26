@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.19.0] - 2026-11-26
+
 ### Added
 
 - Wetter für den Flugbetrieb: Die Übersicht zeigt Messwerte der nächsten
@@ -32,6 +36,8 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 - Auf Smartphones und Tablets erscheint oben auf der Übersicht einmalig ein
   Hinweis zur Installation („Später“ für sieben Tage, „Nicht mehr
   anzeigen“). In der installierten App und in der Gastansicht nicht.
+- Funktionsübersicht (PDF) um Flugwetter, App-Installation und
+  RTSP-Weiterleitung über den Pi ergänzt.
 
 ---
 

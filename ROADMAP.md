@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.19.0** (2026-11-26): Wetter für den Flugbetrieb mit Ampel, DWD-Warnungen
+  und Regenradar; Anleitung zur Installation als App
 - **0.18.12** (2026-11-26): RTSP-Stream vom Controller über den Raspberry Pi
   weiterleiten (Vorlagen für DJI, Parrot, Skydio, Autel; Netzwerk-Skript)
 - **0.18.11** (2026-11-26): Wasser-Ebenen bereinigt (keine Gülle- und
@@ -177,7 +179,7 @@ funktional weiterentwickelt.
 
 Schwerpunkt bleiben Drohnen und Drohneneinsätze. Geplante Reihenfolge:
 
-1. **0.19** Wetter und Regenradar
+1. **0.19** Wetter und Regenradar ✔
 2. **0.20** Umstieg auf MapLibre 6 als Grundlage für neue Kartenfunktionen
 3. **0.21** Datenbank (SQLite) und Organisationsmodell: Landkreis, Wehren,
    Mitglieder, Rollen je Wehr und auf Landkreisebene
