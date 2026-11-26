@@ -26,6 +26,20 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   Zoomstufe 13; Hydranten wegen ihrer Menge weiterhin ab 14.
 - Kartenebenen ohne Daten (derzeit „Offene Wasserentnahmestellen“)
   werden in der Ebenenliste ausgeblendet.
+- Python-Abhängigkeiten aktualisiert: Pillow 12.3.0 → 13.0.0 (behebt 43
+  bekannte Sicherheitslücken; Open BOS Stream erzeugt mit Pillow nur
+  eigene Bilder und war praktisch nicht angreifbar), FastAPI 0.138.0 →
+  0.165.0, Starlette 1.3.1 → 1.10.0, Uvicorn 0.49.0 → 0.54.0. FastAPI
+  bringt neu `opentelemetry-api` mit.
+- Entwicklung: httpx2 2.16.2, GitHub Actions auf v7 (checkout,
+  setup-python, setup-node).
+
+### Security
+
+- Karte: Quellenangaben aus MBTiles-Dateien werden nur noch als Text an
+  MapLibre übergeben. Der HTML-Filter von MapLibre 5 lässt sich umgehen
+  (GHSA-jrc7-96c5-q579, behoben erst in MapLibre 6).
+- Popups der Wasser-Ebenen setzen Werte aus OpenStreetMap maskiert ein.
 
 ---
 

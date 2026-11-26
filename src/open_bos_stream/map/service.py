@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import html
 import json
+from html.parser import HTMLParser
 from pathlib import Path
 
 from open_bos_stream.core.models import MapConfig
@@ -10,6 +12,29 @@ from open_bos_stream.map.mbtiles import (
     MBTilesProvider,
     MapTile,
 )
+
+
+class _TextCollector(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.parts: list[str] = []
+
+    def handle_data(self, data: str) -> None:
+        self.parts.append(data)
+
+
+def plain_attribution(value: str) -> str:
+    """Quellenangabe aus der MBTiles-Datei nur als Text weitergeben.
+
+    MapLibre setzt Attributionen als HTML ein; der eingebaute Filter von
+    MapLibre 5 lässt sich umgehen (GHSA-jrc7-96c5-q579). Darum werden
+    Tags hier entfernt und der Text maskiert.
+    """
+    collector = _TextCollector()
+    collector.feed(value)
+    collector.close()
+    text = " ".join("".join(collector.parts).split())
+    return html.escape(text, quote=True)
 
 
 class MapService:
@@ -178,7 +203,7 @@ class MapService:
 
         if metadata.attribution:
             style["sources"]["openbos"]["attribution"] = (
-                metadata.attribution
+                plain_attribution(metadata.attribution)
             )
 
         if metadata.bounds:

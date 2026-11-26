@@ -384,6 +384,8 @@ def test_guest_link_events_reach_admins_only(guest_env, monkeypatch) -> None:
         return original(value, purpose=purpose)
 
     monkeypatch.setattr(auth_service, "verify_token", fake_verify)
+    # Gast-Cookie verwerfen, sonst gibt es zwei Sitzungs-Cookies.
+    client.cookies.clear()
     client.cookies.set(auth_service.COOKIE_NAME, "admin")
     created = client.post(
         "/guest-links",

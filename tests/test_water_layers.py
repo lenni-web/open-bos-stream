@@ -88,3 +88,22 @@ def test_water_layers_share_zoom_and_empty_layers_are_hidden() -> None:
     ]
     assert zooms == ["minzoom: 14,"] + ["minzoom: 13,"] * 5
     assert "if (!data.features?.length)" in overlays
+
+
+def test_mbtiles_attribution_is_reduced_to_escaped_text() -> None:
+    from open_bos_stream.map.service import plain_attribution
+
+    value = (
+        '<a href="https://openmaptiles.org/">© OpenMapTiles</a> '
+        '<details open onload="1" ontoggle="alert(1)">x</details>'
+    )
+    assert plain_attribution(value) == "© OpenMapTiles x"
+    assert plain_attribution("A <b>&amp;</b> B") == "A &amp; B"
+
+
+def test_overlay_popup_values_are_escaped() -> None:
+    overlays = (
+        ROOT / "src" / "open_bos_stream" / "static" / "js" / "map-overlays.js"
+    ).read_text(encoding="utf-8")
+    assert "<td>${escapeHTML(displayValue)}</td>" in overlays
+    assert "<td>${displayValue}</td>" not in overlays

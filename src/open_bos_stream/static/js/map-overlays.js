@@ -456,7 +456,8 @@ async function addOverlayLayer(
         "osm_type"
     ]);
 
-    let html = `<strong>${overlay.title}</strong><table>`;
+    // Werte stammen aus OpenStreetMap und werden nie als HTML eingesetzt.
+    let html = `<strong>${escapeHTML(overlay.title)}</strong><table>`;
 
     for (const [key, value] of Object.entries(p)) {
 
@@ -473,8 +474,8 @@ async function addOverlayLayer(
 
     html += `
         <tr>
-            <td><strong>${formatPopupLabel(key)}</strong></td>
-            <td>${displayValue}</td>
+            <td><strong>${escapeHTML(formatPopupLabel(key))}</strong></td>
+            <td>${escapeHTML(displayValue)}</td>
         </tr>
     `;
     }
