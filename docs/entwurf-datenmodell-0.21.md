@@ -154,9 +154,12 @@ Einsätze lesend).
 Einsatzleiter · Abschnittsleiter Drohne · Fernpilot · Luftraumbeobachter ·
 Kamera-/Payload-Operator · Dokumentation · Sonstige.
 
-**Einsatznummer:** Datum plus laufende Nummer des Tages je führender Wehr,
-z. B. „26.11.2026 – Einsatz 2“ (intern `2026-11-26-2`). Eine Nummer der
-Leitstelle kann zusätzlich als Freitext erfasst werden.
+**Einsatzkennung:** Datum und **Alarmzeit**, z. B. „26.11.2026 14:32“
+(intern `2026-11-26-1432`). Die Alarmzeit wird beim Anlegen vorbelegt und
+lässt sich in der Oberfläche korrigieren; die Kennung passt sich an. Werden
+zwei Einsätze mit derselben Minute angelegt, erhält der zweite einen Zusatz
+(„-2“). Eine Nummer der Leitstelle kann zusätzlich als Freitext erfasst
+werden.
 
 **Sichtbarkeit:** Ein Einsatz ist sichtbar für Mitglieder der führenden Wehr,
 der beteiligten Wehren und für Rollen auf übergeordneten Ebenen.
@@ -207,7 +210,8 @@ Benutzerdatei bleibt als Sicherung erhalten.
 | Drohnen | gehören einzelnen Wehren |
 | Einsatzrollen | vorgeschlagene Liste passt vorerst; keine offizielle Vorgabe |
 | Qualifikationen | ja, Fernpilotennachweise mit Ablaufdatum erfassen |
-| Einsatznummern | Datum plus laufende Nummer des Tages |
+| Einsatzkennung | Datum und Alarmzeit, in der Oberfläche anpassbar |
+| Personen ohne Konto | dürfen mit Namen im Einsatz erfasst werden |
 | Löschfristen | vorerst keine automatische Löschung |
 | Einsatzfelder | zusätzlich Alarmstichwort, Adresse und Alarmierungsdetails |
 
@@ -215,7 +219,3 @@ Benutzerdatei bleibt als Sicherung erhalten.
 
 1. **Rollen auf Kreisebene:** Welche Personen oder Funktionen sollen
    wehrübergreifend sehen oder verwalten (siehe Erläuterung im Chat)?
-2. **Personen ohne Konto:** Dürfen Einsatzkräfte ohne eigenes Konto mit
-   Namen im Einsatz erfasst werden? (Vorschlag: ja.)
-3. **Zählung der Einsatznummer:** je führender Wehr (Vorschlag) oder
-   landkreisweit?
