@@ -1,0 +1,64 @@
+{% from "components/icons.html" import icon %}
+<dialog id="pwa-install-dialog" class="pwa-install-dialog" aria-labelledby="pwa-install-title">
+    <div class="pwa-install-content">
+        <header class="pwa-install-header">
+            <img src="/static/icons/open-bos-stream-180.png?v={{ version }}" alt="" width="48" height="48">
+            <div>
+                <h2 id="pwa-install-title" tabindex="-1" autofocus>Als App installieren</h2>
+                <p>
+                    Open BOS Stream lässt sich wie eine App auf den Startbildschirm
+                    legen: eigenes Symbol, Vollbild ohne Adressleiste, schneller Start.
+                    Es wird nichts aus einem App-Store geladen.
+                </p>
+            </div>
+        </header>
+
+        <p id="pwa-installed-note" class="pwa-install-note" hidden>
+            Die App ist auf diesem Gerät bereits installiert.
+        </p>
+
+        <button id="pwa-install-button" class="bos-button" type="button" hidden onclick="promptInstall()">
+            {{ icon("install", 18) }} Jetzt installieren
+        </button>
+
+        <section class="pwa-install-guide" data-platform="ios">
+            <h3>iPhone und iPad</h3>
+            <ol>
+                <li>Seite in <strong>Safari</strong> öffnen (in neueren iOS-Versionen auch Chrome oder Edge).</li>
+                <li>Auf <strong>Teilen</strong> tippen {{ icon("share", 16) }} – unten in der Leiste bzw. oben rechts auf dem iPad.</li>
+                <li><strong>„Zum Home-Bildschirm“</strong> wählen {{ icon("plus-square", 16) }}; eventuell erst nach unten scrollen.</li>
+                <li>Mit <strong>„Hinzufügen“</strong> bestätigen.</li>
+            </ol>
+            <p class="pwa-install-tip">
+                Wurde der Link in einer anderen App geöffnet (z. B. Messenger oder E-Mail),
+                zuerst „In Safari öffnen“ wählen.
+            </p>
+        </section>
+
+        <section class="pwa-install-guide" data-platform="android">
+            <h3>Android</h3>
+            <ol>
+                <li>Seite in <strong>Chrome</strong>, Edge oder Samsung Internet öffnen.</li>
+                <li>Das Menü {{ icon("dots", 16) }} oben rechts öffnen.</li>
+                <li><strong>„App installieren“</strong> bzw. <strong>„Zum Startbildschirm hinzufügen“</strong> wählen und bestätigen.</li>
+            </ol>
+        </section>
+
+        <section class="pwa-install-guide" data-platform="desktop">
+            <h3>Computer</h3>
+            <p>
+                In Chrome oder Edge auf das Installieren-Symbol rechts in der
+                Adressleiste klicken oder im Menü „App installieren“ wählen.
+            </p>
+        </section>
+
+        <p class="pwa-install-tip">
+            Die Anmeldung bleibt wie im Browser erhalten. Nach einem Update
+            lädt die App die neue Version beim nächsten Öffnen.
+        </p>
+
+        <form method="dialog" class="pwa-install-actions">
+            <button class="bos-button bos-button-small" type="submit">Schließen</button>
+        </form>
+    </div>
+</dialog>

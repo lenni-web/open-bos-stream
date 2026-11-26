@@ -845,7 +845,8 @@ Transcoding-Profil oder der Kamera-Substream geprüft werden.
   Superadmins öffnen per Klick die Details (Streaming-Server, Prozessor,
   Arbeitsspeicher, Temperatur sofern ein Sensor vorhanden ist) mit einem
   Sprung zur Systemseite.
-- **Benutzermenü:** Name und Rolle, Darstellung und Abmelden.
+- **Benutzermenü:** Name und Rolle, Darstellung, „Als App installieren“ und
+  Abmelden.
 - **Darstellung:** Hell, Dunkel oder Auto. „Auto“ folgt der Einstellung des
   Geräts; die Wahl gilt pro Browser. Die Anmeldeseite folgt ebenfalls der
   Geräteeinstellung.
@@ -853,6 +854,15 @@ Transcoding-Profil oder der Kamera-Substream geprüft werden.
   Superadmins (siehe „Betrieb“).
 - **Smartphones:** kompakte Darstellung; die Speichern-Leiste der
   Einstellungen schwebt nur bei ungespeicherten Änderungen über dem Inhalt.
+- **Als App installieren:** Die Oberfläche lässt sich auf iPhone, iPad und
+  Android auf den Startbildschirm legen (Web-App, kein App-Store) und startet
+  dann im Vollbild ohne Adressleiste. Auf Mobilgeräten erscheint oben auf der
+  Übersicht einmalig ein Hinweis („Später“ blendet ihn für sieben Tage aus);
+  die Anleitung für das jeweilige Gerät steht jederzeit im Benutzermenü. Unter
+  Android bieten Chrome, Edge und Samsung Internet dort direkt „Jetzt
+  installieren“ an, auf iPhone und iPad führt die Anleitung über Teilen →
+  „Zum Home-Bildschirm“. In der installierten App und in der Gastansicht
+  erscheint kein Hinweis.
 
 ## Benutzer und Rollen
 

@@ -26,6 +26,12 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   Ereignisprotokoll vermerkt.
 - Alle Wetterabrufe laufen über den Server mit Zwischenspeicher; fällt eine
   Quelle aus, bleiben die übrigen sichtbar.
+- Als App installieren: Eintrag im Benutzermenü mit Kurzanleitung für
+  iPhone/iPad, Android und Computer; auf Android mit direkter Schaltfläche
+  „Jetzt installieren“, sofern der Browser sie anbietet.
+- Auf Smartphones und Tablets erscheint oben auf der Übersicht einmalig ein
+  Hinweis zur Installation („Später“ für sieben Tage, „Nicht mehr
+  anzeigen“). In der installierten App und in der Gastansicht nicht.
 
 ---
 

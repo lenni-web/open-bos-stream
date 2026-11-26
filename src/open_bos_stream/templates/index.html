@@ -102,6 +102,15 @@
                     </div>
                 </header>
 
+                <div id="pwa-install-hint" class="pwa-install-hint" role="note" hidden>
+                    <span>Open BOS Stream lässt sich als App auf dem Startbildschirm installieren.</span>
+                    <div class="pwa-install-hint-actions">
+                        <button class="bos-button bos-button-small" type="button" onclick="openInstallDialog()">Anleitung</button>
+                        <button class="bos-button bos-button-small" type="button" onclick="dismissInstallHint(false)">Später</button>
+                        <button class="pwa-install-hint-never" type="button" onclick="dismissInstallHint(true)">Nicht mehr anzeigen</button>
+                    </div>
+                </div>
+
                 {% include "components/multi_source_panel.html" %}
 
                 {% include "components/weather_card.html" %}
@@ -171,6 +180,8 @@
 </div>
 
 {% if user.role in ("admin", "superadmin") %}
+{% include "components/pwa_install.html" %}
+
 <dialog id="guest-link-dialog" class="guest-link-dialog" aria-labelledby="guest-link-title">
     <form id="guest-link-form" method="dialog">
         <div>
@@ -319,6 +330,8 @@ window.openBosMediaToken = {{ media_token | tojson }};
 <script src="/static/js/map.js?v={{ version }}"></script>
 
 <script src="/static/js/weather.js?v={{ version }}"></script>
+
+<script src="/static/js/pwa.js?v={{ version }}"></script>
 </body>
 
 </html>

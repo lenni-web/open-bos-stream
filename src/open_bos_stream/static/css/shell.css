@@ -1170,3 +1170,150 @@ body {
     font-size: 0.76rem;
     line-height: 1.45;
 }
+
+/* ----------------------------------------------------------
+   Installation als App (PWA)
+   ---------------------------------------------------------- */
+
+#pwa-menu-entry[hidden] {
+    display: none;
+}
+
+.pwa-install-hint {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--bos-gray);
+    border-left: 4px solid var(--bos-blue);
+    border-radius: var(--shell-radius-small);
+    background: var(--bos-white);
+    font-size: 0.9rem;
+}
+
+.pwa-install-hint[hidden] {
+    display: none;
+}
+
+.pwa-install-hint-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.pwa-install-hint-never {
+    border: 0;
+    background: transparent;
+    color: var(--bos-muted);
+    font: inherit;
+    font-size: 0.82rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.pwa-install-dialog {
+    width: min(520px, calc(100vw - 24px));
+    max-height: calc(100vh - 40px);
+    padding: 0;
+    border: 1px solid var(--bos-gray);
+    border-radius: var(--shell-radius);
+    background: var(--bos-white);
+    color: var(--bos-dark);
+    box-shadow: var(--bos-shadow-strong);
+}
+
+.pwa-install-dialog::backdrop {
+    background: rgba(10, 14, 20, 0.45);
+}
+
+.pwa-install-dialog [hidden] {
+    display: none !important;
+}
+
+.pwa-install-content {
+    display: grid;
+    gap: 14px;
+    padding: 20px;
+}
+
+.pwa-install-header {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.pwa-install-header img {
+    flex: none;
+    border-radius: 12px;
+}
+
+.pwa-install-header h2 {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+}
+
+.pwa-install-header p,
+.pwa-install-tip,
+.pwa-install-guide p {
+    margin: 0;
+    color: var(--bos-muted);
+    font-size: 0.86rem;
+}
+
+.pwa-install-note {
+    margin: 0;
+    padding: 8px 10px;
+    border-radius: var(--shell-radius-small);
+    background: var(--shell-success-soft);
+    font-size: 0.88rem;
+}
+
+.pwa-install-guide {
+    padding: 12px 14px;
+    border: 1px solid var(--bos-gray);
+    border-radius: var(--shell-radius-small);
+}
+
+.pwa-install-guide.is-current {
+    border-color: var(--bos-blue);
+    box-shadow: inset 3px 0 0 var(--bos-blue);
+}
+
+.pwa-install-guide:not(.is-current) {
+    opacity: 0.8;
+}
+
+.pwa-install-guide h3 {
+    margin: 0 0 6px;
+    font-size: 0.95rem;
+}
+
+.pwa-install-guide ol {
+    margin: 0;
+    padding-left: 1.2rem;
+    display: grid;
+    gap: 4px;
+    font-size: 0.88rem;
+}
+
+.pwa-install-guide .ui-icon {
+    display: inline-block;
+    vertical-align: -3px;
+}
+
+.pwa-install-guide ol + .pwa-install-tip {
+    margin-top: 8px;
+}
+
+.pwa-install-header h2:focus {
+    outline: none;
+}
+
+.pwa-install-actions {
+    display: flex;
+    justify-content: flex-end;
+}

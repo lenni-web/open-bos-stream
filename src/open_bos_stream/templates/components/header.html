@@ -97,6 +97,16 @@
                     </button>
                 </div>
 
+                <button
+                    id="pwa-menu-entry"
+                    class="app-popover-link"
+                    type="button"
+                    data-close-popover
+                    onclick="openInstallDialog()">
+                    {{ icon("install", 16) }}
+                    Als App installieren
+                </button>
+
                 <button class="app-popover-link app-logout" type="button" onclick="logoutUser()">
                     {{ icon("logout", 16) }}
                     Abmelden
