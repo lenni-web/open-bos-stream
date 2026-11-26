@@ -75,7 +75,7 @@ function updateTopbarTitle(page) {
     const eyebrowElement = document.getElementById("topbar-eyebrow");
     if (titleElement && title) {
         titleElement.textContent = title;
-        document.title = `${title} · Open BOS Stream`;
+        document.title = `${title} · Open BOS Drohnen`;
     }
     if (eyebrowElement) {
         eyebrowElement.textContent = eyebrow || "";

@@ -1,5 +1,5 @@
 """
-Open BOS Stream
+Open BOS Drohnen
 Application Entry Point
 """
 
@@ -169,7 +169,7 @@ async def lifespan(app: FastAPI):
 
     server_event_log.record(
         "info",
-        f"🚒 Open BOS Stream gestartet · Version {VERSION}",
+        f"🚒 Open BOS Drohnen gestartet · Version {VERSION}",
     )
 
     setup_code = auth_service.ensure_setup_code()
@@ -202,7 +202,7 @@ async def lifespan(app: FastAPI):
             with suppress(asyncio.CancelledError):
                 await task
 
-    server_event_log.record("info", "🚒 Open BOS Stream wird beendet")
+    server_event_log.record("info", "🚒 Open BOS Drohnen wird beendet")
 
     if recording_service.recording_active:
         try:
@@ -224,7 +224,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Open BOS Stream",
+    title="Open BOS Drohnen",
     version=VERSION,
     lifespan=lifespan,
 )

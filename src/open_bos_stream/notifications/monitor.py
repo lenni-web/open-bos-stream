@@ -81,7 +81,7 @@ class NotificationMonitor:
             notices.append(
                 Notice(
                     event="server_started",
-                    subject="Open BOS Stream wurde gestartet",
+                    subject="Open BOS Drohnen wurde gestartet",
                     body=(
                         "Der Dienst wurde gestartet, z. B. nach einem Update, "
                         "einem Neustart des Servers oder einem Absturz."

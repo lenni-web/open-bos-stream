@@ -1,7 +1,7 @@
 {
-  "name": "Open BOS Stream",
-  "short_name": "BOS Stream",
-  "description": "Live- und Kamerastreams für BOS-Einsätze empfangen, überwachen und anzeigen.",
+  "name": "Open BOS Drohnen",
+  "short_name": "BOS Drohnen",
+  "description": "Lagebild, Livebilder, Karte und Flugwetter für Drohneneinsätze von Feuerwehr und BOS.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

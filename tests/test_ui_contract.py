@@ -672,7 +672,7 @@ def test_login_page_has_product_identity_and_description() -> None:
     ).read_text(encoding="utf-8")
 
     assert "open-bos-stream.svg" in login
-    assert "Open BOS Stream" in login
+    assert "Open BOS Drohnen" in login
     assert "Empfangen, Überwachen und Anzeigen" in login
     assert 'id="auth-title"' in login
     assert 'id="auth-form"' in login

@@ -137,7 +137,7 @@ async function copyGuestLink() {
 async function shareGuestLink() {
     try {
         await navigator.share({
-            title: "Open BOS Stream – Livebilder",
+            title: "Open BOS Drohnen – Livebilder",
             text: "Gastzugang zu den Livebildern",
             url: createdGuestLinkUrl,
         });

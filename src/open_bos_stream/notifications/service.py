@@ -127,7 +127,7 @@ class NotificationService:
                 event="test",
                 subject="Testnachricht",
                 body=(
-                    "Diese Testnachricht bestätigt, dass Open BOS Stream "
+                    "Diese Testnachricht bestätigt, dass Open BOS Drohnen "
                     "Störungsmeldungen per E-Mail versenden kann."
                 ),
             )
@@ -183,7 +183,7 @@ class NotificationService:
                 "error": error,
             }
         if self._events is not None:
-            # Betreff ohne Serverkennung "[Open BOS Stream …]".
+            # Betreff ohne Serverkennung "[Open BOS Drohnen …]".
             short = subject.split("] ", 1)[-1]
             if error is None:
                 self._events.record("info", f"✉ E-Mail versendet: {short}")
@@ -204,7 +204,7 @@ class NotificationService:
 
     def _compose(self, notice: Notice) -> tuple[str, str]:
         label, url = self._server_label()
-        subject = f"[Open BOS Stream {label}] {notice.subject}"
+        subject = f"[Open BOS Drohnen {label}] {notice.subject}"
         lines = [
             notice.body,
             "",
@@ -215,7 +215,7 @@ class NotificationService:
             lines.append(f"Übersicht: {url}")
         lines += [
             "",
-            "Diese Nachricht wurde automatisch von Open BOS Stream "
+            "Diese Nachricht wurde automatisch von Open BOS Drohnen "
             "versendet. Die Benachrichtigungen lassen sich in den "
             "Einstellungen anpassen.",
         ]

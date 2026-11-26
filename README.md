@@ -2,7 +2,11 @@
 
 <img src="src/open_bos_stream/static/icons/open-bos-stream.svg" alt="Open BOS Stream" width="96">
 
-Open BOS Stream ist eine webbasierte Streaming- und Kartenplattform für BOS-Anwendungen (Behörden und Organisationen mit Sicherheitsaufgaben). Sie kombiniert Live-Video, Kartenansicht und einsatzrelevante Overlays in einer leichtgewichtigen Anwendung für Raspberry Pi und Debian-Server.
+Open BOS Stream ist eine webbasierte Plattform für Drohneneinsätze von BOS (Behörden und Organisationen mit Sicherheitsaufgaben). Sie kombiniert Live-Video, Lagekarte, Flugwetter und einsatzrelevante Overlays in einer leichtgewichtigen Anwendung für Debian-Server und Raspberry Pi.
+
+In der Oberfläche heißt die Anwendung seit Version 0.20.5 **Open BOS Drohnen**.
+Repository, Python-Paket, Dienste und Pfade (`/opt/open-bos-stream`) behalten
+ihren technischen Namen.
 
 Die HTTPS-Oberfläche kann auf iOS über „Zum Home-Bildschirm“ und auf Android
 über „App installieren“ beziehungsweise „Zum Startbildschirm hinzufügen“ als
