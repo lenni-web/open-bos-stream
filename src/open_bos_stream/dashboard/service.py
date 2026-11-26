@@ -337,8 +337,14 @@ class DashboardService:
                     "fullscreen_viewer_path": (
                         item.fullscreen_viewer_path
                     ),
+                    "ingest_protocol": item.ingest_protocol,
                     "publish_url": (
                         (
+                            f"srt://{public_host}:8890"
+                            f"?streamid=publish:{item.publish_path}"
+                        )
+                        if item.type == "rtmp" and item.ingest_protocol == "srt"
+                        else (
                             "rtmp://"
                             f"{public_host}:1935/"
                             f"{item.publish_path}"

@@ -110,8 +110,8 @@ if [ "${INTERACTIVE}" = true ]; then
     fi
 
     echo
-    echo "Die optionale Firewall lässt SSH, HTTP, HTTPS, RTMP und WebRTC zu."
-    echo "RTMP auf TCP 1935 bleibt unverschlüsselt, Publisher benötigen aber einen Token."
+    echo "Die optionale Firewall lässt SSH, HTTP, HTTPS, RTMP, SRT und WebRTC zu."
+    echo "RTMP (TCP 1935) und SRT (UDP 8890) sind unverschlüsselt, Sender benötigen aber einen Token."
     read -r -p "UFW-Regeln jetzt konfigurieren? [j/N]: " answer
     case "${answer:-n}" in
         j|J|ja|JA|yes|YES) FIREWALL_MODE="configure" ;;
@@ -244,6 +244,7 @@ if [ "${FIREWALL_MODE}" = "configure" ]; then
         8888/tcp \
         8889/tcp \
         1935/tcp \
+        8890/udp \
         8189/tcp \
         8189/udp
     do
@@ -259,6 +260,7 @@ if [ "${FIREWALL_MODE}" = "configure" ]; then
         sudo ufw allow 8889/tcp comment "MediaMTX WHEP"
     fi
     sudo ufw allow 1935/tcp comment "RTMP Publisher Token"
+    sudo ufw allow 8890/udp comment "SRT Publisher Token"
     sudo ufw allow 8189/tcp comment "MediaMTX WebRTC TCP fallback"
     sudo ufw allow 8189/udp comment "MediaMTX WebRTC"
     sudo ufw --force enable
@@ -270,3 +272,4 @@ fi
 echo
 echo "Serverzugriff konfiguriert."
 echo "RTMP: rtmp://${DOMAIN:-SERVER-IP}:1935/<quellen-id>?token=<TOKEN>"
+echo "SRT:  srt://${DOMAIN:-SERVER-IP}:8890?streamid=publish:<quellen-id>:token=<TOKEN>"

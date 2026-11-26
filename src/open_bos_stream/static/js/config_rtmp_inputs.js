@@ -65,6 +65,15 @@ function generatePublisherToken() {
 
 function sourcePublishUrl(source) {
     const host = window.location.hostname || "<Server-IP>";
+    if (source.ingest_protocol === "srt") {
+        // MediaMTX: streamid=publish:<pfad>:<query>; der Token steht in der
+        // Query. latency in Mikrosekunden (FFmpeg/libsrt), hier 400 ms.
+        const token = source.publish_token
+            ? `:token=${encodeURIComponent(source.publish_token)}`
+            : "";
+        return `srt://${host}:8890?streamid=publish:${source.id}${token}` +
+            "&latency=400000&pkt_size=1316";
+    }
     const base = `rtmp://${host}:1935/${source.id}`;
     if (source.publish_token) {
         return `${base}?token=${encodeURIComponent(source.publish_token)}`;
@@ -157,9 +166,28 @@ function sourcePreviewProfileHint(source) {
 function sourceSpecificFields(source) {
     if (source.type === "rtmp") {
         const publishUrl = sourcePublishUrl(source);
+        const srt = source.ingest_protocol === "srt";
         return `
             <div class="form-field form-field-wide">
-                <label>RTMP-Empfangsadresse</label>
+                <label>Empfangsprotokoll</label>
+                <select class="bos-input" data-field="ingest_protocol">
+                    <option value="rtmp" ${srt ? "" : "selected"}>
+                        RTMP – Drohnen-Apps (TCP 1935)
+                    </option>
+                    <option value="srt" ${srt ? "selected" : ""}>
+                        SRT – geringe Latenz über Mobilfunk, z. B. Raspberry Pi (UDP 8890)
+                    </option>
+                </select>
+                <small>
+                    ${srt
+                        ? "SRT gleicht Paketverluste aus und hält die Verzögerung " +
+                          "klein (typisch 0,5–1 s). Der Sender wählt die Latenz; " +
+                          "300–500 ms sind für Mobilfunk ein guter Wert."
+                        : "RTMP wird von den meisten Drohnen-Apps unterstützt."}
+                </small>
+            </div>
+            <div class="form-field form-field-wide">
+                <label>${srt ? "SRT" : "RTMP"}-Empfangsadresse</label>
                 <input
                     class="bos-input"
                     data-role="publish-url"
@@ -175,8 +203,12 @@ function sourceSpecificFields(source) {
                 </button>
                 <small>
                     Der Empfangspfad entspricht automatisch der ID.
-                    Der Token schützt diesen Pfad vor fremden Publishern.
-                    RTMP selbst bleibt unverschlüsselt.
+                    Der Token schützt diesen Pfad vor fremden Sendern.
+                    ${srt
+                        ? "Apps mit eigenem Feld für die Stream-ID erhalten " +
+                          `<code>publish:${escapeHTML(source.id)}:token=…</code>. `
+                        : ""}
+                    Die Übertragung selbst ist unverschlüsselt.
                 </small>
             </div>
             <div class="form-field form-field-wide">
@@ -346,7 +378,11 @@ function renderSources() {
             <summary class="rtmp-input-config-header">
                 <div>
                     <strong>Quelle ${index + 1}: ${escapeHTML(source.name)}</strong>
-                    <small>${escapeHTML(source.type)} · ${escapeHTML(source.profile)}</small>
+                    <small>${escapeHTML(
+                        source.type === "rtmp" && source.ingest_protocol === "srt"
+                            ? "srt-empfang"
+                            : source.type
+                    )} · ${escapeHTML(source.profile)}</small>
                 </div>
                 <div class="source-order-actions">
                     <button class="bos-button bos-button-small"
@@ -447,6 +483,14 @@ function renderSources() {
                 setConfigDirty(true);
             }
         );
+        card.querySelector('[data-field="ingest_protocol"]')?.addEventListener(
+            "change",
+            () => {
+                saveSources();
+                renderSources();
+                setConfigDirty(true);
+            }
+        );
         card.querySelector('[data-field="profile"]')?.addEventListener(
             "change",
             () => {
@@ -465,6 +509,9 @@ function renderSources() {
                 if (publishUrl) {
                     publishUrl.value = sourcePublishUrl({
                         ...currentConfig.sources[index],
+                        ingest_protocol: card.querySelector(
+                            '[data-field="ingest_protocol"]'
+                        )?.value,
                         publish_token: card.querySelector(
                             '[data-field="publish_token"]'
                         )?.value,
@@ -592,6 +639,7 @@ function saveSources() {
             preset: value("preset"),
             tune: value("tune"),
             audio_mode: value("audio_mode", "none"),
+            ingest_protocol: value("ingest_protocol", "rtmp"),
             publish_token: value("publish_token"),
         };
     });
@@ -631,6 +679,7 @@ function addSource() {
         preset: null,
         tune: null,
         audio_mode: "none",
+        ingest_protocol: "rtmp",
         publish_token: generatePublisherToken(),
     });
     renderSources();

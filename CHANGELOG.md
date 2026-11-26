@@ -9,6 +9,24 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- SRT-Empfang: Quellen vom Typ „Sender → Server“ können wahlweise per RTMP
+  (Drohnen-Apps) oder per SRT empfangen. SRT läuft über UDP 8890, gleicht
+  Paketverluste aus und eignet sich mit typisch 0,5–1 s Verzögerung für
+  Sender über Mobilfunk, z. B. einen Raspberry Pi mit HDMI-Capture-Card.
+  Anmeldung mit `streamid=publish:<id>:token=<TOKEN>`; Pfad, Token und
+  Protokoll werden geprüft.
+- Die Einstellungen zeigen je nach Protokoll die passende Empfangsadresse
+  mit Hinweisen zur Latenz.
+
+### Changed
+
+- Firewall (`--firewall configure`): UDP 8890 für SRT-Sender wird
+  freigegeben. MediaMTX lauscht dafür ausdrücklich auf `:8890`.
+- Quellentypen klarer benannt: „Sender → Server (RTMP oder SRT)“ und
+  „SRT abrufen (Server holt Stream)“.
+
 ---
 
 ## [0.18.9] - 2026-11-24

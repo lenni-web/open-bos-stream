@@ -43,7 +43,7 @@ class RTMPInputBuilder(InputBuilder):
 
     type = "rtmp"
 
-    name = "RTMP Stream"
+    name = "Sender → Server (RTMP oder SRT)"
 
     fields = [
 

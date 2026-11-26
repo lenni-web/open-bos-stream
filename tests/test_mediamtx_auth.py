@@ -279,3 +279,80 @@ def test_reader_payload_with_null_id_from_mediamtx_is_accepted(protocol):
 
     assert payload.id == ""
     assert authorize(payload) == {"authorized": True}
+
+
+
+def configure_srt_source(monkeypatch, token: str) -> None:
+    source = SourceConfig(
+        id="pi-vor-ort",
+        name="Pi vor Ort",
+        type="rtmp",
+        ingest_protocol="srt",
+        publish_token=token,
+    )
+    monkeypatch.setattr(mediamtx_auth.config, "sources", [source])
+
+
+def test_srt_publisher_with_streamid_token_is_accepted(monkeypatch) -> None:
+    token = "S" * 12
+    configure_srt_source(monkeypatch, token)
+
+    # streamid=publish:pi-vor-ort:token=… -> MediaMTX liefert Pfad und Query.
+    assert authorize(
+        auth_request(
+            token="",
+            path="pi-vor-ort",
+            protocol="srt",
+            query=f"token={token}",
+        )
+    ) == {"authorized": True}
+
+
+@pytest.mark.parametrize(
+    ("protocol", "token", "status_code"),
+    [
+        ("rtmp", "S" * 12, 403),  # Quelle erwartet SRT, nicht RTMP
+        ("srt", "X" * 12, 401),   # falscher Token
+        ("srt", "", 401),         # ohne Token
+    ],
+)
+def test_srt_source_rejects_wrong_protocol_or_token(
+    monkeypatch,
+    protocol: str,
+    token: str,
+    status_code: int,
+) -> None:
+    configure_srt_source(monkeypatch, "S" * 12)
+
+    with pytest.raises(HTTPException) as error:
+        authorize(
+            auth_request(
+                token="",
+                path="pi-vor-ort",
+                protocol=protocol,
+                query=f"token={token}" if token else "",
+            )
+        )
+    assert error.value.status_code == status_code
+
+
+def test_rtmp_source_rejects_srt_publisher(monkeypatch) -> None:
+    configure_auth(monkeypatch, "a" * 12)
+
+    with pytest.raises(HTTPException) as error:
+        authorize(auth_request(token="a" * 12, protocol="srt"))
+    assert error.value.status_code == 403
+
+
+def test_ingest_protocol_only_applies_to_sender_sources() -> None:
+    pulled = SourceConfig(
+        id="kamera",
+        type="srt",
+        url="srt://kamera.local:9000",
+        ingest_protocol="srt",
+    )
+    assert pulled.ingest_protocol == "rtmp"
+    pushed = SourceConfig(id="pi", type="rtmp", ingest_protocol="srt")
+    assert pushed.ingest_protocol == "srt"
+    # Intern liest der Server auch SRT-Sender über den lokalen Pfad.
+    assert pushed.url == "rtmp://127.0.0.1:1935/pi"

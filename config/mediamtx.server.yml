@@ -3,6 +3,11 @@ api: yes
 apiAddress: 127.0.0.1:9997
 rtspAddress: 127.0.0.1:8554
 
+# SRT-Empfang für Sender mit geringer Latenz (z. B. Raspberry Pi über
+# Mobilfunk). Sender melden sich mit streamid=publish:<id>:token=<TOKEN> an.
+srt: yes
+srtAddress: :8890
+
 authMethod: http
 authHTTPAddress: http://127.0.0.1:8000/internal/mediamtx/auth
 authHTTPExclude:

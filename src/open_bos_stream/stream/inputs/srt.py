@@ -12,7 +12,7 @@ class SRTInputBuilder(InputBuilder):
 
     type = "srt"
 
-    name = "SRT Stream"
+    name = "SRT abrufen (Server holt Stream)"
 
     fields = [
 

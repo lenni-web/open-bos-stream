@@ -468,7 +468,8 @@ function sourceSubtitle(input) {
     if (isViewerRole()) {
         return input.drone_type || "";
     }
-    return `${input.type} · ${input.profile}` +
+    const type = input.ingest_protocol === "srt" ? "srt" : input.type;
+    return `${type} · ${input.profile}` +
         (input.preview_active ? " · Vorschau" : "");
 }
 

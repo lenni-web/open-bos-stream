@@ -237,4 +237,9 @@ def test_firewall_preserves_ssh_and_warns_about_rtmp() -> None:
     assert "webrtcLocalTCPAddress: :8189" in script
     assert 'sudo ufw allow 8189/tcp comment "MediaMTX WebRTC TCP fallback"' in script
     assert 'sudo ufw allow 8189/udp comment "MediaMTX WebRTC"' in script
-    assert "Publisher benötigen aber einen Token" in script
+    assert "Sender benötigen aber einen Token" in script
+    # SRT-Empfang (z. B. Raspberry Pi über Mobilfunk).
+    assert 'sudo ufw allow 8890/udp comment "SRT Publisher Token"' in script
+    assert "        8890/udp \\\n" in script
+    mediamtx = read("config/mediamtx.server.yml")
+    assert "srtAddress: :8890" in mediamtx

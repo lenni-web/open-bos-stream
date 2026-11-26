@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 LOOPBACK_ADDRESSES = {"127.0.0.1", "::1"}
 BROWSER_READ_PROTOCOLS = {"webrtc", "hls"}
+PUBLISH_PROTOCOLS = {"rtmp", "srt"}
 
 router = APIRouter(
     dependencies=[PUBLIC],
@@ -85,9 +86,9 @@ async def authorize_mediamtx(
         # Interne FFmpeg-Relays publizieren abgeleitete Viewer-Pfade.
         return {"authorized": True}
 
-    if payload.protocol != "rtmp":
+    if payload.protocol not in PUBLISH_PROTOCOLS:
         logger.warning(
-            "Publisher abgelehnt: Protokoll %s ist nicht RTMP",
+            "Publisher abgelehnt: Protokoll %s ist nicht RTMP oder SRT",
             payload.protocol or "unbekannt",
         )
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
@@ -99,14 +100,16 @@ async def authorize_mediamtx(
             for item in config.sources
             if item.enabled
             and item.type == "rtmp"
+            and item.ingest_protocol == payload.protocol
             and item.publish_path == publish_path
         ),
         None,
     )
     if source is None:
         logger.warning(
-            "RTMP-Publisher für unbekannten oder deaktivierten Pfad %r "
+            "%s-Publisher für unbekannten oder deaktivierten Pfad %r "
             "abgelehnt",
+            payload.protocol.upper(),
             publish_path,
         )
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
@@ -116,7 +119,8 @@ async def authorize_mediamtx(
         source.publish_token or "",
     ):
         logger.warning(
-            "RTMP-Publisher für Pfad %r abgelehnt: Token vorhanden=%s",
+            "%s-Publisher für Pfad %r abgelehnt: Token vorhanden=%s",
+            payload.protocol.upper(),
             publish_path,
             bool(publish_token),
         )

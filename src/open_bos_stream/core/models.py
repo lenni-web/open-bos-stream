@@ -76,6 +76,9 @@ class SourceConfig(BaseModel):
     preset: str | None = None
     tune: str | None = None
     audio_mode: Literal["none", "copy", "aac"] = "none"
+    # Empfangsprotokoll für Quellen, die an den Server senden (type "rtmp"):
+    # RTMP für Drohnen-Apps, SRT für geringe Latenz über Mobilfunk.
+    ingest_protocol: Literal["rtmp", "srt"] = "rtmp"
     publish_token: str | None = Field(
         default=None,
         min_length=PUBLISH_TOKEN_LENGTH,
@@ -156,8 +159,12 @@ class SourceConfig(BaseModel):
                     "Die Vorschau-URL einer RTSP-Quelle muss mit "
                     "rtsp:// beginnen."
                 )
+        if self.type != "rtmp":
+            self.ingest_protocol = "rtmp"
         if self.type == "rtmp":
             # Lokale RTMP-Publisher verwenden immer die unveränderliche ID.
+            # Auch per SRT empfangene Streams liest der Server intern über
+            # diesen Pfad; MediaMTX stellt jeden Pfad per RTMP bereit.
             self.url = f"rtmp://127.0.0.1:1935/{self.id}"
             if not self.publish_token:
                 self.publish_token = "".join(

@@ -274,7 +274,8 @@ lässt ihn geöffnet. Anschließend verwaltet er folgende Open-BOS-Regeln:
 | SSH-Port | TCP | Administration |
 | 80 | TCP | HTTP und ACME-Prüfung |
 | 443 | TCP | HTTPS, WHEP und HLS |
-| 1935 | TCP | RTMP-Publisher |
+| 1935 | TCP | RTMP-Sender (Drohnen-Apps) |
+| 8890 | UDP | SRT-Sender (geringe Latenz, z. B. Raspberry Pi) |
 | 8189 | UDP und TCP | WebRTC-Medien mit TCP-Rückfallweg |
 
 Ohne HTTPS werden statt 80/443 die direkten Ports 8000, 8888 und 8889
@@ -308,6 +309,34 @@ Der Token verhindert unbefugtes Publizieren, verschlüsselt den Transport aber
 nicht. Port 1935 sollte deshalb möglichst über die Anbieter-Firewall auf
 bekannte Absender-IP-Adressen beschränkt werden. VPN oder RTMPS sind als
 spätere Härtung vorgesehen.
+
+### SRT-Empfang mit geringer Latenz
+
+Neben RTMP kann eine Quelle vom Typ „Sender → Server“ per **SRT** empfangen
+werden. SRT läuft über UDP, gleicht Paketverluste aus und hält die
+Verzögerung über einen festen Puffer klein – geeignet für Sender über
+Mobilfunk, etwa einen Raspberry Pi mit HDMI-Capture-Card vor Ort. Typisch
+sind 0,5 bis 1 Sekunde Ende-zu-Ende.
+
+In der Quelle wird dazu „Empfangsprotokoll: SRT“ gewählt. Die Empfangsadresse
+lautet dann:
+
+```text
+srt://server.example:8890?streamid=publish:quelle-3:token=GEHEIMNIS&latency=400000&pkt_size=1316
+```
+
+Apps mit eigenem Feld für die Stream-ID erhalten `publish:quelle-3:token=…`
+und als Server `srt://server.example:8890`. Die Latenz legt der Sender fest;
+300 bis 500 ms sind für Mobilfunk ein guter Wert (`latency` in Mikrosekunden
+bei FFmpeg). Pfad und Token werden genauso geprüft wie bei RTMP; ein SRT-
+Sender wird für eine RTMP-Quelle abgelehnt und umgekehrt. Alle Profile
+(Direkt, Reparatur, Vorschau, Aufnahme, Weiterleitung) funktionieren
+unverändert.
+
+Die Host-Firewall öffnet dafür UDP 8890 (`--firewall configure`). Eine
+Firewall des vServer-Anbieters muss UDP 8890 zusätzlich freigeben. Wie bei
+RTMP schützt der Token vor fremden Sendern, verschlüsselt die Übertragung
+aber nicht.
 
 ## Offline-Karte Landkreis Stade
 
