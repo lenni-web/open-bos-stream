@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.20.3** (2026-11-26): Wetterseite neu sortiert, Kp-Index im Klartext,
+  Erklärungen zu allen Wetterangaben
 - **0.20.2** (2026-11-26): Wasser-Ebenen gruppiert (Hydranten / Unabhängige
   Löschwasserstellen), unklare Lagertanks als Ring
 - **0.20.1** (2026-11-26): Wetterseite einspaltig; Taupunkt, Wolkenbasis,

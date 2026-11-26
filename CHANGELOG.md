@@ -9,6 +9,21 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.20.3] - 2026-11-26
+
+### Added
+
+- Wetter: Der Kp-Index heißt jetzt „Satellitennavigation“ und zeigt den
+  Zustand im Klartext (ruhig, unruhig, Sturm, starker Sturm) mit dem
+  Kp-Wert darunter.
+- Kurzinfos zu jeder Wetterangabe: beim Darüberfahren als Hinweis, beim
+  Antippen direkt in der Kachel (Übersicht und Wetterseite).
+- Wetterseite: aufklappbarer Abschnitt „Was bedeuten die Werte?“ mit
+  Erklärungen zu Wind in 120 m, Taupunkt, Wolkenbasis, Kp-Index,
+  bürgerlicher Dämmerung und weiteren Angaben.
+
 ### Changed
 
 - Wetterseite: Zusammenfassung „Wetter für den Flugbetrieb“ oben, darunter
