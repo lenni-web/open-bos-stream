@@ -581,7 +581,36 @@ function removeStaleMultiSources(activeIds) {
     }
 }
 
+// Letzter Stand der Quellen, damit die Seite „Livebilder“ beim Öffnen sofort
+// starten kann.
+let latestMultiSourceInputs = [];
+
+// In der Hauptansicht laufen die Videos nur auf der Seite „Livebilder“.
+// So verbrauchen Karte, Wetter und Übersicht keine Videodaten (wichtig bei
+// Mobilfunk). Die Gastansicht hat diese Seite nicht und spielt immer.
+function multiSourcePageActive() {
+    const page = document.getElementById("page-streams");
+    return !page || page.classList.contains("active");
+}
+
+function setStreamsPageActive(active) {
+    if (active) {
+        updateMultiSources(latestMultiSourceInputs);
+    } else {
+        removeStaleMultiSources(new Set());
+    }
+}
+
 function updateMultiSources(inputs = []) {
+    latestMultiSourceInputs = inputs;
+    const empty = document.getElementById("streams-empty");
+    if (empty) {
+        empty.hidden = inputs.length > 0;
+    }
+    if (!multiSourcePageActive()) {
+        removeStaleMultiSources(new Set());
+        return;
+    }
     const panel =
         document.getElementById("multi-source-panel");
     const grid =
@@ -819,4 +848,5 @@ function updateMultiSources(inputs = []) {
 }
 
 window.updateMultiSources = updateMultiSources;
+window.setStreamsPageActive = setStreamsPageActive;
 window.sourcePlayerDiagnostics = sourcePlayerDiagnostics;

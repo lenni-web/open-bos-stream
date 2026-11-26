@@ -73,6 +73,10 @@ function showPage(page) {
         initMapPage();
     }
 
+    if (typeof setStreamsPageActive === "function") {
+        setStreamsPageActive(page === "streams");
+    }
+
     if (typeof setWeatherPageActive === "function") {
         setWeatherPageActive(page === "weather");
     }

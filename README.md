@@ -885,11 +885,11 @@ Transcoding-Profil oder der Kamera-Substream geprüft werden.
 
 ## Oberfläche
 
-- **Seitenleiste:** Übersicht, Karte, Wetter, Medien, Einstellungen und
-  System mit einheitlichen Symbolen. Am Desktop sitzt sie fest am linken Rand
+- **Seitenleiste:** Übersicht, Livebilder, Karte, Wetter, Medien,
+  Einstellungen und System mit einheitlichen Symbolen. Am Desktop sitzt sie fest am linken Rand
   und lässt sich unten über „Einklappen“ auf Symbole reduzieren; der Browser
   merkt sich die Wahl. Auf Tablets zeigt sie nur Symbole. Auf Smartphones
-  stehen Übersicht, Karte und Wetter in der Leiste am unteren Rand, alle
+  stehen Übersicht, Livebilder, Karte und Wetter in der Leiste am unteren Rand, alle
   weiteren Bereiche unter **„Mehr“** – so bleibt Platz für künftige Module.
 - **Kopfzeile:** links der Seitentitel, rechts Uhrzeit, Status und
   Benutzermenü. Die Uhrzeit kommt vom Gerät, auf dem die Seite geöffnet ist.
@@ -898,6 +898,14 @@ Transcoding-Profil oder der Kamera-Substream geprüft werden.
   Superadmins öffnen per Klick die Details (Streaming-Server, Prozessor,
   Arbeitsspeicher, Temperatur sofern ein Sensor vorhanden ist) mit einem
   Sprung zur Systemseite.
+- **Übersicht:** Gesamtlage auf einen Blick – alle Drohnen und Kameras mit
+  Status (online/offline), Wehr, Auflösung und laufender Aufnahme, dazu
+  Flugwetter, Ereignisprotokoll und Weiterleitungen. Ein Klick auf eine Quelle
+  öffnet die Livebilder.
+- **Livebilder:** alle Videos der eigenen Organisation mit Vollbild,
+  „Gastlink teilen“ sowie Snapshot und Aufnahme (Superadmin). Die Videos
+  laufen nur, solange diese Seite geöffnet ist; Übersicht, Karte und Wetter
+  verbrauchen dadurch keine Videodaten, was vor allem bei Mobilfunk zählt.
 - **Benutzermenü:** Name und Rolle, Darstellung, „Als App installieren“ und
   Abmelden.
 - **Darstellung:** Hell, Dunkel oder Auto. „Auto“ folgt der Einstellung des

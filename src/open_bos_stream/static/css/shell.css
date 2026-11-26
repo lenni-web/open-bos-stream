@@ -1599,3 +1599,124 @@ body {
 .org-memberships .bos-input {
     width: auto;
 }
+
+/* ----------------------------------------------------------
+   Übersicht: Quellen kompakt
+   ---------------------------------------------------------- */
+
+.overview-sources {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.overview-sources-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.overview-sources-header h2 {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.overview-count {
+    display: grid;
+    justify-items: end;
+    padding: 4px 10px;
+    border: 1px solid var(--bos-gray);
+    border-radius: var(--shell-radius-small);
+    background: transparent;
+    color: var(--bos-dark);
+    font: inherit;
+    cursor: pointer;
+}
+
+.overview-count strong {
+    font-size: 1.3rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.overview-count small {
+    color: var(--bos-muted);
+    font-size: 0.72rem;
+}
+
+.overview-source-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.overview-source {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--bos-gray);
+    border-radius: var(--shell-radius-small);
+    background: var(--shell-surface-muted);
+    color: var(--bos-dark);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.overview-source:hover {
+    border-color: var(--bos-blue);
+}
+
+.overview-dot {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--bos-muted);
+}
+
+.overview-source.is-online .overview-dot {
+    background: var(--bos-green);
+}
+
+.overview-source-name {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+}
+
+.overview-source-name strong,
+.overview-source-name small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.overview-source-name small,
+.overview-state,
+.overview-empty {
+    color: var(--bos-muted);
+    font-size: 0.78rem;
+}
+
+.overview-source.is-online .overview-state {
+    color: var(--bos-green);
+    font-weight: 600;
+}
+
+.overview-recording {
+    color: var(--bos-red);
+    font-size: 0.74rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.overview-actions {
+    display: flex;
+    justify-content: flex-end;
+}

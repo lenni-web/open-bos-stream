@@ -6,6 +6,7 @@ from fastapi.responses import Response
 from starlette.concurrency import run_in_threadpool
 
 from open_bos_stream.core.container import (
+    auth_service,
     config as runtime_config,
     dashboard_service,
     fullscreen_relay_manager,
@@ -34,6 +35,7 @@ async def status(request: Request, events_after: int | None = None):
     if visible is not None:
         # Kopie: der Status wird zwischen Anfragen zwischengespeichert.
         data = filter_status_sources(data, visible)
+    data = with_organization_names(data)
     if ROLE_LEVEL.get(user.get("role"), -1) >= ROLE_LEVEL["admin"]:
         # Der Browser fragt nur Einträge nach seinem letzten Stand ab.
         # Wehr-Admins sehen die Einträge ihrer Organisationen, Kreis-Admins
@@ -48,6 +50,28 @@ async def status(request: Request, events_after: int | None = None):
             "server_events": server_event_log.since(events_after, organizations),
         }
     return data
+
+
+def with_organization_names(data: dict) -> dict:
+    """Kurzname der Wehr je Quelle für Übersicht und Livebilder."""
+
+    sources = data.get("sources") or []
+    if not any(item.get("organization_id") for item in sources):
+        return data
+    try:
+        names = {
+            item["id"]: item["short_name"] or item["name"]
+            for item in auth_service.ready().organizations()
+        }
+    except Exception:  # Anzeige ist optional, der Status nicht.
+        return data
+    return {
+        **data,
+        "sources": [
+            {**item, "organization_name": names.get(item.get("organization_id"))}
+            for item in sources
+        ],
+    }
 
 
 def filter_status_sources(data: dict, visible: set[str]) -> dict:

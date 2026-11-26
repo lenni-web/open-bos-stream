@@ -471,7 +471,7 @@ def test_mobile_menu_keeps_three_main_items_and_moves_the_rest() -> None:
     superadmin = render_sidebar("superadmin")
     viewer = render_sidebar("viewer")
 
-    for page in ("dashboard", "map", "weather"):
+    for page in ("dashboard", "streams", "map", "weather"):
         assert f'id="nav-{page}"' in viewer
         tag = superadmin[superadmin.index(f'id="nav-{page}"'):]
         assert "app-nav-secondary" not in tag[:tag.index(">")]

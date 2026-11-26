@@ -111,7 +111,7 @@
                     </div>
                 </div>
 
-                {% include "components/multi_source_panel.html" %}
+                {% include "components/overview_sources.html" %}
 
                 {% set weather_card_variant = "dashboard" %}
                 {% include "components/weather_card.html" %}
@@ -145,6 +145,26 @@
 
             </div>
             {% endif %}
+
+            <div
+                id="page-streams"
+                class="page">
+
+                <header class="page-header">
+                    <div>
+                        <span class="page-eyebrow">Einsatz</span>
+                        <h1>Livebilder</h1>
+                    </div>
+                    <p>Livebilder aller Drohnen und Kameras Ihrer Organisation.</p>
+                </header>
+
+                <p id="streams-empty" class="empty-state" hidden>
+                    Noch keine Quelle eingerichtet oder freigegeben.
+                </p>
+
+                {% include "components/multi_source_panel.html" %}
+
+            </div>
 
             <div
                 id="page-weather"

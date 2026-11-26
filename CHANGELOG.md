@@ -25,6 +25,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 - Konten mit Anzeigename, optionaler E-Mail, Sperre und Änderungsprotokoll;
   eigene Daten und Passwort über `/api/org/me`.
 - Drohnenteams erstellen Gastlinks für Quellen ihrer Organisation.
+- Neuer Menüpunkt **Livebilder** mit allen Videos, Gastlink, Snapshot und
+  Aufnahme. Die **Übersicht** zeigt stattdessen die Gesamtlage: alle Quellen
+  kompakt mit Status, Wehr, Auflösung und Aufnahme, dazu Flugwetter,
+  Ereignisprotokoll und Weiterleitungen.
 - Datenbank SQLite (`config/open-bos.db`) mit automatischer Migration über
   Alembic; neue Abhängigkeiten SQLAlchemy 2.1.9 und Alembic 1.20.1.
 
@@ -39,6 +43,9 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   Konfigurationstest) nur noch für Kreis-Admins und Superadmins. Wehr-Admins
   bearbeiten nur Quellen ihrer Organisationen.
 - Benutzermenü zeigt Anzeigename und Rollen (z. B. „Wehr-Admin · OF Hagen“).
+- Videos laufen nur noch auf der Seite „Livebilder“; beim Wechsel zu
+  Übersicht, Karte oder Wetter werden sie beendet; das spart Mobilfunkdaten.
+- Smartphone-Leiste: Übersicht, Livebilder, Karte, Wetter und „Mehr“.
 
 ### Fixed
 
