@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.18.12] - 2026-11-26
+
 ### Added
 
 - RTSP vom Controller weiterleiten: RTSP-Quellen bieten Vorlagen für

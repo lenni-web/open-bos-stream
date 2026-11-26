@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.18.12** (2026-11-26): RTSP-Stream vom Controller über den Raspberry Pi
+  weiterleiten (Vorlagen für DJI, Parrot, Skydio, Autel; Netzwerk-Skript)
 - **0.18.11** (2026-11-26): Wasser-Ebenen bereinigt (keine Gülle- und
   Gastanks mehr), Bibliotheken aktualisiert, Karten-HTML abgesichert
 - **0.18.10** (2026-11-26): SRT-Empfang auf dem Server, latenzarmes Senden vom
