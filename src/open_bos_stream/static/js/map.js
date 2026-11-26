@@ -301,6 +301,22 @@ async function createMap() {
             }
 
 
+            // Regenradar über den Geozonen, unter den Wasserentnahmestellen.
+            if (typeof addWeatherLayers === "function") {
+                try {
+                    await addWeatherLayers(
+                        map,
+                        overlays[0]?.id
+                    );
+                } catch (error) {
+                    console.warn(
+                        "Wetter auf der Karte nicht verfügbar:",
+                        error
+                    );
+                }
+            }
+
+
             requestAnimationFrame(() => {
                 map.resize();
             });

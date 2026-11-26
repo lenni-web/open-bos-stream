@@ -14,6 +14,11 @@ from open_bos_stream.map.mbtiles import (
 )
 
 
+# Startansicht der Karte (Länge, Breite, Zoom); dient auch als Standort für
+# das Wetter, solange keiner eingestellt ist.
+DEFAULT_CENTER = (9.52972, 53.56389, 14)
+
+
 class _TextCollector(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)

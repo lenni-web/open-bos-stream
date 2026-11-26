@@ -69,6 +69,10 @@
 
 <link
     rel="stylesheet"
+    href="/static/css/weather.css?v={{ version }}">
+
+<link
+    rel="stylesheet"
     href="/static/css/theme.css?v={{ version }}">
 
 <script src="/static/js/theme.js?v={{ version }}"></script>
@@ -99,6 +103,8 @@
                 </header>
 
                 {% include "components/multi_source_panel.html" %}
+
+                {% include "components/weather_card.html" %}
 
                 <div class="dashboard-bottom">
 
@@ -308,7 +314,11 @@ window.openBosMediaToken = {{ media_token | tojson }};
 
 <script src="/static/js/map-dipul.js?v={{ version }}"></script>
 
+<script src="/static/js/map-weather.js?v={{ version }}"></script>
+
 <script src="/static/js/map.js?v={{ version }}"></script>
+
+<script src="/static/js/weather.js?v={{ version }}"></script>
 </body>
 
 </html>

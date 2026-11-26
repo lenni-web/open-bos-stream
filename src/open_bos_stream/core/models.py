@@ -493,6 +493,44 @@ class NotificationConfig(BaseModel):
         return self
 
 
+class WeatherConfig(BaseModel):
+    """Wetter, DWD-Warnungen und Grenzwerte für Drohnenflüge.
+
+    Ohne eigenen Standort wird die Kartenmitte verwendet. Die Grenzwerte
+    sind Vorgaben für die Ampel und ersetzen keine Herstellerangaben.
+    """
+
+    enabled: bool = True
+    location_name: str = Field(default="", max_length=80)
+    latitude: float | None = Field(default=None, ge=-90, le=90)
+    longitude: float | None = Field(default=None, ge=-180, le=180)
+    # Dauerwind in Flughöhe und Böen in m/s (z. B. Mavic 3T/M4T: 12 m/s).
+    wind_limit_ms: float = Field(default=10.0, ge=2, le=30)
+    gust_limit_ms: float = Field(default=12.0, ge=2, le=35)
+    min_temperature_c: float = Field(default=-10.0, ge=-40, le=20)
+    max_temperature_c: float = Field(default=40.0, ge=10, le=60)
+    # Ab dieser Niederschlagsmenge rot; jeder Niederschlag darunter gelb.
+    rain_limit_mm_h: float = Field(default=1.0, ge=0.1, le=50)
+    visibility_min_m: int = Field(default=1000, ge=100, le=20000)
+
+    @field_validator("location_name")
+    @classmethod
+    def normalize_location_name(cls, value: str) -> str:
+        return value.strip()
+
+    @model_validator(mode="after")
+    def validate_weather(self):
+        if (self.latitude is None) != (self.longitude is None):
+            raise ValueError(
+                "Für den Standort Breite und Länge angeben oder beide leer lassen."
+            )
+        if self.min_temperature_c >= self.max_temperature_c:
+            raise ValueError(
+                "Die Mindesttemperatur muss unter der Höchsttemperatur liegen."
+            )
+        return self
+
+
 class AppConfig(BaseModel):
 
     source_profile: Literal[
@@ -520,6 +558,10 @@ class AppConfig(BaseModel):
 
     notifications: NotificationConfig = Field(
         default_factory=NotificationConfig,
+    )
+
+    weather: WeatherConfig = Field(
+        default_factory=WeatherConfig,
     )
 
     capture: CaptureConfig

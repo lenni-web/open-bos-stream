@@ -60,6 +60,19 @@ stream:
     color: white
     x: w-tw-20
     y: "20"
+weather:
+  # Wetter, DWD-Warnungen und Regenradar (Server braucht Internetzugang).
+  enabled: true
+  # Leer: Kartenmitte als Standort verwenden.
+  location_name: ""
+  latitude: null
+  longitude: null
+  wind_limit_ms: 10.0
+  gust_limit_ms: 12.0
+  min_temperature_c: -10.0
+  max_temperature_c: 40.0
+  rain_limit_mm_h: 1.0
+  visibility_min_m: 1000
 map:
   source: mbtiles
   path: /opt/open-bos-stream/mapdata

@@ -5,6 +5,7 @@ from starlette.concurrency import run_in_threadpool
 
 from open_bos_stream.core.container import config as runtime_config
 from open_bos_stream.map import MapService
+from open_bos_stream.map.service import DEFAULT_CENTER
 from open_bos_stream.map.dipul import (
     ATTRIBUTION as DIPUL_ATTRIBUTION,
     LICENSE_URL as DIPUL_LICENSE_URL,
@@ -73,11 +74,7 @@ def map_config() -> dict:
 
     data = asdict(metadata)
 
-    data["center"] = (
-        9.52972,
-        53.56389,
-        14,
-    )
+    data["center"] = DEFAULT_CENTER
 
     return {
         "map": default,

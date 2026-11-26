@@ -16,6 +16,7 @@ from open_bos_stream.core.models import (
     MediaCaptureConfig,
     NotificationConfig,
     StorageConfig,
+    WeatherConfig,
 )
 from open_bos_stream.core.installation import installation_profile
 
@@ -206,6 +207,20 @@ class ConfigApplyService:
             self._loader.save_last_known_good(candidate)
             self._runtime.notifications = candidate.notifications
             return candidate.notifications.model_copy(deep=True)
+
+    def update_weather(
+        self,
+        weather: WeatherConfig,
+    ) -> WeatherConfig:
+        """Wettereinstellungen ohne Neustart des Streamers speichern."""
+
+        with self._lock:
+            candidate = self._runtime.model_copy(deep=True)
+            candidate.weather = weather.model_copy(deep=True)
+            self._loader.save(candidate)
+            self._loader.save_last_known_good(candidate)
+            self._runtime.weather = candidate.weather
+            return candidate.weather.model_copy(deep=True)
 
     def test(self, candidate: AppConfig) -> list[str]:
         """Prüft eine Konfiguration ohne sie zu speichern."""

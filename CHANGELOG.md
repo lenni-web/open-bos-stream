@@ -9,6 +9,24 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Wetter für den Flugbetrieb: Die Übersicht zeigt Messwerte der nächsten
+  DWD-Station, Wind in 120 m Höhe, Böen, Temperatur, Niederschlag, Sicht,
+  den Kp-Index, amtliche DWD-Warnungen und eine Vorhersage der nächsten
+  Stunden.
+- Wetter-Ampel mit einstellbaren Grenzwerten (Wind, Böen, Temperatur,
+  Niederschlag, Sicht); berücksichtigt auch Kp-Index, DWD-Warnungen ab
+  „markant“ und die erste kritische Stunde der Vorhersage.
+- Karte: Niederschlagsradar des DWD als Ebene mit Vorhersage bis +90 Minuten
+  und einstellbarer Deckkraft sowie eine Wetteranzeige für die Kartenmitte;
+  auch in der Gastansicht.
+- Einstellungen → Wetter: Standort (sonst Kartenmitte), Grenzwerte und
+  Abschalten ohne Internetzugang. Wird separat gespeichert und im
+  Ereignisprotokoll vermerkt.
+- Alle Wetterabrufe laufen über den Server mit Zwischenspeicher; fällt eine
+  Quelle aus, bleiben die übrigen sichtbar.
+
 ---
 
 ## [0.18.12] - 2026-11-26

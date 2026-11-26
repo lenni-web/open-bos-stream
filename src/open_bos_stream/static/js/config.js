@@ -70,7 +70,8 @@ function bindConfigChangeTracking() {
                 // Separat und sofort gespeicherte Bereiche:
                 || event.target.closest?.(
                     "#cfg-recording-automatic-list, " +
-                    ".settings-section-notifications"
+                    ".settings-section-notifications, " +
+                    ".settings-section-weather"
                 )
             ) {
                 return;

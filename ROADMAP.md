@@ -169,13 +169,33 @@ funktional weiterentwickelt.
 - [x] Wasser-Ebenen ohne Gülle-, Gas- und andere Fremdtanks
 - [ ] Kartenverwaltung (MBTiles hochladen und auswählen)
 - [ ] Umstieg auf MapLibre 6 (ESM, WebGL2)
+- [x] Wetter für den Flugbetrieb mit Ampel, DWD-Warnungen und Niederschlagsradar
+
+---
+
+# Weiterentwicklung zu „Open BOS“
+
+Schwerpunkt bleiben Drohnen und Drohneneinsätze. Geplante Reihenfolge:
+
+1. **0.19** Wetter und Regenradar
+2. **0.20** Umstieg auf MapLibre 6 als Grundlage für neue Kartenfunktionen
+3. **0.21** Datenbank (SQLite) und Organisationsmodell: Landkreis, Wehren,
+   Mitglieder, Rollen je Wehr und auf Landkreisebene
+4. **0.22** Einsätze: Beteiligte mit Einsatzrollen, Zuordnung von Aufnahmen,
+   Snapshots und Ereignissen, Einsatzbericht als PDF; Zusammenarbeit
+   mehrerer Wehren an einem Einsatz
+5. **0.23** Quadranten pro Einsatz zeichnen, benennen, zuweisen, Status
+6. **0.24+** DJI Cloud API (Pilot 2, Enterprise-Drohnen wie Matrice 30/350/4T
+   und Mavic 3T): Live-Telemetrie auf der Karte, Kartenelemente und
+   Quadranten in beide Richtungen
+7. **1.0** Umbenennung in „Open BOS“ mit Migrationsskript, Dokumenten-Modul
 
 ---
 
 # Langfristige Ziele
 
 - Plugin-Schnittstellen für Overlays, Datenquellen und Ereignisse
-- BOS-Erweiterungen: Sirenen, Pegelstände, Wetterdaten, Einsatzmittel
+- BOS-Erweiterungen: Sirenen, Pegelstände, Einsatzmittel
 - Offiziell unterstützte Plattformen: Debian und Ubuntu Server
 
 ---

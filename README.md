@@ -22,6 +22,9 @@ eigenständige Web-App mit Open-BOS-Stream-Icon abgelegt werden.
   „Behalten“-Markierung und Speicherschutz
 - Offline-Kartenansicht mit MapLibre und MBTiles, Wasserentnahmestellen und
   Drohnen-Geozonen (dipul)
+- Wetter für den Flugbetrieb: DWD-Messwerte, Wind in 120 m Höhe,
+  DWD-Warnungen, Kp-Index, Wetter-Ampel und Niederschlagsradar mit
+  Vorhersage
 - Rollenbasierter Zugriff für Viewer, Admins und Superadmins
 - Zeitlich begrenzte Gastlinks für ausgewählte Livebilder, ohne Konto
 - E-Mail-Benachrichtigung bei Störungen mit Entwarnung
@@ -528,6 +531,38 @@ Logs anzeigen:
 ```bash
 journalctl -u open-bos-stream.service -f
 ```
+
+### Wetter und Niederschlagsradar
+
+Die Übersicht zeigt für alle angemeldeten Nutzer eine Wetterkarte für den
+Flugbetrieb, die Karte zusätzlich das Wetter der Kartenmitte und auf Wunsch
+das Niederschlagsradar des DWD.
+
+| Angabe | Quelle | Aktualisierung |
+|---|---|---|
+| Messwerte der nächsten DWD-Station (Wind, Böen, Temperatur, Niederschlag, Sicht) | Bright Sky (Daten: DWD) | 10 Minuten |
+| Vorhersage der nächsten Stunden, Wind in 80 und 120 m Höhe | Open-Meteo, Modell DWD ICON | 30 Minuten |
+| Amtliche Wetterwarnungen für die Gemeinde | Bright Sky (Daten: DWD) | 10 Minuten |
+| Kp-Index (Störungen der Satellitennavigation) | NOAA SWPC | 60 Minuten |
+| Niederschlagsradar mit Vorhersage bis +90 Minuten | DWD-GeoServer (Produkt RV) | 5 Minuten |
+
+Die **Wetter-Ampel** vergleicht die Werte mit einstellbaren Grenzwerten
+(Einstellungen → Wetter): Dauerwind am Boden und in 120 m, Böen, Temperatur,
+Niederschlag und Sicht. Gelb bedeutet „nahe am Grenzwert“ (ab 75 %), leichter
+Niederschlag, Kp ab 4, eine markante DWD-Warnung oder eine kritische Stunde in
+der Vorhersage; Rot bedeutet einen überschrittenen Grenzwert, Kp ab 5 oder eine
+Unwetterwarnung. Die Voreinstellungen (10 m/s Wind, 12 m/s Böen, −10 bis
+40 °C) entsprechen den empfindlichsten Geräten wie Mavic 3T und Matrice 4T;
+eine Flotte mit Matrice 30/350 kann höhere Werte eintragen. Die Ampel ist eine
+Orientierungshilfe – maßgeblich bleiben die Herstellerangaben und die
+Entscheidung der Fernpilotin oder des Fernpiloten.
+
+Ohne eigenen Standort gilt die Kartenmitte. Alle Abrufe laufen über den
+Server und werden zwischengespeichert; Browser verbinden sich nicht mit den
+Wetterdiensten. Der Server braucht dafür ausgehenden HTTPS-Zugriff. Fällt
+eine Quelle aus, zeigen die übrigen weiter Daten. Ohne Internetzugang (z. B.
+auf einem Pi vor Ort ohne Mobilfunk) lässt sich das Wettermodul in den
+Einstellungen ausschalten.
 
 ## Lokales Display
 

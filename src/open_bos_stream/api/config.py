@@ -91,7 +91,10 @@ async def save_config(config: AppConfig, request: Request):
     # Admins speichern ausschließlich über PUT /config/sources.
     # Benachrichtigungen haben einen eigenen Endpunkt; ein veralteter Stand
     # aus dem Browser darf sie hier nicht überschreiben.
-    config.notifications = loader.load().notifications
+    stored = loader.load()
+    config.notifications = stored.notifications
+    # Wetter ebenfalls nur über den eigenen Endpunkt.
+    config.weather = stored.weather
     result = await apply_config(config)
     _log_change("Konfiguration gespeichert und aktiviert", request)
     return result
