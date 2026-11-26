@@ -449,6 +449,34 @@ def test_offline_sources_and_role_ui_are_present() -> None:
     assert "Benutzer und Rollen" in settings
 
 
+def render_sidebar(role: str) -> str:
+    from jinja2 import Environment, FileSystemLoader
+
+    environment = Environment(loader=FileSystemLoader(ROOT / "templates"))
+    return environment.get_template("components/sidebar.html").render(
+        user={"role": role, "username": "test"},
+        version="test",
+    )
+
+
+def test_mobile_menu_keeps_three_main_items_and_moves_the_rest() -> None:
+    superadmin = render_sidebar("superadmin")
+    viewer = render_sidebar("viewer")
+
+    for page in ("dashboard", "map", "weather"):
+        assert f'id="nav-{page}"' in viewer
+        tag = superadmin[superadmin.index(f'id="nav-{page}"'):]
+        assert "app-nav-secondary" not in tag[:tag.index(">")]
+    for page in ("media", "settings", "system"):
+        tag = superadmin[superadmin.index(f'id="nav-{page}"'):]
+        assert "app-nav-secondary" in tag[:tag.index(">")]
+        assert f'data-page="{page}"' in superadmin
+    assert 'id="nav-more"' in superadmin
+    # Zuschauer haben nur Hauptpunkte und brauchen kein „Mehr“.
+    assert 'id="nav-more"' not in viewer
+    assert "BOS Drohnen Suite" in superadmin
+
+
 def test_media_page_is_visible_only_to_superadmins() -> None:
     index = (
         ROOT / "templates" / "index.html"
@@ -460,9 +488,9 @@ def test_media_page_is_visible_only_to_superadmins() -> None:
     assert index.index('{% if user.role == "superadmin" %}') < index.index(
         'id="page-media"'
     )
-    assert sidebar.index('{% if user.role == "superadmin" %}') < (
-        sidebar.index('id="nav-media"')
-    )
+    assert '"visible": user.role == "superadmin"' in sidebar
+    assert 'id="nav-media"' in render_sidebar("superadmin")
+    assert 'id="nav-media"' not in render_sidebar("admin")
 
 
 def test_system_page_is_hidden_from_viewers() -> None:
@@ -474,13 +502,11 @@ def test_system_page_is_hidden_from_viewers() -> None:
     ).read_text(encoding="utf-8")
 
     system_page = index.index('id="page-system"')
-    system_nav = sidebar.index('id="nav-system"')
     assert index.rfind(
         '{% if user.role != "viewer" %}', 0, system_page
     ) != -1
-    assert sidebar.rfind(
-        '{% if user.role != "viewer" %}', 0, system_nav
-    ) != -1
+    assert 'id="nav-system"' in render_sidebar("admin")
+    assert 'id="nav-system"' not in render_sidebar("viewer")
 
 
 def test_viewer_streams_update_without_system_page() -> None:

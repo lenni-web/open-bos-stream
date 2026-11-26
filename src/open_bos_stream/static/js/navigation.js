@@ -60,6 +60,15 @@ function showPage(page) {
         updateTopbarTitle(page);
     }
 
+    // „Mehr“ markieren, wenn die Seite dort einsortiert ist (Smartphone).
+    const inMoreSheet = Boolean(
+        document.querySelector(`#app-more-sheet [data-page="${page}"]`)
+    );
+    document.getElementById("nav-more")?.classList.toggle("active", inMoreSheet);
+    document.querySelectorAll("#app-more-sheet .app-more-item").forEach(item => {
+        item.classList.toggle("active", item.dataset.page === page);
+    });
+
     if (page === "map" && typeof initMapPage === "function") {
         initMapPage();
     }

@@ -120,6 +120,42 @@ function bindPopover(buttonId, panelId) {
     });
 }
 
+// ----------------------------------------------------------
+// Smartphone: „Mehr“-Menü für weitere Bereiche
+// ----------------------------------------------------------
+
+function closeMoreSheet() {
+    const sheet = document.getElementById("app-more-sheet");
+    if (sheet) {
+        sheet.hidden = true;
+    }
+    document.getElementById("nav-more")?.setAttribute("aria-expanded", "false");
+}
+
+function initMoreSheet() {
+    const button = document.getElementById("nav-more");
+    const sheet = document.getElementById("app-more-sheet");
+    if (!button || !sheet) {
+        return;
+    }
+    button.addEventListener("click", event => {
+        event.stopPropagation();
+        const open = sheet.hidden;
+        closePopovers();
+        sheet.hidden = !open;
+        button.setAttribute("aria-expanded", String(open));
+    });
+    sheet.addEventListener("click", event => event.stopPropagation());
+    document.addEventListener("click", closeMoreSheet);
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            closeMoreSheet();
+        }
+    });
+    // Beim Wechsel auf Tablet- oder Desktop-Breite nicht offen stehen lassen.
+    window.matchMedia("(min-width: 769px)").addEventListener?.("change", closeMoreSheet);
+}
+
 function initPopovers() {
     bindPopover("status-button", "status-panel");
     bindPopover("user-button", "user-panel");
@@ -212,5 +248,6 @@ function updateShellStatus(services, system) {
 document.addEventListener("DOMContentLoaded", () => {
     initSidebar();
     initPopovers();
+    initMoreSheet();
     initThemeSwitch();
 });

@@ -843,11 +843,12 @@ Transcoding-Profil oder der Kamera-Substream geprüft werden.
 
 ## Oberfläche
 
-- **Seitenleiste:** Übersicht, Medien, Karte, Einstellungen und System mit
-  einheitlichen Symbolen. Am Desktop sitzt sie fest am linken Rand und lässt
-  sich unten über „Einklappen“ auf Symbole reduzieren; der Browser merkt sich
-  die Wahl. Auf Tablets zeigt sie nur Symbole, auf Smartphones wird sie zur
-  Leiste am unteren Bildschirmrand.
+- **Seitenleiste:** Übersicht, Karte, Wetter, Medien, Einstellungen und
+  System mit einheitlichen Symbolen. Am Desktop sitzt sie fest am linken Rand
+  und lässt sich unten über „Einklappen“ auf Symbole reduzieren; der Browser
+  merkt sich die Wahl. Auf Tablets zeigt sie nur Symbole. Auf Smartphones
+  stehen Übersicht, Karte und Wetter in der Leiste am unteren Rand, alle
+  weiteren Bereiche unter **„Mehr“** – so bleibt Platz für künftige Module.
 - **Kopfzeile:** links der Seitentitel, rechts Uhrzeit, Status und
   Benutzermenü. Die Uhrzeit kommt vom Gerät, auf dem die Seite geöffnet ist.
 - **Status:** eine einzige Anzeige „Einsatzbereit“ (grün) oder „Störung“

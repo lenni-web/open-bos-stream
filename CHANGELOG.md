@@ -19,9 +19,15 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   Wetter-Standorts.
 - Die Wetterkarte der Übersicht führt mit „Wetter und Radar öffnen“ zur
   neuen Seite.
+- Smartphone-Menü: In der unteren Leiste stehen Übersicht, Karte und Wetter,
+  alle weiteren Bereiche (Medien, Einstellungen, System und künftige Module)
+  öffnen sich über „Mehr“. Das Menü wird aus einer gemeinsamen Liste erzeugt.
 
 ### Changed
 
+- Untertitel der Anwendung: „BOS Drohnen Suite“ statt „BOS Streaming Suite“.
+- Reihenfolge im Menü: Übersicht, Karte, Wetter, Medien, Einstellungen,
+  System.
 - Die Ampel betrachtet für ihren Ausblick weiterhin nur die nächsten sechs
   Stunden, auch wenn die Vorhersage nun 24 Stunden umfasst.
 - Radarabrufe beim DWD laufen mit bis zu acht parallelen Anfragen;

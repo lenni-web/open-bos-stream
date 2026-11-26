@@ -740,6 +740,41 @@ body {
         text-overflow: ellipsis;
     }
 
+    /* Nur Hauptpunkte unten, alles Weitere unter „Mehr“. */
+    .app-shell .app-sidebar .app-nav-secondary {
+        display: none;
+    }
+
+    .app-shell .app-sidebar .app-nav-more {
+        display: flex;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        font-size: 0.64rem;
+        cursor: pointer;
+    }
+
+    .app-shell .app-sidebar .app-nav-more.active,
+    .app-shell .app-sidebar .app-nav-more[aria-expanded="true"] {
+        background: var(--shell-accent-soft);
+        color: var(--bos-red);
+    }
+
+    .app-more-sheet:not([hidden]) {
+        position: absolute;
+        right: 0;
+        bottom: calc(100% + 8px);
+        left: 0;
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+        border: 1px solid var(--bos-gray);
+        border-radius: 18px;
+        background: var(--bos-white);
+        box-shadow: var(--bos-shadow-strong);
+    }
+
     .app-topbar {
         min-height: 54px;
         padding-top: calc(6px + env(safe-area-inset-top));
@@ -1316,4 +1351,54 @@ body {
 .pwa-install-actions {
     display: flex;
     justify-content: flex-end;
+}
+
+/* ----------------------------------------------------------
+   „Mehr“-Menü (nur Smartphones)
+   ---------------------------------------------------------- */
+
+.app-sidebar .app-nav-more,
+.app-more-sheet {
+    display: none;
+}
+
+.app-more-sheet[hidden] {
+    display: none !important;
+}
+
+.app-more-title {
+    margin: 0;
+    color: var(--bos-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.app-more-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.app-more-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 74px;
+    padding: 8px 4px;
+    border-radius: 12px;
+    background: var(--shell-surface-muted);
+    color: var(--bos-dark);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+}
+
+.app-more-item.active {
+    background: var(--shell-accent-soft);
+    color: var(--bos-red);
 }
