@@ -26,7 +26,10 @@ from collections import OrderedDict
 from typing import Any, Callable
 
 from open_bos_stream.core.models import WeatherConfig
+from datetime import datetime, timezone
+
 from open_bos_stream.weather.assessment import assess
+from open_bos_stream.weather.sun import sun_info
 
 
 logger = logging.getLogger(__name__)
@@ -53,6 +56,30 @@ TTL_SECONDS = {
 ERROR_TTL_SECONDS = 2 * 60
 # Übersicht zeigt die nächsten Stunden, die Wetterseite einen ganzen Tag.
 FORECAST_HOURS = 24
+# Faustformel: Wolkenuntergrenze etwa 125 m je Grad Taupunktdifferenz.
+CLOUD_BASE_M_PER_K = 125
+
+
+def derived_values(current: dict | None, forecast: list[dict]) -> dict:
+    """Taupunkt, Taupunktdifferenz und geschätzte Wolkenuntergrenze."""
+
+    current = current or {}
+    now = forecast[0] if forecast else {}
+    temperature = current.get("temperature_c")
+    dew_point = current.get("dew_point_c")
+    if temperature is None or dew_point is None:
+        temperature = now.get("temperature_c")
+        dew_point = now.get("dew_point_c")
+    if temperature is None or dew_point is None:
+        return {"dew_point_c": None, "dew_point_spread_c": None, "cloud_base_m": None}
+    spread = round(max(0.0, temperature - dew_point), 1)
+    return {
+        "dew_point_c": dew_point,
+        "dew_point_spread_c": spread,
+        "cloud_base_m": int(round(spread * CLOUD_BASE_M_PER_K, -1)),
+    }
+
+
 # Etwa 5 km Raster: Nachbarorte teilen sich Zwischenspeicher und Abrufe.
 COORDINATE_PRECISION = 2
 
@@ -94,6 +121,7 @@ def parse_current(data: dict) -> dict:
     return {
         "time": weather.get("timestamp"),
         "temperature_c": _number(weather.get("temperature")),
+        "dew_point_c": _number(weather.get("dew_point")),
         "wind_speed_ms": _ms(weather.get("wind_speed_10")),
         "wind_gust_ms": _ms(weather.get("wind_gust_speed_10")),
         "wind_direction_deg": weather.get("wind_direction_10"),
@@ -125,6 +153,7 @@ def parse_forecast(data: dict) -> list[dict]:
         {
             "time": time_value,
             "temperature_c": _number(series("temperature_2m", index)),
+            "dew_point_c": _number(series("dew_point_2m", index)),
             "precipitation_mm_h": _number(series("precipitation", index)),
             "precipitation_probability": series(
                 "precipitation_probability", index
@@ -189,9 +218,11 @@ class WeatherService:
         *,
         fetch_json: Callable[[str], Any] | None = None,
         clock: Callable[[], float] = time.monotonic,
+        now: Callable[[], datetime] | None = None,
     ) -> None:
         self._fetch_json = fetch_json or self._http_json
         self._clock = clock
+        self._now = now
         self._cache: OrderedDict[str, tuple[float, Any, str | None]] = (
             OrderedDict()
         )
@@ -240,6 +271,7 @@ class WeatherService:
                     "hourly": ",".join(
                         (
                             "temperature_2m",
+                            "dew_point_2m",
                             "precipitation",
                             "precipitation_probability",
                             "wind_speed_10m",
@@ -259,6 +291,7 @@ class WeatherService:
             parse_forecast,
         )
         kp = load("kp", KP_URL, parse_kp)
+        now = (self._now or (lambda: datetime.now(timezone.utc)))()
 
         report = {
             "coordinates": {"latitude": lat, "longitude": lon},
@@ -267,6 +300,8 @@ class WeatherService:
             "alerts": (alerts or {}).get("alerts", []),
             "alert_area": (alerts or {}).get("area"),
             "kp": kp,
+            "derived": derived_values(current, forecast or []),
+            "sun": sun_info(lat, lon, now),
             "errors": errors,
             "attribution": ATTRIBUTION,
         }

@@ -129,9 +129,39 @@ function renderWeatherCard(card, report) {
             weatherVisibility(current.visibility_m ?? now.visibility_m)
         ),
         weatherTile(
+            "Taupunkt",
+            `${weatherNumber(report.derived?.dew_point_c)} °C`,
+            report.derived?.dew_point_spread_c !== null &&
+            report.derived?.dew_point_spread_c !== undefined
+                ? `Differenz ${weatherNumber(report.derived.dew_point_spread_c)} °C`
+                : ""
+        ),
+        weatherTile(
+            "Wolkenbasis",
+            report.derived?.cloud_base_m !== null &&
+            report.derived?.cloud_base_m !== undefined
+                ? `ca. ${report.derived.cloud_base_m.toLocaleString("de-DE")} m`
+                : "–",
+            "geschätzt aus Taupunkt"
+        ),
+        weatherTile(
             "Kp-Index",
             weatherNumber(report.kp?.kp),
             "GNSS-Störungen ab 5"
+        ),
+        weatherTile(
+            "Sonnenaufgang",
+            report.sun?.sunrise ? `${weatherClock(report.sun.sunrise)} Uhr` : "–",
+            report.sun?.civil_dawn
+                ? `Dämmerung ab ${weatherClock(report.sun.civil_dawn)}`
+                : ""
+        ),
+        weatherTile(
+            "Sonnenuntergang",
+            report.sun?.sunset ? `${weatherClock(report.sun.sunset)} Uhr` : "–",
+            report.sun?.civil_dusk
+                ? `Dämmerung bis ${weatherClock(report.sun.civil_dusk)}`
+                : ""
         ),
     ].join("");
 

@@ -18,6 +18,13 @@ CAUTION_SHARE = 0.75
 KP_CAUTION = 4
 KP_LIMIT = 5
 TEMPERATURE_MARGIN_C = 3
+# Taupunktdifferenz, ab der Nebel und Beschlag wahrscheinlich werden.
+DEW_POINT_SPREAD_CAUTION = 2.0
+CLOUD_BASE_CAUTION_M = 200
+# Vereisung: um den Gefrierpunkt bei feuchter Luft oder Niederschlag.
+ICING_MIN_C = -10
+ICING_MAX_C = 3
+ICING_HUMIDITY = 90
 # Der Ausblick der Ampel reicht nur über die nächsten Stunden.
 OUTLOOK_HOURS = 6
 
@@ -113,6 +120,30 @@ def assess(report: dict, config: WeatherConfig) -> dict:
             add("red", f"Sicht nur {int(visibility)} m")
         elif visibility < config.visibility_min_m * 2:
             add("yellow", f"Eingeschränkte Sicht ({int(visibility)} m)")
+
+    derived = report.get("derived") or {}
+    spread = derived.get("dew_point_spread_c")
+    if spread is not None and spread <= DEW_POINT_SPREAD_CAUTION:
+        add("yellow", f"Taupunktdifferenz {_fmt(spread)} °C: Nebel und "
+            "beschlagene Optik möglich")
+    cloud_base = derived.get("cloud_base_m")
+    if cloud_base is not None and cloud_base < CLOUD_BASE_CAUTION_M:
+        add("yellow", f"Tiefe Wolkenuntergrenze (geschätzt {cloud_base} m)")
+    humidity = current.get("humidity_percent")
+    if (
+        temperature is not None
+        and ICING_MIN_C <= temperature <= ICING_MAX_C
+        and (
+            (spread is not None and spread <= DEW_POINT_SPREAD_CAUTION)
+            or (humidity is not None and humidity >= ICING_HUMIDITY)
+            or (rain is not None and rain > 0)
+        )
+    ):
+        add("yellow", "Vereisungsgefahr an Propellern und Sensoren")
+
+    if (report.get("sun") or {}).get("dark"):
+        add("yellow", "Dunkelheit nach Ende der bürgerlichen Dämmerung: "
+            "Regeln für Nachtflüge beachten")
 
     kp = (report.get("kp") or {}).get("kp")
     if kp is not None:

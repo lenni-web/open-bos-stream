@@ -585,13 +585,18 @@ Stunde zwischen, aktuelle und vorhergesagte vier Minuten.
 | Vorhersage der nächsten 24 Stunden, Wind in 80 und 120 m Höhe | Open-Meteo, Modell DWD ICON | 30 Minuten |
 | Amtliche Wetterwarnungen für die Gemeinde | Bright Sky (Daten: DWD) | 10 Minuten |
 | Kp-Index (Störungen der Satellitennavigation) | NOAA SWPC | 60 Minuten |
+| Taupunkt, Taupunktdifferenz, geschätzte Wolkenuntergrenze (125 m je °C Differenz) | aus Messwerten bzw. Vorhersage berechnet | mit den Messwerten |
+| Sonnenauf- und -untergang, bürgerliche Dämmerung | auf dem Server berechnet | laufend |
 | Niederschlagsradar: 2 Stunden Rückblick, Vorhersage bis +90 Minuten | DWD-GeoServer (Produkt RV) | 5 Minuten |
 
 Die **Wetter-Ampel** vergleicht die Werte mit einstellbaren Grenzwerten
 (Einstellungen → Wetter): Dauerwind am Boden und in 120 m, Böen, Temperatur,
 Niederschlag und Sicht. Gelb bedeutet „nahe am Grenzwert“ (ab 75 %), leichter
-Niederschlag, Kp ab 4, eine markante DWD-Warnung oder eine kritische Stunde in
-der Vorhersage; Rot bedeutet einen überschrittenen Grenzwert, Kp ab 5 oder eine
+Niederschlag, Kp ab 4, eine markante DWD-Warnung, eine kritische Stunde in
+der Vorhersage, eine Taupunktdifferenz bis 2 °C (Nebel, beschlagene Optik),
+eine geschätzte Wolkenuntergrenze unter 200 m, Vereisungsgefahr (−10 bis
++3 °C bei feuchter Luft oder Niederschlag) oder Dunkelheit nach Ende der
+bürgerlichen Dämmerung; Rot bedeutet einen überschrittenen Grenzwert, Kp ab 5 oder eine
 Unwetterwarnung. Die Voreinstellungen (10 m/s Wind, 12 m/s Böen, −10 bis
 40 °C) entsprechen den empfindlichsten Geräten wie Mavic 3T und Matrice 4T;
 eine Flotte mit Matrice 30/350 kann höhere Werte eintragen. Die Ampel ist eine

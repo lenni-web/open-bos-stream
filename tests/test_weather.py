@@ -558,3 +558,77 @@ def test_ampel_outlook_is_limited_to_the_next_hours() -> None:
     result = assess(report_with(current={"temperature_c": 10}, forecast=forecast), WeatherConfig())
 
     assert result["level"] == "green"
+
+
+# ----------------------------------------------------------------------
+# Taupunkt, Wolkenbasis, Sonne
+# ----------------------------------------------------------------------
+
+
+def test_sun_times_match_reference_values_for_stade(monkeypatch) -> None:
+    import time as time_module
+
+    from open_bos_stream.weather.sun import sun_info
+
+    monkeypatch.setenv("TZ", "Europe/Berlin")
+    time_module.tzset()
+    summer = sun_info(53.6, 9.47, datetime(2026, 6, 21, 10, tzinfo=timezone.utc))
+    winter = sun_info(53.6, 9.47, datetime(2026, 12, 21, 11, tzinfo=timezone.utc))
+    night = sun_info(53.6, 9.47, datetime(2026, 11, 26, 21, 30, tzinfo=timezone.utc))
+
+    assert summer["sunrise"].startswith("2026-06-21T04:5")
+    assert summer["sunset"].startswith("2026-06-21T21:5")
+    assert winter["sunrise"].startswith("2026-12-21T08:3")
+    assert winter["sunset"].startswith("2026-12-21T16:0")
+    assert summer["dark"] is False
+    assert night["dark"] is True
+    assert night["civil_dusk"] > night["sunset"]
+
+
+def test_dew_point_spread_and_cloud_base() -> None:
+    from open_bos_stream.weather.service import derived_values
+
+    derived = derived_values({"temperature_c": 6.0, "dew_point_c": 4.4}, [])
+    assert derived == {
+        "dew_point_c": 4.4,
+        "dew_point_spread_c": 1.6,
+        "cloud_base_m": 200,
+    }
+    # Ohne Messwert gilt die Vorhersage.
+    assert derived_values(None, [{"temperature_c": 10, "dew_point_c": 2}])[
+        "cloud_base_m"
+    ] == 1000
+
+
+def test_fog_icing_and_darkness_turn_the_ampel_yellow() -> None:
+    report = report_with(current={"temperature_c": 1.0, "humidity_percent": 95})
+    report["derived"] = {
+        "dew_point_c": -0.5,
+        "dew_point_spread_c": 1.5,
+        "cloud_base_m": 190,
+    }
+    report["sun"] = {"dark": True}
+
+    texts = [reason["text"] for reason in assess(report, WeatherConfig())["reasons"]]
+
+    assert any(text.startswith("Taupunktdifferenz 1,5 °C") for text in texts)
+    assert "Tiefe Wolkenuntergrenze (geschätzt 190 m)" in texts
+    assert "Vereisungsgefahr an Propellern und Sensoren" in texts
+    assert any(text.startswith("Dunkelheit") for text in texts)
+    assert assess(report, WeatherConfig())["level"] == "yellow"
+
+
+def test_report_contains_sun_and_derived_values() -> None:
+    service = WeatherService(
+        fetch_json=fake_fetch(standard_responses(), []),
+        now=lambda: datetime(2026, 6, 21, 10, tzinfo=timezone.utc),
+    )
+    report = service.report(WeatherConfig(), 53.56, 9.53)
+
+    assert report["sun"]["dark"] is False
+    assert report["sun"]["sunrise"]
+    assert set(report["derived"]) == {
+        "dew_point_c",
+        "dew_point_spread_c",
+        "cloud_base_m",
+    }
