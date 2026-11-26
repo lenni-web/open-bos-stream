@@ -130,7 +130,7 @@ Einsätze lesend).
 |---|---|
 | **Quellen (Drohnen, Kameras)** | gehören **der einzelnen Wehr**, die die Drohne betreibt (in der Regel eine Ortsfeuerwehr); deren Mitglieder sehen sie, ebenso Rollen darüber (Gemeinde/Samtgemeinde, Landkreis). In Einsätzen sehen auch beteiligte Wehren die eingesetzten Quellen. |
 | **Aufnahmen, Snapshots** | gehören zur Quelle und – falls vorhanden – zum Einsatz |
-| **Gastlinks** | werden von einer Organisation erstellt und zeigen nur deren Quellen |
+| **Gastlinks** | werden von einer Organisation erstellt und zeigen nur deren Quellen; Einsatz-Gastlinks zeigen die Quellen eines Einsatzes (siehe Abschnitt 7) |
 | **Ereignisprotokoll** | Einträge mit Organisation; Systemmeldungen sehen nur Superadmins |
 | **Wetter-Standort** | je Organisation (Standort der Wache), sonst Kartenmitte |
 
@@ -149,10 +149,25 @@ Einsätze lesend).
 | **Verlauf** | Ereignisse des Einsatzes (Start, Signal, Aufnahmen, Notizen) |
 | **Wetter** | Wetterstand zu Einsatzbeginn automatisch gespeichert |
 | **Bericht** | PDF-Export aller Angaben |
+| **Einsatz-Gastlinks** | Links für externe Stellen, die alle Livebilder des Einsatzes zeigen (siehe unten) |
 
 **Einsatzrollen** (Vorschlag, Liste ist anpassbar):
 Einsatzleiter · Abschnittsleiter Drohne · Fernpilot · Luftraumbeobachter ·
 Kamera-/Payload-Operator · Dokumentation · Sonstige.
+
+**Einsatz-Gastlinks:** Neben den bisherigen Gastlinks einer Wehr (feste
+Auswahl ihrer Quellen) gibt es Gastlinks für einen **Einsatz**:
+
+- Sie zeigen **alle Quellen, die dem Einsatz zugeordnet sind** – auch von
+  verschiedenen Wehren. Kommt später eine weitere Drohneneinheit hinzu,
+  erscheint ihr Livebild automatisch, ohne neuen Link.
+- Dazu die Karte mit Einsatzort und – ab 0.23 – den Quadranten.
+- Erstellen dürfen Mitglieder mit Rolle Drohnenteam oder Wehr-Admin der
+  führenden und der beteiligten Wehren.
+- Gültig bis zu einer gewählten Zeit (höchstens 48 Stunden, verlängerbar)
+  und **spätestens bis zum Ende des Einsatzes**; danach zeigt der Link einen
+  Hinweis statt Livebildern.
+- Öffnen, Erstellen und Widerrufen erscheinen im Verlauf des Einsatzes.
 
 **Einsatzkennung:** Datum und **Alarmzeit**, z. B. „26.11.2026 14:32“
 (intern `2026-11-26-1432`). Die Alarmzeit wird beim Anlegen vorbelegt und
@@ -214,6 +229,7 @@ Benutzerdatei bleibt als Sicherung erhalten.
 | Personen ohne Konto | dürfen mit Namen im Einsatz erfasst werden |
 | Löschfristen | vorerst keine automatische Löschung |
 | Einsatzfelder | zusätzlich Alarmstichwort, Adresse und Alarmierungsdetails |
+| Gastlinks | zusätzlich Einsatz-Gastlinks für alle Livebilder eines Einsatzes, wehrübergreifend |
 
 ## 11. Noch offen
 
