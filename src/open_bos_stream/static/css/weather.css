@@ -579,3 +579,27 @@ html[data-color-scheme="dark"] .map-weather-controls {
         margin-bottom: 6px;
     }
 }
+
+/* Vorhersage der Wetterseite: anfangs zugeklappt */
+.weather-forecast-details > summary {
+    cursor: pointer;
+    list-style: none;
+}
+
+.weather-forecast-details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.weather-forecast-details > summary h2::before {
+    content: "▸";
+    display: inline-block;
+    width: 1.1rem;
+}
+
+.weather-forecast-details[open] > summary h2::before {
+    content: "▾";
+}
+
+.weather-forecast-details[open] > summary {
+    margin-bottom: 10px;
+}

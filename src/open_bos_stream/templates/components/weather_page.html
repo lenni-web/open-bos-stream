@@ -54,25 +54,27 @@
 
         <section class="bos-card weather-forecast-card" data-weather-forecast-card
             data-forecast-hours="24" aria-labelledby="weather-forecast-title" hidden>
-            <div class="weather-radar-header">
-                <h2 id="weather-forecast-title">Vorhersage nächste 24 Stunden</h2>
-                <small>Modell DWD ICON über Open-Meteo</small>
-            </div>
-            <div class="weather-forecast weather-forecast-scroll">
-                <table>
-                    <thead>
-                        <tr>
-                            <th scope="col">Uhrzeit</th>
-                            <th scope="col">Wind 10 m</th>
-                            <th scope="col">Wind 120 m</th>
-                            <th scope="col">Böen</th>
-                            <th scope="col">Niederschlag</th>
-                            <th scope="col">Temperatur</th>
-                        </tr>
-                    </thead>
-                    <tbody data-weather="forecast"></tbody>
-                </table>
-            </div>
+            <details class="weather-forecast-details">
+                <summary class="weather-radar-header">
+                    <h2 id="weather-forecast-title">Vorhersage nächste 24 Stunden</h2>
+                    <small>Modell DWD ICON über Open-Meteo</small>
+                </summary>
+                <div class="weather-forecast weather-forecast-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">Uhrzeit</th>
+                                <th scope="col">Wind 10 m</th>
+                                <th scope="col">Wind 120 m</th>
+                                <th scope="col">Böen</th>
+                                <th scope="col">Niederschlag</th>
+                                <th scope="col">Temperatur</th>
+                            </tr>
+                        </thead>
+                        <tbody data-weather="forecast"></tbody>
+                    </table>
+                </div>
+            </details>
         </section>
     </div>
 </section>

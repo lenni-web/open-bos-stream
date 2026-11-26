@@ -554,6 +554,8 @@ def test_weather_page_is_in_the_menu_for_everyone() -> None:
         < page.index('id="weather-radar-map"')
         < page.index("data-weather-forecast-card")
     )
+    # Vorhersage zunächst zugeklappt.
+    assert '<details class="weather-forecast-details">' in page
     assert "setWeatherPageActive(page === \"weather\")" in navigation
 
 
