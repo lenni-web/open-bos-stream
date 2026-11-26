@@ -11,6 +11,18 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.20.5] - 2026-11-26
+
+### Changed
+
+- Neuer Name in der Oberfläche: **Open BOS Drohnen** (vorher „Open BOS
+  Stream“) – in Seitenleiste, Anmeldung, Seitentiteln, Gastansicht,
+  installierter App (Kurzname „BOS Drohnen“), E-Mails, Ereignisprotokoll und
+  Funktionsübersicht. Technische Namen (Repository, Dienste, Pfade wie
+  `/opt/open-bos-stream`) bleiben unverändert.
+
+---
+
 ## [0.20.4] - 2026-11-26
 
 ### Changed

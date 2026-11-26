@@ -57,6 +57,7 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.20.5** (2026-11-26): Name in der Oberfläche „Open BOS Drohnen“
 - **0.20.4** (2026-11-26): 24-Stunden-Vorhersage aufklappbar
 - **0.20.3** (2026-11-26): Wetterseite neu sortiert, Kp-Index im Klartext,
   Erklärungen zu allen Wetterangaben
