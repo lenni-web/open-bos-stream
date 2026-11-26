@@ -393,15 +393,21 @@ html[data-color-scheme="dark"] .map-weather-controls {
     box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35);
 }
 
+/* Feste Spalten: Der Schieberegler behält seine Breite, egal wie lang die
+   Zeitangabe oder die Beschriftung der Abspieltaste gerade ist. */
 .weather-radar-timeline {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: 8.5rem minmax(0, 1fr);
     align-items: center;
-    gap: 10px 14px;
+    gap: 6px 14px;
 }
 
 .weather-radar-play {
-    min-width: 7.5rem;
+    width: 100%;
+    justify-content: center;
+    padding-right: 8px;
+    padding-left: 8px;
+    white-space: nowrap;
 }
 
 .weather-radar-slider-wrap {
@@ -443,10 +449,10 @@ html[data-color-scheme="dark"] .map-weather-controls {
 }
 
 .weather-radar-time {
-    min-width: 11rem;
+    grid-column: 2;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
-    text-align: right;
+    text-align: center;
 }
 
 .weather-radar-time[data-kind="forecast"] {
@@ -490,12 +496,11 @@ html[data-color-scheme="dark"] .map-weather-controls {
 
 @media (max-width: 600px) {
     .weather-radar-timeline {
-        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-columns: 8rem minmax(0, 1fr);
     }
 
     .weather-radar-time {
         grid-column: 1 / -1;
-        text-align: left;
     }
 
     .weather-radar-map {
