@@ -61,14 +61,111 @@ function weatherVisibility(meters) {
             : `${Math.round(meters)} m`;
 }
 
+// Kurze Erklärungen: beim Darüberfahren als Hinweis, beim Antippen in der
+// Kachel, auf der Wetterseite zusätzlich als Liste.
+const WEATHER_HELP = {
+    "Wind 10 m":
+        "Gemessener Dauerwind in 10 m Höhe an der nächsten DWD-Station.",
+    "Wind 120 m":
+        "Vorhergesagter Wind in 120 m Höhe – meist deutlich stärker als am " +
+        "Boden und maßgeblich für die übliche Flughöhe.",
+    "Böen":
+        "Kurze Windspitzen. Sie fordern Stabilität und Akku stärker als der " +
+        "Dauerwind; Herstellergrenze beachten.",
+    "Temperatur":
+        "Kälte senkt die Akkuleistung und Flugzeit deutlich; Akkus vor dem " +
+        "Start warm halten.",
+    "Niederschlag":
+        "Regenmenge der letzten Stunde. Nur Geräte mit Schutzart (z. B. IP55, " +
+        "Matrice 30/350) vertragen Regen.",
+    "Sicht":
+        "Horizontale Sichtweite. Wichtig für Flüge in Sichtweite (VLOS) und " +
+        "für Luftraumbeobachter.",
+    "Taupunkt":
+        "Temperatur, bei der die Luft gesättigt ist. Liegt sie nahe an der " +
+        "Lufttemperatur (Differenz ≤ 2 °C), bilden sich leicht Nebel, Beschlag " +
+        "an der Kamera und bei Frost Eis.",
+    "Wolkenbasis":
+        "Geschätzte Wolkenuntergrenze: etwa 125 m je Grad Taupunktdifferenz. " +
+        "Liegt sie nahe der Flughöhe, kann die Drohne in Wolken verschwinden.",
+    "Satellitennavigation":
+        "Kp-Index der Sonnenaktivität (0–9). Ab 4 kann die GPS-Position " +
+        "ungenauer werden, ab 5 (geomagnetischer Sturm) sind Drift, " +
+        "Kompassfehler und Ausfall der Positionshaltung möglich.",
+    "Sonnenaufgang":
+        "Vor Beginn der bürgerlichen Dämmerung (Sonne 6° unter dem Horizont) " +
+        "gilt es als Nacht; dann gelten Regeln für Nachtflüge, z. B. zur " +
+        "Beleuchtung.",
+    "Sonnenuntergang":
+        "Nach Ende der bürgerlichen Dämmerung gilt es als Nacht; dann gelten " +
+        "Regeln für Nachtflüge, z. B. zur Beleuchtung.",
+};
+
+function weatherKpLabel(kp) {
+    if (kp === null || kp === undefined) {
+        return "–";
+    }
+    const value = Number(kp);
+    const state = value >= 7
+        ? "starker Sturm"
+        : value >= 5
+            ? "Sturm"
+            : value >= 4 ? "unruhig" : "ruhig";
+    return state;
+}
+
 function weatherTile(label, value, detail = "") {
+    const help = WEATHER_HELP[label] ?? "";
     return `
-        <div class="weather-value">
-            <span>${escapeHTML(label)}</span>
+        <div class="weather-value${help ? " has-help" : ""}"
+            ${help ? `tabindex="0" role="button" aria-expanded="false"
+                title="${escapeHTML(help)}"` : ""}>
+            <span>${escapeHTML(label)}${help ? ' <i aria-hidden="true">ⓘ</i>' : ""}</span>
             <strong>${escapeHTML(value)}</strong>
             ${detail ? `<small>${escapeHTML(detail)}</small>` : ""}
+            ${help ? `<small class="weather-help" hidden>${escapeHTML(help)}</small>` : ""}
         </div>
     `;
+}
+
+function toggleWeatherHelp(tile) {
+    const help = tile?.querySelector(".weather-help");
+    if (!help) {
+        return;
+    }
+    help.hidden = !help.hidden;
+    tile.setAttribute("aria-expanded", String(!help.hidden));
+}
+
+function bindWeatherHelp(card) {
+    const values = weatherPart(card, "values");
+    if (!values || values.dataset.helpBound) {
+        return;
+    }
+    values.dataset.helpBound = "true";
+    values.addEventListener("click", event => {
+        toggleWeatherHelp(event.target.closest(".weather-value.has-help"));
+    });
+    values.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            toggleWeatherHelp(event.target.closest(".weather-value.has-help"));
+        }
+    });
+}
+
+function renderWeatherHelpList(card) {
+    const list = weatherPart(card, "help");
+    if (!list || list.childElementCount) {
+        return;
+    }
+    list.innerHTML = Object.entries(WEATHER_HELP)
+        .filter(([label]) => label !== "Sonnenaufgang")
+        .map(([label, text]) => `
+            <dt>${escapeHTML(label === "Sonnenuntergang" ? "Sonnenauf- und -untergang" : label)}</dt>
+            <dd>${escapeHTML(text)}</dd>
+        `)
+        .join("");
 }
 
 function weatherPart(card, name) {
@@ -101,6 +198,8 @@ function renderWeatherCard(card, report) {
     const direction = weatherCompass(
         current.wind_direction_deg ?? now.wind_direction_deg
     );
+    bindWeatherHelp(card);
+    renderWeatherHelpList(card);
     weatherPart(card, "values").innerHTML = [
         weatherTile(
             "Wind 10 m",
@@ -145,9 +244,11 @@ function renderWeatherCard(card, report) {
             "geschätzt aus Taupunkt"
         ),
         weatherTile(
-            "Kp-Index",
-            weatherNumber(report.kp?.kp),
-            "GNSS-Störungen ab 5"
+            "Satellitennavigation",
+            weatherKpLabel(report.kp?.kp),
+            report.kp?.kp !== null && report.kp?.kp !== undefined
+                ? `Kp-Index ${weatherNumber(report.kp.kp)}`
+                : "Kp-Index"
         ),
         weatherTile(
             "Sonnenaufgang",

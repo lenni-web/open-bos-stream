@@ -520,3 +520,62 @@ html[data-color-scheme="dark"] .map-weather-controls {
 .weather-forecast-card .weather-forecast-scroll {
     margin-top: 0;
 }
+
+/* Erklärungen: Kurzinfo in der Kachel und Liste auf der Wetterseite */
+.weather-value.has-help {
+    cursor: help;
+}
+
+.weather-value.has-help span i {
+    font-style: normal;
+    opacity: 0.6;
+}
+
+.weather-value.has-help:focus-visible {
+    outline: 2px solid var(--bos-blue);
+    outline-offset: 2px;
+}
+
+.weather-value .weather-help {
+    margin-top: 4px;
+    color: var(--bos-dark);
+    font-size: 0.78rem;
+    line-height: 1.35;
+}
+
+.weather-value .weather-help[hidden] {
+    display: none;
+}
+
+.weather-explanations summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.weather-explanations dl {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 6px 14px;
+    margin: 10px 0 0;
+    font-size: 0.86rem;
+}
+
+.weather-explanations dt {
+    font-weight: 600;
+}
+
+.weather-explanations dd {
+    margin: 0;
+    color: var(--bos-muted, #5f6b7a);
+}
+
+@media (max-width: 600px) {
+    .weather-explanations dl {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .weather-explanations dd {
+        margin-bottom: 6px;
+    }
+}

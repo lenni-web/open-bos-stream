@@ -584,7 +584,7 @@ Stunde zwischen, aktuelle und vorhergesagte vier Minuten.
 | Messwerte der nächsten DWD-Station (Wind, Böen, Temperatur, Niederschlag, Sicht) | Bright Sky (Daten: DWD) | 10 Minuten |
 | Vorhersage der nächsten 24 Stunden, Wind in 80 und 120 m Höhe | Open-Meteo, Modell DWD ICON | 30 Minuten |
 | Amtliche Wetterwarnungen für die Gemeinde | Bright Sky (Daten: DWD) | 10 Minuten |
-| Kp-Index (Störungen der Satellitennavigation) | NOAA SWPC | 60 Minuten |
+| Kp-Index, angezeigt als „Satellitennavigation“: ruhig, unruhig (ab 4), Sturm (ab 5) | NOAA SWPC | 60 Minuten |
 | Taupunkt, Taupunktdifferenz, geschätzte Wolkenuntergrenze (125 m je °C Differenz) | aus Messwerten bzw. Vorhersage berechnet | mit den Messwerten |
 | Sonnenauf- und -untergang, bürgerliche Dämmerung | auf dem Server berechnet | laufend |
 | Niederschlagsradar: 2 Stunden Rückblick, Vorhersage bis +90 Minuten | DWD-GeoServer (Produkt RV) | 5 Minuten |

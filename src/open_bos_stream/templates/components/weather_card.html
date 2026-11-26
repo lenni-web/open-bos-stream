@@ -28,6 +28,13 @@
 
     <ul class="weather-reasons" data-weather="reasons"></ul>
 
+    {% if weather_page %}
+    <details class="weather-explanations">
+        <summary>Was bedeuten die Werte?</summary>
+        <dl data-weather="help"></dl>
+    </details>
+    {% endif %}
+
     <div class="weather-details">
         <details class="weather-alerts" data-weather="alerts" {% if weather_page %}open{% endif %} hidden>
             <summary data-weather="alerts-summary">DWD-Warnungen</summary>

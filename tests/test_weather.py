@@ -638,3 +638,24 @@ def test_report_contains_sun_and_derived_values() -> None:
         "dew_point_spread_c",
         "cloud_base_m",
     }
+
+
+def test_weather_values_are_explained() -> None:
+    script = (
+        ROOT / "src" / "open_bos_stream" / "static" / "js" / "weather.js"
+    ).read_text(encoding="utf-8")
+    card = (
+        ROOT / "src" / "open_bos_stream" / "templates" / "components"
+        / "weather_card.html"
+    ).read_text(encoding="utf-8")
+
+    # Klartext statt nur Kp-Zahl.
+    assert '"Satellitennavigation"' in script
+    for state in ('"ruhig"', '"unruhig"', '"Sturm"', '"starker Sturm"'):
+        assert state in script
+    # Kurzinfo je Kachel: Hinweis beim Darüberfahren, Antippen klappt auf.
+    assert 'title="${escapeHTML(help)}"' in script
+    assert "function toggleWeatherHelp(tile)" in script
+    # Erklärliste nur auf der Wetterseite.
+    assert "{% if weather_page %}" in card
+    assert "Was bedeuten die Werte?" in card
