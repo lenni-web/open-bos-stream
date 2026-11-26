@@ -64,6 +64,10 @@ function showPage(page) {
         initMapPage();
     }
 
+    if (typeof setWeatherPageActive === "function") {
+        setWeatherPageActive(page === "weather");
+    }
+
 }
 
 function restorePage() {

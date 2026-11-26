@@ -18,6 +18,8 @@ CAUTION_SHARE = 0.75
 KP_CAUTION = 4
 KP_LIMIT = 5
 TEMPERATURE_MARGIN_C = 3
+# Der Ausblick der Ampel reicht nur über die nächsten Stunden.
+OUTLOOK_HOURS = 6
 
 ALERT_LEVELS = {
     "minor": None,
@@ -126,7 +128,7 @@ def assess(report: dict, config: WeatherConfig) -> dict:
             add(level, f"DWD: {alert.get('headline') or alert.get('event')}")
 
     # Ausblick: erste kommende Stunde, die einen Grenzwert überschreitet.
-    for hour in forecast[1:]:
+    for hour in forecast[1:OUTLOOK_HOURS + 1]:
         problems = []
         hour_wind = _max(hour.get("wind_speed_ms"), hour.get("wind_speed_120m_ms"))
         if hour_wind is not None and hour_wind > config.wind_limit_ms:

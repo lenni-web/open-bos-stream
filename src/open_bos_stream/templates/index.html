@@ -113,6 +113,7 @@
 
                 {% include "components/multi_source_panel.html" %}
 
+                {% set weather_card_variant = "dashboard" %}
                 {% include "components/weather_card.html" %}
 
                 <div class="dashboard-bottom">
@@ -144,6 +145,14 @@
 
             </div>
             {% endif %}
+
+            <div
+                id="page-weather"
+                class="page">
+
+                {% include "components/weather_page.html" %}
+
+            </div>
 
             <div
                 id="page-map"
@@ -330,6 +339,8 @@ window.openBosMediaToken = {{ media_token | tojson }};
 <script src="/static/js/map.js?v={{ version }}"></script>
 
 <script src="/static/js/weather.js?v={{ version }}"></script>
+
+<script src="/static/js/weather-radar.js?v={{ version }}"></script>
 
 <script src="/static/js/pwa.js?v={{ version }}"></script>
 </body>

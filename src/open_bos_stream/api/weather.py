@@ -9,7 +9,15 @@ from open_bos_stream.core.container import (
 )
 from open_bos_stream.core.models import WeatherConfig
 from open_bos_stream.map.service import DEFAULT_CENTER
-from open_bos_stream.weather.radar import RadarService, RadarUnavailableError
+from datetime import datetime, timezone
+
+from open_bos_stream.weather.radar import (
+    RadarService,
+    RadarUnavailableError,
+    TIMELINE_MAX_ZOOM,
+    TIMELINE_STEP_MINUTES,
+    timeline_frames,
+)
 from open_bos_stream.weather.service import WeatherService
 
 router = APIRouter(
@@ -114,6 +122,38 @@ async def radar_tile(offset: int, z: int, x: int, y: int) -> Response:
             status_code=404,
             detail="Unbekannter Radarzeitpunkt.",
         ) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RadarUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    return Response(
+        content=data,
+        media_type="image/png",
+        headers={"Cache-Control": "private, max-age=240"},
+    )
+
+
+@router.get("/radar/frames", dependencies=[GUEST])
+def radar_frames() -> dict:
+    settings = _require_enabled()
+    return {
+        "frames": timeline_frames(datetime.now(timezone.utc)),
+        "step_minutes": TIMELINE_STEP_MINUTES,
+        "location": default_location(settings),
+        **radar_service.layers(),
+        "max_zoom": TIMELINE_MAX_ZOOM,
+    }
+
+
+@router.get(
+    "/radar/time/{stamp}/{z}/{x}/{y}.png",
+    dependencies=[GUEST],
+)
+async def radar_tile_at(stamp: str, z: int, x: int, y: int) -> Response:
+    _require_enabled()
+    try:
+        data = await run_in_threadpool(radar_service.tile_at, stamp, z, x, y)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RadarUnavailableError as exc:

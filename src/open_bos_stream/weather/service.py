@@ -51,7 +51,8 @@ TTL_SECONDS = {
 }
 # Fehlgeschlagene Abrufe nicht bei jeder Anfrage wiederholen.
 ERROR_TTL_SECONDS = 2 * 60
-FORECAST_HOURS = 7
+# Übersicht zeigt die nächsten Stunden, die Wetterseite einen ganzen Tag.
+FORECAST_HOURS = 24
 # Etwa 5 km Raster: Nachbarorte teilen sich Zwischenspeicher und Abrufe.
 COORDINATE_PRECISION = 2
 

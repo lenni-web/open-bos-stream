@@ -9,6 +9,24 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Neuer Menüpunkt **Wetter** (für alle Rollen): alle Wetterangaben der
+  Übersicht mit Vorhersage über 24 Stunden und eine eigene Radarkarte.
+- Radar-Zeitleiste: Schieberegler von zwei Stunden zurück bis 90 Minuten
+  voraus im 10-Minuten-Takt, „Abspielen“ als Animation der
+  Niederschlagsbewegung, Farblegende in mm/h, Markierung des
+  Wetter-Standorts.
+- Die Wetterkarte der Übersicht führt mit „Wetter und Radar öffnen“ zur
+  neuen Seite.
+
+### Changed
+
+- Die Ampel betrachtet für ihren Ausblick weiterhin nur die nächsten sechs
+  Stunden, auch wenn die Vorhersage nun 24 Stunden umfasst.
+- Radarabrufe beim DWD laufen mit bis zu acht parallelen Anfragen;
+  vergangene Radarbilder bleiben eine Stunde zwischengespeichert.
+
 ---
 
 ## [0.19.0] - 2026-11-26

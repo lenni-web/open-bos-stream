@@ -71,11 +71,11 @@ function weatherTile(label, value, detail = "") {
     `;
 }
 
-function renderWeatherCard(report) {
-    const card = document.getElementById("weather-card");
-    if (!card) {
-        return;
-    }
+function weatherPart(card, name) {
+    return card.querySelector(`[data-weather="${name}"]`);
+}
+
+function renderWeatherCard(card, report) {
     card.hidden = false;
 
     const current = report.current ?? {};
@@ -90,19 +90,18 @@ function renderWeatherCard(report) {
               : "") +
           (current.time ? `, ${weatherClock(current.time)} Uhr` : "")
         : "";
-    document.getElementById("weather-location").textContent =
+    weatherPart(card, "location").textContent =
         `${location.name ?? "Standort"}${station}`;
 
-    const levelBox = document.getElementById("weather-level");
-    levelBox.dataset.level = level;
-    document.getElementById("weather-level-text").textContent =
+    weatherPart(card, "level").dataset.level = level;
+    weatherPart(card, "level-text").textContent =
         `${WEATHER_LEVEL_TEXT[level] ?? level} – ` +
         (report.assessment?.summary ?? "");
 
     const direction = weatherCompass(
         current.wind_direction_deg ?? now.wind_direction_deg
     );
-    document.getElementById("weather-values").innerHTML = [
+    weatherPart(card, "values").innerHTML = [
         weatherTile(
             "Wind 10 m",
             `${weatherNumber(current.wind_speed_ms ?? now.wind_speed_ms)} m/s`,
@@ -138,7 +137,7 @@ function renderWeatherCard(report) {
 
     const reasons = report.assessment?.reasons ?? [];
     const errors = Object.keys(report.errors ?? {});
-    document.getElementById("weather-reasons").innerHTML = [
+    weatherPart(card, "reasons").innerHTML = [
         ...reasons.map(reason => `
             <li data-level="${escapeHTML(reason.level)}">${escapeHTML(reason.text)}</li>
         `),
@@ -150,12 +149,11 @@ function renderWeatherCard(report) {
     ].join("");
 
     const alerts = report.alerts ?? [];
-    const alertBox = document.getElementById("weather-alerts");
-    alertBox.hidden = alerts.length === 0;
-    document.getElementById("weather-alerts-summary").textContent =
+    weatherPart(card, "alerts").hidden = alerts.length === 0;
+    weatherPart(card, "alerts-summary").textContent =
         `DWD-Warnungen (${alerts.length})` +
         (report.alert_area ? ` · ${report.alert_area}` : "");
-    document.getElementById("weather-alert-list").innerHTML = alerts
+    weatherPart(card, "alert-list").innerHTML = alerts
         .map(alert => `
             <li data-severity="${escapeHTML(alert.severity ?? "")}">
                 <strong>${escapeHTML(alert.headline ?? alert.event ?? "Warnung")}</strong>
@@ -167,8 +165,10 @@ function renderWeatherCard(report) {
         `)
         .join("");
 
-    document.querySelector("#weather-forecast-table tbody").innerHTML =
+    const hours = Number(card.dataset.forecastHours) || 7;
+    weatherPart(card, "forecast").innerHTML =
         (report.forecast ?? [])
+            .slice(0, hours)
             .map(hour => `
                 <tr>
                     <td>${escapeHTML(weatherClock(hour.time))}</td>
@@ -185,7 +185,7 @@ function renderWeatherCard(report) {
             `)
             .join("");
 
-    document.getElementById("weather-attribution").textContent =
+    weatherPart(card, "attribution").textContent =
         `${report.attribution ?? ""}.`;
 }
 
@@ -198,33 +198,44 @@ function weatherSourceName(kind) {
     }[kind] ?? kind;
 }
 
+function weatherCards() {
+    return [...document.querySelectorAll("[data-weather-card]")];
+}
+
 async function loadWeatherCard() {
-    const card = document.getElementById("weather-card");
-    if (!card) {
+    const cards = weatherCards();
+    if (!cards.length) {
         return;
     }
     try {
         const response = await fetch("/api/weather", {cache: "no-store"});
         if (response.status === 404) {
             // Wettermodul ausgeschaltet.
-            card.hidden = true;
+            cards.forEach(card => {
+                card.hidden = true;
+            });
+            document.getElementById("nav-weather")?.setAttribute("hidden", "");
             return;
         }
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
         }
-        renderWeatherCard(await response.json());
+        const report = await response.json();
+        document.getElementById("nav-weather")?.removeAttribute("hidden");
+        cards.forEach(card => renderWeatherCard(card, report));
     } catch (error) {
-        card.hidden = false;
-        document.getElementById("weather-level").dataset.level = "unknown";
-        document.getElementById("weather-level-text").textContent =
-            "Wetterdaten derzeit nicht abrufbar";
+        cards.forEach(card => {
+            card.hidden = false;
+            weatherPart(card, "level").dataset.level = "unknown";
+            weatherPart(card, "level-text").textContent =
+                "Wetterdaten derzeit nicht abrufbar";
+        });
         console.warn("Wetter konnte nicht geladen werden:", error);
     }
 }
 
 function startWeatherCard() {
-    if (!document.getElementById("weather-card")) {
+    if (!weatherCards().length) {
         return;
     }
     loadWeatherCard();

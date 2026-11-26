@@ -458,3 +458,105 @@ def test_weather_ui_is_wired_into_dashboard_map_and_settings() -> None:
     assert 'id="cfg-weather-enabled"' in settings
     # Wetter wird separat gespeichert und markiert die Konfiguration nicht.
     assert '".settings-section-weather"' in config_js
+
+
+# ----------------------------------------------------------------------
+# Wetterseite: Radar-Zeitleiste
+# ----------------------------------------------------------------------
+
+
+def test_timeline_covers_two_hours_back_and_ninety_minutes_ahead() -> None:
+    from open_bos_stream.weather.radar import timeline_frames
+
+    now = datetime(2026, 11, 26, 21, 22, 41, tzinfo=timezone.utc)
+    frames = timeline_frames(now)
+
+    assert frames[0] == {
+        "stamp": "202611261920",
+        "time": "2026-11-26T19:20:00Z",
+        "offset": -120,
+    }
+    assert frames[-1]["stamp"] == "202611262250"
+    assert [frame["offset"] for frame in frames].count(0) == 1
+    assert len(frames) == 22
+
+
+def test_timeline_tiles_accept_only_stamps_on_the_timeline() -> None:
+    calls: list[dict] = []
+    clock = [0.0]
+
+    def fetch(params):
+        calls.append(params)
+        return b"\x89PNG"
+
+    service = RadarService(
+        fetch=fetch,
+        clock=lambda: clock[0],
+        now=lambda: datetime(2026, 11, 26, 21, 22, tzinfo=timezone.utc),
+    )
+
+    service.tile_at("202611261950", 7, 67, 40)
+    assert calls[-1]["TIME"] == "2026-11-26T19:50:00.000Z"
+
+    for stamp in ("20261126", "202611261953", "202611260900", "202611270100"):
+        with pytest.raises(ValueError):
+            service.tile_at(stamp, 7, 67, 40)
+
+    # Vergangene Bilder bleiben eine Stunde im Speicher, aktuelle nur kurz.
+    service.tile_at("202611262120", 7, 67, 40)
+    clock[0] = 10 * 60
+    service.tile_at("202611261950", 7, 67, 40)
+    service.tile_at("202611262120", 7, 67, 40)
+    assert [call["TIME"] for call in calls] == [
+        "2026-11-26T19:50:00.000Z",
+        "2026-11-26T21:20:00.000Z",
+        "2026-11-26T21:20:00.000Z",
+    ]
+
+
+def test_frames_endpoint_for_the_weather_page(client) -> None:
+    test_client, _ = client
+    login(test_client, "viewer")
+
+    body = test_client.get("/api/weather/radar/frames").json()
+
+    assert len(body["frames"]) == 22
+    assert body["max_zoom"] == 7
+    assert body["location"]["origin"] == "map"
+    assert (
+        test_client.get("/api/weather/radar/time/2020/7/1/1.png").status_code
+        == 400
+    )
+
+
+def test_weather_page_is_in_the_menu_for_everyone() -> None:
+    templates = ROOT / "src" / "open_bos_stream" / "templates"
+    sidebar = (templates / "components" / "sidebar.html").read_text(
+        encoding="utf-8"
+    )
+    index = (templates / "index.html").read_text(encoding="utf-8")
+    page = (templates / "components" / "weather_page.html").read_text(
+        encoding="utf-8"
+    )
+    navigation = (
+        ROOT / "src" / "open_bos_stream" / "static" / "js" / "navigation.js"
+    ).read_text(encoding="utf-8")
+
+    nav = sidebar.index('id="nav-weather"')
+    # Nicht hinter einer Rollenbedingung.
+    assert sidebar.rfind("{% if", 0, nav) < sidebar.rfind("{% endif %}", 0, nav)
+    assert 'id="page-weather"' in index
+    assert '{% include "components/weather_page.html" %}' in index
+    assert 'id="weather-radar-slider"' in page
+    assert 'id="weather-radar-play"' in page
+    assert 'weather_card_variant = "page"' in page
+    assert "setWeatherPageActive(page === \"weather\")" in navigation
+
+
+def test_ampel_outlook_is_limited_to_the_next_hours() -> None:
+    forecast = [{"time": f"2026-11-26T{hour:02d}:00"} for hour in range(10, 20)]
+    forecast[8]["wind_gust_ms"] = 20
+
+    result = assess(report_with(current={"temperature_c": 10}, forecast=forecast), WeatherConfig())
+
+    assert result["level"] == "green"

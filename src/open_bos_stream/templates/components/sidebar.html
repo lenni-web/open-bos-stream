@@ -48,6 +48,16 @@
             <span class="nav-label">Karte</span>
         </a>
 
+        <a
+            id="nav-weather"
+            class="bos-nav-item app-nav-item"
+            href="#"
+            title="Wetter"
+            onclick="showPage('weather'); return false;">
+            {{ icon("weather") }}
+            <span class="nav-label">Wetter</span>
+        </a>
+
         {% if user.role != "viewer" %}
         <a
             id="nav-settings"

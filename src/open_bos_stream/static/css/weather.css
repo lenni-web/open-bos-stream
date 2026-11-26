@@ -323,3 +323,186 @@ html[data-color-scheme="dark"] .map-weather-radar-options small {
 html[data-color-scheme="dark"] .map-weather-controls {
     border-top-color: var(--bos-gray);
 }
+
+.weather-card-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.weather-card-actions .ui-icon {
+    vertical-align: -3px;
+}
+
+/* ----------------------------------------------------------
+   Wetterseite
+   ---------------------------------------------------------- */
+
+.weather-page-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.weather-page-grid .weather-card {
+    margin-bottom: 0;
+}
+
+.weather-card-page .weather-values {
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+}
+
+.weather-radar-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.weather-radar-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+}
+
+.weather-radar-header h2 {
+    margin: 0;
+    font-size: 1.05rem;
+}
+
+.weather-radar-header small {
+    color: var(--bos-muted, #5f6b7a);
+}
+
+.weather-radar-map {
+    position: relative;
+    height: min(62vh, 560px);
+    min-height: 320px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--shell-surface-muted, #f7f9fb);
+}
+
+.weather-radar-marker {
+    width: 16px;
+    height: 16px;
+    border: 3px solid #ffffff;
+    border-radius: 50%;
+    background: var(--bos-red);
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35);
+}
+
+.weather-radar-timeline {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px 14px;
+}
+
+.weather-radar-play {
+    min-width: 7.5rem;
+}
+
+.weather-radar-slider-wrap {
+    position: relative;
+    padding-bottom: 18px;
+}
+
+.weather-radar-slider {
+    width: 100%;
+    accent-color: var(--bos-red);
+}
+
+.weather-radar-ticks {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 16px;
+    font-size: 0.72rem;
+    color: var(--bos-muted, #5f6b7a);
+}
+
+.weather-radar-ticks span {
+    position: absolute;
+    top: 0;
+    white-space: nowrap;
+}
+
+.weather-radar-ticks [data-tick="start"] {
+    left: 0;
+}
+
+.weather-radar-ticks [data-tick="now"] {
+    transform: translateX(-50%);
+    font-weight: 700;
+    color: var(--bos-dark);
+}
+
+.weather-radar-ticks [data-tick="end"] {
+    right: 0;
+}
+
+.weather-radar-time {
+    min-width: 11rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.weather-radar-time[data-kind="forecast"] {
+    color: var(--bos-blue, #1a73e8);
+}
+
+.weather-radar-legend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    color: var(--bos-muted, #5f6b7a);
+}
+
+.weather-radar-legend ol {
+    display: flex;
+    flex: 1;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.weather-radar-legend li {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.weather-radar-legend li span {
+    display: block;
+    height: 8px;
+}
+
+@media (max-width: 1100px) {
+    .weather-page-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .weather-radar-timeline {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .weather-radar-time {
+        grid-column: 1 / -1;
+        text-align: left;
+    }
+
+    .weather-radar-map {
+        height: 52vh;
+    }
+
+    .weather-radar-legend li:nth-child(even) {
+        font-size: 0;
+    }
+}

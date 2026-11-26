@@ -1,31 +1,42 @@
 {% from "components/icons.html" import icon %}
-<section id="weather-card" class="bos-card weather-card" aria-labelledby="weather-title" hidden>
+{#
+    Wetterkarte für Übersicht (kompakt, nächste Stunden) und Wetterseite
+    (ausführlich, ganzer Tag). Vor dem Einbinden setzen:
+    weather_card_variant = "dashboard" | "page"
+#}
+{% set weather_page = weather_card_variant == "page" %}
+<section
+    class="bos-card weather-card{% if weather_page %} weather-card-page{% endif %}"
+    data-weather-card
+    data-forecast-hours="{{ 24 if weather_page else 7 }}"
+    aria-label="Wetter für den Flugbetrieb"
+    hidden>
     <div class="weather-header">
         <span class="weather-icon" aria-hidden="true">{{ icon("weather", 22) }}</span>
         <div class="weather-heading">
-            <h2 id="weather-title">Wetter für den Flugbetrieb</h2>
-            <small id="weather-location">Wird geladen …</small>
+            <h2>Wetter für den Flugbetrieb</h2>
+            <small data-weather="location">Wird geladen …</small>
         </div>
-        <div id="weather-level" class="weather-level" data-level="unknown" role="status">
+        <div class="weather-level" data-weather="level" data-level="unknown" role="status">
             <span class="weather-level-dot" aria-hidden="true"></span>
-            <span id="weather-level-text">Wird geladen …</span>
+            <span data-weather="level-text">Wird geladen …</span>
         </div>
     </div>
 
-    <div id="weather-values" class="weather-values"></div>
+    <div class="weather-values" data-weather="values"></div>
 
-    <ul id="weather-reasons" class="weather-reasons"></ul>
+    <ul class="weather-reasons" data-weather="reasons"></ul>
 
     <div class="weather-details">
-        <details id="weather-alerts" class="weather-alerts" hidden>
-            <summary id="weather-alerts-summary">DWD-Warnungen</summary>
-            <ul id="weather-alert-list"></ul>
+        <details class="weather-alerts" data-weather="alerts" {% if weather_page %}open{% endif %} hidden>
+            <summary data-weather="alerts-summary">DWD-Warnungen</summary>
+            <ul data-weather="alert-list"></ul>
         </details>
 
-        <details class="weather-forecast">
-            <summary>Vorhersage nächste Stunden</summary>
+        <details class="weather-forecast" {% if weather_page %}open{% endif %}>
+            <summary>{{ "Vorhersage nächste 24 Stunden" if weather_page else "Vorhersage nächste Stunden" }}</summary>
             <div class="weather-forecast-scroll">
-                <table id="weather-forecast-table">
+                <table>
                     <thead>
                         <tr>
                             <th scope="col">Uhrzeit</th>
@@ -36,15 +47,23 @@
                             <th scope="col">Temperatur</th>
                         </tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody data-weather="forecast"></tbody>
                 </table>
             </div>
         </details>
     </div>
 
     <p class="weather-footer">
-        <span id="weather-attribution"></span>
+        <span data-weather="attribution"></span>
         Orientierungshilfe – maßgeblich sind Herstellerangaben und die
         Entscheidung der Fernpilotin oder des Fernpiloten.
     </p>
+
+    {% if not weather_page %}
+    <div class="weather-card-actions">
+        <button class="bos-button bos-button-small" type="button" onclick="showPage('weather')">
+            {{ icon("weather", 16) }} Wetter und Radar öffnen
+        </button>
+    </div>
+    {% endif %}
 </section>

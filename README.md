@@ -538,13 +538,23 @@ Die Übersicht zeigt für alle angemeldeten Nutzer eine Wetterkarte für den
 Flugbetrieb, die Karte zusätzlich das Wetter der Kartenmitte und auf Wunsch
 das Niederschlagsradar des DWD.
 
+Der Menüpunkt **Wetter** bündelt alles auf einer Seite: dieselben Angaben wie
+die Übersicht mit einer Vorhersage über 24 Stunden und eine eigene
+Radarkarte mit **Zeitleiste**. Ein Schieberegler wählt den Zeitpunkt von zwei
+Stunden zurück bis 90 Minuten voraus (alle 10 Minuten), „Abspielen“ zeigt die
+Bewegung der Niederschlagsgebiete als Animation. Bilder bis „Jetzt“ sind
+Messungen, danach die Vorhersage des DWD (Radar-Nowcast). Alle Zeitpunkte
+laden im Hintergrund – zuerst „Jetzt“, dann von dort nach außen –, damit die
+Animation ohne Nachladen läuft. Vergangene Bilder speichert der Server eine
+Stunde zwischen, aktuelle und vorhergesagte vier Minuten.
+
 | Angabe | Quelle | Aktualisierung |
 |---|---|---|
 | Messwerte der nächsten DWD-Station (Wind, Böen, Temperatur, Niederschlag, Sicht) | Bright Sky (Daten: DWD) | 10 Minuten |
-| Vorhersage der nächsten Stunden, Wind in 80 und 120 m Höhe | Open-Meteo, Modell DWD ICON | 30 Minuten |
+| Vorhersage der nächsten 24 Stunden, Wind in 80 und 120 m Höhe | Open-Meteo, Modell DWD ICON | 30 Minuten |
 | Amtliche Wetterwarnungen für die Gemeinde | Bright Sky (Daten: DWD) | 10 Minuten |
 | Kp-Index (Störungen der Satellitennavigation) | NOAA SWPC | 60 Minuten |
-| Niederschlagsradar mit Vorhersage bis +90 Minuten | DWD-GeoServer (Produkt RV) | 5 Minuten |
+| Niederschlagsradar: 2 Stunden Rückblick, Vorhersage bis +90 Minuten | DWD-GeoServer (Produkt RV) | 5 Minuten |
 
 Die **Wetter-Ampel** vergleicht die Werte mit einstellbaren Grenzwerten
 (Einstellungen → Wetter): Dauerwind am Boden und in 120 m, Böen, Temperatur,
