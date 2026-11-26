@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.20.4] - 2026-11-26
+
 ### Changed
 
 - Wetterseite: Die Vorhersage der nächsten 24 Stunden ist aufklappbar und
