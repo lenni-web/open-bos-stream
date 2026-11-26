@@ -152,8 +152,8 @@ def test_app_shell_has_status_user_menu_and_theme_switch() -> None:
         "user-panel",
     ):
         assert element_id in ids
-    # Systemdetails nur für Admins, Zuschauer sehen nur den Gesamtstatus.
-    assert '{% if user.role != "viewer" %}\n            <div id="status-panel"' in header
+    # Systemdetails nur für Kreis-Admins und Superadmins.
+    assert '{% if can.server_admin %}\n            <div id="status-panel"' in header
     for choice in ("auto", "light", "dark"):
         assert f'data-theme-choice="{choice}"' in header
     # Farbschema wird im <head> gesetzt, damit nichts aufblitzt.
@@ -447,15 +447,22 @@ def test_offline_sources_and_role_ui_are_present() -> None:
     assert "offlineOrder" in source_js
     assert "window.currentUser" in index
     assert 'user.role == "superadmin"' in settings
-    assert "Benutzer und Rollen" in settings
+    assert "Organisation und Konten" in settings
 
 
-def render_sidebar(role: str) -> str:
+def render_sidebar(role: str, *, server_admin: bool | None = None) -> str:
     from jinja2 import Environment, FileSystemLoader
 
+    from open_bos_stream.api.web import permissions
+
+    user = {"role": role, "username": "test"}
+    can = permissions(user)
+    if server_admin is not None:
+        can["server_admin"] = server_admin
     environment = Environment(loader=FileSystemLoader(ROOT / "templates"))
     return environment.get_template("components/sidebar.html").render(
-        user={"role": role, "username": "test"},
+        user=user,
+        can=can,
         version="test",
     )
 
@@ -504,10 +511,16 @@ def test_system_page_is_hidden_from_viewers() -> None:
 
     system_page = index.index('id="page-system"')
     assert index.rfind(
-        '{% if user.role != "viewer" %}', 0, system_page
+        '{% if can.server_admin %}', 0, system_page
     ) != -1
     assert 'id="nav-system"' in render_sidebar("admin")
     assert 'id="nav-system"' not in render_sidebar("viewer")
+    # Wehr-Admins ohne Kreisrolle sehen die Systemseite nicht.
+    assert 'id="nav-system"' not in render_sidebar("admin", server_admin=False)
+    # Drohnenteams sehen die Einstellungen (Gastlinks), aber nicht System.
+    operator = render_sidebar("operator", server_admin=False)
+    assert 'id="nav-settings"' in operator
+    assert 'id="nav-system"' not in operator
 
 
 def test_viewer_streams_update_without_system_page() -> None:
@@ -572,7 +585,7 @@ def test_admin_initialization_does_not_call_superadmin_media_functions() -> None
     )[1].split("}", 1)[0]
     assert "refreshSnapshot();" in superadmin_block
     assert "refreshMediaLibrary();" in superadmin_block
-    assert app.index('role !== "viewer"') < app.index(
+    assert app.index("window.currentPermissions?.admin") < app.index(
         "refreshSnapshot();"
     )
 
@@ -734,19 +747,25 @@ def test_transcoding_options_belong_to_each_source() -> None:
     assert "loadSourceEncoders" in sources
 
 
-def test_admins_can_manage_non_superadmin_users() -> None:
-    users = (
-        ROOT / "static" / "js" / "auth_users.js"
-    ).read_text(encoding="utf-8")
-
-    assert "function saveUser(username)" in users
-    assert "Neues Passwort (optional)" in users
-    assert "api.patch(" in users
-    assert 'window.currentUser?.role === "viewer"' in users
-    assert 'window.currentUser?.role === "superadmin"' in users
-    assert '{% if user.role != "viewer" %}' in (
+def test_organisation_management_replaces_flat_user_list() -> None:
+    script = (ROOT / "static" / "js" / "organizations.js").read_text(encoding="utf-8")
+    settings = (
         ROOT / "templates" / "components" / "settings_card.html"
     ).read_text(encoding="utf-8")
+    index = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
+
+    assert not (ROOT / "static" / "js" / "auth_users.js").exists()
+    assert "/static/js/organizations.js" in index
+    assert 'id="org-management"' in settings
+    for endpoint in (
+        '"/api/org/organizations"',
+        '"/api/org/users"',
+        "/api/org/users/${userId}/memberships/${organizationId}",
+        "/api/org/users/${userId}/qualifications",
+    ):
+        assert endpoint in script
+    # Superadmin-Rolle nur für Superadmins sichtbar.
+    assert "window.currentPermissions?.superadmin" in script
 
 
 def test_viewer_view_hides_technical_details() -> None:

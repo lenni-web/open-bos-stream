@@ -77,6 +77,9 @@ class SourceConfig(BaseModel):
     preset: str | None = None
     tune: str | None = None
     audio_mode: Literal["none", "copy", "aac"] = "none"
+    # Wehr, der die Quelle gehört (Organisation in der Datenbank). Ohne
+    # Zuordnung ist die Quelle für alle angemeldeten Konten sichtbar.
+    organization_id: int | None = None
     # Empfangsprotokoll für Quellen, die an den Server senden (type "rtmp"):
     # RTMP für Drohnen-Apps, SRT für geringe Latenz über Mobilfunk.
     ingest_protocol: Literal["rtmp", "srt"] = "rtmp"

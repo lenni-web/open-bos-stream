@@ -36,6 +36,8 @@ class GuestLink(BaseModel):
     created_by: str
     created_at: float
     expires_at: float
+    # Organisation, der der Link gehört (für Sichtbarkeit und Protokoll).
+    organization_id: int | None = None
     revoked_at: float | None = None
     revoked_by: str | None = None
     last_used_at: float | None = None
@@ -128,6 +130,7 @@ class GuestLinkStore:
         source_ids: list[str],
         hours: float,
         created_by: str,
+        organization_id: int | None = None,
     ) -> tuple[GuestLink, str]:
         label = " ".join(str(label or "").split())
         if not label:
@@ -151,6 +154,7 @@ class GuestLinkStore:
             created_by=created_by,
             created_at=now,
             expires_at=now + hours * 3600,
+            organization_id=organization_id,
         )
         with self._lock:
             links = self._purge(list(self._read()), now)
@@ -166,6 +170,22 @@ class GuestLinkStore:
                 key=lambda link: link.created_at,
                 reverse=True,
             )
+
+    def assign_unowned(self, organization_id: int) -> int:
+        """Ältere Links ohne Organisation einmalig zuordnen."""
+
+        with self._lock:
+            links = list(self._read())
+            changed = 0
+            for index, link in enumerate(links):
+                if link.organization_id is None:
+                    links[index] = link.model_copy(
+                        update={"organization_id": organization_id}
+                    )
+                    changed += 1
+            if changed:
+                self._write(links)
+            return changed
 
     def revoke(self, link_id: str, revoked_by: str) -> GuestLink:
         with self._lock:

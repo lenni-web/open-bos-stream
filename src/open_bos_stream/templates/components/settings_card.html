@@ -5,10 +5,11 @@
             <span class="page-eyebrow">Konfiguration</span>
             <h1>Einstellungen</h1>
         </div>
-        <p>Quelle, Ausgabe, lokales Display und Webzugriff verwalten.</p>
+        <p>Quellen, Organisation, Gastlinks und Serverdienste verwalten.</p>
     </header>
 
     <div id="settings-content" class="settings-grid">
+        {% if can.admin %}
         <section class="bos-card settings-section settings-section-rtmp-inputs">
             <div class="settings-section-header">
                 <span class="settings-icon" aria-hidden="true">{{ icon("layers", 20) }}</span>
@@ -41,6 +42,7 @@
                 Videos werden erst bei einem verfügbaren Signal geöffnet.
             </div>
         </section>
+        {% endif %}
 
         {% if user.role == "superadmin" %}
         <section class="bos-card settings-section">
@@ -121,84 +123,6 @@
             </div>
         </section>
 
-        <section class="bos-card settings-section settings-section-weather">
-            <div class="settings-section-header">
-                <span class="settings-icon" aria-hidden="true">{{ icon("weather", 20) }}</span>
-                <div>
-                    <span class="section-kicker">Flugbetrieb</span>
-                    <h2>Wetter</h2>
-                    <p>Standort, DWD-Daten und Grenzwerte für die Wetter-Ampel.</p>
-                </div>
-            </div>
-
-            <label class="switch-row">
-                <input id="cfg-weather-enabled" type="checkbox">
-                <span>
-                    <strong>Wetter und Regenradar anzeigen</strong>
-                    <small>
-                        Der Server ruft Daten des Deutschen Wetterdienstes
-                        (Bright Sky, Open-Meteo) und den Kp-Index der NOAA ab.
-                        Ohne Internetzugang ausschalten.
-                    </small>
-                </span>
-            </label>
-
-            <div class="form-grid">
-                <div class="form-field form-field-wide">
-                    <label for="cfg-weather-location-name">Standortname</label>
-                    <input id="cfg-weather-location-name" class="bos-input" maxlength="80" placeholder="z. B. Feuerwache Stade">
-                </div>
-                <div class="form-field">
-                    <label for="cfg-weather-latitude">Breite</label>
-                    <input id="cfg-weather-latitude" class="bos-input" inputmode="decimal" placeholder="53.5639">
-                </div>
-                <div class="form-field">
-                    <label for="cfg-weather-longitude">Länge</label>
-                    <input id="cfg-weather-longitude" class="bos-input" inputmode="decimal" placeholder="9.5297">
-                    <small>Leer: Kartenmitte verwenden.</small>
-                </div>
-                <div class="form-field">
-                    <label for="cfg-weather-wind">Wind max. (m/s)</label>
-                    <input id="cfg-weather-wind" class="bos-input" type="number" min="2" max="30" step="0.5">
-                    <small>Dauerwind am Boden und in 120 m.</small>
-                </div>
-                <div class="form-field">
-                    <label for="cfg-weather-gust">Böen max. (m/s)</label>
-                    <input id="cfg-weather-gust" class="bos-input" type="number" min="2" max="35" step="0.5">
-                    <small>Mavic 3T, Matrice 350/4T: 12 m/s, Matrice 30: 15 m/s.</small>
-                </div>
-                <div class="form-field">
-                    <label for="cfg-weather-temp-min">Temperatur min. (°C)</label>
-                    <input id="cfg-weather-temp-min" class="bos-input" type="number" min="-40" max="20" step="1">
-                </div>
-                <div class="form-field">
-                    <label for="cfg-weather-temp-max">Temperatur max. (°C)</label>
-                    <input id="cfg-weather-temp-max" class="bos-input" type="number" min="10" max="60" step="1">
-                </div>
-                <div class="form-field">
-                    <label for="cfg-weather-rain">Niederschlag rot ab (mm/h)</label>
-                    <input id="cfg-weather-rain" class="bos-input" type="number" min="0.1" max="50" step="0.1">
-                    <small>Darunter gelb. Geräte mit IP55 vertragen mehr.</small>
-                </div>
-                <div class="form-field">
-                    <label for="cfg-weather-visibility">Sicht min. (m)</label>
-                    <input id="cfg-weather-visibility" class="bos-input" type="number" min="100" max="20000" step="100">
-                </div>
-            </div>
-
-            <div class="settings-inline-actions">
-                <button
-                    id="cfg-weather-save"
-                    class="bos-button bos-button-small"
-                    type="button"
-                    onclick="saveWeatherSettings()">
-                    Wetter speichern
-                </button>
-                <small id="cfg-weather-status" role="status">
-                    Wird separat und ohne Neustart gespeichert.
-                </small>
-            </div>
-        </section>
 
         {% if user.role == "superadmin" %}
         <section class="bos-card settings-section settings-section-notifications">
@@ -409,7 +333,88 @@
 
         {% endif %}
 
-        {% if user.role != "viewer" %}
+        {% if can.server_admin %}
+        <section class="bos-card settings-section settings-section-weather">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">{{ icon("weather", 20) }}</span>
+                <div>
+                    <span class="section-kicker">Flugbetrieb</span>
+                    <h2>Wetter</h2>
+                    <p>Standort, DWD-Daten und Grenzwerte für die Wetter-Ampel.</p>
+                </div>
+            </div>
+
+            <label class="switch-row">
+                <input id="cfg-weather-enabled" type="checkbox">
+                <span>
+                    <strong>Wetter und Regenradar anzeigen</strong>
+                    <small>
+                        Der Server ruft Daten des Deutschen Wetterdienstes
+                        (Bright Sky, Open-Meteo) und den Kp-Index der NOAA ab.
+                        Ohne Internetzugang ausschalten.
+                    </small>
+                </span>
+            </label>
+
+            <div class="form-grid">
+                <div class="form-field form-field-wide">
+                    <label for="cfg-weather-location-name">Standortname</label>
+                    <input id="cfg-weather-location-name" class="bos-input" maxlength="80" placeholder="z. B. Feuerwache Stade">
+                </div>
+                <div class="form-field">
+                    <label for="cfg-weather-latitude">Breite</label>
+                    <input id="cfg-weather-latitude" class="bos-input" inputmode="decimal" placeholder="53.5639">
+                </div>
+                <div class="form-field">
+                    <label for="cfg-weather-longitude">Länge</label>
+                    <input id="cfg-weather-longitude" class="bos-input" inputmode="decimal" placeholder="9.5297">
+                    <small>Leer: Kartenmitte verwenden.</small>
+                </div>
+                <div class="form-field">
+                    <label for="cfg-weather-wind">Wind max. (m/s)</label>
+                    <input id="cfg-weather-wind" class="bos-input" type="number" min="2" max="30" step="0.5">
+                    <small>Dauerwind am Boden und in 120 m.</small>
+                </div>
+                <div class="form-field">
+                    <label for="cfg-weather-gust">Böen max. (m/s)</label>
+                    <input id="cfg-weather-gust" class="bos-input" type="number" min="2" max="35" step="0.5">
+                    <small>Mavic 3T, Matrice 350/4T: 12 m/s, Matrice 30: 15 m/s.</small>
+                </div>
+                <div class="form-field">
+                    <label for="cfg-weather-temp-min">Temperatur min. (°C)</label>
+                    <input id="cfg-weather-temp-min" class="bos-input" type="number" min="-40" max="20" step="1">
+                </div>
+                <div class="form-field">
+                    <label for="cfg-weather-temp-max">Temperatur max. (°C)</label>
+                    <input id="cfg-weather-temp-max" class="bos-input" type="number" min="10" max="60" step="1">
+                </div>
+                <div class="form-field">
+                    <label for="cfg-weather-rain">Niederschlag rot ab (mm/h)</label>
+                    <input id="cfg-weather-rain" class="bos-input" type="number" min="0.1" max="50" step="0.1">
+                    <small>Darunter gelb. Geräte mit IP55 vertragen mehr.</small>
+                </div>
+                <div class="form-field">
+                    <label for="cfg-weather-visibility">Sicht min. (m)</label>
+                    <input id="cfg-weather-visibility" class="bos-input" type="number" min="100" max="20000" step="100">
+                </div>
+            </div>
+
+            <div class="settings-inline-actions">
+                <button
+                    id="cfg-weather-save"
+                    class="bos-button bos-button-small"
+                    type="button"
+                    onclick="saveWeatherSettings()">
+                    Wetter speichern
+                </button>
+                <small id="cfg-weather-status" role="status">
+                    Wird separat und ohne Neustart gespeichert.
+                </small>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if can.operate %}
         <section class="bos-card settings-section settings-section-guest-links">
             <div class="settings-section-header">
                 <span class="settings-icon" aria-hidden="true">{{ icon("globe", 20) }}</span>
@@ -433,48 +438,24 @@
         </section>
         {% endif %}
 
-        {% if user.role != "viewer" %}
-        <section class="bos-card settings-section settings-section-users">
+        {% if can.admin %}
+        <section class="bos-card settings-section settings-section-org">
             <div class="settings-section-header">
                 <span class="settings-icon" aria-hidden="true">{{ icon("users", 20) }}</span>
                 <div>
                     <span class="section-kicker">Zugriff</span>
-                    <h2>Benutzer und Rollen</h2>
-                    <p>Lokale Konten für Anzeige und Verwaltung.</p>
+                    <h2>Organisation und Konten</h2>
+                    <p>Wehren im Landkreis, Konten, Rollen und Fernpilotennachweise.</p>
                 </div>
             </div>
-            <div id="user-list" class="user-list"></div>
-            <div class="form-grid">
-                <label class="form-field">
-                    <span>Benutzername</span>
-                    <input id="new-user-name" class="bos-input">
-                </label>
-                <label class="form-field">
-                    <span>Rolle</span>
-                    <select id="new-user-role" class="bos-input">
-                        <option value="viewer">Viewer – nur ansehen</option>
-                        <option value="admin">Admin – Quellen verwalten</option>
-                        {% if user.role == "superadmin" %}
-                        <option value="superadmin">Superadmin – Systemverwaltung</option>
-                        {% endif %}
-                    </select>
-                </label>
-                <label class="form-field form-field-wide">
-                    <span>Startpasswort</span>
-                    <input id="new-user-password" class="bos-input"
-                        type="password" minlength="10" autocomplete="new-password">
-                </label>
-            </div>
-            <div class="inline-action">
-                <p id="user-management-status" class="service-inline-status"></p>
-                <button class="bos-button" type="button" onclick="createUser()">
-                    Benutzer anlegen
-                </button>
+            <div id="org-management" class="org-management">
+                <p class="service-inline-status">Wird geladen …</p>
             </div>
         </section>
         {% endif %}
     </div>
 
+    {% if can.admin %}
     <div class="settings-actionbar">
         <div>
             <span id="config-dirty-indicator" class="dirty-indicator">
@@ -482,6 +463,7 @@
             </span>
             <span id="config-save-status" class="save-status" aria-live="polite"></span>
         </div>
+        {% if can.server_admin %}
         <button
             id="config-test-button"
             class="bos-button"
@@ -489,6 +471,8 @@
             onclick="testConfig()">
             <span class="label-long">Konfiguration testen</span><span class="label-short">Testen</span>
         </button>
+        {% endif %}
+        {% if can.superadmin %}
         <button
             id="config-restore-button"
             class="bos-button"
@@ -496,6 +480,7 @@
             onclick="restoreConfig()">
             <span class="label-long">Letzte funktionierende laden</span><span class="label-short">Wiederherstellen</span>
         </button>
+        {% endif %}
         <button
             id="config-save-button"
             class="bos-button bos-button-green"
@@ -504,4 +489,5 @@
             <span class="label-long">Änderungen speichern</span><span class="label-short">Speichern</span>
         </button>
     </div>
+    {% endif %}
 </section>

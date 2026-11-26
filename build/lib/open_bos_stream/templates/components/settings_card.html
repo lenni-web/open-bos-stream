@@ -1,0 +1,493 @@
+{% from "components/icons.html" import icon %}
+<section class="settings-page">
+    <header class="page-header">
+        <div>
+            <span class="page-eyebrow">Konfiguration</span>
+            <h1>Einstellungen</h1>
+        </div>
+        <p>Quellen, Organisation, Gastlinks und Serverdienste verwalten.</p>
+    </header>
+
+    <div id="settings-content" class="settings-grid">
+        {% if can.admin %}
+        <section class="bos-card settings-section settings-section-rtmp-inputs">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">{{ icon("layers", 20) }}</span>
+                <div>
+                    <span class="section-kicker">Mehrquellenempfang</span>
+                    <h2>Quellen</h2>
+                    <p>Bis zu acht gleichwertige lokale oder Netzwerkquellen.</p>
+                    <p class="settings-profile-recommendation">
+                        <strong>Profil-Empfehlung:</strong>
+                        „Ausgewogen“ bietet bis zu vier Quellen in klarerer
+                        480p-Vorschau. Für fünf bis acht Quellen oder knappe
+                        CPU-Reserven empfiehlt sich „Sparsam“ mit 360p.
+                        Im Vollbild bleibt bei beiden das Original erhalten.
+                    </p>
+                </div>
+            </div>
+
+            <div id="source-settings"></div>
+
+            <button
+                id="source-add-button"
+                class="bos-button"
+                type="button"
+                onclick="addSource()">
+                + Quelle hinzufügen
+            </button>
+
+            <div class="info-note">
+                RTMP-Empfangspfade entstehen automatisch aus der ID.
+                Videos werden erst bei einem verfügbaren Signal geöffnet.
+            </div>
+        </section>
+        {% endif %}
+
+        {% if user.role == "superadmin" %}
+        <section class="bos-card settings-section">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">{{ icon("camera", 20) }}</span>
+                <div>
+                    <span class="section-kicker">Mediathek</span>
+                    <h2>Snapshot- und Aufnahmequelle</h2>
+                    <p>Legt fest, welche Livequelle für neue Medien verwendet wird.</p>
+                </div>
+            </div>
+            <label class="form-field">
+                <span>Ausgewählte Quelle</span>
+                <select id="cfg-media-source" class="bos-input"></select>
+                <small>Die Auswahl kann nur ein Superadmin ändern.</small>
+            </label>
+            <fieldset class="automatic-recording-sources">
+                <legend>Automatisch aufnehmen</legend>
+                <div id="cfg-recording-automatic-list"></div>
+                <small>
+                    Angehakte Quellen starten die Aufnahme beim
+                    Eingangssignal und schließen sie beim Signalende
+                    selbstständig ab. Höchstens vier Quellen; mehrere
+                    Aufnahmen laufen parallel. Die Auswahl wird sofort
+                    gespeichert.
+                </small>
+                <small id="cfg-recording-mode-status" role="status"></small>
+            </fieldset>
+        </section>
+
+        <section class="bos-card settings-section">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">{{ icon("storage", 20) }}</span>
+                <div>
+                    <span class="section-kicker">Mediathek</span>
+                    <h2>Speicherschutz</h2>
+                    <p>Warnung, Sperre und Bereinigung bei knappem Speicher.</p>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="cfg-storage-warning">Warnung unter (% frei)</label>
+                    <input id="cfg-storage-warning" class="bos-input" type="number" min="2" max="50" step="1">
+                </div>
+
+                <div class="form-field">
+                    <label for="cfg-storage-minimum">Mindestgrenze (% frei)</label>
+                    <input id="cfg-storage-minimum" class="bos-input" type="number" min="1" max="40" step="1">
+                </div>
+            </div>
+
+            <label class="switch-row">
+                <input id="cfg-storage-auto-cleanup" type="checkbox">
+                <span>
+                    <strong>Älteste Medien bei Speichermangel löschen</strong>
+                    <small>
+                        Unter der Mindestgrenze werden die ältesten Aufnahmen
+                        und Snapshots gelöscht, bis wieder genug Speicher frei
+                        ist. Als „Behalten“ markierte Medien bleiben erhalten.
+                        Ausgeschaltet werden neue Aufnahmen und Snapshots
+                        stattdessen gesperrt.
+                    </small>
+                </span>
+            </label>
+
+            <div class="settings-inline-actions">
+                <button
+                    id="cfg-storage-save"
+                    class="bos-button bos-button-small"
+                    type="button"
+                    onclick="saveStorageSettings()">
+                    Speicherschutz speichern
+                </button>
+                <small id="cfg-storage-status" role="status">
+                    Wird separat und ohne Neustart gespeichert.
+                </small>
+            </div>
+        </section>
+
+
+        {% if user.role == "superadmin" %}
+        <section class="bos-card settings-section settings-section-notifications">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">{{ icon("mail", 20) }}</span>
+                <div>
+                    <span class="section-kicker">Alarmierung</span>
+                    <h2>Benachrichtigungen</h2>
+                    <p>E-Mail bei Störungen, mit Entwarnung sobald wieder alles läuft.</p>
+                </div>
+            </div>
+
+            <label class="switch-row">
+                <input id="cfg-notify-enabled" type="checkbox">
+                <span>
+                    <strong>E-Mail-Benachrichtigungen senden</strong>
+                    <small>
+                        Kurze Aussetzer werden abgewartet, und jede Störung wird
+                        höchstens alle zehn Minuten gemeldet.
+                    </small>
+                </span>
+            </label>
+
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="cfg-notify-host">SMTP-Server</label>
+                    <input id="cfg-notify-host" class="bos-input" autocomplete="off" placeholder="smtp.beispiel.de">
+                </div>
+                <div class="form-field">
+                    <label for="cfg-notify-port">Port</label>
+                    <input id="cfg-notify-port" class="bos-input" type="number" min="1" max="65535" step="1">
+                </div>
+                <div class="form-field">
+                    <label for="cfg-notify-security">Verschlüsselung</label>
+                    <select id="cfg-notify-security" class="bos-input">
+                        <option value="starttls">STARTTLS (meist Port 587)</option>
+                        <option value="ssl">SSL/TLS (meist Port 465)</option>
+                        <option value="none">Keine (nur im internen Netz)</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="cfg-notify-username">Benutzername</label>
+                    <input id="cfg-notify-username" class="bos-input" autocomplete="off">
+                </div>
+                <div class="form-field">
+                    <label for="cfg-notify-password">Passwort</label>
+                    <input id="cfg-notify-password" class="bos-input" type="password" autocomplete="new-password">
+                    <small id="cfg-notify-password-hint">Leer lassen, um das gespeicherte Passwort zu behalten.</small>
+                </div>
+                <div class="form-field">
+                    <label for="cfg-notify-sender">Absender</label>
+                    <input id="cfg-notify-sender" class="bos-input" type="email" placeholder="stream@beispiel.de">
+                </div>
+                <div class="form-field form-field-wide">
+                    <label for="cfg-notify-recipients">Empfänger</label>
+                    <input id="cfg-notify-recipients" class="bos-input" placeholder="name@beispiel.de, zweite@beispiel.de">
+                    <small>Bis zu zehn Adressen, durch Komma getrennt.</small>
+                </div>
+            </div>
+
+            <fieldset class="notification-events">
+                <legend>Melden bei</legend>
+                <label><input type="checkbox" data-notify-event="source_offline"> Quelle ohne Signal (nach 30 s)</label>
+                <label><input type="checkbox" data-notify-event="mediamtx_offline"> Streaming-Server nicht erreichbar (nach 20 s)</label>
+                <label><input type="checkbox" data-notify-event="storage_low"> Speicher knapp oder erschöpft</label>
+                <label><input type="checkbox" data-notify-event="recording_problem"> Aufnahme abgebrochen oder fehlgeschlagen</label>
+                <label><input type="checkbox" data-notify-event="output_failed"> Streaming-Ausgang unerwartet beendet</label>
+                <label><input type="checkbox" data-notify-event="server_started"> Server gestartet (z. B. nach Neustart)</label>
+            </fieldset>
+
+            <div class="settings-inline-actions">
+                <button
+                    id="cfg-notify-save"
+                    class="bos-button bos-button-small"
+                    type="button"
+                    onclick="saveNotificationSettings()">
+                    Benachrichtigungen speichern
+                </button>
+                <button
+                    id="cfg-notify-test"
+                    class="bos-button bos-button-small"
+                    type="button"
+                    onclick="sendTestNotification()">
+                    Speichern und Testnachricht senden
+                </button>
+                <small id="cfg-notify-status" role="status">
+                    Wird separat und ohne Neustart gespeichert.
+                </small>
+            </div>
+        </section>
+        {% endif %}
+
+        <section class="bos-card settings-section">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">⇥</span>
+                <div>
+                    <span class="section-kicker">Weiterleitung</span>
+                    <h2>Streaming-Ausgänge</h2>
+                    <p>Zusätzliche RTMP-, RTSP- oder SRT-Ziele.</p>
+                </div>
+            </div>
+
+            <div id="stream-output-settings"></div>
+
+            <button
+                class="bos-button"
+                type="button"
+                onclick="addStreamOutput()">
+                + Ausgang hinzufügen
+            </button>
+        </section>
+
+        {% if installation_profile == "local" %}
+        <section class="bos-card settings-section settings-section-display">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">{{ icon("auto", 20) }}</span>
+                <div>
+                    <span class="section-kicker">Vor Ort</span>
+                    <h2>Lokales Display</h2>
+                    <p>Chromium-Modus und Energieverwaltung des Bildschirms.</p>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-field form-field-wide">
+                    <label for="cfg-display-mode">Startmodus</label>
+                    <select id="cfg-display-mode" class="bos-input">
+                        <option value="kiosk">Kiosk – Dashboard ohne Browserrahmen</option>
+                        <option value="normal">Normal – Chromium mit Bedienoberfläche</option>
+                        <option value="stream">Vollbild – nur Live-Stream</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="cfg-display-dashboard-url">Dashboard-URL</label>
+                    <input id="cfg-display-dashboard-url" class="bos-input" type="url">
+                </div>
+
+                <div class="form-field">
+                    <label for="cfg-display-stream-url">Streamanzeige-URL</label>
+                    <input id="cfg-display-stream-url" class="bos-input" type="url">
+                </div>
+            </div>
+
+            <div class="switch-list">
+                <label class="switch-row">
+                    <input id="cfg-display-hide-cursor" type="checkbox">
+                    <span><strong>Mauszeiger ausblenden</strong></span>
+                </label>
+                <label class="switch-row">
+                    <input id="cfg-display-power" type="checkbox">
+                    <span><strong>Energiesparen verhindern</strong></span>
+                </label>
+                <label class="switch-row">
+                    <input id="cfg-display-enabled" type="checkbox">
+                    <span><strong>Display-Dienst einschalten</strong></span>
+                </label>
+            </div>
+
+            <div class="inline-action">
+                <p id="display-service-status" class="service-inline-status">
+                    Display-Status wird geladen …
+                </p>
+                <button
+                    id="display-save-button"
+                    class="bos-button"
+                    type="button"
+                    onclick="saveDisplayConfig()">
+                    Display übernehmen
+                </button>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if installation_profile == "local" %}
+        <section class="bos-card settings-section settings-section-web">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">{{ icon("globe", 20) }}</span>
+                <div>
+                    <span class="section-kicker">Erreichbarkeit</span>
+                    <h2>Webzugriff</h2>
+                    <p>Optional ohne Portangabe über den HTTP-Standardport.</p>
+                </div>
+            </div>
+
+            <label class="switch-row">
+                <input id="cfg-web-access-enabled" type="checkbox">
+                <span>
+                    <strong>Standard-Webzugriff über Port 80</strong>
+                    <small>Port 8000 bleibt unabhängig davon als Rückfallweg verfügbar.</small>
+                </span>
+            </label>
+
+            <div class="inline-action">
+                <p id="web-access-status" class="service-inline-status">
+                    Webzugriff-Status wird geladen …
+                </p>
+                <button
+                    id="web-access-save-button"
+                    class="bos-button"
+                    type="button"
+                    onclick="saveWebAccessConfig()">
+                    Webzugriff übernehmen
+                </button>
+            </div>
+        </section>
+        {% endif %}
+
+        {% endif %}
+
+        {% if can.server_admin %}
+        <section class="bos-card settings-section settings-section-weather">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">{{ icon("weather", 20) }}</span>
+                <div>
+                    <span class="section-kicker">Flugbetrieb</span>
+                    <h2>Wetter</h2>
+                    <p>Standort, DWD-Daten und Grenzwerte für die Wetter-Ampel.</p>
+                </div>
+            </div>
+
+            <label class="switch-row">
+                <input id="cfg-weather-enabled" type="checkbox">
+                <span>
+                    <strong>Wetter und Regenradar anzeigen</strong>
+                    <small>
+                        Der Server ruft Daten des Deutschen Wetterdienstes
+                        (Bright Sky, Open-Meteo) und den Kp-Index der NOAA ab.
+                        Ohne Internetzugang ausschalten.
+                    </small>
+                </span>
+            </label>
+
+            <div class="form-grid">
+                <div class="form-field form-field-wide">
+                    <label for="cfg-weather-location-name">Standortname</label>
+                    <input id="cfg-weather-location-name" class="bos-input" maxlength="80" placeholder="z. B. Feuerwache Stade">
+                </div>
+                <div class="form-field">
+                    <label for="cfg-weather-latitude">Breite</label>
+                    <input id="cfg-weather-latitude" class="bos-input" inputmode="decimal" placeholder="53.5639">
+                </div>
+                <div class="form-field">
+                    <label for="cfg-weather-longitude">Länge</label>
+                    <input id="cfg-weather-longitude" class="bos-input" inputmode="decimal" placeholder="9.5297">
+                    <small>Leer: Kartenmitte verwenden.</small>
+                </div>
+                <div class="form-field">
+                    <label for="cfg-weather-wind">Wind max. (m/s)</label>
+                    <input id="cfg-weather-wind" class="bos-input" type="number" min="2" max="30" step="0.5">
+                    <small>Dauerwind am Boden und in 120 m.</small>
+                </div>
+                <div class="form-field">
+                    <label for="cfg-weather-gust">Böen max. (m/s)</label>
+                    <input id="cfg-weather-gust" class="bos-input" type="number" min="2" max="35" step="0.5">
+                    <small>Mavic 3T, Matrice 350/4T: 12 m/s, Matrice 30: 15 m/s.</small>
+                </div>
+                <div class="form-field">
+                    <label for="cfg-weather-temp-min">Temperatur min. (°C)</label>
+                    <input id="cfg-weather-temp-min" class="bos-input" type="number" min="-40" max="20" step="1">
+                </div>
+                <div class="form-field">
+                    <label for="cfg-weather-temp-max">Temperatur max. (°C)</label>
+                    <input id="cfg-weather-temp-max" class="bos-input" type="number" min="10" max="60" step="1">
+                </div>
+                <div class="form-field">
+                    <label for="cfg-weather-rain">Niederschlag rot ab (mm/h)</label>
+                    <input id="cfg-weather-rain" class="bos-input" type="number" min="0.1" max="50" step="0.1">
+                    <small>Darunter gelb. Geräte mit IP55 vertragen mehr.</small>
+                </div>
+                <div class="form-field">
+                    <label for="cfg-weather-visibility">Sicht min. (m)</label>
+                    <input id="cfg-weather-visibility" class="bos-input" type="number" min="100" max="20000" step="100">
+                </div>
+            </div>
+
+            <div class="settings-inline-actions">
+                <button
+                    id="cfg-weather-save"
+                    class="bos-button bos-button-small"
+                    type="button"
+                    onclick="saveWeatherSettings()">
+                    Wetter speichern
+                </button>
+                <small id="cfg-weather-status" role="status">
+                    Wird separat und ohne Neustart gespeichert.
+                </small>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if can.operate %}
+        <section class="bos-card settings-section settings-section-guest-links">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">{{ icon("globe", 20) }}</span>
+                <div>
+                    <span class="section-kicker">Zugriff</span>
+                    <h2>Gastlinks</h2>
+                    <p>Zeitlich begrenzter Zugang zu ausgewählten Livebildern, ohne Konto.</p>
+                </div>
+            </div>
+            <div id="guest-link-list" class="guest-link-list">
+                <p class="service-inline-status">Noch keine Gastlinks.</p>
+            </div>
+            <div class="inline-action">
+                <p id="guest-link-list-status" class="service-inline-status">
+                    Neue Gastlinks entstehen in der Übersicht über „Gastlink teilen“.
+                </p>
+                <button class="bos-button" type="button" onclick="openGuestLinkDialog()">
+                    Gastlink teilen
+                </button>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if can.admin %}
+        <section class="bos-card settings-section settings-section-org">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">{{ icon("users", 20) }}</span>
+                <div>
+                    <span class="section-kicker">Zugriff</span>
+                    <h2>Organisation und Konten</h2>
+                    <p>Wehren im Landkreis, Konten, Rollen und Fernpilotennachweise.</p>
+                </div>
+            </div>
+            <div id="org-management" class="org-management">
+                <p class="service-inline-status">Wird geladen …</p>
+            </div>
+        </section>
+        {% endif %}
+    </div>
+
+    {% if can.admin %}
+    <div class="settings-actionbar">
+        <div>
+            <span id="config-dirty-indicator" class="dirty-indicator">
+                Keine ungespeicherten Änderungen
+            </span>
+            <span id="config-save-status" class="save-status" aria-live="polite"></span>
+        </div>
+        {% if can.server_admin %}
+        <button
+            id="config-test-button"
+            class="bos-button"
+            type="button"
+            onclick="testConfig()">
+            <span class="label-long">Konfiguration testen</span><span class="label-short">Testen</span>
+        </button>
+        {% endif %}
+        {% if can.superadmin %}
+        <button
+            id="config-restore-button"
+            class="bos-button"
+            type="button"
+            onclick="restoreConfig()">
+            <span class="label-long">Letzte funktionierende laden</span><span class="label-short">Wiederherstellen</span>
+        </button>
+        {% endif %}
+        <button
+            id="config-save-button"
+            class="bos-button bos-button-green"
+            type="button"
+            onclick="saveConfig()">
+            <span class="label-long">Änderungen speichern</span><span class="label-short">Speichern</span>
+        </button>
+    </div>
+    {% endif %}
+</section>

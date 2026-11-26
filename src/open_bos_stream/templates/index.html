@@ -162,7 +162,7 @@
 
             </div>
 
-            {% if user.role != "viewer" %}
+            {% if can.operate %}
             <div
                 id="page-settings"
                 class="page">
@@ -172,7 +172,7 @@
             </div>
             {% endif %}
 
-            {% if user.role != "viewer" %}
+            {% if can.server_admin %}
             <div
                 id="page-system"
                 class="page">
@@ -188,8 +188,9 @@
 
 </div>
 
-{% if user.role in ("admin", "superadmin") %}
 {% include "components/pwa_install.html" %}
+
+{% if can.operate %}
 
 <dialog id="guest-link-dialog" class="guest-link-dialog" aria-labelledby="guest-link-title">
     <form id="guest-link-form" method="dialog">
@@ -246,11 +247,12 @@
 
 <script>
 window.currentUser = {{ user | tojson }};
+window.currentPermissions = {{ can | tojson }};
 window.installationProfile = {{ installation_profile | tojson }};
 window.openBosMediaToken = {{ media_token | tojson }};
 </script>
 <script src="/static/js/api.js?v={{ version }}"></script>
-<script src="/static/js/auth_users.js?v={{ version }}"></script>
+<script src="/static/js/organizations.js?v={{ version }}"></script>
 
 <script src="/static/js/ui.js?v={{ version }}"></script>
 <script src="/static/js/shell.js?v={{ version }}"></script>
@@ -287,12 +289,12 @@ window.openBosMediaToken = {{ media_token | tojson }};
 <script src="/static/js/notifications.js?v={{ version }}"></script>
 {% endif %}
 
-{% if user.role != "viewer" %}
+{% if can.server_admin %}
 <script src="/static/js/system_admin.js?v={{ version }}"></script>
 {% endif %}
 
 <script src="/static/js/navigation.js?v={{ version }}"></script>
-{% if user.role in ("admin", "superadmin") %}
+{% if can.operate %}
 <script src="/static/vendor/qrcode.js?v={{ version }}"></script>
 <script src="/static/js/guest_links.js?v={{ version }}"></script>
 {% endif %}

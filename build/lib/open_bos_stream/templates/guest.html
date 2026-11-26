@@ -1,0 +1,125 @@
+{% from "components/icons.html" import icon %}
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Gastzugang · Open BOS Drohnen</title>
+<meta name="theme-color" content="#c9202f">
+<link rel="icon" href="/static/icons/open-bos-stream.svg?v={{ version }}" type="image/svg+xml">
+<link rel="stylesheet" href="/static/css/obds.css?v={{ version }}">
+<link rel="stylesheet" href="/static/css/layout.css?v={{ version }}">
+<link rel="stylesheet" href="/static/css/dashboard.css?v={{ version }}">
+<link rel="stylesheet" href="/static/css/video.css?v={{ version }}">
+<link rel="stylesheet" href="/static/css/responsive.css?v={{ version }}">
+<link rel="stylesheet" href="/static/vendor/maplibre/maplibre-gl.css?v={{ version }}">
+<link rel="stylesheet" href="/static/css/map.css?v={{ version }}">
+<link rel="stylesheet" href="/static/css/weather.css?v={{ version }}">
+<link rel="stylesheet" href="/static/css/modern.css?v={{ version }}">
+<link rel="stylesheet" href="/static/css/shell.css?v={{ version }}">
+<link rel="stylesheet" href="/static/css/theme.css?v={{ version }}">
+<script src="/static/js/theme.js?v={{ version }}"></script>
+</head>
+
+<body class="role-guest">
+
+<div id="app-shell" class="app-shell guest-shell">
+
+    <div class="app-main">
+
+        <header class="app-topbar">
+
+            <div class="app-topbar-title">
+                <img
+                    class="app-topbar-logo guest-logo"
+                    src="/static/icons/open-bos-stream.svg?v={{ version }}"
+                    alt=""
+                    width="30"
+                    height="30">
+                <div>
+                    <span class="page-eyebrow">Gastzugang</span>
+                    <strong id="guest-label">{{ user.username | replace("Gast: ", "", 1) }}</strong>
+                </div>
+            </div>
+
+            <nav class="guest-tabs" aria-label="Ansicht">
+                <button id="guest-tab-live" type="button" class="is-active" data-guest-page="live">
+                    {{ icon("media", 18) }}
+                    <span>Livebilder</span>
+                </button>
+                <button id="guest-tab-map" type="button" data-guest-page="map">
+                    {{ icon("map", 18) }}
+                    <span>Karte</span>
+                </button>
+            </nav>
+
+            <div class="app-topbar-actions">
+                <span id="guest-expiry" class="guest-expiry" data-expires-at="{{ expires_at }}">
+                    gültig
+                </span>
+                <button
+                    id="guest-theme"
+                    class="app-user guest-icon-button"
+                    type="button"
+                    title="Hell/Dunkel umschalten"
+                    aria-label="Hell/Dunkel umschalten">
+                    {{ icon("moon", 18) }}
+                </button>
+                <button
+                    class="app-user guest-icon-button"
+                    type="button"
+                    title="Gastzugang beenden"
+                    aria-label="Gastzugang beenden"
+                    onclick="logoutGuest()">
+                    {{ icon("logout", 18) }}
+                </button>
+            </div>
+
+        </header>
+
+        <main class="content app-content">
+
+            <div id="page-live" class="page active">
+                {% include "components/multi_source_panel.html" %}
+                <p id="guest-empty" class="guest-empty" hidden>
+                    Für diesen Gastzugang ist derzeit keine Quelle verfügbar.
+                </p>
+            </div>
+
+            <div id="page-map" class="page">
+                {% include "components/map.html" %}
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+<script>
+window.currentUser = {{ {"username": user.username, "role": "guest"} | tojson }};
+window.openBosMediaToken = {{ media_token | tojson }};
+</script>
+<script src="/static/js/ui.js?v={{ version }}"></script>
+<script src="/static/vendor/hls.min.js?v={{ version }}"></script>
+<script src="/static/vendor/mediamtx/reader.js?v={{ version }}"></script>
+<script src="/static/js/live_player.js?v={{ version }}"></script>
+<script src="/static/js/multi_source.js?v={{ version }}"></script>
+<script type="module">
+    // MapLibre 6 gibt es nur noch als Modul; die Kartenskripte nutzen es
+    // weiterhin über window.maplibregl.
+    import * as maplibregl from "/static/vendor/maplibre/maplibre-gl.mjs?v={{ version }}";
+    window.maplibregl = maplibregl;
+    document.dispatchEvent(new Event("open-bos:maplibre-ready"));
+</script>
+<script src="/static/js/map-controls.js?v={{ version }}"></script>
+<script src="/static/js/map-overlays.js?v={{ version }}"></script>
+<script src="/static/js/map-dipul.js?v={{ version }}"></script>
+<script src="/static/js/map-basemap.js?v={{ version }}"></script>
+
+<script src="/static/js/map-weather.js?v={{ version }}"></script>
+<script src="/static/js/map.js?v={{ version }}"></script>
+<script src="/static/js/guest.js?v={{ version }}"></script>
+</body>
+</html>

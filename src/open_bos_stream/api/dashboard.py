@@ -6,14 +6,19 @@ from fastapi.responses import Response
 from starlette.concurrency import run_in_threadpool
 
 from open_bos_stream.core.container import (
+    config as runtime_config,
     dashboard_service,
     fullscreen_relay_manager,
     server_event_log,
 )
 from open_bos_stream.auth.service import ROLE_LEVEL
 from open_bos_stream.stream.probe import ProbeBusyError
-from open_bos_stream.auth.guest_access import require_guest_source
-from open_bos_stream.auth.roles import ADMIN, GUEST, VIEWER
+from open_bos_stream.auth.guest_access import (
+    is_restricted,
+    require_source_access,
+    visible_source_ids,
+)
+from open_bos_stream.auth.roles import ADMIN, GUEST, VIEWER, SERVER_ADMIN
 
 router = APIRouter(
     prefix="/dashboard",
@@ -25,18 +30,46 @@ router = APIRouter(
 async def status(request: Request, events_after: int | None = None):
     data = await run_in_threadpool(dashboard_service.status)
     user = request.state.user
-    if ROLE_LEVEL.get(user.get("role"), -1) >= ROLE_LEVEL["admin"]:
+    visible = visible_source_ids(user, runtime_config)
+    if visible is not None:
         # Kopie: der Status wird zwischen Anfragen zwischengespeichert.
+        data = filter_status_sources(data, visible)
+    if ROLE_LEVEL.get(user.get("role"), -1) >= ROLE_LEVEL["admin"]:
         # Der Browser fragt nur Einträge nach seinem letzten Stand ab.
+        # Wehr-Admins sehen die Einträge ihrer Organisationen, Kreis-Admins
+        # und Superadmins zusätzlich die Systemmeldungen.
+        organizations = (
+            None
+            if not is_restricted(user) or user.get("server_admin")
+            else set(user.get("org_view") or [])
+        )
         data = {
             **data,
-            "server_events": server_event_log.since(events_after),
+            "server_events": server_event_log.since(events_after, organizations),
         }
     return data
 
 
+def filter_status_sources(data: dict, visible: set[str]) -> dict:
+    """Status ohne Quellen anderer Organisationen."""
+
+    def keep(items):
+        return [
+            item for item in items or []
+            if item.get("source_id", item.get("id")) in visible
+        ]
+
+    return {
+        **data,
+        "sources": keep(data.get("sources")),
+        "recordings": keep(data.get("recordings")),
+        "stream_outputs": keep(data.get("stream_outputs")),
+    }
+
+
 @router.post("/sources/{source_id}/probe", dependencies=[ADMIN])
-async def probe_source(source_id: str):
+async def probe_source(source_id: str, request: Request):
+    require_source_access(request.state.user, source_id, runtime_config)
     try:
         return await run_in_threadpool(
             dashboard_service.probe_source,
@@ -67,7 +100,7 @@ async def probe_source(source_id: str):
 
 @router.post("/sources/{source_id}/fullscreen", dependencies=[GUEST])
 async def acquire_fullscreen_stream(source_id: str, request: Request):
-    require_guest_source(request.state.user, source_id)
+    require_source_access(request.state.user, source_id, runtime_config)
     try:
         return await run_in_threadpool(
             fullscreen_relay_manager.acquire,
@@ -90,7 +123,7 @@ async def fullscreen_stream_status(
     lease_id: str,
     request: Request,
 ):
-    require_guest_source(request.state.user, source_id)
+    require_source_access(request.state.user, source_id, runtime_config)
     try:
         return await run_in_threadpool(
             fullscreen_relay_manager.status,
@@ -107,7 +140,7 @@ async def release_fullscreen_stream(
     lease_id: str,
     request: Request,
 ):
-    require_guest_source(request.state.user, source_id)
+    require_source_access(request.state.user, source_id, runtime_config)
     await run_in_threadpool(
         fullscreen_relay_manager.release,
         source_id,
@@ -116,7 +149,7 @@ async def release_fullscreen_stream(
     return {"success": True}
 
 
-@router.get("/diagnostics", dependencies=[ADMIN])
+@router.get("/diagnostics", dependencies=[SERVER_ADMIN])
 async def diagnostics():
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),

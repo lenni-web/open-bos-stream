@@ -17,7 +17,12 @@ from open_bos_stream.core.container import (
     config_apply_service,
     server_event_log,
 )
-from open_bos_stream.auth.roles import ADMIN, SUPERADMIN
+from open_bos_stream.auth.guest_access import (
+    can_admin_source,
+    can_see_source,
+    is_restricted,
+)
+from open_bos_stream.auth.roles import ADMIN, SUPERADMIN, SERVER_ADMIN
 
 router = APIRouter(
     dependencies=[ADMIN],
@@ -83,6 +88,13 @@ async def get_config(request: Request):
         config.notifications = NotificationConfig.model_construct(
             enabled=config.notifications.enabled,
         )
+    user = request.state.user
+    if is_restricted(user) and not user.get("server_admin"):
+        # Wehr-Admins sehen nur Quellen ihrer Organisationen (und solche
+        # ohne Zuordnung); bearbeiten dürfen sie nur ihre eigenen.
+        config.sources = [
+            source for source in config.sources if can_see_source(user, source)
+        ]
     return config
 
 
@@ -104,12 +116,66 @@ async def save_config(config: AppConfig, request: Request):
 async def save_sources(sources: list[SourceConfig], request: Request):
     # Admins bearbeiten nur die Quellen. Alle ausschließlich für Superadmins
     # bestimmten Konfigurationsbereiche stammen unverändert vom Server.
-    current = loader.load().model_dump()
-    current["sources"] = [source.model_dump() for source in sources]
-    candidate = AppConfig.model_validate(current)
+    stored = loader.load()
+    current = stored.model_dump()
+    current["sources"] = [
+        source.model_dump()
+        for source in merge_sources(request.state.user, stored.sources, sources)
+    ]
+    try:
+        candidate = AppConfig.model_validate(current)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     result = await apply_config(candidate)
     _log_change("Quellen gespeichert und aktiviert", request)
     return result
+
+
+def merge_sources(
+    user: dict,
+    stored: list[SourceConfig],
+    incoming: list[SourceConfig],
+) -> list[SourceConfig]:
+    """Quellen aus dem Browser mit dem Serverstand zusammenführen.
+
+    Kreis-Admins und Superadmins ersetzen die Liste. Wehr-Admins ändern nur
+    Quellen ihrer Organisationen; alle übrigen bleiben unverändert.
+    """
+
+    if not is_restricted(user) or user.get("server_admin"):
+        return list(incoming)
+    stored_by_id = {source.id: source for source in stored}
+    incoming_by_id = {}
+    for source in incoming:
+        existing = stored_by_id.get(source.id)
+        if existing is not None and not can_admin_source(user, existing):
+            if can_see_source(user, existing):
+                # Nur sichtbar, nicht verwaltbar: Serverstand behalten.
+                continue
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    f"Die ID „{source.id}“ ist bereits an eine Quelle einer "
+                    "anderen Organisation vergeben. Bitte eine andere ID wählen."
+                ),
+            )
+        if not can_admin_source(user, source):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    f"Quelle „{source.name}“: Bitte eine Organisation wählen, "
+                    "in der Sie Wehr-Admin sind."
+                ),
+            )
+        incoming_by_id[source.id] = source
+    merged = []
+    for source in stored:
+        if not can_admin_source(user, source):
+            merged.append(source)
+        elif source.id in incoming_by_id:
+            merged.append(incoming_by_id.pop(source.id))
+    merged.extend(incoming_by_id.values())
+    return merged
 
 
 @router.put("/media-capture", dependencies=[SUPERADMIN])
@@ -150,7 +216,7 @@ async def save_storage(
     }
 
 
-@router.post("/test")
+@router.post("/test", dependencies=[SERVER_ADMIN])
 async def test_config(config: AppConfig):
     try:
         checks = await run_in_threadpool(

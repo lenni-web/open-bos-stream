@@ -6,7 +6,6 @@ import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
-from open_bos_stream.api.auth import _assert_admin_scope
 from open_bos_stream.auth.middleware import AuthMiddleware
 from open_bos_stream.auth.middleware import PUBLIC_PREFIXES
 from open_bos_stream.auth.roles import ADMIN, SUPERADMIN, route_roles
@@ -45,6 +44,15 @@ def system_admin_client() -> TestClient:
         return {"success": True}
 
     return TestClient(app)
+
+
+def basic(user: dict | None) -> dict | None:
+    """Name und Rolle einer Sitzung (ohne Rechte-Details)."""
+
+    return None if user is None else {
+        "username": user["username"],
+        "role": user["role"],
+    }
 
 
 def service(tmp_path: Path) -> AuthService:
@@ -96,17 +104,18 @@ def test_initial_superadmin_and_signed_session(tmp_path: Path) -> None:
     token = auth.create_token(user)
 
     assert auth.configured is True
-    assert auth.authenticate(
-        "leitung",
-        "sicheres-passwort",
-    ) == user
-    assert auth.verify_token(token) == user
+    session = auth.authenticate("leitung", "sicheres-passwort")
+    assert basic(session) == {"username": "leitung", "role": "superadmin"}
+    assert session["platform_admin"] is True
+    assert session["server_admin"] is True
+    assert basic(auth.verify_token(token)) == basic(session)
     assert auth.verify_token(token + "x") is None
     assert auth.verify_token(auth.create_display_token()) == {
         "username": "Lokales Display",
         "role": "viewer",
     }
-    assert auth.users_file.stat().st_mode & 0o777 == 0o600
+    database = tmp_path / "open-bos.db"
+    assert database.stat().st_mode & 0o777 == 0o600
 
 
 def test_roles_and_last_superadmin_are_protected(tmp_path: Path) -> None:
@@ -156,10 +165,10 @@ def test_user_role_and_password_can_be_updated(tmp_path: Path) -> None:
     )
 
     assert updated == {"username": "operator", "role": "admin"}
-    assert auth.authenticate(
+    assert basic(auth.authenticate(
         "operator",
         "ganz-neues-passwort",
-    ) == updated
+    )) == updated
     assert auth.authenticate("operator", "anderes-passwort") is None
     assert auth.verify_token(old_token) is None
 
@@ -281,8 +290,10 @@ def test_route_roles_are_enforced_over_http(monkeypatch) -> None:
         ("POST", "/auth/login", "public"),
         ("GET", "/auth/media-access", "guest"),
         ("GET", "/auth/media-token", "guest"),
-        ("GET", "/auth/users", "admin"),
-        ("POST", "/auth/users", "admin"),
+        ("GET", "/api/org/users", "admin"),
+        ("POST", "/api/org/users", "admin"),
+        ("GET", "/api/org/organizations", "viewer"),
+        ("POST", "/api/org/organizations", "admin"),
         ("GET", "/dashboard/status", "viewer"),
         ("POST", "/dashboard/sources/{source_id}/fullscreen", "guest"),
         ("DELETE", "/dashboard/sources/{source_id}/fullscreen/{lease_id}", "guest"),
@@ -312,9 +323,9 @@ def test_route_roles_are_enforced_over_http(monkeypatch) -> None:
         ("GET", "/g/{token}", "public"),
         ("GET", "/guest", "guest"),
         ("GET", "/guest/status", "guest"),
-        ("GET", "/guest-links", "admin"),
-        ("POST", "/guest-links", "admin"),
-        ("DELETE", "/guest-links/{link_id}", "admin"),
+        ("GET", "/guest-links", "operator"),
+        ("POST", "/guest-links", "operator"),
+        ("DELETE", "/guest-links/{link_id}", "operator"),
         ("POST", "/internal/mediamtx/auth", "public"),
     ],
 )
@@ -344,27 +355,6 @@ def test_reboot_endpoint_requires_superadmin() -> None:
 
 def test_caddy_media_check_is_not_public() -> None:
     assert not "/auth/media-access".startswith(PUBLIC_PREFIXES)
-
-
-def test_admin_cannot_manage_or_create_superadmins() -> None:
-    request = SimpleNamespace(
-        state=SimpleNamespace(
-            user={"username": "operator", "role": "admin"}
-        )
-    )
-
-    with pytest.raises(HTTPException) as target_error:
-        _assert_admin_scope(request, target_role="superadmin")
-    with pytest.raises(HTTPException) as role_error:
-        _assert_admin_scope(request, desired_role="superadmin")
-
-    assert target_error.value.status_code == 403
-    assert role_error.value.status_code == 403
-    _assert_admin_scope(
-        request,
-        target_role="admin",
-        desired_role="viewer",
-    )
 
 
 class DisplayTokenService(EndpointRoleService):
@@ -442,7 +432,7 @@ def test_setup_requires_one_time_code(tmp_path: Path) -> None:
         code.lower().replace("-", " "),
     )
 
-    assert user == {"username": "leitung", "role": "superadmin"}
+    assert basic(user) == {"username": "leitung", "role": "superadmin"}
     assert not auth.setup_code_file.exists()
     assert auth.ensure_setup_code() is None
     with pytest.raises(AuthError):
@@ -458,7 +448,7 @@ def test_logout_revokes_only_that_session(tmp_path: Path) -> None:
     auth.revoke_token(first)
 
     assert auth.verify_token(first) is None
-    assert auth.verify_token(second) == user
+    assert basic(auth.verify_token(second)) == basic(user)
     # Ein zweiter Dienst (Neustart) liest den Widerruf aus der Datei.
     assert service(tmp_path).verify_token(first) is None
 
@@ -471,7 +461,7 @@ def test_media_and_session_tokens_are_not_interchangeable(tmp_path: Path) -> Non
 
     assert auth.verify_token(media) is None
     assert auth.verify_token(session, purpose="media") is None
-    assert auth.verify_token(media, purpose="media") == user
+    assert basic(auth.verify_token(media, purpose="media")) == basic(user)
     display = auth.create_media_token({"username": "Lokales Display", "role": "viewer"})
     assert auth.verify_token(display, purpose="media")["role"] == "viewer"
 

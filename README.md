@@ -30,7 +30,9 @@ eigenständige Web-App mit Open-BOS-Stream-Icon abgelegt werden.
 - Wetter für den Flugbetrieb: DWD-Messwerte, Wind in 120 m Höhe,
   DWD-Warnungen, Kp-Index, Wetter-Ampel und Niederschlagsradar mit
   Vorhersage
-- Rollenbasierter Zugriff für Viewer, Admins und Superadmins
+- Landkreis, Samtgemeinde- und Ortsfeuerwehren mit Rollen (Zuschauer,
+  Drohnenteam, Wehr-Admin), vererbten Rechten und getrennten Quellen je Wehr
+- Fernpilotennachweise (A1/A3, A2, STS) mit Ablaufdatum
 - Zeitlich begrenzte Gastlinks für ausgewählte Livebilder, ohne Konto
 - E-Mail-Benachrichtigung bei Störungen mit Entwarnung
 - Moderne Oberfläche mit Hell-/Dunkelmodus, optimiert für Smartphone,
@@ -915,35 +917,83 @@ Transcoding-Profil oder der Kamera-Substream geprüft werden.
   „Zum Home-Bildschirm“. In der installierten App und in der Gastansicht
   erscheint kein Hinweis.
 
-## Benutzer und Rollen
+## Benutzer, Organisationen und Rollen
 
-Beim ersten Aufruf nach Installation oder Update fordert Open BOS Stream dazu
-auf, ein lokales Superadmin-Konto anzulegen. Dafür ist ein einmaliger
-**Einrichtungscode** nötig, damit niemand einen frisch installierten Server
-vor dem Betreiber übernehmen kann. Der Installer zeigt den Code am Ende an;
-er steht außerdem in `config/setup.code` und im Journal
-(`journalctl -u open-bos-stream`). Nach der Einrichtung wird er gelöscht.
-Benutzer und Passwort-Hashes
-werden ausschließlich in `config/users.yaml` gespeichert; die Datei und der
-lokale Sitzungsschlüssel werden nicht in Git übernommen.
+Seit Version 0.21 bildet Open BOS den Landkreis mit seinen Feuerwehren ab.
+Konten, Organisationen, Rollen und Fernpilotennachweise liegen in einer
+SQLite-Datenbank (`config/open-bos.db`, nur für den Dienstbenutzer lesbar).
+Änderungen am Datenmodell spielt `update.sh` beim Start automatisch ein
+(Alembic). Eine Sicherung des Ordners `config/` genügt, um alles zu sichern.
 
-- `viewer` (Zuschauer): Livebilder und Karte in einer reduzierten Ansicht.
-  Der Status zeigt nur „Einsatzbereit“ oder „Störung“ ohne Details; kein
-  Ereignisprotokoll, keine Protokoll- und Profilangaben
-- `admin`: zusätzlich Quellen anlegen, bearbeiten, sortieren und entfernen
-- `superadmin`: zusätzlich Medien, Benutzer, Streaming-Ausgänge, lokales
-  Display und Webzugriff verwalten
+### Ersteinrichtung
+
+Beim ersten Aufruf nach der Installation fordert Open BOS dazu auf, das erste
+Konto (Superadmin) anzulegen. Dafür ist ein einmaliger **Einrichtungscode**
+nötig, damit niemand einen frisch installierten Server vor dem Betreiber
+übernehmen kann. Der Installer zeigt den Code am Ende an; er steht außerdem in
+`config/setup.code` und im Journal (`journalctl -u open-bos-stream`). Nach
+der Einrichtung wird er gelöscht.
+
+### Organisationsbaum
+
+```text
+Landkreis
+├── Stadt-, Gemeinde- oder Samtgemeindefeuerwehr
+│   └── Ortsfeuerwehren
+└── Kreiseinheiten (bei Bedarf)
+```
+
+Unter „Einstellungen → Organisation und Konten“ legen Admins Untereinheiten
+an, benennen sie (mit Kurzname, z. B. „OF Hagen“), hinterlegen den Standort
+der Wache, archivieren oder löschen leere Einheiten.
+
+### Rollen
+
+| Rolle | darf |
+|---|---|
+| **Zuschauer** | Livebilder, Karte und Wetter der eigenen Organisation |
+| **Drohnenteam** | zusätzlich Gastlinks für Quellen der eigenen Organisation |
+| **Wehr-Admin** | zusätzlich Quellen der Organisation einrichten, Konten und Rollen im eigenen Bereich verwalten, Untereinheiten anlegen |
+| **Kreis-Admin** (Wehr-Admin auf Landkreisebene) | alles im Landkreis, dazu serverweite Einstellungen wie Wetter, Systemseite |
+| **Superadmin** | technische Verwaltung: Streaming-Ausgänge, Medien, E-Mail, Speicher, Display, Webzugriff; vergibt die Superadmin-Rolle |
+
+- Rollen **vererben sich nach unten**: Wer bei der Samtgemeindefeuerwehr
+  Wehr-Admin ist, ist es auch in allen Ortsfeuerwehren darunter.
+- Eine Person kann in mehreren Organisationen unterschiedliche Rollen haben.
+- **Quellen gehören einer Wehr.** Konten sehen nur die Quellen ihrer
+  Organisationen (samt Unterbaum) und Quellen ohne Zuordnung. Das gilt auch
+  für Vollbild, WebRTC/HLS-Abrufe über Caddy und MediaMTX-Medientoken, das
+  Ereignisprotokoll und die Gastlinks.
+- Kontodaten (Name, Passwort, Sperre) ändert, wer **alle** Organisationen des
+  Kontos verwaltet; Rollen im eigenen Bereich vergeben auch Wehr-Admins
+  anderer Ebenen. Mindestens ein Superadmin bleibt immer erhalten.
+- Nach einer Rollenänderung muss sich das Konto neu anmelden.
+- **Fernpilotennachweise** (EU-Kompetenznachweis A1/A3, Fernpilotenzeugnis
+  A2, STS) werden mit Nummer und Ablaufdatum je Konto erfasst; abgelaufene
+  Nachweise sind rot markiert. Jede Person kann ihre eigenen Nachweise
+  pflegen.
+- Änderungen an Organisationen, Konten, Rollen und Nachweisen landen im
+  Änderungsprotokoll der Datenbank.
+
+### Übernahme beim Update auf 0.21
+
+Beim ersten Start legt Open BOS den **„Landkreis“** und darunter die
+Start-Organisation **„Meine Feuerwehr“** an (beide umbenennbar) und übernimmt
+die bisherigen Konten aus `config/users.yaml`:
+
+| bisher | danach |
+|---|---|
+| Superadmin | Superadmin und Kreis-Admin |
+| Admin | Wehr-Admin der Start-Organisation |
+| Viewer | Zuschauer der Start-Organisation |
+
+Passwörter bleiben gültig. Die alte Datei wird als `users.yaml.importiert`
+aufbewahrt. Bestehende Quellen und Gastlinks werden der Start-Organisation
+zugeordnet.
 
 Die Rechte werden sowohl in der Oberfläche als auch an jedem API-Endpunkt
 geprüft. Jede Route deklariert ihre Mindestrolle (`auth/roles.py`); ein Test
-schlägt fehl, sobald eine Route ohne Rolle hinzukommt. Admins speichern
-ausschließlich Quellen über einen eigenen Endpunkt, der die übrige
-Systemkonfiguration unverändert vom Server übernimmt. Die Ziel-URLs der
-Streaming-Ausgänge sehen Admins nur maskiert.
-
-Superadmins können bestehende Konten in den Einstellungen aufklappen, deren
-Rolle ändern oder ein neues Passwort vergeben. Mindestens ein Superadmin muss
-immer erhalten bleiben.
+schlägt fehl, sobald eine Route ohne Rolle hinzukommt.
 
 Der lokale Kiosk erhält ausschließlich eine auf Loopback begrenzte
 Viewer-Ansicht. Zusätzlich muss Chromium ein geheimes Ticket vorlegen, das der
@@ -954,7 +1004,8 @@ Backoff neu verbunden und unterbricht die übrigen Quellen nicht.
 
 ### Gastlinks für externe Stellen
 
-Admins und Superadmins erstellen in der Übersicht über „Gastlink teilen“ einen
+Drohnenteams, Wehr-Admins und Superadmins erstellen in der Übersicht über
+„Gastlink teilen“ für Quellen ihrer Organisation einen
 Link für Stellen ohne eigenes Konto, z. B. Polizei oder Kreisbrandmeister:
 Bezeichnung, freigegebene Quellen und Gültigkeit (2, 8, 24 oder höchstens
 48 Stunden). Der Link wird einmalig mit QR-Code angezeigt und lässt sich

@@ -22,7 +22,18 @@ class StatusEventTracker:
     _stream_running: bool | None = None
 
     def evaluate(self, status: dict) -> list[tuple[str, str]]:
-        events: list[tuple[str, str]] = []
+        return [
+            (level, message)
+            for level, message, _ in self.evaluate_detailed(status)
+        ]
+
+    def evaluate_detailed(
+        self,
+        status: dict,
+    ) -> list[tuple[str, str, int | None]]:
+        """Wie evaluate, dazu die Organisation (nur bei Quellenereignissen)."""
+
+        events: list[tuple[str, str, int | None]] = []
         sources = status.get("sources") or []
         if not self._initialized:
             self._initialized = True
@@ -30,21 +41,29 @@ class StatusEventTracker:
             events.append((
                 "success" if online else "info",
                 f"📡 {online} von {len(sources)} Quellen online",
+                None,
             ))
         events += self._check_sources(sources)
-        events += self._check_mediamtx(status)
-        events += self._check_storage(status)
-        events += self._check_outputs(status)
-        events += self._check_stream(status)
+        for check in (
+            self._check_mediamtx,
+            self._check_storage,
+            self._check_outputs,
+            self._check_stream,
+        ):
+            events += [(level, message, None) for level, message in check(status)]
         return events
 
-    def _check_sources(self, sources: list[dict]) -> list[tuple[str, str]]:
+    def _check_sources(
+        self,
+        sources: list[dict],
+    ) -> list[tuple[str, str, int | None]]:
         events = []
         current = set()
         for source in sources:
             source_id = str(source.get("id"))
             current.add(source_id)
             name = source.get("name") or source_id
+            organization_id = source.get("organization_id")
             ready = bool(source.get("ready"))
             state = self._sources.get(source_id)
             if state is None:
@@ -52,13 +71,21 @@ class StatusEventTracker:
                 continue
             if ready:
                 if not state["ready"]:
-                    events.append(("success", f"🟢 {name}: Signal verfügbar"))
+                    events.append((
+                        "success",
+                        f"🟢 {name}: Signal verfügbar",
+                        organization_id,
+                    ))
                 state.update(ready=True, misses=0)
                 continue
             if state["ready"]:
                 state["misses"] += 1
                 if state["misses"] >= LOSS_CONFIRMATIONS:
-                    events.append(("warning", f"🔴 {name}: Signal verloren"))
+                    events.append((
+                        "warning",
+                        f"🔴 {name}: Signal verloren",
+                        organization_id,
+                    ))
                     state.update(ready=False, misses=0)
         for source_id in set(self._sources) - current:
             del self._sources[source_id]

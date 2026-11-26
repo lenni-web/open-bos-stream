@@ -35,7 +35,7 @@
             <h2>Livebilder</h2>
         </div>
         <div class="multi-source-header-actions">
-            {% if user.role in ("admin", "superadmin") %}
+            {% if can is defined and can.operate %}
             <button
                 class="bos-button bos-button-small"
                 type="button"

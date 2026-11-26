@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Anmeldung · Open BOS Drohnen</title>
+    <meta name="theme-color" content="#c9202f">
+    <meta name="application-name" content="Open BOS Drohnen">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="BOS Drohnen">
+    <link rel="manifest" href="/static/manifest.webmanifest?v={{ version }}">
+    <link rel="icon" href="/static/icons/open-bos-stream.svg?v={{ version }}" type="image/svg+xml">
+    <link rel="icon" href="/static/icons/open-bos-stream-32.png?v={{ version }}" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="/static/icons/open-bos-stream-180.png?v={{ version }}">
+    <link rel="stylesheet" href="/static/css/obds.css?v={{ version }}">
+    <link rel="stylesheet" href="/static/css/modern.css?v={{ version }}">
+    <link rel="stylesheet" href="/static/css/theme.css?v={{ version }}">
+    <script src="/static/js/theme.js?v={{ version }}"></script>
+</head>
+<body class="auth-page">
+    <main class="auth-card bos-card">
+        <header class="auth-brand">
+            <span class="auth-brand-icon" aria-hidden="true">
+                <img
+                    src="/static/icons/open-bos-stream.svg?v={{ version }}"
+                    alt=""
+                    width="54"
+                    height="54">
+            </span>
+            <div>
+                <strong>Open BOS Drohnen</strong>
+                <span>BOS Drohnen Suite</span>
+            </div>
+        </header>
+
+        <p class="auth-product-description">
+            Die zentrale Oberfläche zum Empfangen, Überwachen und Anzeigen
+            mehrerer Einsatz- und Kamerastreams.
+        </p>
+
+        <div class="auth-divider" aria-hidden="true"></div>
+
+        <section class="auth-heading">
+            <span class="page-eyebrow">Sicherer Zugang</span>
+            <h1 id="auth-title">Anmelden</h1>
+            <p id="auth-description">
+                Mit einem lokalen Benutzerkonto fortfahren.
+            </p>
+        </section>
+        <form id="auth-form">
+            <label id="auth-setup-code-field" class="form-field" hidden>
+                <span>Einrichtungscode</span>
+                <input id="auth-setup-code" class="bos-input" autocomplete="one-time-code"
+                    autocapitalize="characters" spellcheck="false" maxlength="32">
+                <small>
+                    Steht am Ende der Installation sowie im Journal des
+                    Dienstes (<code>journalctl -u open-bos-stream</code>).
+                </small>
+            </label>
+            <label class="form-field">
+                <span>Benutzername</span>
+                <input id="auth-username" class="bos-input" autocomplete="username" required>
+            </label>
+            <label class="form-field">
+                <span>Passwort</span>
+                <input id="auth-password" class="bos-input" type="password"
+                    autocomplete="current-password" minlength="10" required>
+            </label>
+            <button class="bos-button bos-button-primary" type="submit">
+                Fortfahren
+            </button>
+            <p id="auth-error" class="save-status is-error"></p>
+        </form>
+        <a
+            class="auth-info-link"
+            href="/static/docs/open-bos-stream-funktionsuebersicht.pdf?v={{ version }}"
+            target="_blank"
+            rel="noopener">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"></path>
+                <path d="M14 3v5h5M9 13h6M9 17h4"></path>
+            </svg>
+            <span>
+                <strong>Was ist Open BOS Drohnen?</strong>
+                <small>Funktionsübersicht der Software (PDF, eine Seite)</small>
+            </span>
+        </a>
+        <footer class="auth-footer">Version {{ version }}</footer>
+    </main>
+    <script>
+        const params = new URLSearchParams(location.search);
+        const setup = params.get("setup") === "1";
+        if (setup) {
+            document.getElementById("auth-title").textContent =
+                "Ersten Superadmin anlegen";
+            document.getElementById("auth-description").textContent =
+                "Dieses Konto erhält die vollständige Systemverwaltung.";
+            document.getElementById("auth-password").autocomplete =
+                "new-password";
+            document.getElementById("auth-setup-code-field").hidden = false;
+            document.getElementById("auth-setup-code").required = true;
+        }
+        document.getElementById("auth-form").addEventListener(
+            "submit",
+            async event => {
+                event.preventDefault();
+                const error = document.getElementById("auth-error");
+                error.textContent = "";
+                try {
+                    const response = await fetch(
+                        setup ? "/auth/setup" : "/auth/login",
+                        {
+                            method: "POST",
+                            headers: {"Content-Type": "application/json"},
+                            body: JSON.stringify({
+                                username: document.getElementById(
+                                    "auth-username"
+                                ).value,
+                                password: document.getElementById(
+                                    "auth-password"
+                                ).value,
+                                setup_code: document.getElementById(
+                                    "auth-setup-code"
+                                ).value,
+                            }),
+                        }
+                    );
+                    const payload = await response.json();
+                    if (!response.ok) {
+                        throw new Error(
+                            typeof payload.detail === "string"
+                                ? payload.detail
+                                : "Anmeldung fehlgeschlagen."
+                        );
+                    }
+                    location.href = "/";
+                } catch (exception) {
+                    error.textContent = exception.message;
+                }
+            }
+        );
+    </script>
+</body>
+</html>

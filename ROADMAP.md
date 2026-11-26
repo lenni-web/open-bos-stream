@@ -195,7 +195,7 @@ Schwerpunkt bleiben Drohnen und Drohneneinsätze. Geplante Reihenfolge:
 1. **0.19** Wetter und Regenradar ✔
 2. **0.20** Umstieg auf MapLibre 6, Online-Grundkarte basemap.de und Luftbild ✔
 3. **0.21** Datenbank (SQLite) und Organisationsmodell: Landkreis, Wehren,
-   Mitglieder, Rollen je Wehr und auf Landkreisebene
+   Mitglieder, Rollen je Wehr und auf Landkreisebene ✔
 4. **0.22** Einsätze: Beteiligte mit Einsatzrollen, Zuordnung von Aufnahmen,
    Snapshots und Ereignissen, Einsatzbericht als PDF; Zusammenarbeit
    mehrerer Wehren an einem Einsatz

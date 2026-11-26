@@ -1,4 +1,10 @@
-"""Was ein Gast sehen darf: nur die Quellen seines Gastlinks."""
+"""Welche Quellen und Livebilder ein Zugang sehen darf.
+
+* Gäste: nur die Quellen ihres Gastlinks.
+* Konten: Quellen der Organisationen, in denen sie eine Rolle haben
+  (inklusive Unterbaum), dazu Quellen ohne Zuordnung.
+* Superadmin und das lokale Display: alles.
+"""
 
 from __future__ import annotations
 
@@ -33,6 +39,91 @@ def guest_paths(user: dict, config: AppConfig) -> set[str]:
             }
         )
     return paths
+
+
+def is_restricted(user: dict | None) -> bool:
+    """Gilt für diesen Zugang eine Einschränkung auf Organisationen?"""
+
+    if not user:
+        return True
+    if is_guest(user):
+        return True
+    return "org_view" in user and not user.get("platform_admin")
+
+
+def can_see_source(user: dict | None, source: SourceConfig) -> bool:
+    if is_guest(user):
+        return source.id in set(user.get("source_ids") or [])
+    if not is_restricted(user):
+        return True
+    return (
+        source.organization_id is None
+        or source.organization_id in set(user.get("org_view") or [])
+    )
+
+
+def can_operate_source(user: dict | None, source: SourceConfig) -> bool:
+    if is_guest(user) or not user:
+        return False
+    if not is_restricted(user):
+        return True
+    return (
+        source.organization_id is None
+        or source.organization_id in set(user.get("org_operate") or [])
+    )
+
+
+def can_admin_source(user: dict | None, source: SourceConfig) -> bool:
+    if is_guest(user) or not user:
+        return False
+    if not is_restricted(user) or user.get("server_admin"):
+        return True
+    return source.organization_id in set(user.get("org_admin") or [])
+
+
+def visible_sources(user: dict | None, config: AppConfig) -> list[SourceConfig]:
+    return [source for source in config.sources if can_see_source(user, source)]
+
+
+def visible_source_ids(user: dict | None, config: AppConfig) -> set[str] | None:
+    """Sichtbare Quellen; None bedeutet: keine Einschränkung."""
+
+    if not is_restricted(user):
+        return None
+    return {source.id for source in visible_sources(user, config)}
+
+
+def source_paths(sources) -> set[str]:
+    paths: set[str] = set()
+    for source in sources:
+        paths.update(
+            {
+                source.viewer_path,
+                source.fullscreen_viewer_path,
+                source.publish_path,
+            }
+        )
+    return paths
+
+
+def allowed_media_paths(user: dict | None, config: AppConfig) -> set[str] | None:
+    """MediaMTX-Pfade, die dieser Zugang abrufen darf (None: alle)."""
+
+    if not is_restricted(user):
+        return None
+    return source_paths(visible_sources(user, config))
+
+
+def require_source_access(user: dict | None, source_id: str, config: AppConfig) -> None:
+    if is_guest(user):
+        require_guest_source(user, source_id)
+        return
+    source = next((item for item in config.sources if item.id == source_id), None)
+    if source is not None and not can_see_source(user, source):
+        raise HTTPException(
+            status_code=403,
+            detail="Diese Quelle gehört zu einer anderen Organisation.",
+        )
 
 
 def media_uri_allowed(uri: str, paths: set[str]) -> bool:

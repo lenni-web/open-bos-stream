@@ -11,10 +11,15 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
-from open_bos_stream.auth.guest_access import guest_sources, is_guest
+from open_bos_stream.auth.guest_access import (
+    can_operate_source,
+    guest_sources,
+    is_guest,
+    is_restricted,
+)
 from open_bos_stream.auth.guest_links import MAX_HOURS, GuestLinkError
 from open_bos_stream.auth.middleware import secure_cookies
-from open_bos_stream.auth.roles import ADMIN, GUEST, PUBLIC
+from open_bos_stream.auth.roles import GUEST, OPERATOR, PUBLIC
 from open_bos_stream.core.container import (
     auth_service,
     config,
@@ -83,24 +88,47 @@ def _describe(link) -> dict:
 # ----------------------------------------------------------------------
 
 
-@router.get("/guest-links", dependencies=[ADMIN])
-async def list_guest_links() -> dict:
+def _may_manage(user: dict, link) -> bool:
+    """Drohnenteam und Admins der Organisation des Links."""
+
+    if not is_restricted(user) or user.get("server_admin"):
+        return True
+    return (
+        link.organization_id in set(user.get("org_operate") or [])
+        or (link.organization_id is None and link.created_by == user.get("username"))
+    )
+
+
+@router.get("/guest-links", dependencies=[OPERATOR])
+async def list_guest_links(request: Request) -> dict:
     links = await run_in_threadpool(guest_link_store.list)
+    user = request.state.user
     return {
-        "links": [_describe(link) for link in links],
+        "links": [_describe(link) for link in links if _may_manage(user, link)],
         "max_hours": MAX_HOURS,
     }
 
 
-@router.post("/guest-links", dependencies=[ADMIN])
+@router.post("/guest-links", dependencies=[OPERATOR])
 async def create_guest_link(payload: GuestLinkCreate, request: Request) -> dict:
-    known = {source.id for source in config.sources if source.enabled}
-    unknown = [item for item in payload.source_ids if item not in known]
+    enabled = {source.id: source for source in config.sources if source.enabled}
+    unknown = [item for item in payload.source_ids if item not in enabled]
     if unknown:
         raise HTTPException(
             status_code=422,
             detail="Unbekannte oder deaktivierte Quelle ausgewählt.",
         )
+    user = request.state.user
+    chosen = [enabled[item] for item in payload.source_ids]
+    if not all(can_operate_source(user, source) for source in chosen):
+        raise HTTPException(
+            status_code=403,
+            detail="Gastlinks nur für Quellen der eigenen Organisation.",
+        )
+    organization_id = next(
+        (source.organization_id for source in chosen if source.organization_id),
+        None,
+    )
     creator = request.state.user["username"]
     try:
         link, token = await run_in_threadpool(
@@ -109,6 +137,7 @@ async def create_guest_link(payload: GuestLinkCreate, request: Request) -> dict:
                 source_ids=payload.source_ids,
                 hours=payload.hours,
                 created_by=creator,
+                organization_id=organization_id,
             )
         )
     except GuestLinkError as exc:
@@ -126,6 +155,7 @@ async def create_guest_link(payload: GuestLinkCreate, request: Request) -> dict:
         f"🔗 Gastlink „{link.label}“ von {creator} erstellt · "
         + ", ".join(names.get(item, item) for item in link.source_ids)
         + f" · gültig bis {_until(link)} Uhr",
+        organization_id=link.organization_id,
     )
     return {
         "success": True,
@@ -135,8 +165,14 @@ async def create_guest_link(payload: GuestLinkCreate, request: Request) -> dict:
     }
 
 
-@router.delete("/guest-links/{link_id}", dependencies=[ADMIN])
+@router.delete("/guest-links/{link_id}", dependencies=[OPERATOR])
 async def revoke_guest_link(link_id: str, request: Request) -> dict:
+    existing = next(
+        (link for link in guest_link_store.list() if link.id == link_id),
+        None,
+    )
+    if existing is not None and not _may_manage(request.state.user, existing):
+        raise HTTPException(403, "Dieser Gastlink gehört zu einer anderen Organisation.")
     user = request.state.user["username"]
     try:
         link = await run_in_threadpool(
@@ -150,6 +186,7 @@ async def revoke_guest_link(link_id: str, request: Request) -> dict:
     server_event_log.record(
         "warning",
         f"🔗 Gastlink „{link.label}“ von {user} gesperrt",
+        organization_id=link.organization_id,
     )
     return {"success": True, "link": _describe(link)}
 
@@ -182,6 +219,7 @@ async def open_guest_link(token: str, request: Request):
     server_event_log.record(
         "success",
         f"🔗 Gastlink „{link.label}“ geöffnet",
+        organization_id=link.organization_id,
     )
     await run_in_threadpool(guest_link_store.touch, link.id)
     response = RedirectResponse("/guest", status_code=303)

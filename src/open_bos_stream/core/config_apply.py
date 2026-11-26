@@ -180,6 +180,26 @@ class ConfigApplyService:
             self._runtime.media_capture = candidate.media_capture
             return candidate.media_capture.model_copy(deep=True)
 
+    def assign_unowned_sources(self, organization_id: int) -> list[str]:
+        """Quellen ohne Organisation einmalig der Start-Wehr zuordnen."""
+
+        with self._lock:
+            unowned = [
+                source.id
+                for source in self._runtime.sources
+                if source.organization_id is None
+            ]
+            if not unowned:
+                return []
+            candidate = self._runtime.model_copy(deep=True)
+            for source in candidate.sources:
+                if source.organization_id is None:
+                    source.organization_id = organization_id
+            self._loader.save(candidate)
+            self._loader.save_last_known_good(candidate)
+            self._runtime.sources = candidate.sources
+            return unowned
+
     def update_storage(
         self,
         storage: StorageConfig,

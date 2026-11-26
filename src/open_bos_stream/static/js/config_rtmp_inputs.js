@@ -279,6 +279,53 @@ const RTSP_PRESET_DEFAULT_HINT =
     "Raspberry Pi vor Ort lässt sich das Bild so per SRT an den Server " +
     "weiterleiten.";
 
+// Organisation (Wehr), der eine Quelle gehört. Wehr-Admins wählen eine
+// ihrer Organisationen; Kreis-Admins dürfen auch ohne Zuordnung speichern
+// (dann für alle Konten sichtbar).
+function sourceOrganizationOptions() {
+    if (typeof orgTree !== "function" || typeof orgState === "undefined" || !orgState.organizations.length) {
+        return [];
+    }
+    return orgTree().filter(({org}) => org.can_admin && !org.archived);
+}
+
+function sourceOrganizationField(source) {
+    const options = sourceOrganizationOptions();
+    const serverAdmin = Boolean(window.currentPermissions?.server_admin);
+    const names = window.organizationNames ?? {};
+    const current = source.organization_id ?? null;
+    const editable = serverAdmin || options.some(({org}) => org.id === current) ||
+        current === null && !source.id;
+    if (!options.length && !serverAdmin) {
+        return "";
+    }
+    if (!editable && current !== null) {
+        return `
+            <div class="form-field">
+                <label>Organisation</label>
+                <input class="bos-input" value="${escapeHTML(names[current] ?? "?")}" disabled>
+                <input type="hidden" data-field="organization_id" value="${current}">
+                <small>Gehört zu einer anderen Organisation und wird dort verwaltet.</small>
+            </div>
+        `;
+    }
+    return `
+        <div class="form-field">
+            <label>Organisation</label>
+            <select class="bos-input" data-field="organization_id">
+                ${serverAdmin ? `<option value="" ${current === null ? "selected" : ""}>
+                    Ohne Zuordnung (für alle sichtbar)</option>` : ""}
+                ${options.map(({org, depth}) => `
+                    <option value="${org.id}" ${org.id === current ? "selected" : ""}>
+                        ${"  ".repeat(depth)}${escapeHTML(org.name)}
+                    </option>
+                `).join("")}
+            </select>
+            <small>Mitglieder dieser Organisation sehen die Quelle.</small>
+        </div>
+    `;
+}
+
 function sourceSpecificFields(source) {
     if (source.type === "rtmp") {
         const publishUrl = sourcePublishUrl(source);
@@ -537,6 +584,7 @@ function renderSources() {
                     <input class="bos-input" data-field="name"
                         value="${escapeHTML(source.name)}">
                 </div>
+                ${sourceOrganizationField(source)}
                 <div class="form-field">
                     <label>Drohnen-Typ</label>
                     <input class="bos-input" data-field="drone_type"
@@ -768,6 +816,9 @@ function saveSources() {
             audio_mode: value("audio_mode", "none"),
             ingest_protocol: value("ingest_protocol", "rtmp"),
             publish_token: value("publish_token"),
+            organization_id: card.querySelector('[data-field="organization_id"]')
+                ? (Number(value("organization_id")) || null)
+                : (currentConfig.sources?.[Number(card.dataset.index)]?.organization_id ?? null),
         };
     });
 }
@@ -784,8 +835,14 @@ function addSource() {
     while (ids.has(`quelle-${number}`)) {
         number += 1;
     }
+    // Wehr-Admins sehen nicht alle Quellen des Servers; eine zufällige
+    // Kennung vermeidet Überschneidungen mit Quellen anderer Wehren.
+    const restricted = !window.currentPermissions?.server_admin;
+    const newId = restricted
+        ? `drohne-${Math.random().toString(36).slice(2, 7)}`
+        : `quelle-${number}`;
     currentConfig.sources.push({
-        id: `quelle-${number}`,
+        id: newId,
         name: `Quelle ${number}`,
         drone_type: "",
         type: "rtmp",
@@ -808,6 +865,8 @@ function addSource() {
         audio_mode: "none",
         ingest_protocol: "rtmp",
         publish_token: generatePublisherToken(),
+        // Neue Quellen gehören zunächst der ersten eigenen Organisation.
+        organization_id: sourceOrganizationOptions()[0]?.org.id ?? null,
     });
     renderSources();
     const cards = document.querySelectorAll(

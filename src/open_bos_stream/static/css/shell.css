@@ -1402,3 +1402,200 @@ body {
     background: var(--shell-accent-soft);
     color: var(--bos-red);
 }
+
+/* ----------------------------------------------------------
+   Organisation und Konten
+   ---------------------------------------------------------- */
+
+.settings-section-org {
+    grid-column: 1 / -1;
+}
+
+.org-management {
+    display: grid;
+    gap: 18px;
+}
+
+.org-management [data-kind="error"] {
+    color: var(--bos-red);
+}
+
+.org-management [data-kind="success"] {
+    color: var(--bos-green);
+}
+
+.org-block {
+    display: grid;
+    gap: 10px;
+}
+
+.org-block h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.org-block h4,
+.org-user-editor h4,
+.org-form h4 {
+    margin: 6px 0 0;
+    font-size: 0.88rem;
+}
+
+.org-block-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+}
+
+.org-filter {
+    display: grid;
+    gap: 2px;
+    font-size: 0.8rem;
+    color: var(--bos-muted);
+}
+
+.org-tree,
+.org-users,
+.org-memberships {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.org-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    margin-left: calc(var(--depth, 0) * 18px);
+    padding: 8px 10px;
+    border: 1px solid var(--bos-gray);
+    border-left: 3px solid var(--bos-blue);
+    border-radius: var(--shell-radius-small);
+}
+
+.org-row.is-archived {
+    opacity: 0.6;
+    border-left-color: var(--bos-gray);
+}
+
+.org-row-main {
+    display: grid;
+    min-width: 0;
+}
+
+.org-row-main small,
+.org-user-name small {
+    color: var(--bos-muted);
+    font-size: 0.78rem;
+}
+
+.org-row-actions,
+.org-form-actions,
+.org-inline-add {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.org-inline-add .bos-input {
+    width: auto;
+    min-width: 0;
+    flex: 1 1 140px;
+}
+
+.org-form {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--bos-gray);
+    border-radius: var(--shell-radius-small);
+    background: var(--shell-surface-muted);
+}
+
+.org-user {
+    border: 1px solid var(--bos-gray);
+    border-radius: var(--shell-radius-small);
+}
+
+.org-user.is-inactive {
+    opacity: 0.7;
+}
+
+.org-user > details > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    padding: 8px 10px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.org-user > details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.org-user-name {
+    display: grid;
+}
+
+.org-user-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.org-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--shell-surface-muted);
+    font-size: 0.74rem;
+    white-space: nowrap;
+}
+
+.org-chip.is-valid {
+    background: var(--shell-success-soft);
+}
+
+.org-chip.is-expired {
+    background: var(--shell-danger-soft);
+    color: var(--bos-red);
+}
+
+.org-chip.is-muted,
+.org-memberships .is-muted,
+.org-users .is-muted {
+    color: var(--bos-muted);
+}
+
+.org-user-editor {
+    display: grid;
+    gap: 10px;
+    padding: 4px 10px 12px;
+}
+
+.org-memberships li {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+}
+
+.org-memberships li > span:first-child {
+    flex: 1 1 160px;
+    min-width: 0;
+}
+
+.org-memberships .bos-input {
+    width: auto;
+}

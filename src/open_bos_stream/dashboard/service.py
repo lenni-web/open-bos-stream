@@ -326,6 +326,7 @@ class DashboardService:
                     "id": item.id,
                     "name": item.name,
                     "drone_type": item.drone_type,
+                    "organization_id": item.organization_id,
                     "type": item.type,
                     "profile": item.profile,
                     "preview_active": (

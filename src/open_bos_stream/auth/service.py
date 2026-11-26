@@ -1,4 +1,9 @@
-"""Dateibasierte lokale Anmeldung mit signierten Sitzungscookies."""
+"""Lokale Anmeldung mit signierten Sitzungscookies.
+
+Konten, Organisationen und Rollen liegen in der Datenbank (siehe
+open_bos_stream.org). Die frühere Datei config/users.yaml wird beim ersten
+Start übernommen und danach als users.yaml.importiert aufbewahrt.
+"""
 
 from __future__ import annotations
 
@@ -10,14 +15,19 @@ import os
 import secrets
 import tempfile
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
 
+from open_bos_stream.db.database import Database
+from open_bos_stream.org.service import OrgError, OrgService
 
-# Zuweisbare Benutzerrollen. "guest" ist keine Benutzerrolle, sondern
-# entsteht nur über einen zeitlich begrenzten Gastlink.
-ROLES = ("viewer", "admin", "superadmin")
+
+# Grobe Rollen für Seiten und Schnittstellen. Sie ergeben sich aus der
+# höchsten Rolle in einer Organisation; "superadmin" ist die technische
+# Plattformrolle. "guest" entsteht nur über einen Gastlink.
+ROLES = ("viewer", "operator", "admin", "superadmin")
 ROLE_LEVEL = {
     role: index
     for index, role in enumerate(("guest", *ROLES))
@@ -42,8 +52,13 @@ class AuthService:
         secret_file: str = "config/auth.secret",
         setup_code_file: str | None = None,
         revoked_file: str | None = None,
+        database: Database | None = None,
     ) -> None:
         self.users_file = Path(users_file)
+        self.org = OrgService(
+            database or Database(self.users_file.with_name("open-bos.db"))
+        )
+        self._ready = False
         # Wird vom Container gesetzt (auth/guest_links.py).
         self.guest_links = None
         self.secret_file = Path(secret_file)
@@ -55,13 +70,49 @@ class AuthService:
             revoked_file
             or self.users_file.with_name("revoked_sessions.json")
         )
-        self._users_cache: tuple[tuple[int, int], list[dict]] | None = None
         self._revoked_cache: tuple[tuple[int, int], dict[str, int]] | None = None
         self._secret_cache: bytes | None = None
 
+    def ready(self) -> OrgService:
+        """Datenbank migrieren, Grundstruktur anlegen, alte Konten übernehmen."""
+
+        if not self._ready:
+            self.org.db.migrate()
+            self.org.ensure_base()
+            self._import_legacy_users()
+            self._ready = True
+        return self.org
+
+    def _import_legacy_users(self) -> None:
+        if self.org.user_count() or not self.users_file.exists():
+            return
+        try:
+            with self.users_file.open(encoding="utf-8") as file:
+                data = yaml.safe_load(file) or {}
+        except (OSError, yaml.YAMLError):
+            return
+        root_id = min(self.org.root_ids())
+        start_id = self.org.default_organization_id()
+        for item in data.get("users", []):
+            role = item.get("role")
+            created = self.org.create_user(
+                username=item["username"],
+                password_hash=item["password_hash"],
+                platform_admin=role == "superadmin",
+                actor="Übernahme",
+            )
+            if role == "superadmin":
+                # Betreiber des Servers: zugleich Kreis-Admin.
+                self.org.set_membership(created["id"], root_id, "admin", actor="Übernahme")
+            elif role in {"admin", "viewer"}:
+                self.org.set_membership(created["id"], start_id, role, actor="Übernahme")
+        self.users_file.replace(
+            self.users_file.with_name(self.users_file.name + ".importiert")
+        )
+
     @property
     def configured(self) -> bool:
-        return bool(self._read_users())
+        return bool(self.ready().user_count())
 
     @staticmethod
     def _file_key(path: Path) -> tuple[int, int] | None:
@@ -71,42 +122,18 @@ class AuthService:
             return None
         return (stat.st_mtime_ns, stat.st_size)
 
-    def _read_users(self) -> list[dict]:
-        # Jede Anfrage prüft die Sitzung; die Datei wird nur nach einer
-        # Änderung neu gelesen.
-        key = self._file_key(self.users_file)
-        if key is None:
-            self._users_cache = None
-            return []
-        if self._users_cache is None or self._users_cache[0] != key:
-            with self.users_file.open(encoding="utf-8") as file:
-                data = yaml.safe_load(file) or {}
-            self._users_cache = (key, list(data.get("users", [])))
-        return [dict(item) for item in self._users_cache[1]]
+    def _session_user(self, stored: dict) -> dict:
+        """Kontodaten einer Sitzung samt Rechten in Organisationen."""
 
-    def _write_users(self, users: list[dict]) -> None:
-        self.users_file.parent.mkdir(parents=True, exist_ok=True)
-        descriptor, temporary = tempfile.mkstemp(
-            prefix=".users.",
-            suffix=".tmp",
-            dir=self.users_file.parent,
-            text=True,
-        )
-        temporary_path = Path(temporary)
-        try:
-            with os.fdopen(descriptor, "w", encoding="utf-8") as file:
-                yaml.safe_dump(
-                    {"users": users},
-                    file,
-                    allow_unicode=True,
-                    sort_keys=False,
-                )
-                file.flush()
-                os.fsync(file.fileno())
-            os.chmod(temporary_path, 0o600)
-            os.replace(temporary_path, self.users_file)
-        finally:
-            temporary_path.unlink(missing_ok=True)
+        org = self.ready()
+        scope = org.scope(stored)
+        return {
+            "username": stored["username"],
+            "role": org.effective_role(stored),
+            "user_id": stored["id"],
+            "display_name": stored.get("display_name") or stored["username"],
+            **scope.as_dict(),
+        }
 
     def _secret(self) -> bytes:
         if self._secret_cache is not None:
@@ -281,75 +308,97 @@ class AuthService:
         role: str,
         *,
         initial: bool = False,
+        organization_id: int | None = None,
+        display_name: str = "",
+        email: str = "",
+        actor: str = "",
     ) -> dict:
+        """Konto anlegen; Rolle gilt in der angegebenen Organisation.
+
+        "superadmin" legt ein Konto mit Plattformrolle an, das zugleich
+        Kreis-Admin ist. Ohne Organisation gilt die Start-Organisation.
+        """
+
         username = self._normalize_username(username)
         if role not in ROLES:
             raise AuthError("Unbekannte Rolle.")
-        users = self._read_users()
-        if initial:
-            if users or role != "superadmin":
-                raise AuthError("Die Ersteinrichtung ist bereits abgeschlossen.")
-        elif any(item["username"] == username for item in users):
-            raise AuthError("Dieser Benutzername ist bereits vergeben.")
-        users.append({
-            "username": username,
-            "role": role,
-            "password_hash": self._password_hash(password),
-        })
-        self._write_users(users)
-        return {"username": username, "role": role}
+        org = self.ready()
+        if initial and (org.user_count() or role != "superadmin"):
+            raise AuthError("Die Ersteinrichtung ist bereits abgeschlossen.")
+        try:
+            created = org.create_user(
+                username=username,
+                password_hash=self._password_hash(password),
+                display_name=display_name,
+                email=email,
+                platform_admin=role == "superadmin",
+                actor=actor,
+            )
+            if role == "superadmin":
+                org.set_membership(created["id"], min(org.root_ids()), "admin", actor=actor)
+            else:
+                org.set_membership(
+                    created["id"],
+                    organization_id or org.default_organization_id(),
+                    role,
+                    actor=actor,
+                )
+        except OrgError as exc:
+            raise AuthError(str(exc)) from exc
+        return {"username": username, "role": role, "user_id": created["id"]}
 
     def authenticate(self, username: str, password: str) -> dict | None:
-        username = username.strip().lower()
-        for user in self._read_users():
-            if (
-                user.get("username") == username
-                and self._verify_password(
-                    password,
-                    user.get("password_hash", ""),
-                )
-            ):
-                return {
-                    "username": username,
-                    "role": user["role"],
-                }
+        stored = self.ready().user_by_username(username.strip().lower())
+        if (
+            stored
+            and stored["active"]
+            and self._verify_password(password, stored["password_hash"])
+        ):
+            self.org.update_user(
+                stored["id"],
+                last_login_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            )
+            return self._session_user(stored)
         return None
 
     def users(self) -> list[dict]:
+        org = self.ready()
         return [
-            {"username": item["username"], "role": item["role"]}
-            for item in self._read_users()
+            {"username": item["username"], "role": org.effective_role(item)}
+            for item in org.users()
         ]
 
     def user(self, username: str) -> dict | None:
         """Öffentliche Kontodaten eines einzelnen Benutzers."""
 
-        normalized = username.strip().lower()
-        return next(
-            (
-                {
-                    "username": item["username"],
-                    "role": item["role"],
-                }
-                for item in self._read_users()
-                if item["username"] == normalized
-            ),
-            None,
-        )
+        org = self.ready()
+        stored = org.user_by_username(username.strip().lower())
+        if stored is None:
+            return None
+        return {"username": stored["username"], "role": org.effective_role(stored)}
 
     def delete_user(self, username: str, current_username: str) -> None:
         username = username.strip().lower()
         if username == current_username:
             raise AuthError("Das eigene Konto kann nicht gelöscht werden.")
-        users = self._read_users()
-        remaining = [
-            item for item in users if item["username"] != username
-        ]
-        if len(remaining) == len(users):
+        org = self.ready()
+        stored = org.user_by_username(username)
+        if stored is None:
             raise AuthError("Benutzer wurde nicht gefunden.")
-        if not any(item["role"] == "superadmin" for item in remaining):
-            raise AuthError("Mindestens ein Superadmin muss erhalten bleiben.")
-        self._write_users(remaining)
+        try:
+            org.delete_user(stored["id"], actor=current_username)
+        except OrgError as exc:
+            raise AuthError(str(exc)) from exc
+
+    def set_password(self, user_id: int, password: str, *, actor: str = "") -> None:
+        try:
+            self.ready().update_user(
+                user_id,
+                password_hash=self._password_hash(password),
+                actor=actor,
+            )
+        except OrgError as exc:
+            raise AuthError(str(exc)) from exc
 
     def update_user(
         self,
@@ -358,27 +407,29 @@ class AuthService:
         role: str | None = None,
         password: str | None = None,
     ) -> dict:
+        """Vereinfachte Änderung (Rolle in der Start-Organisation)."""
+
         username = username.strip().lower()
         if role is not None and role not in ROLES:
             raise AuthError("Unbekannte Rolle.")
-        users = self._read_users()
-        target = next(
-            (
-                item for item in users
-                if item["username"] == username
-            ),
-            None,
-        )
-        if target is None:
+        org = self.ready()
+        stored = org.user_by_username(username)
+        if stored is None:
             raise AuthError("Benutzer wurde nicht gefunden.")
-        if role is not None:
-            target["role"] = role
-        if password:
-            target["password_hash"] = self._password_hash(password)
-        if not any(item["role"] == "superadmin" for item in users):
-            raise AuthError("Mindestens ein Superadmin muss erhalten bleiben.")
-        self._write_users(users)
-        return {"username": username, "role": target["role"]}
+        try:
+            if role == "superadmin":
+                org.update_user(stored["id"], platform_admin=True)
+            elif role is not None:
+                org.update_user(stored["id"], platform_admin=False)
+                org.set_membership(stored["id"], org.default_organization_id(), role)
+            if password:
+                org.update_user(
+                    stored["id"],
+                    password_hash=self._password_hash(password),
+                )
+        except OrgError as exc:
+            raise AuthError(str(exc)) from exc
+        return self.user(username)
 
     def create_token(
         self,
@@ -389,13 +440,7 @@ class AuthService:
         if user["username"] == "__display__":
             stamp = "display"
         else:
-            stored = next(
-                (
-                    item for item in self._read_users()
-                    if item["username"] == user["username"]
-                ),
-                None,
-            )
+            stored = self.ready().user_by_username(user["username"])
             if stored is None:
                 raise AuthError("Benutzer wurde nicht gefunden.")
             stamp = hashlib.sha256(
@@ -528,12 +573,10 @@ class AuthService:
                 return None
             if str(payload.get("sub", "")).startswith(GUEST_PREFIX):
                 return self._guest_user(payload)
-            stored = next(
-                (
-                    item for item in self._read_users()
-                    if item["username"] == payload["sub"]
-                ),
-                None,
+            stored = (
+                None
+                if payload["sub"] == "__display__"
+                else self.ready().user_by_username(payload["sub"])
             )
             current = (
                 {
@@ -545,11 +588,8 @@ class AuthService:
                     and payload["role"] == "viewer"
                 )
                 else (
-                    {
-                        "username": stored["username"],
-                        "role": stored["role"],
-                    }
-                    if stored
+                    self._session_user(stored)
+                    if stored and stored["active"]
                     else None
                 )
             )

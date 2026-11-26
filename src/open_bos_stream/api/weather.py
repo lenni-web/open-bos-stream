@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request, Response
 from starlette.concurrency import run_in_threadpool
 
-from open_bos_stream.auth.roles import ADMIN, GUEST
+from open_bos_stream.auth.roles import ADMIN, GUEST, SERVER_ADMIN
 from open_bos_stream.core.container import (
     config as runtime_config,
     config_apply_service,
@@ -166,12 +166,12 @@ async def radar_tile_at(stamp: str, z: int, x: int, y: int) -> Response:
     )
 
 
-@router.get("/settings", dependencies=[ADMIN])
+@router.get("/settings", dependencies=[SERVER_ADMIN])
 def weather_settings() -> dict:
     return {"weather": _settings()}
 
 
-@router.put("/settings", dependencies=[ADMIN])
+@router.put("/settings", dependencies=[SERVER_ADMIN])
 async def save_weather_settings(
     weather: WeatherConfig,
     request: Request,

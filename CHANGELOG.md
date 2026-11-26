@@ -9,6 +9,47 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- **Organisationen:** Landkreis, Stadt-/Gemeinde-/Samtgemeindefeuerwehren,
+  Ortsfeuerwehren und Kreiseinheiten als Baum. Verwaltung unter
+  „Einstellungen → Organisation und Konten“.
+- **Rollen je Organisation:** Zuschauer, Drohnenteam und Wehr-Admin; Rechte
+  vererben sich nach unten. Wehr-Admin auf Landkreisebene ist Kreis-Admin.
+  Die technische Plattformrolle Superadmin bleibt.
+- **Quellen gehören einer Wehr.** Konten sehen nur Quellen ihrer
+  Organisationen – in der Übersicht, im Vollbild, bei Livebild-Abrufen über
+  Caddy und MediaMTX, im Ereignisprotokoll und bei Gastlinks.
+- **Fernpilotennachweise** (A1/A3, A2, STS) mit Nummer und Ablaufdatum je
+  Konto; abgelaufene Nachweise werden markiert.
+- Konten mit Anzeigename, optionaler E-Mail, Sperre und Änderungsprotokoll;
+  eigene Daten und Passwort über `/api/org/me`.
+- Drohnenteams erstellen Gastlinks für Quellen ihrer Organisation.
+- Datenbank SQLite (`config/open-bos.db`) mit automatischer Migration über
+  Alembic; neue Abhängigkeiten SQLAlchemy 2.1.9 und Alembic 1.20.1.
+
+### Changed
+
+- Beim ersten Start werden Landkreis und Start-Organisation angelegt, die
+  Konten aus `config/users.yaml` übernommen (Superadmin → Superadmin und
+  Kreis-Admin, Admin → Wehr-Admin, Viewer → Zuschauer) und bestehende
+  Quellen und Gastlinks der Start-Organisation zugeordnet. Die alte Datei
+  bleibt als `users.yaml.importiert` erhalten.
+- Serverweite Einstellungen (Wetter, Systemseite, Systemstatus, Diagnose,
+  Konfigurationstest) nur noch für Kreis-Admins und Superadmins. Wehr-Admins
+  bearbeiten nur Quellen ihrer Organisationen.
+- Benutzermenü zeigt Anzeigename und Rollen (z. B. „Wehr-Admin · OF Hagen“).
+
+### Fixed
+
+- Der Dialog „Als App installieren“ fehlte für Zuschauer; der Menüeintrag
+  öffnete bei ihnen nichts.
+
+### Security
+
+- Livebild-Abrufe (Caddy `forward_auth` und MediaMTX-Medientoken) prüfen die
+  Zugehörigkeit der Quelle zur Organisation des Kontos.
+
 ---
 
 ## [0.20.5] - 2026-11-26

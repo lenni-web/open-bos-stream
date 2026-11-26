@@ -1,6 +1,6 @@
 # Entwurf: Datenmodell für Organisationen, Rollen und Einsätze
 
-Stand: 26.11.2026, überarbeitet nach erster Abstimmung · Zur Abstimmung · gilt ab Version 0.21 (Organisation) und
+Stand: 27.11.2026 · Organisation, Rollen und Nachweise umgesetzt in 0.21; Einsätze folgen mit 0.22 · gilt ab Version 0.21 (Organisation) und
 0.22 (Einsätze)
 
 Dieses Dokument beschreibt, wie Open BOS künftig Landkreis, Feuerwehren,

@@ -151,6 +151,12 @@ print_setup_code() {
         if sudo test -s "${TARGET_DIR}/config/users.yaml"; then
             return 0
         fi
+        # Ab 0.21 liegen die Konten in der Datenbank. Erscheint wenige
+        # Sekunden nach dem Start kein Code, ist die Einrichtung erledigt.
+        if [ "${attempt}" -ge 5 ] \
+            && sudo test -s "${TARGET_DIR}/config/open-bos.db"; then
+            return 0
+        fi
         sleep 1
     done
 }

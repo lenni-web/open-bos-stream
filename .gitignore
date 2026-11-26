@@ -21,3 +21,7 @@ testdata/*.mp4
 test-results/
 test-tokens.env*
 .DS_Store
+config/open-bos.db
+config/open-bos.db-wal
+config/open-bos.db-shm
+config/users.yaml.importiert

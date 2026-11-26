@@ -12,10 +12,10 @@ from open_bos_stream.core.installation import (
     installation_profile,
     server_access_settings,
 )
-from open_bos_stream.auth.roles import ADMIN, SUPERADMIN
+from open_bos_stream.auth.roles import SERVER_ADMIN, SUPERADMIN
 
 router = APIRouter(
-    dependencies=[ADMIN],
+    dependencies=[SERVER_ADMIN],
     prefix="/system",
     tags=["System"],
 )

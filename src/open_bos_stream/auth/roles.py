@@ -15,6 +15,7 @@ from open_bos_stream.auth.service import ROLE_LEVEL
 ROLE_MESSAGES = {
     "guest": "Anmeldung erforderlich.",
     "viewer": "Anmeldung erforderlich.",
+    "operator": "Für diese Aktion ist die Rolle Drohnenteam erforderlich.",
     "admin": "Für diese Aktion ist die Rolle Admin erforderlich.",
     "superadmin": "Diese Aktion ist Superadmins vorbehalten.",
 }
@@ -35,6 +36,28 @@ def _role_dependency(minimum: str):
     return dependency
 
 
+def _server_admin_dependency(request: Request) -> dict:
+    """Kreis-Admin oder Superadmin: serverweite Einstellungen.
+
+    Sitzungen aus Organisationen tragen ``server_admin``; ältere bzw.
+    vereinfachte Benutzerangaben ohne Organisationsdaten gelten ab Admin.
+    """
+
+    user = _role_dependency("admin")(request)
+    if "org_view" in user and not (
+        user.get("server_admin") or user.get("role") == "superadmin"
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Diese Einstellung gilt für den ganzen Server und ist "
+            "Kreis-Admins vorbehalten.",
+        )
+    return user
+
+
+_server_admin_dependency.minimum_role = "admin"
+
+
 def _public_dependency() -> None:
     """Ausdrücklich öffentlicher Endpunkt (eigene Prüfung im Handler)."""
 
@@ -45,6 +68,8 @@ GUEST = Depends(_role_dependency("guest"))
 VIEWER = Depends(_role_dependency("viewer"))
 ADMIN = Depends(_role_dependency("admin"))
 SUPERADMIN = Depends(_role_dependency("superadmin"))
+SERVER_ADMIN = Depends(_server_admin_dependency)
+OPERATOR = Depends(_role_dependency("operator"))
 PUBLIC = Depends(_public_dependency)
 
 

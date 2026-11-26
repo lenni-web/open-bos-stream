@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, field_validator
 
 from open_bos_stream.core.container import auth_service, config
-from open_bos_stream.auth.guest_access import guest_paths, is_guest
+from open_bos_stream.auth.guest_access import allowed_media_paths
 from open_bos_stream.auth.roles import PUBLIC
 
 logger = logging.getLogger(__name__)
@@ -148,9 +148,8 @@ def _authorize_reader(payload: MediaMTXAuthRequest) -> dict[str, bool]:
         if payload.protocol in BROWSER_READ_PROTOCOLS
         else None
     )
-    if user is not None and (
-        not is_guest(user) or path in guest_paths(user, config)
-    ):
+    allowed = allowed_media_paths(user, config) if user is not None else set()
+    if user is not None and (allowed is None or path in allowed):
         return {"authorized": True}
 
     logger.warning(

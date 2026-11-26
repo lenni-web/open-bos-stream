@@ -1,0 +1,92 @@
+{% from "components/icons.html" import icon %}
+{#
+    Hauptnavigation aus einer Liste. „primary“ steht auf dem Smartphone in
+    der unteren Leiste, alle übrigen Punkte unter „Mehr“. Neue Module
+    werden hier eingetragen und erscheinen dadurch auf allen Geräten.
+#}
+{% set nav_items = [
+    {"page": "dashboard", "label": "Übersicht", "icon": "home", "primary": true, "visible": true},
+    {"page": "map", "label": "Karte", "icon": "map", "primary": true, "visible": true},
+    {"page": "weather", "label": "Wetter", "icon": "weather", "primary": true, "visible": true},
+    {"page": "media", "label": "Medien", "icon": "media", "primary": false, "visible": user.role == "superadmin"},
+    {"page": "settings", "label": "Einstellungen", "icon": "settings", "primary": false, "visible": can.operate},
+    {"page": "system", "label": "System", "icon": "system", "primary": false, "visible": can.server_admin},
+] %}
+{% set secondary_items = nav_items | selectattr("visible") | rejectattr("primary") | list %}
+<aside id="sidebar" class="app-sidebar" aria-label="Hauptnavigation">
+
+    <div class="app-sidebar-brand">
+        <img
+            class="app-sidebar-logo"
+            src="/static/icons/open-bos-stream.svg?v={{ version }}"
+            alt=""
+            width="36"
+            height="36">
+        <div class="app-sidebar-name">
+            <strong>Open BOS Drohnen</strong>
+            <span>BOS Drohnen Suite</span>
+        </div>
+    </div>
+
+    <nav class="bos-nav app-nav">
+
+        {% for item in nav_items if item.visible %}
+        <a
+            id="nav-{{ item.page }}"
+            class="bos-nav-item app-nav-item{% if loop.first %} active{% endif %}{% if not item.primary %} app-nav-secondary{% endif %}"
+            href="#"
+            title="{{ item.label }}"
+            onclick="showPage('{{ item.page }}'); return false;">
+            {{ icon(item.icon) }}
+            <span class="nav-label">{{ item.label }}</span>
+        </a>
+        {% endfor %}
+
+        {% if secondary_items %}
+        <button
+            id="nav-more"
+            class="bos-nav-item app-nav-item app-nav-more"
+            type="button"
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-controls="app-more-sheet">
+            {{ icon("grid") }}
+            <span class="nav-label">Mehr</span>
+        </button>
+        {% endif %}
+
+    </nav>
+
+    {% if secondary_items %}
+    <div id="app-more-sheet" class="app-more-sheet" hidden>
+        <p class="app-more-title">Weitere Bereiche</p>
+        <div class="app-more-grid">
+            {% for item in secondary_items %}
+            <a
+                class="app-more-item"
+                href="#"
+                data-page="{{ item.page }}"
+                onclick="closeMoreSheet(); showPage('{{ item.page }}'); return false;">
+                {{ icon(item.icon, 22) }}
+                <span>{{ item.label }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="app-sidebar-footer">
+        <button
+            id="sidebar-collapse"
+            class="app-sidebar-collapse"
+            type="button"
+            aria-pressed="false"
+            title="Seitenleiste einklappen"
+            aria-label="Seitenleiste einklappen">
+            {{ icon("collapse") }}
+            <span class="nav-label">Einklappen</span>
+        </button>
+        <span class="app-sidebar-version">Version {{ version }}</span>
+    </div>
+
+</aside>

@@ -1,0 +1,119 @@
+{% from "components/icons.html" import icon %}
+{% set role_labels = {"viewer": "Zuschauer", "operator": "Drohnenteam", "admin": "Admin", "superadmin": "Superadmin"} %}
+<header class="app-topbar">
+
+    <div class="app-topbar-title">
+        <img
+            class="app-topbar-logo"
+            src="/static/icons/open-bos-stream.svg?v={{ version }}"
+            alt=""
+            width="30"
+            height="30">
+        <div>
+            <span id="topbar-eyebrow" class="page-eyebrow">Einsatzübersicht</span>
+            <strong id="topbar-title">Übersicht</strong>
+        </div>
+    </div>
+
+    <div class="app-topbar-actions">
+
+        <div id="clock" class="app-clock">00:00:00</div>
+
+        <div class="app-popover-anchor">
+            <button
+                id="status-button"
+                class="app-status"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                aria-controls="status-panel"
+                {% if not can.server_admin %}disabled{% endif %}>
+                <span id="status-dot" class="app-status-dot is-ok"></span>
+                <span id="status-label" class="app-status-label">Einsatzbereit</span>
+            </button>
+
+            {% if can.server_admin %}
+            <div id="status-panel" class="app-popover app-status-panel" hidden>
+                <p class="app-popover-title">Systemstatus</p>
+                <dl class="app-status-list">
+                    <div>
+                        <dt>Streaming-Server</dt>
+                        <dd id="status-mediamtx">—</dd>
+                    </div>
+                    <div>
+                        <dt>Prozessor</dt>
+                        <dd id="status-cpu">—</dd>
+                    </div>
+                    <div>
+                        <dt>Arbeitsspeicher</dt>
+                        <dd id="status-ram">—</dd>
+                    </div>
+                    <div id="status-temp-row" hidden>
+                        <dt>Temperatur</dt>
+                        <dd id="status-temp">—</dd>
+                    </div>
+                </dl>
+                <button
+                    class="app-popover-link"
+                    type="button"
+                    data-close-popover
+                    onclick="showPage('system')">
+                    {{ icon("activity", 16) }}
+                    Details auf der Systemseite
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="app-popover-anchor">
+            <button
+                id="user-button"
+                class="app-user"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                aria-controls="user-panel">
+                <span class="app-avatar" aria-hidden="true">{{ user.username[:1] | upper }}</span>
+                <span class="app-user-name">{{ user.username }}</span>
+                {{ icon("chevron-down", 16) }}
+            </button>
+
+            <div id="user-panel" class="app-popover app-user-panel" hidden>
+                <div class="app-user-info">
+                    <strong>{{ user.display_name or user.username }}</strong>
+                    <span>{{ role_summary or role_labels.get(user.role, user.role) }}</span>
+                </div>
+
+                <p class="app-popover-title">Darstellung</p>
+                <div class="app-theme-switch" role="radiogroup" aria-label="Darstellung">
+                    <button type="button" role="radio" data-theme-choice="auto" aria-checked="true">
+                        {{ icon("auto", 16) }} Auto
+                    </button>
+                    <button type="button" role="radio" data-theme-choice="light" aria-checked="false">
+                        {{ icon("sun", 16) }} Hell
+                    </button>
+                    <button type="button" role="radio" data-theme-choice="dark" aria-checked="false">
+                        {{ icon("moon", 16) }} Dunkel
+                    </button>
+                </div>
+
+                <button
+                    id="pwa-menu-entry"
+                    class="app-popover-link"
+                    type="button"
+                    data-close-popover
+                    onclick="openInstallDialog()">
+                    {{ icon("install", 16) }}
+                    Als App installieren
+                </button>
+
+                <button class="app-popover-link app-logout" type="button" onclick="logoutUser()">
+                    {{ icon("logout", 16) }}
+                    Abmelden
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+</header>

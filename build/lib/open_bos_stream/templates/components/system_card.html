@@ -1,0 +1,290 @@
+<section class="system-page">
+    <header class="page-header">
+        <div>
+            <span class="page-eyebrow">Diagnose</span>
+            <h1>System</h1>
+        </div>
+        <div class="page-header-actions">
+            <span id="system-refresh-status" class="refresh-status">Live</span>
+            <button
+                class="bos-button"
+                type="button"
+                onclick="downloadSystemDiagnostics()">
+                Diagnose herunterladen
+            </button>
+            <button
+                class="bos-button"
+                type="button"
+                onclick="copySystemDiagnostics()">
+                Diagnose kopieren
+            </button>
+        </div>
+    </header>
+
+    <div id="system-content" class="system-layout">
+        <section class="system-services">
+            <article id="service-card-ffmpeg" class="service-card bos-card">
+                <span class="service-card-dot"></span>
+                <div>
+                    <span class="section-kicker">Verarbeitung</span>
+                    <h2>FFmpeg</h2>
+                    <p id="system-ffmpeg">Status wird geladen …</p>
+                </div>
+            </article>
+
+            <article id="service-card-mediamtx" class="service-card bos-card">
+                <span class="service-card-dot"></span>
+                <div>
+                    <span class="section-kicker">Streaming</span>
+                    <h2>MediaMTX</h2>
+                    <p id="system-mediamtx">Status wird geladen …</p>
+                </div>
+            </article>
+
+            <article id="service-card-capture" class="service-card bos-card">
+                <span class="service-card-dot"></span>
+                <div>
+                    <span class="section-kicker">Eingang</span>
+                    <h2>Quelle</h2>
+                    <p id="system-capture">Status wird geladen …</p>
+                </div>
+            </article>
+
+            <article id="service-card-web-access" class="service-card bos-card">
+                <span class="service-card-dot"></span>
+                <div>
+                    <span class="section-kicker">Netzwerk</span>
+                    <h2>Webzugriff</h2>
+                    <p id="system-web-access">Status wird geladen …</p>
+                </div>
+            </article>
+        </section>
+
+        <section class="system-metrics">
+            <article class="metric-panel bos-card">
+                <span>CPU</span>
+                <strong id="system-cpu">—</strong>
+            </article>
+            <article class="metric-panel bos-card">
+                <span>Arbeitsspeicher</span>
+                <strong id="system-ram">—</strong>
+            </article>
+            <article class="metric-panel bos-card">
+                <span>Temperatur</span>
+                <strong id="system-temp">—</strong>
+            </article>
+            <article class="metric-panel bos-card">
+                <span>Freier Medienspeicher</span>
+                <strong id="system-storage-free">—</strong>
+            </article>
+        </section>
+
+        <section class="bos-card stream-diagnostics source-diagnostics">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">Quellen</span>
+                    <h2>Mehrquellenstatus</h2>
+                </div>
+            </div>
+            <div id="source-diagnostic-list" class="source-diagnostic-list">
+                <p class="empty-state">Quellenstatus wird geladen …</p>
+            </div>
+        </section>
+
+        <section class="bos-card system-admin-panel">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">Administration</span>
+                    <h2>Systemwerkzeuge</h2>
+                </div>
+                <span class="diagnostic-state">Geschützter Bereich</span>
+            </div>
+            <p>
+                Zeigt die letzten Verbindungs-, Authentifizierungs- und
+                Streammeldungen. Zugangsdaten werden vor der Ausgabe verdeckt.
+            </p>
+            <div class="system-admin-actions">
+                <button
+                    id="stream-log-toggle"
+                    class="bos-button"
+                    type="button">
+                    Stream-Log anzeigen
+                </button>
+                {% if user.role == "superadmin" %}
+                <button
+                    id="system-reboot"
+                    class="bos-button bos-button-red"
+                    type="button">
+                    Server neu starten
+                </button>
+                {% endif %}
+            </div>
+            <div id="stream-log-panel" class="stream-log-panel" hidden>
+                <div class="stream-log-toolbar">
+                    <span id="stream-log-status">Noch nicht geladen</span>
+                    <button
+                        id="stream-log-refresh"
+                        class="bos-button"
+                        type="button">
+                        Aktualisieren
+                    </button>
+                </div>
+                <pre id="stream-log-content" tabindex="0">—</pre>
+            </div>
+            <div
+                id="system-admin-feedback"
+                class="system-feedback"
+                aria-live="polite"></div>
+        </section>
+
+        {% if user.role == "superadmin" %}
+        <section class="bos-card test-session-panel">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">Dauertest</span>
+                    <h2>Browser-Testprotokoll</h2>
+                </div>
+                <span id="test-session-state" class="diagnostic-state">
+                    Nicht gestartet
+                </span>
+            </div>
+            <p>
+                Speichert System-, Quellen- und WebRTC-Werte dieses Browsers
+                alle fünf Sekunden. Die Sitzung bleibt bei einem Reload erhalten.
+            </p>
+            <div class="test-session-summary">
+                <span id="test-session-duration">Laufzeit —</span>
+                <span id="test-session-samples">0 Messpunkte</span>
+                <span id="test-session-events">0 Ereignisse</span>
+            </div>
+            <div class="test-session-actions">
+                <button id="test-session-start" class="bos-button" type="button">
+                    Testprotokoll starten
+                </button>
+                <button id="test-session-stop" class="bos-button" type="button" disabled>
+                    Stoppen
+                </button>
+                <button id="test-session-download" class="bos-button" type="button" disabled>
+                    JSON herunterladen
+                </button>
+                <button id="test-session-clear" class="bos-button" type="button" disabled>
+                    Verwerfen
+                </button>
+            </div>
+            <div id="test-session-feedback" class="system-feedback" aria-live="polite"></div>
+        </section>
+        {% endif %}
+
+        <section class="bos-card stream-diagnostics">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">Streaming</span>
+                    <h2>Primärquelle & Laufzeit</h2>
+                </div>
+                <span id="stream-diagnostic-state" class="diagnostic-state">
+                    Wird geladen …
+                </span>
+            </div>
+            <dl class="diagnostic-grid">
+                <div><dt>Diagnosequelle</dt><dd id="stream-diagnostic-primary">—</dd></div>
+                <div><dt>Modus</dt><dd id="stream-diagnostic-mode">—</dd></div>
+                <div><dt>Eingang</dt><dd id="stream-diagnostic-input">—</dd></div>
+                <div><dt>Signal</dt><dd id="stream-diagnostic-signal">—</dd></div>
+                <div><dt>Encoder</dt><dd id="stream-diagnostic-encoder">—</dd></div>
+                <div><dt>Ausgabe</dt><dd id="stream-diagnostic-output">—</dd></div>
+                <div><dt>Neustarts</dt><dd id="stream-diagnostic-restarts">—</dd></div>
+                <div><dt>Exit-Status</dt><dd id="stream-diagnostic-exit">—</dd></div>
+                <div><dt>MediaMTX</dt><dd id="stream-diagnostic-mediamtx">—</dd></div>
+                <div><dt>Tatsächliche FPS</dt><dd id="stream-probe-fps">—</dd></div>
+                <div><dt>Zeitbasis</dt><dd id="stream-probe-timebase">—</dd></div>
+                <div><dt>Zeitstempel</dt><dd id="stream-probe-timestamps">—</dd></div>
+                <div><dt>Eingangsbitrate</dt><dd id="stream-probe-bitrate">—</dd></div>
+                <div><dt>Paketabstände</dt><dd id="stream-probe-packet-timing">—</dd></div>
+                <div><dt>Player-Verbindung</dt><dd id="viewer-connection-state">—</dd></div>
+                <div><dt>Player-Netzwerk</dt><dd id="viewer-network">—</dd></div>
+                <div><dt>Verworfene Frames</dt><dd id="viewer-dropped-frames">—</dd></div>
+                <div><dt>Stabil seit</dt><dd id="stream-stable-for">—</dd></div>
+            </dl>
+            <div
+                id="stream-diagnostic-error"
+                class="diagnostic-error"
+                hidden>
+            </div>
+            <div id="system-alerts" class="system-alerts" hidden></div>
+        </section>
+
+        <section class="bos-card storage-panel">
+            <div class="section-heading">
+                <div>
+                    <span class="section-kicker">Mediathek</span>
+                    <h2>Lokaler Speicher</h2>
+                </div>
+                <strong id="system-storage-percent">—</strong>
+            </div>
+            <div class="storage-bar" aria-hidden="true">
+                <span id="system-storage-bar"></span>
+            </div>
+            <div class="storage-summary">
+                <span id="system-storage-usage">—</span>
+                <span id="system-storage-media">—</span>
+            </div>
+            <p id="system-storage-policy" class="storage-policy">—</p>
+        </section>
+
+        <section class="system-details">
+            <article class="bos-card detail-card">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-kicker">Software</span>
+                        <h2>Anwendung & Laufzeit</h2>
+                    </div>
+                </div>
+                <dl class="detail-list">
+                    <div><dt>Name</dt><dd id="system-app-name">—</dd></div>
+                    <div><dt>Version</dt><dd id="system-app-version">—</dd></div>
+                    <div><dt>Installationsprofil</dt><dd id="system-installation-profile">—</dd></div>
+                    <div><dt>Öffentliche Domain</dt><dd id="system-public-domain">—</dd></div>
+                    <div><dt>HTTPS</dt><dd id="system-https-mode">—</dd></div>
+                    <div><dt>WebRTC</dt><dd id="system-webrtc-mode">—</dd></div>
+                    <div><dt>Host-Firewall</dt><dd id="system-firewall-mode">—</dd></div>
+                    <div><dt>Python</dt><dd id="system-runtime-python">—</dd></div>
+                    <div><dt>FFmpeg</dt><dd id="system-runtime-ffmpeg">—</dd></div>
+                    <div><dt>MediaMTX</dt><dd id="system-runtime-mediamtx">—</dd></div>
+                </dl>
+            </article>
+
+            <article class="bos-card detail-card">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-kicker">Gerät</span>
+                        <h2>Hardware & Betriebssystem</h2>
+                    </div>
+                </div>
+                <dl class="detail-list">
+                    <div><dt>Modell</dt><dd id="system-hardware-model">—</dd></div>
+                    <div><dt>Architektur</dt><dd id="system-hardware-arch">—</dd></div>
+                    <div><dt>System</dt><dd id="system-os-system">—</dd></div>
+                    <div><dt>Distribution</dt><dd id="system-os-distribution">—</dd></div>
+                    <div><dt>Kernel</dt><dd id="system-os-kernel">—</dd></div>
+                </dl>
+            </article>
+
+            <article class="bos-card detail-card">
+                <div class="section-heading">
+                    <div>
+                        <span class="section-kicker">Verbindung</span>
+                        <h2>Netzwerk</h2>
+                    </div>
+                </div>
+                <dl class="detail-list">
+                    <div><dt>Hostname</dt><dd id="system-network-hostname">—</dd></div>
+                    <div><dt>Schnittstelle</dt><dd id="system-network-interface">—</dd></div>
+                    <div><dt>IPv4</dt><dd id="system-network-ipv4">—</dd></div>
+                    <div><dt>MAC</dt><dd id="system-network-mac">—</dd></div>
+                </dl>
+            </article>
+        </section>
+
+        <div id="system-feedback" class="system-feedback" aria-live="polite"></div>
+    </div>
+</section>

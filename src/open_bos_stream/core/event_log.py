@@ -123,8 +123,14 @@ class ServerEventLog:
         message: str,
         *,
         actor: str | None = None,
+        organization_id: int | None = None,
     ) -> dict:
-        """Ereignis erfassen; ``actor`` nennt den auslösenden Benutzer."""
+        """Ereignis erfassen; ``actor`` nennt den auslösenden Benutzer.
+
+        Mit ``organization_id`` sehen auch Admins dieser Organisation den
+        Eintrag; ohne ist er eine Systemmeldung für Kreis-Admins und
+        Superadmins.
+        """
 
         if actor:
             message = f"{message} · {actor}"
@@ -136,6 +142,8 @@ class ServerEventLog:
                 "level": level if level in LEVELS else "info",
                 "message": message,
             }
+            if organization_id is not None:
+                event["org"] = organization_id
             self._next_id += 1
             self._events.append(event)
             self._append(event)
@@ -143,15 +151,27 @@ class ServerEventLog:
         logger.info("Ereignis: %s", message)
         return dict(event)
 
-    def since(self, after_id: int | None = None) -> dict:
-        """Neue Einträge seit ``after_id`` (ohne: die letzten Einträge)."""
+    def since(
+        self,
+        after_id: int | None = None,
+        organization_ids: set[int] | None = None,
+    ) -> dict:
+        """Neue Einträge seit ``after_id`` (ohne: die letzten Einträge).
+
+        ``organization_ids`` beschränkt auf Einträge dieser Organisationen
+        (None: alle Einträge).
+        """
 
         with self._lock:
+            visible = [
+                event for event in self._events
+                if organization_ids is None or event.get("org") in organization_ids
+            ]
             if after_id is None:
-                events = list(self._events)[-INITIAL_EVENTS:]
+                events = visible[-INITIAL_EVENTS:]
             else:
                 events = [
-                    event for event in self._events if event["id"] > after_id
+                    event for event in visible if event["id"] > after_id
                 ][:MAX_BATCH]
             return {
                 "instance": self.instance,

@@ -1,5 +1,5 @@
 {% from "components/icons.html" import icon %}
-{% set role_labels = {"viewer": "Zuschauer", "admin": "Admin", "superadmin": "Superadmin"} %}
+{% set role_labels = {"viewer": "Zuschauer", "operator": "Drohnenteam", "admin": "Admin", "superadmin": "Superadmin"} %}
 <header class="app-topbar">
 
     <div class="app-topbar-title">
@@ -27,12 +27,12 @@
                 aria-haspopup="true"
                 aria-expanded="false"
                 aria-controls="status-panel"
-                {% if user.role == "viewer" %}disabled{% endif %}>
+                {% if not can.server_admin %}disabled{% endif %}>
                 <span id="status-dot" class="app-status-dot is-ok"></span>
                 <span id="status-label" class="app-status-label">Einsatzbereit</span>
             </button>
 
-            {% if user.role != "viewer" %}
+            {% if can.server_admin %}
             <div id="status-panel" class="app-popover app-status-panel" hidden>
                 <p class="app-popover-title">Systemstatus</p>
                 <dl class="app-status-list">
@@ -80,8 +80,8 @@
 
             <div id="user-panel" class="app-popover app-user-panel" hidden>
                 <div class="app-user-info">
-                    <strong>{{ user.username }}</strong>
-                    <span>{{ role_labels.get(user.role, user.role) }}</span>
+                    <strong>{{ user.display_name or user.username }}</strong>
+                    <span>{{ role_summary or role_labels.get(user.role, user.role) }}</span>
                 </div>
 
                 <p class="app-popover-title">Darstellung</p>

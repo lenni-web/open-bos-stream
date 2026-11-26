@@ -29,9 +29,9 @@ window.addEventListener("load", async () => {
 
     await refreshDashboard();
 
-    if (window.currentUser?.role !== "viewer") {
+    if (window.currentPermissions?.admin) {
         await refreshConfig();
-        await loadUsers();
+        await loadOrganizationManagement();
     }
     if (window.currentUser?.role === "superadmin") {
         refreshSnapshot();

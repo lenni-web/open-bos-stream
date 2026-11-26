@@ -27,6 +27,8 @@ from open_bos_stream.core.container import dashboard_service
 from open_bos_stream.core.container import notification_service
 from open_bos_stream.core.container import guest_link_store
 from open_bos_stream.core.container import server_event_log
+from open_bos_stream.core.container import config_apply_service
+from open_bos_stream.core.container import config as runtime_config
 from open_bos_stream.notifications.monitor import NotificationMonitor
 from open_bos_stream.core.status_events import StatusEventTracker
 from open_bos_stream.auth.middleware import AuthMiddleware
@@ -71,6 +73,7 @@ from open_bos_stream.api.notifications import (
 )
 from open_bos_stream.api.guest import router as guest_router
 from open_bos_stream.api.weather import router as weather_router
+from open_bos_stream.api.organizations import router as organizations_router
 from open_bos_stream.logging.logger import setup_logging
 import logging
 
@@ -129,6 +132,7 @@ def report_expired_guest_links(previously_active: set[str]) -> set[str]:
             server_event_log.record(
                 "info",
                 f"🔗 Gastlink „{link.label}“ abgelaufen",
+                organization_id=link.organization_id,
             )
     return active
 
@@ -150,8 +154,12 @@ async def notification_loop() -> None:
             status = await asyncio.to_thread(dashboard_service.status)
             for notice in monitor.evaluate(status, time.monotonic()):
                 notification_service.enqueue(notice)
-            for level, message in tracker.evaluate(status):
-                server_event_log.record(level, message)
+            for level, message, organization_id in tracker.evaluate_detailed(status):
+                server_event_log.record(
+                    level,
+                    message,
+                    organization_id=organization_id,
+                )
             active_guest_links = await asyncio.to_thread(
                 report_expired_guest_links,
                 active_guest_links,
@@ -171,6 +179,19 @@ async def lifespan(app: FastAPI):
         "info",
         f"🚒 Open BOS Drohnen gestartet · Version {VERSION}",
     )
+
+    # Datenbank vorbereiten, alte Benutzerdatei übernehmen und bestehende
+    # Quellen der Start-Wehr zuordnen (nur beim ersten Start mit 0.21).
+    organizations = auth_service.ready()
+    assigned = config_apply_service.assign_unowned_sources(
+        organizations.default_organization_id()
+    )
+    guest_link_store.assign_unowned(organizations.default_organization_id())
+    if assigned:
+        server_event_log.record(
+            "info",
+            "🏢 Quellen der Start-Organisation zugeordnet: " + ", ".join(assigned),
+        )
 
     setup_code = auth_service.ensure_setup_code()
     if setup_code:
@@ -266,3 +287,4 @@ app.include_router(mediamtx_auth_router)
 app.include_router(notifications_router)
 app.include_router(guest_router)
 app.include_router(weather_router)
+app.include_router(organizations_router)

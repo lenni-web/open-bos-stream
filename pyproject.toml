@@ -16,6 +16,8 @@ dependencies = [
     "psutil",
     "pillow",
     "requests",
+    "sqlalchemy",
+    "alembic",
 ]
 
 [project.optional-dependencies]
@@ -46,6 +48,11 @@ open_bos_stream = [
     "static/vendor/mediamtx/*.js",
     "static/vendor/maplibre/*.js",
     "static/vendor/maplibre/*.css",
+    "static/vendor/maplibre/*.mjs",
+    "static/vendor/maplibre/LICENSE.txt",
+    "db/migrations/*.py",
+    "db/migrations/script.py.mako",
+    "db/migrations/versions/*.py",
     "templates/*.html",
     "templates/components/*.html",
 ]

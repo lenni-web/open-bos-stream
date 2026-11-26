@@ -1,0 +1,571 @@
+/* ==========================================================
+   Video Panel
+   ========================================================== */
+
+.video-panel {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 16px;
+
+}
+
+.multi-source-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.multi-source-panel[hidden] {
+    display: none;
+}
+
+.multi-source-header,
+.multi-source-card-header,
+.multi-source-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.multi-source-header h2 {
+    margin: 2px 0 0;
+}
+
+.multi-source-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.offline-source-section {
+    padding-top: 4px;
+    border-top: 1px solid var(--bos-gray);
+}
+
+.offline-source-section[hidden] {
+    display: none;
+}
+
+.offline-source-section h3 {
+    margin: 8px 0;
+    color: var(--bos-muted);
+    font-size: 0.88rem;
+}
+
+.offline-source-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.multi-source-card.is-compact-offline {
+    border-style: dashed;
+}
+
+.multi-source-card.is-compact-offline .multi-source-frame,
+.multi-source-card.is-compact-offline .multi-source-meta {
+    display: none;
+}
+
+.multi-source-card.is-compact-offline .multi-source-card-header {
+    padding: 8px 10px;
+}
+
+.multi-source-card {
+    overflow: hidden;
+    border: 1px solid var(--bos-gray);
+    border-radius: 14px;
+    background: var(--shell-surface-muted);
+}
+
+.multi-source-card.is-online {
+    border-color: #a7d7b2;
+}
+
+.multi-source-card-header,
+.multi-source-meta {
+    padding: 10px 12px;
+}
+
+.multi-source-card-header > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.multi-source-card-header small,
+.multi-source-meta {
+    color: var(--bos-muted);
+    font-size: 0.75rem;
+}
+
+.multi-source-card:fullscreen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 0;
+    border-radius: 0;
+    background: #000;
+}
+
+.multi-source-card:fullscreen .multi-source-frame {
+    width: 100%;
+    max-height: calc(100vh - 110px);
+}
+
+.multi-source-card:fullscreen .multi-source-video {
+    max-height: calc(100vh - 110px);
+}
+
+.multi-source-state {
+    color: var(--bos-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.is-online .multi-source-state {
+    color: var(--bos-green);
+}
+
+.multi-source-frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: #111827;
+}
+
+.multi-source-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.multi-source-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 6px;
+    padding: 18px;
+    color: #e5e7eb;
+    text-align: center;
+}
+
+.multi-source-placeholder[hidden],
+.multi-source-video[hidden] {
+    display: none;
+}
+
+.multi-source-placeholder small {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    color: var(--bos-muted);
+}
+
+@media (max-width: 900px) {
+    .multi-source-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .offline-source-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ==========================================================
+   Titlebar
+   ========================================================== */
+
+.video-titlebar {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 16px;
+
+}
+
+.video-titlebar h2 {
+
+    margin: 0;
+
+    font-size: 1.4rem;
+
+    font-weight: 700;
+
+}
+
+.video-stream-state {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 6px 14px;
+
+    border-radius: 999px;
+
+    background: var(--shell-success-soft);
+
+    color: var(--bos-green);
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+}
+
+.video-stream-info {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+}
+
+#video-viewers {
+
+    color: var(--bos-muted);
+
+}
+
+/* ==========================================================
+   Toolbar
+   ========================================================== */
+
+.video-toolbar {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+}
+
+.video-toolbar-spacer {
+
+    flex: 1;
+
+}
+
+.video-toolbar .bos-button {
+
+    width: auto;
+
+    height: 40px;
+
+    margin: 0;
+
+    padding: 0 16px;
+
+}
+
+#snapshot-button,
+#fullscreen-button {
+
+    width: auto;
+
+    min-width: 44px;
+
+    padding: 0 16px;
+
+}
+
+/* ==========================================================
+   Video Container
+   ========================================================== */
+
+.video-container {
+
+    position: relative;
+
+    overflow: hidden;
+
+    width: 100%;
+
+    background: #000;
+
+    border-radius: 14px;
+
+    aspect-ratio: 16 / 9;
+
+    border: 1px solid var(--bos-gray);
+
+    box-shadow: 0 8px 24px rgba(0,0,0,.10);
+
+}
+
+.live-video {
+
+    display: block;
+
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: contain;
+
+}
+
+.video-container video {
+
+    display: block;
+
+    width: 100%;
+
+    height: auto;
+
+    max-width: 100%;
+
+}
+
+#video-container:fullscreen video {
+
+    width: 100%;
+
+    height: 100%;
+
+    aspect-ratio: auto;
+
+    object-fit: contain;
+
+}
+
+/* ==========================================================
+   Overlay oben
+   ========================================================== */
+
+.video-overlay {
+
+    position: absolute;
+
+    top: 16px;
+
+    left: 16px;
+
+    right: 16px;
+
+    display: flex;
+
+    justify-content: flex-start;
+
+    z-index: 10;
+
+    pointer-events: none;
+
+}
+
+.video-overlay-left {
+
+    display: flex;
+
+    gap: 10px;
+
+}
+
+/* ==========================================================
+   Overlay unten
+   ========================================================== */
+
+.video-footer-overlay {
+
+    position: absolute;
+
+    left: 16px;
+
+    right: 16px;
+
+    bottom: 16px;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    z-index: 10;
+
+    pointer-events: none;
+
+}
+
+.video-footer-left {
+
+    display: flex;
+
+    gap: 10px;
+
+}
+
+/* ==========================================================
+   Badges
+   ========================================================== */
+
+.overlay-pill {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    padding: 6px 12px;
+
+    border-radius: 999px;
+
+    background: rgba(0,0,0,.65);
+
+    color: white;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    backdrop-filter: blur(8px);
+
+}
+
+.overlay-live {
+
+    background: rgba(210,0,0,.92);
+
+    animation: pulse-live 1.5s infinite;
+
+}
+
+.overlay-recording {
+
+    background: rgba(150,0,0,.92);
+
+}
+
+.video-watermark {
+
+    padding: 6px 12px;
+
+    border-radius: 999px;
+
+    background: rgba(0,0,0,.45);
+
+    color: rgba(255,255,255,.85);
+
+    font-size: 12px;
+
+}
+
+/* ==========================================================
+   Animation
+   ========================================================== */
+
+@keyframes pulse-live {
+
+    0% {
+
+        opacity: 1;
+
+    }
+
+    50% {
+
+        opacity: .45;
+
+    }
+
+    100% {
+
+        opacity: 1;
+
+    }
+
+}
+
+/* ==========================================================
+   Fullscreen
+   ========================================================== */
+
+#video-container:fullscreen {
+
+    width: 100vw;
+
+    height: 100vh;
+
+    border: none;
+
+    border-radius: 0;
+
+}
+
+/* ==========================================================
+   Responsive
+   ========================================================== */
+
+@media (max-width: 900px) {
+
+    .video-titlebar {
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+    }
+
+    .video-stream-info {
+
+        width: 100%;
+
+        justify-content: space-between;
+
+        gap: 12px;
+
+        flex-wrap: wrap;
+
+    }
+
+    .video-toolbar {
+
+        flex-wrap: wrap;
+
+    }
+
+    .video-toolbar-spacer {
+
+        display: none;
+
+    }
+
+}
+
+.video-placeholder {
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    aspect-ratio: 16 / 9;
+
+    color: var(--bos-muted);
+
+    font-size: 1.2rem;
+
+    background: var(--shell-surface-muted);
+
+}
