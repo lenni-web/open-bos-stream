@@ -348,3 +348,54 @@ html[data-color-scheme="dark"] .map-basemap-list:not([hidden]) {
 html[data-color-scheme="dark"] .map-basemap-status {
     color: var(--bos-yellow);
 }
+
+/* Gruppen der Wasserentnahmestellen mit Farblegende */
+.map-layer-group label {
+    align-items: flex-start;
+}
+
+.map-layer-group label span {
+    display: flex;
+    flex-direction: column;
+}
+
+.map-layer-group label small,
+.map-layer-legend small {
+    color: #5f6b7a;
+    font-size: 0.72rem;
+    font-weight: 400;
+}
+
+.map-layer-legend {
+    display: grid;
+    gap: 0.15rem;
+    margin: 0.25rem 0 0;
+    padding-left: 1.6rem;
+    list-style: none;
+    font-size: 0.82rem;
+}
+
+.map-layer-legend li {
+    display: grid;
+    grid-template-columns: 0.75rem auto;
+    align-items: center;
+    column-gap: 0.45rem;
+}
+
+.map-layer-legend li small {
+    grid-column: 2;
+}
+
+.map-layer-swatch {
+    width: 0.7rem;
+    height: 0.7rem;
+    border: 1.5px solid #ffffff;
+    border-radius: 50%;
+    background: var(--swatch);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+html[data-color-scheme="dark"] .map-layer-group label small,
+html[data-color-scheme="dark"] .map-layer-legend small {
+    color: var(--bos-muted);
+}

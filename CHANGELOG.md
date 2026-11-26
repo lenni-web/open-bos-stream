@@ -9,6 +9,16 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- Kartenmenü: Die Wasserentnahmestellen sind nach der feuerwehrüblichen
+  Einteilung zu zwei Schaltern zusammengefasst – **Hydranten** (abhängige
+  Löschwasserversorgung) und **Unabhängige Löschwasserstellen**
+  (Saugstellen, Behälter/Teiche, Brunnen, weitere). Eine Farblegende
+  unterscheidet die Arten weiterhin.
+- Lagertanks ohne Inhaltsangabe erscheinen nur noch als Ring, damit sie
+  sich von verlässlichen Wasserstellen abheben.
+
 ---
 
 ## [0.20.1] - 2026-11-26

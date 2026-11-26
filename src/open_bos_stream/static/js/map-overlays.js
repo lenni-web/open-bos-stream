@@ -21,10 +21,14 @@
 window.OpenBosStream =
     window.OpenBosStream || {};
 
+const UNKNOWN_TANK_LABEL = "Lagertank (Inhalt unbekannt)";
+
 window.OpenBosStream.mapOverlays = [
 
         {
             id: "hydranten",
+
+            group: "abhaengig",
 
             title: "Hydranten",
 
@@ -50,6 +54,8 @@ window.OpenBosStream.mapOverlays = [
 
         {
             id: "brunnen",
+
+            group: "unabhaengig",
 
             title: "Brunnen",
 
@@ -83,6 +89,8 @@ window.OpenBosStream.mapOverlays = [
         {
             id: "saugstellen",
 
+            group: "unabhaengig",
+
             title: "Saugstellen",
 
             category: "infrastructure",
@@ -114,6 +122,8 @@ window.OpenBosStream.mapOverlays = [
 
         {
             id: "offene_wasserentnahmestellen",
+
+            group: "unabhaengig",
 
             title: "Offene Wasserentnahmestellen",
 
@@ -147,6 +157,8 @@ window.OpenBosStream.mapOverlays = [
         {
             id: "loeschwasserbehaelter_teiche",
 
+            group: "unabhaengig",
+
             title: "Behälter / Teiche",
 
             category: "infrastructure",
@@ -179,6 +191,8 @@ window.OpenBosStream.mapOverlays = [
         {
             id: "sonstige_wasserstellen",
 
+            group: "unabhaengig",
+
             title: "Sonstige Wasserstellen",
 
             category: "infrastructure",
@@ -203,9 +217,49 @@ window.OpenBosStream.mapOverlays = [
                     18, 7
                 ],
                 "circle-color": "#9c27b0",
+                // Lagertanks ohne Inhaltsangabe nur als Ring: erkennbar,
+                // aber nicht gleichwertig zu verlässlichen Wasserstellen.
+                "circle-opacity": [
+                    "case",
+                    ["==", ["get", "type_de"], UNKNOWN_TANK_LABEL],
+                    0.12,
+                    1
+                ],
                 "circle-stroke-width": 1.5,
-                "circle-stroke-color": "#ffffff"
-            }
+                "circle-stroke-color": [
+                    "case",
+                    ["==", ["get", "type_de"], UNKNOWN_TANK_LABEL],
+                    "#9c27b0",
+                    "#ffffff"
+                ]
+            },
+
+            legendHint: "Ring: Lagertank, Inhalt unbekannt"
+        },
+
+];
+
+/*
+ * Kartenmenü: Gruppen nach der feuerwehrüblichen Einteilung der
+ * Löschwasserversorgung. Ein Schalter blendet alle Ebenen der Gruppe ein
+ * oder aus; die Farben unterscheiden die Arten innerhalb der Gruppe.
+ */
+window.OpenBosStream.mapOverlayGroups = [
+
+        {
+            id: "abhaengig",
+
+            title: "Hydranten",
+
+            description: "Abhängige Löschwasserversorgung (Trinkwassernetz)"
+        },
+
+        {
+            id: "unabhaengig",
+
+            title: "Unabhängige Löschwasserstellen",
+
+            description: "Saugstellen, Behälter/Teiche, Brunnen und weitere"
         },
 
 ];
@@ -333,12 +387,9 @@ async function addOverlayLayer(
         await response.json();
 
 
-    // Ebenen ohne Daten erscheinen nicht in der Liste.
+    // Ebenen ohne Daten erscheinen nicht in der Legende.
     if (!data.features?.length) {
-        document
-            .getElementById(`layer-toggle-${overlay.id}`)
-            ?.closest("label")
-            ?.remove();
+        document.getElementById(`layer-legend-${overlay.id}`)?.remove();
         return;
     }
 

@@ -111,3 +111,24 @@ def test_overlay_popup_values_are_escaped() -> None:
     ).read_text(encoding="utf-8")
     assert "<td>${escapeHTML(displayValue)}</td>" in overlays
     assert "<td>${displayValue}</td>" not in overlays
+
+
+def test_layer_menu_groups_by_dependent_and_independent_supply() -> None:
+    overlays = (
+        ROOT / "src" / "open_bos_stream" / "static" / "js" / "map-overlays.js"
+    ).read_text(encoding="utf-8")
+    map_js = (
+        ROOT / "src" / "open_bos_stream" / "static" / "js" / "map.js"
+    ).read_text(encoding="utf-8")
+
+    assert overlays.count('group: "abhaengig"') == 1
+    assert overlays.count('group: "unabhaengig"') == 5
+    assert 'title: "Unabhängige Löschwasserstellen"' in overlays
+    assert 'description: "Abhängige Löschwasserversorgung (Trinkwassernetz)"' in overlays
+    # Unklare Lagertanks nur als Ring.
+    assert 'const UNKNOWN_TANK_LABEL = "Lagertank (Inhalt unbekannt)"' in overlays
+    assert '"circle-opacity": [' in overlays
+    # Ein Schalter je Gruppe, Legende mit den Arten.
+    assert "function bindOverlayGroupToggle(group)" in map_js
+    assert 'class="map-layer-legend"' in map_js
+    assert "layer-legend-${overlay.id}" in overlays

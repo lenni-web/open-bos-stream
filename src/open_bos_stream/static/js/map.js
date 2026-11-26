@@ -114,108 +114,84 @@ function showMissingMap(mapDirectory) {
 
 
 
-function bindOverlayToggle(overlay) {
+function overlayGroups(overlays) {
+    const groups = window.OpenBosStream?.mapOverlayGroups ?? [];
+    // Ebenen ohne Gruppe erscheinen als eigene Gruppe mit ihrem Titel.
+    const known = new Set(groups.map(group => group.id));
+    const extra = overlays
+        .filter(overlay => !known.has(overlay.group))
+        .map(overlay => ({id: overlay.id, title: overlay.title, members: [overlay]}));
+    return [
+        ...groups.map(group => ({
+            ...group,
+            members: overlays.filter(overlay => overlay.group === group.id),
+        })),
+        ...extra,
+    ].filter(group => group.members.length);
+}
 
-    const toggle =
-        document.getElementById(
-            `layer-toggle-${overlay.id}`
-        );
+function overlayLegendColor(overlay) {
+    const color = overlay.paint?.["circle-color"];
+    return typeof color === "string" ? color : "#888888";
+}
 
+function bindOverlayGroupToggle(group) {
+    const toggle = document.getElementById(`layer-group-${group.id}`);
     if (!toggle) {
-        console.warn(
-            `Overlay-Schalter fehlt: ${overlay.id}`
-        );
         return;
     }
-
-
-    toggle.addEventListener(
-        "change",
-        () => {
-
-            if (!map || !map.getLayer(overlay.id)) {
-                return;
+    toggle.addEventListener("change", () => {
+        for (const overlay of group.members) {
+            if (map?.getLayer(overlay.id)) {
+                map.setLayoutProperty(
+                    overlay.id,
+                    "visibility",
+                    toggle.checked ? "visible" : "none"
+                );
             }
-
-
-            map.setLayoutProperty(
-                overlay.id,
-                "visibility",
-                toggle.checked
-                    ? "visible"
-                    : "none"
-            );
-
         }
-    );
+    });
 }
 
 function createOverlayControls(overlays) {
-
-    const container =
-        document.getElementById(
-            "map-layer-list"
-        );
-
-
+    const container = document.getElementById("map-layer-list");
     if (!container) {
-        console.warn(
-            "Layer-Control Container fehlt."
-        );
-        return;
+        console.warn("Layer-Control Container fehlt.");
+        return [];
     }
 
-
-    container.innerHTML = "";
-
-
-    for (const overlay of overlays) {
-
-
-        const label =
-            document.createElement(
-                "label"
-            );
-
-
-        const checkbox =
-            document.createElement(
-                "input"
-            );
-
-
-        checkbox.type = "checkbox";
-        checkbox.checked =
-            overlay.visible !== false;
-
-
-        checkbox.id =
-            `layer-toggle-${overlay.id}`;
-
-
-        checkbox.dataset.layer =
-            overlay.id;
-
-
-        label.appendChild(
-            checkbox
-        );
-
-
-        label.appendChild(
-            document.createTextNode(
-                " " + overlay.title
-            )
-        );
-
-
-        container.appendChild(
-            label
-        );
-
-
-    }
-
+    const groups = overlayGroups(overlays);
+    container.innerHTML = groups.map(group => {
+        const legend = group.members.length > 1
+            ? `<ul class="map-layer-legend">
+                ${group.members.map(overlay => `
+                    <li id="layer-legend-${escapeHTML(overlay.id)}">
+                        <span class="map-layer-swatch"
+                            style="--swatch: ${escapeHTML(overlayLegendColor(overlay))}"></span>
+                        ${escapeHTML(overlay.title)}
+                        ${overlay.legendHint
+                            ? `<small>${escapeHTML(overlay.legendHint)}</small>`
+                            : ""}
+                    </li>
+                `).join("")}
+               </ul>`
+            : "";
+        return `
+            <div class="map-layer-group">
+                <label>
+                    <input id="layer-group-${escapeHTML(group.id)}" type="checkbox" checked>
+                    <span>
+                        ${escapeHTML(group.title)}
+                        ${group.description
+                            ? `<small>${escapeHTML(group.description)}</small>`
+                            : ""}
+                    </span>
+                </label>
+                ${legend}
+            </div>
+        `;
+    }).join("");
+    return groups;
 }
 
 async function createMap() {
@@ -288,7 +264,7 @@ async function createMap() {
             }
 
 
-            createOverlayControls(
+            const overlayGroupList = createOverlayControls(
                 overlays
             );
 
@@ -303,17 +279,8 @@ async function createMap() {
             }
 
 
-            for (const overlay of overlays) {
-
-                // Leere Ebenen wurden nicht angelegt und haben keinen Schalter.
-                if (!map.getLayer(overlay.id)) {
-                    continue;
-                }
-
-                bindOverlayToggle(
-                    overlay
-                );
-
+            for (const group of overlayGroupList) {
+                bindOverlayGroupToggle(group);
             }
 
 
