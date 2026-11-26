@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.20.0** (2026-11-26): MapLibre 6, Online-Karte basemap.de, Luftbild
+  Niedersachsen, Offline-Karte als Rückfall
 - **0.19.1** (2026-11-26): Wetterseite mit Radar-Zeitleiste, Smartphone-Menü
   mit „Mehr“, Untertitel „BOS Drohnen Suite“
 - **0.19.0** (2026-11-26): Wetter für den Flugbetrieb mit Ampel, DWD-Warnungen

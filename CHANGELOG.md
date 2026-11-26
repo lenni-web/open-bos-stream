@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.20.0] - 2026-11-26
+
 ### Added
 
 - Online-Grundkarte **basemap.de** (amtliche Vektorkarte für Deutschland,
@@ -38,6 +42,11 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 - Kartenadressen werden relativ ausgeliefert und im Browser vervollständigt;
   das passt auch hinter einem HTTPS-Proxy.
 - Wasser-Ebenen liefern die rohen OSM-Tags nicht mehr mit aus.
+
+### Fixed
+
+- Wetterseite: Der Schieberegler der Radar-Zeitleiste hat eine feste Breite
+  und springt beim Abspielen nicht mehr; die Zeitangabe steht darunter.
 
 ---
 
