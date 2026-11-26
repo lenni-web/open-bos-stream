@@ -9,6 +9,11 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- Wetterseite auf allen Bildschirmgrößen einspaltig: Niederschlagsradar
+  oben, Wetterangaben und Vorhersage darunter.
+
 ---
 
 ## [0.20.0] - 2026-11-26

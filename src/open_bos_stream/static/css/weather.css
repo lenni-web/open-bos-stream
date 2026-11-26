@@ -337,9 +337,10 @@ html[data-color-scheme="dark"] .map-weather-controls {
    Wetterseite
    ---------------------------------------------------------- */
 
+/* Einspaltig auf allen Bildschirmen: Radar oben, Wetterangaben darunter. */
 .weather-page-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 20px;
     align-items: start;
 }
@@ -486,12 +487,6 @@ html[data-color-scheme="dark"] .map-weather-controls {
 .weather-radar-legend li span {
     display: block;
     height: 8px;
-}
-
-@media (max-width: 1100px) {
-    .weather-page-grid {
-        grid-template-columns: minmax(0, 1fr);
-    }
 }
 
 @media (max-width: 600px) {
