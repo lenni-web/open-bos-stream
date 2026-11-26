@@ -71,10 +71,14 @@ def test_delivered_layers_contain_only_points_and_no_slurry() -> None:
     for name in service.layers():
         for item in service.layer(name)["features"]:
             assert item["geometry"]["type"] == "Point", name
-            assert item["properties"]["all_tags"].get("content") in (
-                None,
-                "water",
+            # Keine verschachtelten Rohdaten in der Auslieferung.
+            assert "all_tags" not in item["properties"], name
+            assert not any(
+                isinstance(value, (dict, list))
+                for value in item["properties"].values()
             ), name
+    others = service.layer("sonstige_wasserstellen")["features"]
+    assert len(others) == 133
 
 
 def test_water_layers_share_zoom_and_empty_layers_are_hidden() -> None:

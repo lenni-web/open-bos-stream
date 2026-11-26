@@ -103,5 +103,10 @@ def normalize_layer(data: dict) -> dict:
     for feature in data.get("features") or []:
         normalized = normalize_feature(feature)
         if normalized is not None:
-            features.append(normalized)
+            # Rohe OSM-Tags werden nur für die Filterung gebraucht. MapLibre 6
+            # kodiert verschachtelte Werte gesondert; ausgeliefert werden sie
+            # deshalb nicht.
+            properties = dict(normalized.get("properties") or {})
+            properties.pop("all_tags", None)
+            features.append({**normalized, "properties": properties})
     return {**data, "features": features}

@@ -315,3 +315,36 @@ body.map-fullscreen-active {
 .map-container .maplibregl-popup {
     z-index: 1001;
 }
+
+/* Auswahl der Grundkarte im Ebenenmenü */
+.map-basemap-list:not([hidden]) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    margin-bottom: 0.6rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid #d0d7de;
+}
+
+.map-basemap-title {
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+}
+
+.map-basemap-status {
+    max-width: 230px;
+    color: #b36b00;
+    font-size: 0.75rem;
+}
+
+.map-basemap-status[hidden] {
+    display: none;
+}
+
+html[data-color-scheme="dark"] .map-basemap-list:not([hidden]) {
+    border-bottom-color: var(--bos-gray);
+}
+
+html[data-color-scheme="dark"] .map-basemap-status {
+    color: var(--bos-yellow);
+}

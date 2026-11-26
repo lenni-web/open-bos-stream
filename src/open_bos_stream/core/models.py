@@ -299,6 +299,13 @@ class MapConfig(BaseModel):
 
     default: str | None = None
 
+    # Online-Grundkarten (basemap.de, Luftbild Niedersachsen) über den
+    # Server. Ohne Internetzugang, z. B. auf einem Pi vor Ort, ausschalten.
+    online: bool = True
+
+    # Grundkarte beim ersten Öffnen; jeder Browser merkt sich seine Wahl.
+    base_map: Literal["online", "aerial", "offline"] = "online"
+
 class EncoderConfig(BaseModel):
     codec: str
     bitrate: str

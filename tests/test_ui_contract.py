@@ -231,8 +231,9 @@ def test_missing_map_shows_stade_download_and_target_path() -> None:
         "YXpLgCPG5Twm8MP"
     ) in map_template
     assert "/opt/open-bos-stream/mapdata/stade.mbtiles" in map_template
-    assert '"/api/map/maps"' in map_js
-    assert "showMissingMap(maps.path)" in map_js
+    # Nur ohne Online-Karten und ohne MBTiles erscheint der Hinweis.
+    assert "if (!info.options.length)" in map_js
+    assert "showMissingMap(info.offline_path)" in map_js
 
 
 def test_dashboard_uses_only_unified_source_players() -> None:

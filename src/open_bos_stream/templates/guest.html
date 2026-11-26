@@ -106,10 +106,18 @@ window.openBosMediaToken = {{ media_token | tojson }};
 <script src="/static/vendor/mediamtx/reader.js?v={{ version }}"></script>
 <script src="/static/js/live_player.js?v={{ version }}"></script>
 <script src="/static/js/multi_source.js?v={{ version }}"></script>
-<script src="/static/vendor/maplibre/maplibre-gl.js?v={{ version }}"></script>
+<script type="module">
+    // MapLibre 6 gibt es nur noch als Modul; die Kartenskripte nutzen es
+    // weiterhin über window.maplibregl.
+    import * as maplibregl from "/static/vendor/maplibre/maplibre-gl.mjs?v={{ version }}";
+    window.maplibregl = maplibregl;
+    document.dispatchEvent(new Event("open-bos:maplibre-ready"));
+</script>
 <script src="/static/js/map-controls.js?v={{ version }}"></script>
 <script src="/static/js/map-overlays.js?v={{ version }}"></script>
 <script src="/static/js/map-dipul.js?v={{ version }}"></script>
+<script src="/static/js/map-basemap.js?v={{ version }}"></script>
+
 <script src="/static/js/map-weather.js?v={{ version }}"></script>
 <script src="/static/js/map.js?v={{ version }}"></script>
 <script src="/static/js/guest.js?v={{ version }}"></script>

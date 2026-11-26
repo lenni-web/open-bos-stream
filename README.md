@@ -20,8 +20,9 @@ eigenständige Web-App mit Open-BOS-Stream-Icon abgelegt werden.
 - Weiterleitung einzelner Quellen an weitere Ziele per RTMP, SRT oder RTSP
 - Aufnahmen und Snapshots in voller Qualität mit Mediathek,
   „Behalten“-Markierung und Speicherschutz
-- Offline-Kartenansicht mit MapLibre und MBTiles, Wasserentnahmestellen und
-  Drohnen-Geozonen (dipul)
+- Kartenansicht mit MapLibre 6: amtliche Online-Karte (basemap.de), Luftbild
+  Niedersachsen (LGLN DOP20) oder Offline-Karte (MBTiles), dazu
+  Wasserentnahmestellen und Drohnen-Geozonen (dipul)
 - Wetter für den Flugbetrieb: DWD-Messwerte, Wind in 120 m Höhe,
   DWD-Warnungen, Kp-Index, Wetter-Ampel und Niederschlagsradar mit
   Vorhersage
@@ -402,10 +403,40 @@ Die Vorlagen beruhen auf Herstellerangaben und sind noch nicht mit echten
 Geräten geprüft. Autel und DJI können alternativ direkt per RTMP an den
 Server senden; das ist meist einfacher.
 
+## Karte: Grundkarten online und offline
+
+Die Karte nutzt MapLibre GL JS 6. Als Grundkarte stehen im Menü
+„Kartenebenen“ zur Wahl; jeder Browser merkt sich seine Auswahl:
+
+| Grundkarte | Quelle | Abdeckung |
+|---|---|---|
+| Karte (basemap.de) | basemap.de Web Vektor, © basemap.de / BKG, Datenquellen © GeoBasis-DE | Deutschland, amtliche Daten, monatlich aktualisiert; in der dunklen Darstellung der Nachtstil |
+| Luftbild (Niedersachsen) | Digitale Orthophotos DOP20 des LGLN, Lizenz CC BY 4.0 | Niedersachsen, 20 cm je Pixel; Beschriftungen von basemap.de darüber, außerhalb Niedersachsens die Karte |
+| Offline-Karte | eigene MBTiles-Datei (siehe unten) | je nach Datei, ohne Internet |
+
+Alle Online-Abrufe laufen über den Server: Vektorkacheln werden komprimiert,
+Luftbilder in WebP umgerechnet (rund 20 KB je Kachel) und einen Tag
+zwischengespeichert. Browser verbinden sich nicht mit den Kartendiensten.
+Ist der Online-Dienst nicht erreichbar, zeigt die Karte die Offline-Karte
+mit einem Hinweis, sofern eine installiert ist. Wasserentnahmestellen,
+Geozonen und Regenradar bleiben beim Wechsel der Grundkarte erhalten. Die
+Radarseite nutzt ebenfalls basemap.de.
+
+Ohne Internetzugang (z. B. auf einem Pi vor Ort) werden die Online-Karten in
+`config/stream.yaml` abgeschaltet:
+
+```yaml
+map:
+  online: false        # nur Offline-Karte
+  base_map: offline    # Voreinstellung: online, aerial oder offline
+```
+
 ## Offline-Karte Landkreis Stade
 
-Die Kartendaten sind wegen ihrer Größe nicht Bestandteil des Repositorys.
-Für den Landkreis Stade steht eine vorbereitete MBTiles-Datei bereit:
+Mit den Online-Karten ist eine Offline-Karte auf dem Server optional; für
+den Pi vor Ort und als Rückfall bleibt sie sinnvoll. Die Kartendaten sind
+wegen ihrer Größe nicht Bestandteil des Repositorys. Für den Landkreis Stade
+steht eine vorbereitete MBTiles-Datei bereit:
 
 [Karte Landkreis Stade herunterladen](https://nextcloud.lenni-web.de/index.php/s/YXpLgCPG5Twm8MP)
 

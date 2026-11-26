@@ -304,18 +304,25 @@ function bindRadarControls() {
 
 async function createRadarMap() {
     const container = radarElement("map");
-    if (!container || typeof maplibregl === "undefined") {
+    if (!container) {
         return;
     }
+    await maplibreReady();
     renderRadarLegend();
     bindRadarControls();
 
     const data = await loadRadarFrames();
     let style;
     try {
-        style = await loadMapStyle();
+        // Für das Radar die Straßenkarte statt des Luftbilds verwenden.
+        const info = await loadBaseMaps();
+        const preferred = baseMapOption(info, "online") ? "online" : info.default;
+        if (!preferred) {
+            throw new Error("Keine Grundkarte verfügbar.");
+        }
+        style = (await loadBaseStyle(preferred)).style;
     } catch (error) {
-        // Ohne Offline-Karte bleibt das Radar auf neutralem Hintergrund nutzbar.
+        // Ohne Grundkarte bleibt das Radar auf neutralem Hintergrund nutzbar.
         style = {
             version: 8,
             sources: {},
@@ -333,6 +340,7 @@ async function createRadarMap() {
         style,
         center: [location.longitude ?? 9.53, location.latitude ?? 53.56],
         zoom: 8,
+        minZoom: 5,
         maxZoom: WEATHER_RADAR_MAX_ZOOM,
         attributionControl: false,
     });
@@ -364,6 +372,7 @@ async function createRadarMap() {
     map.on("idle", scheduleProgress);
 
     await new Promise(resolve => map.once("load", resolve));
+    collapseMapAttribution(map);
 
     if (location.latitude !== undefined) {
         const marker = document.createElement("div");

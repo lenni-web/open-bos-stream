@@ -2,6 +2,83 @@
 
 let map = null;
 let mapInitPromise = null;
+// Aktive Grundkarte und die zu ihr gehörenden Quellen und Ebenen.
+let mapBase = null;
+
+function setBaseMapStatus(text) {
+    const status = document.getElementById("map-basemap-status");
+    if (status) {
+        status.textContent = text;
+        status.hidden = !text;
+    }
+}
+
+function renderBaseMapControls(info, base) {
+    const box = document.getElementById("map-basemap-list");
+    if (!box) {
+        return;
+    }
+    if (info.options.length < 2) {
+        box.hidden = true;
+        return;
+    }
+    box.hidden = false;
+    box.innerHTML = `
+        <strong class="map-basemap-title">Grundkarte</strong>
+        ${info.options.map(option => `
+            <label>
+                <input type="radio" name="map-basemap"
+                    value="${escapeHTML(option.id)}"
+                    ${option.id === base.id ? "checked" : ""}>
+                ${escapeHTML(option.label)}
+            </label>
+        `).join("")}
+        <small id="map-basemap-status" class="map-basemap-status" hidden></small>
+    `;
+    if (base.fallback) {
+        setBaseMapStatus(
+            "Online-Karte nicht erreichbar – die Offline-Karte wird angezeigt."
+        );
+    }
+    box.querySelectorAll('input[name="map-basemap"]').forEach(input => {
+        input.addEventListener("change", () => switchBaseMap(input.value));
+    });
+}
+
+async function switchBaseMap(id) {
+    if (!map || !mapBase || id === mapBase.id) {
+        return;
+    }
+    const info = await loadBaseMaps();
+    setBaseMapStatus("Grundkarte wird geladen …");
+    try {
+        const base = await loadBaseStyle(id);
+        mapBase.ids = applyBaseStyle(map, base, mapBase.ids);
+        mapBase.id = base.id;
+        applyBaseZoomRange(map, info, base.id);
+        storeBaseMapChoice(id);
+        setBaseMapStatus(
+            base.fallback
+                ? "Online-Karte nicht erreichbar – die Offline-Karte wird angezeigt."
+                : ""
+        );
+        const checked = document.querySelector(
+            `input[name="map-basemap"][value="${base.id}"]`
+        );
+        if (checked) {
+            checked.checked = true;
+        }
+    } catch (error) {
+        console.error("Grundkarte konnte nicht geladen werden:", error);
+        setBaseMapStatus(`Grundkarte nicht verfügbar: ${error.message}`);
+        const previous = document.querySelector(
+            `input[name="map-basemap"][value="${mapBase.id}"]`
+        );
+        if (previous) {
+            previous.checked = true;
+        }
+    }
+}
 
 function showMissingMap(mapDirectory) {
     const emptyState =
@@ -35,22 +112,6 @@ function showMissingMap(mapDirectory) {
     }
 }
 
-async function loadMapStyle() {
-    const response = await fetch(
-        "/api/map/style",
-        {
-            cache: "no-store"
-        }
-    );
-
-    if (!response.ok) {
-        throw new Error(
-            `Kartenstil konnte nicht geladen werden: HTTP ${response.status}`
-        );
-    }
-
-    return await response.json();
-}
 
 
 function bindOverlayToggle(overlay) {
@@ -166,61 +227,29 @@ async function createMap() {
         );
     }
 
-    if (typeof maplibregl === "undefined") {
-        throw new Error(
-            "MapLibre GL JS wurde nicht geladen."
-        );
-    }
+    await maplibreReady();
 
-    const mapsResponse = await fetch(
-        "/api/map/maps",
-        {
-            cache: "no-store"
-        }
-    );
-    if (!mapsResponse.ok) {
-        throw new Error(
-            "Kartenliste konnte nicht geladen werden: " +
-            `HTTP ${mapsResponse.status}`
-        );
-    }
-    const maps = await mapsResponse.json();
-    if (!Array.isArray(maps.maps) || maps.maps.length === 0) {
-        showMissingMap(maps.path);
+    const info = await loadBaseMaps();
+    if (!info.options.length) {
+        // Weder Online-Karten noch eine Offline-Karte verfügbar.
+        showMissingMap(info.offline_path);
         return;
     }
 
-    const configResponse = await fetch(
-        "/api/map/config",
-        {
-            cache: "no-store"
-        }
-    );
-
-    if (!configResponse.ok) {
-        throw new Error(
-            "Kartenkonfiguration konnte nicht geladen werden: " +
-            `HTTP ${configResponse.status}`
-        );
-    }
-
-    const config = await configResponse.json();
-    const style = await loadMapStyle();
-
-    const center = config.metadata.center;
+    const base = await loadBaseStyle(preferredBaseMap(info));
+    const center = info.center;
 
     map = new maplibregl.Map({
         container: "map",
-        style: style,
+        style: base.style,
         center: center.slice(0, 2),
-        zoom: center[2] ?? 7,
-        minZoom: Number(config.metadata.min_zoom),
-        maxZoom: Math.max(
-            18,
-            Number(config.metadata.max_zoom)
-        ),
+        zoom: center[2] ?? 12,
+        maxZoom: 19,
         attributionControl: false
     });
+    applyBaseZoomRange(map, info, base.id);
+    mapBase = {id: base.id, ids: baseStyleIds(base.style)};
+    renderBaseMapControls(info, base);
 
     bindFullscreenButton();
 
@@ -233,7 +262,7 @@ async function createMap() {
         new maplibregl.AttributionControl({
             compact: true,
             customAttribution:
-                "© OpenStreetMap-Mitwirkende | OpenMapTiles"
+                "Wasserentnahmestellen: © OpenStreetMap-Mitwirkende"
         })
     );
 
@@ -245,6 +274,7 @@ async function createMap() {
     });
 
     map.once("load", async () => {
+        collapseMapAttribution(map);
         try {
 
             const overlays =

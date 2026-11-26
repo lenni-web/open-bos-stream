@@ -14,6 +14,15 @@ from open_bos_stream.map.dipul import (
     DipulUnavailableError,
 )
 from open_bos_stream.map.mbtiles import MBTilesError
+from open_bos_stream.map.basemaps import (
+    AERIAL_BOUNDS,
+    AERIAL_MAX_ZOOM,
+    AERIAL_MIN_ZOOM,
+    BASEMAP_ATTRIBUTION,
+    BasemapService,
+    BasemapUnavailableError,
+    aerial_attribution,
+)
 from open_bos_stream.auth.roles import GUEST
 
 router = APIRouter(
@@ -23,6 +32,9 @@ router = APIRouter(
 )
 
 dipul_service = DipulService()
+basemap_service = BasemapService()
+
+ONLINE_CACHE_HEADERS = {"Cache-Control": "public, max-age=86400"}
 
 
 def _service() -> MapService:
@@ -345,3 +357,161 @@ async def dipul_info(
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     return {"zones": zones}
+
+
+# ---------------------------------------------------------
+# Grundkarten: online (basemap.de, Luftbild) und offline (MBTiles)
+#
+# Eigener Router, der vor `router` eingebunden wird: Die allgemeine Route
+# /{name}/tiles/... der Offline-Karten würde /basemap/tiles/... sonst
+# abfangen.
+# ---------------------------------------------------------
+
+online_router = APIRouter(
+    dependencies=[GUEST],
+    prefix="/api/map",
+    tags=["map"],
+)
+
+@online_router.get("/basemaps")
+def basemaps() -> dict:
+    """Verfügbare Grundkarten und die Voreinstellung des Servers."""
+
+    settings = runtime_config.map
+    service = _service()
+    options = []
+    if settings.online:
+        options.append(
+            {
+                "id": "online",
+                "label": "Karte (basemap.de)",
+                "attribution": BASEMAP_ATTRIBUTION,
+            }
+        )
+        options.append(
+            {
+                "id": "aerial",
+                "label": "Luftbild (Niedersachsen)",
+                "attribution": aerial_attribution(),
+                "min_zoom": AERIAL_MIN_ZOOM,
+                "max_zoom": AERIAL_MAX_ZOOM,
+                "bounds": AERIAL_BOUNDS,
+            }
+        )
+    default_map = service.default_map()
+    if default_map is not None:
+        try:
+            metadata = service.metadata(default_map)
+        except (FileNotFoundError, MBTilesError):
+            metadata = None
+        if metadata is not None:
+            options.append(
+                {
+                    "id": "offline",
+                    "label": "Offline-Karte",
+                    "min_zoom": metadata.min_zoom,
+                    "max_zoom": metadata.max_zoom,
+                }
+            )
+    ids = [option["id"] for option in options]
+    default = settings.base_map if settings.base_map in ids else (
+        ids[0] if ids else None
+    )
+    return {
+        "options": options,
+        "default": default,
+        "center": DEFAULT_CENTER,
+        "offline_path": str(service.map_directory),
+    }
+
+
+def _require_online() -> None:
+    if not runtime_config.map.online:
+        raise HTTPException(
+            status_code=404,
+            detail="Online-Karten sind ausgeschaltet.",
+        )
+
+
+@online_router.get("/basemap/style/{variant}.json")
+async def basemap_style(variant: str) -> dict:
+    _require_online()
+    try:
+        return await run_in_threadpool(basemap_service.style, variant)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Unbekannter Kartenstil.") from exc
+    except BasemapUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@online_router.get("/basemap/tiles/{z}/{x}/{y}.pbf")
+async def basemap_tile(z: int, x: int, y: int) -> Response:
+    _require_online()
+    try:
+        data = await run_in_threadpool(basemap_service.tile, z, x, y)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except BasemapUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    if not data:
+        return Response(status_code=204, headers=ONLINE_CACHE_HEADERS)
+    return Response(
+        content=data,
+        media_type="application/x-protobuf",
+        headers={**ONLINE_CACHE_HEADERS, "Content-Encoding": "gzip"},
+    )
+
+
+@online_router.get("/basemap/fonts/{fontstack}/{glyph_range}.pbf")
+async def basemap_font(fontstack: str, glyph_range: str) -> Response:
+    _require_online()
+    try:
+        data = await run_in_threadpool(
+            basemap_service.font,
+            fontstack,
+            glyph_range,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except BasemapUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return Response(
+        content=data,
+        media_type="application/x-protobuf",
+        headers=ONLINE_CACHE_HEADERS,
+    )
+
+
+@online_router.get("/basemap/sprites/{filename}")
+async def basemap_sprite(filename: str) -> Response:
+    _require_online()
+    try:
+        data, media_type = await run_in_threadpool(
+            basemap_service.sprite,
+            filename,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Unbekannte Datei.") from exc
+    except BasemapUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return Response(
+        content=data,
+        media_type=media_type,
+        headers=ONLINE_CACHE_HEADERS,
+    )
+
+
+@online_router.get("/aerial/tiles/{z}/{x}/{y}.webp")
+async def aerial_tile(z: int, x: int, y: int) -> Response:
+    _require_online()
+    try:
+        data = await run_in_threadpool(basemap_service.aerial_tile, z, x, y)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except BasemapUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return Response(
+        content=data,
+        media_type="image/webp",
+        headers=ONLINE_CACHE_HEADERS,
+    )

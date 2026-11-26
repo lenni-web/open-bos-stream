@@ -77,6 +77,10 @@ map:
   source: mbtiles
   path: /opt/open-bos-stream/mapdata
   default: stade
+  # Online-Grundkarten (basemap.de, Luftbild Niedersachsen) über den Server.
+  online: true
+  # Voreinstellung: online, aerial oder offline.
+  base_map: online
 stream_outputs: []
 # Jeder Streaming-Ausgang kann mit `source_id` eine der oben definierten
 # Quellen auswählen. Bei älteren Konfigurationen ohne Angabe wird einmalig

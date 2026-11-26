@@ -9,6 +9,36 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Online-Grundkarte **basemap.de** (amtliche Vektorkarte für Deutschland,
+  BKG und Vermessungsverwaltungen), in der dunklen Darstellung mit
+  Nachtstil.
+- **Luftbild Niedersachsen** (LGLN DOP20, 20 cm, CC BY 4.0) mit
+  Beschriftungen von basemap.de; außerhalb Niedersachsens die Karte.
+- Auswahl der Grundkarte im Menü „Kartenebenen“ (Karte, Luftbild,
+  Offline-Karte); jeder Browser merkt sich die Wahl. Wasserentnahmestellen,
+  Geozonen und Regenradar bleiben beim Wechsel erhalten.
+- Ist der Online-Dienst nicht erreichbar, zeigt die Karte die Offline-Karte
+  mit Hinweis. Ohne installierte MBTiles-Datei funktioniert die Karte jetzt
+  trotzdem.
+- Alle Kartenabrufe laufen über den Server mit Zwischenspeicher:
+  Vektorkacheln komprimiert, Luftbilder als WebP (rund 90 % kleiner).
+- Neue Einstellungen `map.online` und `map.base_map` in `stream.yaml`.
+
+### Changed
+
+- **MapLibre GL JS 6.19.0** (vorher 5.24.1), eingebunden als Modul; behebt
+  u. a. Ladeprobleme auf iPhone und iPad nach App-Wechseln und die
+  Sicherheitslücke GHSA-jrc7-96c5-q579.
+- Die Radarseite nutzt basemap.de als Grundkarte, damit Regengebiete auch
+  außerhalb des Landkreises eingeordnet werden können.
+- Die Quellenangaben der Karte sind eingeklappt (Symbol ⓘ), damit sie die
+  Karte nicht verdecken.
+- Kartenadressen werden relativ ausgeliefert und im Browser vervollständigt;
+  das passt auch hinter einem HTTPS-Proxy.
+- Wasser-Ebenen liefern die rohen OSM-Tags nicht mehr mit aus.
+
 ---
 
 ## [0.19.1] - 2026-11-26

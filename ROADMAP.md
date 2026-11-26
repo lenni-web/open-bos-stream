@@ -172,7 +172,8 @@ funktional weiterentwickelt.
 - [ ] Weitere Overlay-Typen und eigene Marker
 - [x] Wasser-Ebenen ohne Gülle-, Gas- und andere Fremdtanks
 - [ ] Kartenverwaltung (MBTiles hochladen und auswählen)
-- [ ] Umstieg auf MapLibre 6 (ESM, WebGL2)
+- [x] Umstieg auf MapLibre 6 (ESM, WebGL2)
+- [x] Online-Grundkarte basemap.de und Luftbild Niedersachsen, Offline-Karte als Rückfall
 - [x] Wetter für den Flugbetrieb mit Ampel, DWD-Warnungen und Niederschlagsradar
 
 ---
@@ -182,7 +183,7 @@ funktional weiterentwickelt.
 Schwerpunkt bleiben Drohnen und Drohneneinsätze. Geplante Reihenfolge:
 
 1. **0.19** Wetter und Regenradar ✔
-2. **0.20** Umstieg auf MapLibre 6 als Grundlage für neue Kartenfunktionen
+2. **0.20** Umstieg auf MapLibre 6, Online-Grundkarte basemap.de und Luftbild ✔
 3. **0.21** Datenbank (SQLite) und Organisationsmodell: Landkreis, Wehren,
    Mitglieder, Rollen je Wehr und auf Landkreisebene
 4. **0.22** Einsätze: Beteiligte mit Einsatzrollen, Zuordnung von Aufnahmen,
