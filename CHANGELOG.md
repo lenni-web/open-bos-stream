@@ -9,6 +9,24 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Fixed
+
+- Karte: Die Ebene „Sonstige Wasserstellen“ zeigte alle Lagertanks aus
+  OpenStreetMap als Wasserentnahmestelle an, darunter Güllebehälter,
+  Gas-, Abwasser-, Silage- und Kraftstofftanks. Tanks mit einem anderen
+  Inhalt als Wasser werden jetzt ausgefiltert. Tanks ohne Inhaltsangabe
+  bleiben sichtbar und heißen „Lagertank (Inhalt unbekannt)“,
+  Trinkwasserstellen „Trinkwasserstelle“.
+- Als Umriss erfasste Wasserstellen erscheinen als ein Punkt in ihrer
+  Mitte statt als Ring aus Punkten an jedem Eckpunkt.
+
+### Changed
+
+- Alle Wasserentnahmestellen außer Hydranten erscheinen einheitlich ab
+  Zoomstufe 13; Hydranten wegen ihrer Menge weiterhin ab 14.
+- Kartenebenen ohne Daten (derzeit „Offene Wasserentnahmestellen“)
+  werden in der Ebenenliste ausgeblendet.
+
 ---
 
 ## [0.18.10] - 2026-11-26

@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from open_bos_stream.core.models import MapConfig
+from open_bos_stream.map.water_layers import normalize_layer
 from open_bos_stream.map.mbtiles import (
     MBTilesMetadata,
     MBTilesProvider,
@@ -334,4 +335,4 @@ class MapService:
             "r",
             encoding="utf-8",
         ) as file:
-            return json.load(file)
+            return normalize_layer(json.load(file))

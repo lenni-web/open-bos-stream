@@ -10,6 +10,9 @@
  * - UI-Bezeichnung
  *
  * Neue BOS-Kartenebenen werden hier registriert.
+ *
+ * Zoomstufen: Hydranten ab 14 (sehr viele Punkte), alle übrigen
+ * Wasserentnahmestellen einheitlich ab 13.
  */
 
 "use strict";
@@ -124,14 +127,14 @@ window.OpenBosStream.mapOverlays = [
 
             defaultVisible: true,
 
-            minzoom: 12,
+            minzoom: 13,
 
             paint: {
                 "circle-radius": [
                     "interpolate",
                     ["linear"],
                     ["zoom"],
-                    12, 3,
+                    13, 3,
                     16, 5,
                     18, 8
                 ],
@@ -156,14 +159,14 @@ window.OpenBosStream.mapOverlays = [
 
             defaultVisible: true,
 
-            minzoom: 12,
+            minzoom: 13,
 
             paint: {
                 "circle-radius": [
                     "interpolate",
                     ["linear"],
                     ["zoom"],
-                    12, 3,
+                    13, 3,
                     16, 5,
                     18, 8
                 ],
@@ -328,6 +331,16 @@ async function addOverlayLayer(
 
     const data =
         await response.json();
+
+
+    // Ebenen ohne Daten erscheinen nicht in der Liste.
+    if (!data.features?.length) {
+        document
+            .getElementById(`layer-toggle-${overlay.id}`)
+            ?.closest("label")
+            ?.remove();
+        return;
+    }
 
 
 

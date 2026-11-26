@@ -275,6 +275,11 @@ async function createMap() {
 
             for (const overlay of overlays) {
 
+                // Leere Ebenen wurden nicht angelegt und haben keinen Schalter.
+                if (!map.getLayer(overlay.id)) {
+                    continue;
+                }
+
                 bindOverlayToggle(
                     overlay
                 );
