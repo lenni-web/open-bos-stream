@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.20.2] - 2026-11-26
+
 ### Changed
 
 - Kartenmenü: Die Wasserentnahmestellen sind nach der feuerwehrüblichen
