@@ -1,6 +1,6 @@
 # Entwurf: Datenmodell für Organisationen, Rollen und Einsätze
 
-Stand: 26.11.2026 · Zur Abstimmung · gilt ab Version 0.21 (Organisation) und
+Stand: 26.11.2026, überarbeitet nach erster Abstimmung · Zur Abstimmung · gilt ab Version 0.21 (Organisation) und
 0.22 (Einsätze)
 
 Dieses Dokument beschreibt, wie Open BOS künftig Landkreis, Feuerwehren,
@@ -63,15 +63,21 @@ Landkreis Stade
 │   ├── Ortsfeuerwehr Stade
 │   ├── Ortsfeuerwehr Hagen
 │   └── …
+├── Samtgemeindefeuerwehr Harsefeld
+│   ├── Ortsfeuerwehr Harsefeld
+│   └── …
 ├── Gemeindefeuerwehr Jork
 │   └── …
-└── Kreiseinheit Drohnen (Kreisfeuerwehr)
+└── Kreisfeuerwehr (Kreiseinheiten, falls benötigt)
 ```
+
+Die Ebene unter dem Landkreis ist die **Stadt-, Gemeinde- oder
+Samtgemeindefeuerwehr**, darunter die **Ortsfeuerwehren**.
 
 | Feld | Bedeutung |
 |---|---|
 | Name, Kurzname | z. B. „Ortsfeuerwehr Hagen“, „OF Hagen“ |
-| Art | Landkreis · Gemeinde-/Stadtfeuerwehr · Ortsfeuerwehr · Kreiseinheit |
+| Art | Landkreis · Stadt-/Gemeinde-/Samtgemeindefeuerwehr · Ortsfeuerwehr · Kreiseinheit |
 | übergeordnete Organisation | bildet den Baum |
 | Standort | für Wetter und Kartenmitte der Wehr |
 | archiviert | aufgelöste Einheiten bleiben für alte Einsätze erhalten |
@@ -122,7 +128,7 @@ Einsätze lesend).
 
 | Bereich | Zuordnung |
 |---|---|
-| **Quellen (Drohnen, Kameras)** | gehören einer Organisation; deren Mitglieder sehen sie. In Einsätzen sehen auch beteiligte Wehren die eingesetzten Quellen. |
+| **Quellen (Drohnen, Kameras)** | gehören **der einzelnen Wehr**, die die Drohne betreibt (in der Regel eine Ortsfeuerwehr); deren Mitglieder sehen sie, ebenso Rollen darüber (Gemeinde/Samtgemeinde, Landkreis). In Einsätzen sehen auch beteiligte Wehren die eingesetzten Quellen. |
 | **Aufnahmen, Snapshots** | gehören zur Quelle und – falls vorhanden – zum Einsatz |
 | **Gastlinks** | werden von einer Organisation erstellt und zeigen nur deren Quellen |
 | **Ereignisprotokoll** | Einträge mit Organisation; Systemmeldungen sehen nur Superadmins |
@@ -134,7 +140,8 @@ Einsätze lesend).
 
 | Teil | Inhalt |
 |---|---|
-| **Einsatz** | laufende Nummer, Stichwort (z. B. „Person vermisst“), Titel, Ort (Adresse, Koordinate), Beginn, Ende, Status (laufend / beendet / nachbearbeitet), führende Wehr |
+| **Einsatz** | Einsatznummer, Titel, Beginn, Ende, Status (laufend / beendet / nachbearbeitet), führende Wehr |
+| **Alarmierung** | Alarmstichwort (z. B. „TH Person vermisst“), Einsatzadresse mit Koordinate, Alarmzeit, alarmierte Einheiten, Meldebild bzw. Alarmierungstext, Leitstellen-Einsatznummer (Freitext) |
 | **Beteiligte Wehren** | weitere Organisationen mit Zeitpunkt der Hinzunahme |
 | **Personen im Einsatz** | Konto oder freier Name (für Personen ohne Konto) mit Einsatzrolle und Zeitraum |
 | **Eingesetzte Quellen** | welche Drohnen wann im Einsatz waren |
@@ -147,8 +154,17 @@ Einsätze lesend).
 Einsatzleiter · Abschnittsleiter Drohne · Fernpilot · Luftraumbeobachter ·
 Kamera-/Payload-Operator · Dokumentation · Sonstige.
 
+**Einsatznummer:** Datum plus laufende Nummer des Tages je führender Wehr,
+z. B. „26.11.2026 – Einsatz 2“ (intern `2026-11-26-2`). Eine Nummer der
+Leitstelle kann zusätzlich als Freitext erfasst werden.
+
 **Sichtbarkeit:** Ein Einsatz ist sichtbar für Mitglieder der führenden Wehr,
-der beteiligten Wehren und für Rollen auf Landkreisebene.
+der beteiligten Wehren und für Rollen auf übergeordneten Ebenen.
+
+**Qualifikationen:** Je Konto werden Fernpilotennachweise erfasst
+(EU-Kompetenznachweis A1/A3, Fernpilotenzeugnis A2, STS) mit Ablaufdatum.
+Bei der Einsatzrolle „Fernpilot“ zeigt Open BOS einen Hinweis, wenn kein
+gültiger Nachweis hinterlegt ist; der Einsatz wird dadurch nicht blockiert.
 
 ---
 
@@ -173,8 +189,9 @@ Benutzerdatei bleibt als Sicherung erhalten.
 
 - Gespeichert werden nur Anmeldename, Anzeigename, optional E-Mail sowie
   Mitgliedschaften und Einsatzrollen.
-- Einsatzdaten mit Personenbezug brauchen eine **Löschfrist** (Vorschlag:
-  einstellbar, z. B. 10 Jahre für Einsatzberichte, Zugriffsprotokolle 1 Jahr).
+- **Keine automatische Löschung** vorerst. Wehr-Admins können Einsätze
+  bewusst löschen; das wird protokolliert. Eine einstellbare Löschfrist kann
+  später ergänzt werden.
 - Jede Änderung an Konten, Rollen und Einsätzen wird mit Person und Zeit
   protokolliert.
 - Empfehlung: Abstimmung mit dem Datenschutzbeauftragten des Landkreises,
@@ -182,21 +199,23 @@ Benutzerdatei bleibt als Sicherung erhalten.
 
 ---
 
-## 10. Offene Fragen zur Abstimmung
+## 10. Ergebnisse der ersten Abstimmung
 
-1. **Struktur:** Gibt es neben Landkreis → Gemeinde-/Stadtfeuerwehr →
-   Ortsfeuerwehr weitere Ebenen (Samtgemeinde, Abschnitte, Bereitschaften)?
-2. **Drohnen:** Gehören die Drohnen einzelnen Wehren oder einer
-   **Kreiseinheit**, die im ganzen Landkreis eingesetzt wird? Das bestimmt,
-   wem die Quellen standardmäßig gehören.
-3. **Kreisebene:** Wer soll auf Landkreisebene welche Rolle bekommen
-   (Kreisbrandmeister, Kreisausbildung, Leitstelle)?
-4. **Einsatzrollen:** Passt die vorgeschlagene Liste, oder gibt es eine
-   Vorgabe (z. B. aus der FwDV oder einem Drohnenkonzept des Landkreises)?
-5. **Qualifikationen:** Sollen Fernpilotennachweise (A1/A3, A2, STS) mit
-   Ablaufdatum erfasst werden, um bei der Einsatzrolle darauf hinzuweisen?
-6. **Einsatznummern:** Eigene Zählung je Wehr, je Jahr, oder Übernahme einer
-   Nummer aus der Leitstelle / GroupAlarm (nur als Freitext)?
-7. **Personen ohne Konto:** Sollen Einsatzkräfte ohne Konto mit Namen
-   erfasst werden dürfen?
-8. **Löschfristen:** Welche Aufbewahrungsdauer gilt für Einsatzberichte?
+| Frage | Ergebnis |
+|---|---|
+| Struktur | Landkreis → Stadt-/Gemeinde-/Samtgemeindefeuerwehr → Ortsfeuerwehr |
+| Drohnen | gehören einzelnen Wehren |
+| Einsatzrollen | vorgeschlagene Liste passt vorerst; keine offizielle Vorgabe |
+| Qualifikationen | ja, Fernpilotennachweise mit Ablaufdatum erfassen |
+| Einsatznummern | Datum plus laufende Nummer des Tages |
+| Löschfristen | vorerst keine automatische Löschung |
+| Einsatzfelder | zusätzlich Alarmstichwort, Adresse und Alarmierungsdetails |
+
+## 11. Noch offen
+
+1. **Rollen auf Kreisebene:** Welche Personen oder Funktionen sollen
+   wehrübergreifend sehen oder verwalten (siehe Erläuterung im Chat)?
+2. **Personen ohne Konto:** Dürfen Einsatzkräfte ohne eigenes Konto mit
+   Namen im Einsatz erfasst werden? (Vorschlag: ja.)
+3. **Zählung der Einsatznummer:** je führender Wehr (Vorschlag) oder
+   landkreisweit?
