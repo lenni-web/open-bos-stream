@@ -338,6 +338,32 @@ Firewall des vServer-Anbieters muss UDP 8890 zusätzlich freigeben. Wie bei
 RTMP schützt der Token vor fremden Sendern, verschlüsselt die Übertragung
 aber nicht.
 
+### Raspberry Pi vor Ort: HDMI-Bild per SRT an den Server
+
+Ein Raspberry Pi mit HDMI-Capture-Card (lokales Profil) kann das Bild eines
+Drohnen-Controllers oder einer Kamera mit geringer Verzögerung über Mobilfunk
+an den Server senden. Der Pi kodiert dabei nur einmal; dasselbe Bild steht
+zusätzlich vor Ort im Browser zur Verfügung.
+
+1. **Server:** eine Quelle „Sender → Server (RTMP oder SRT)“ mit
+   Empfangsprotokoll **SRT** anlegen und die SRT-Empfangsadresse kopieren.
+2. **Pi, Quelle:** die Capture Card als Quelle mit dem Profil
+   **„Transcodieren · geringe Latenz (Mobilfunk)“** einrichten. Encoder:
+   `h264_v4l2m2m` (Hardware-Encoder des Pi 4); als Rückfall `libx264`.
+   Für Mobilfunk eignen sich 1280×720 bei 25 fps und 2–3 Mbit/s.
+   Das Profil setzt ein Schlüsselbild pro Sekunde, verzichtet auf B-Frames
+   und minimiert alle Puffer; bei `libx264` zusätzlich `ultrafast` und
+   `zerolatency`.
+3. **Pi, Streaming-Ausgang:** Typ **SRT**, als Quelle die Capture Card, als
+   Ziel die kopierte SRT-Adresse des Servers. Der Ausgang übernimmt das
+   Video unverändert, puffert nicht zwischen und setzt – falls in der
+   Adresse nicht anders angegeben – einen SRT-Puffer von 400 ms.
+
+Erwartet werden etwa 0,5 bis 1 Sekunde vom HDMI-Eingang bis zum Browser.
+Liefert die Capture-Card MJPEG, dekodiert der Pi jedes Bild vor dem Kodieren;
+bei 1080p kann das die CPU des Pi 4 stark belasten, 720p ist die sichere
+Wahl.
+
 ## Offline-Karte Landkreis Stade
 
 Die Kartendaten sind wegen ihrer Größe nicht Bestandteil des Repositorys.

@@ -47,6 +47,7 @@ class BaseOutput(ABC):
         output: StreamOutputConfig,
         output_options: list[str],
         target: str,
+        input_options: list[str] | None = None,
     ) -> list[str]:
         source = config.stream_output_source(output)
         input_url = (
@@ -59,6 +60,7 @@ class BaseOutput(ABC):
         return [
             "ffmpeg",
             "-rtsp_transport", "tcp",
+            *(input_options or []),
             "-i", input_url,
             *audio_command.inputs,
             *audio_command.mapping,

@@ -107,6 +107,17 @@ class FFmpegCommandBuilder:
                 value = getattr(source, field_name, None)
                 if value is not None:
                     setattr(encoder, field_name, value)
+            if source.is_low_latency_transcode:
+                # Geringe Latenz (z. B. Raspberry Pi über Mobilfunk): ein
+                # Schlüsselbild pro Sekunde, damit Empfänger und SRT nach
+                # Paketverlust schnell wieder ein Bild haben.
+                if source.gop is None:
+                    encoder.gop = max(1, int(source.fps or 25))
+                if encoder.codec == "libx264":
+                    if source.preset is None:
+                        encoder.preset = "ultrafast"
+                    if source.tune is None:
+                        encoder.tune = "zerolatency"
 
             output_path = viewer_path_override or source.viewer_path
             stream.name = output_path
@@ -146,6 +157,14 @@ class FFmpegCommandBuilder:
         command: list[str] = [
             "ffmpeg",
         ]
+
+        low_latency = bool(
+            getattr(source, "is_low_latency_transcode", False)
+            and encoder.codec != "copy"
+        )
+        if low_latency:
+            # Eingangspuffer der Capture-Card nicht unnötig füllen.
+            command.extend(["-fflags", "nobuffer", "-flags", "low_delay"])
 
         #
         # Video input
@@ -208,6 +227,16 @@ class FFmpegCommandBuilder:
                         else "aac"
                     ),
                 ])
+
+        if low_latency:
+            command.extend([
+                # Keine B-Frames: jedes Bild kann sofort gesendet werden.
+                "-bf", "0",
+                "-keyint_min", str(encoder.gop),
+                "-sc_threshold", "0",
+                "-flush_packets", "1",
+                "-muxdelay", "0",
+            ])
 
         if getattr(source, "profile", None) in {
             "copy_repair",

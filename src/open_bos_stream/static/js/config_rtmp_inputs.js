@@ -29,6 +29,10 @@ function sourceProfileOptions(selected, sourceType) {
             "Mehrquellen-Vorschau · sparsam (max. 360p)",
         ],
         ["transcode", "Transcodieren"],
+        [
+            "transcode_low_latency",
+            "Transcodieren · geringe Latenz (Mobilfunk)",
+        ],
     ];
     return profiles
         .filter(([value]) => (
@@ -96,7 +100,9 @@ function sourceEncoderOptions(source, selected) {
 }
 
 function sourceTranscodingFields(source) {
-    if (source.profile !== "transcode") {
+    if (
+        !["transcode", "transcode_low_latency"].includes(source.profile)
+    ) {
         return "";
     }
     const encoder = currentConfig.encoder;

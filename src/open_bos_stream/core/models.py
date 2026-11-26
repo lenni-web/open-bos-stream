@@ -58,6 +58,7 @@ class SourceConfig(BaseModel):
         "preview_transcode",
         "preview_transcode_economy",
         "transcode",
+        "transcode_low_latency",
     ] = "direct"
     enabled: bool = True
     priority: int = 0
@@ -212,6 +213,10 @@ class SourceConfig(BaseModel):
         if self.type == "rtsp" and self.preview_url:
             return f"{self.id}-main"
         return self.viewer_path
+
+    @property
+    def is_low_latency_transcode(self) -> bool:
+        return self.profile == "transcode_low_latency"
 
     @property
     def requires_process(self) -> bool:
@@ -676,7 +681,10 @@ class AppConfig(BaseModel):
                 }
                 else (
                     "transcode"
-                    if primary.profile == "transcode"
+                    if primary.profile in {
+                        "transcode",
+                        "transcode_low_latency",
+                    }
                     else "copy"
                 )
             )

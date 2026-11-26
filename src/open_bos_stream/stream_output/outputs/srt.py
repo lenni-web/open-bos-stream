@@ -32,6 +32,9 @@ class SRTOutput(BaseOutput):
         parameters.setdefault("mode", "caller")
         parameters.setdefault("transtype", "live")
         parameters.setdefault("pkt_size", "1316")
+        # SRT-Puffer in Mikrosekunden (FFmpeg/libsrt): 400 ms gleichen
+        # Mobilfunk-Paketverluste aus, ohne viel Verzögerung zu erzeugen.
+        parameters.setdefault("latency", "400000")
         srt_url = urlunsplit((
             parsed.scheme,
             parsed.netloc,
@@ -39,4 +42,16 @@ class SRTOutput(BaseOutput):
             urlencode(parameters),
             parsed.fragment,
         ))
-        return self._command(config, output, ["-f", "mpegts"], srt_url)
+        return self._command(
+            config,
+            output,
+            [
+                # Pakete sofort weitergeben statt im Muxer zu sammeln.
+                "-flush_packets", "1",
+                "-muxdelay", "0",
+                "-muxpreload", "0",
+                "-f", "mpegts",
+            ],
+            srt_url,
+            input_options=["-fflags", "nobuffer"],
+        )
