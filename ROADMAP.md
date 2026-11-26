@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.20.1** (2026-11-26): Wetterseite einspaltig; Taupunkt, Wolkenbasis,
+  Sonnenauf- und -untergang
 - **0.20.0** (2026-11-26): MapLibre 6, Online-Karte basemap.de, Luftbild
   Niedersachsen, Offline-Karte als Rückfall
 - **0.19.1** (2026-11-26): Wetterseite mit Radar-Zeitleiste, Smartphone-Menü

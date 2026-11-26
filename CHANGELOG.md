@@ -9,6 +9,19 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.20.1] - 2026-11-26
+
+### Added
+
+- Wetter: Taupunkt mit Taupunktdifferenz und geschätzter Wolkenuntergrenze
+  sowie Sonnenauf- und -untergang mit bürgerlicher Dämmerung (auf dem
+  Server berechnet, ohne weiteren Dienst).
+- Wetter-Ampel: Hinweise bei Nebel- und Beschlaggefahr (Taupunktdifferenz
+  bis 2 °C), tiefer Wolkenuntergrenze (unter 200 m), Vereisungsgefahr und
+  Dunkelheit nach Ende der bürgerlichen Dämmerung (Nachtflugregeln).
+
 ### Changed
 
 - Wetterseite auf allen Bildschirmgrößen einspaltig: Niederschlagsradar
