@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.18.10** (2026-11-26): SRT-Empfang auf dem Server, latenzarmes Senden vom
+  Raspberry Pi
 - **0.18.9** (2026-11-24): Dauerhaftes Ereignisprotokoll auf dem Server
   (30 Tage, für alle Admins)
 - **0.18.8** (2026-11-24): Automatische Aufnahme pro Quelle, bis zu vier
@@ -116,7 +118,9 @@ funktional weiterentwickelt.
 
 ### Transportsicherheit
 
+- [x] SRT-Empfang mit Token für Sender über Mobilfunk
 - [ ] Verschlüsselter Quellenempfang über RTMPS oder SRT mit Passphrase
+- [ ] Latenzarmes Senden vom Raspberry Pi per SRT mit echter Hardware validieren
 - [ ] Empfehlungen zur Absender-IP-Beschränkung für Port 1935 in der Oberfläche
 
 ### Speicher

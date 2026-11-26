@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.18.10] - 2026-11-26
+
 ### Added
 
 - SRT-Empfang: Quellen vom Typ „Sender → Server“ können wahlweise per RTMP
@@ -19,6 +23,12 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   Protokoll werden geprüft.
 - Die Einstellungen zeigen je nach Protokoll die passende Empfangsadresse
   mit Hinweisen zur Latenz.
+- Raspberry Pi vor Ort: neues Quellenprofil „Transcodieren · geringe Latenz
+  (Mobilfunk)“ für die Capture-Card – ein Schlüsselbild pro Sekunde, keine
+  B-Frames, minimale Puffer; mit dem Hardware-Encoder `h264_v4l2m2m` des
+  Pi 4 oder `libx264` mit `ultrafast`/`zerolatency`.
+- SRT-Streaming-Ausgänge senden latenzarm: kein Zwischenpuffern und – sofern
+  die Adresse nichts anderes vorgibt – ein SRT-Puffer von 400 ms.
 
 ### Changed
 
