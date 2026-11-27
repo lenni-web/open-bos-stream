@@ -15,6 +15,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   Drohnen (DJI-Drohnen und Drohnen mit Livebild) ausgewählt; „Drohne / Trupp
   manuell eingeben“ bleibt als Option für alles andere.
 
+### Changed
+
+- Das Drohnen-Symbol im Menü ähnelt jetzt der Drohne im Logo.
+
 ---
 
 ## [0.26.5] - 2026-11-27
