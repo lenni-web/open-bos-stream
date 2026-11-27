@@ -16,6 +16,8 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   Dunkelblau, rote Linie unter der Kopfzeile, aktiver Punkt der
   Smartphone-Leiste in Dunkelblau, Anmeldeseite mit dunkelblauem
   Hintergrund. Hell- und Dunkelmodus sind angepasst.
+- Beschreibung auf der Anmeldeseite an die Ausrichtung auf Drohneneinsätze
+  angepasst.
 
 ---
 

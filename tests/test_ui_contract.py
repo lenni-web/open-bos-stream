@@ -687,7 +687,7 @@ def test_login_page_has_product_identity_and_description() -> None:
 
     assert "open-bos-stream.svg" in login
     assert "Open BOS Drohnen" in login
-    assert "Empfangen, Überwachen und Anzeigen" in login
+    assert "Lagebild für Drohneneinsätze von Feuerwehr und BOS" in login
     assert 'id="auth-title"' in login
     assert 'id="auth-form"' in login
 
