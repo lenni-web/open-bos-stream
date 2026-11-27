@@ -420,7 +420,8 @@ function renderIncidentAlarm(detail) {
                         </label>
                         <label class="form-field">
                             <span>Führende Wehr</span>
-                            <select class="bos-input" name="lead_organization_id">
+                            <select class="bos-input" name="lead_organization_id"
+                                ${can.administer ? "" : 'disabled title="Die Führung übergeben nur Admins der führenden Wehr."'}>
                                 ${incidentOptions(detail.organizations || [], incident.lead_organization_id, "id", incidentOrgLabel)}
                             </select>
                         </label>
@@ -875,7 +876,12 @@ function editIncidentAlarm(open) {
 async function saveIncidentAlarm(event) {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.target));
-    data.lead_organization_id = Number(data.lead_organization_id);
+    if (data.lead_organization_id) {
+        data.lead_organization_id = Number(data.lead_organization_id);
+    } else {
+        // Gesperrtes Feld (keine Admin-Rechte): Führung unverändert lassen.
+        delete data.lead_organization_id;
+    }
     data.exercise = data.exercise === "on";
     incidentState.editingAlarm = false;
     await incidentAction(() => api.patch(incidentUrl(), data), "Alarmierung gespeichert.");

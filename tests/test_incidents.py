@@ -303,3 +303,68 @@ def test_exercise_report_and_push_subject(api, monkeypatch) -> None:
     report = api.get(f"/api/incidents/{created['id']}/report").text
     assert "Übungsbericht" in report and "ÜBUNG – kein Realeinsatz" in report
     assert api.get(f"/api/incidents/{created['id']}/map").json()["exercise"] is True
+
+
+# ----------------------------------------------------------------------
+# Sicherheits-Update 0.25.1
+# ----------------------------------------------------------------------
+
+
+def test_foreign_incident_drone_is_visible_without_secrets(setup) -> None:
+    from open_bos_stream.api.config import fetches_internal_address, visible_config_sources
+    from open_bos_stream.core.models import SourceConfig
+
+    own = SourceConfig(id="a1", name="Drohne A", type="rtmp", organization_id=setup.ids["a"])
+    foreign = SourceConfig(
+        id="b1", name="Drohne B", type="rtmp", organization_id=setup.ids["b"],
+        publish_password="geheim-passwort",
+    )
+    camera = SourceConfig(
+        id="kamera", name="Kamera", type="rtsp", organization_id=setup.ids["b"],
+        url="rtsp://nutzer:pass@203.0.113.5/live",
+    )
+    team = session(setup.auth, "b-team")
+    incident = create(setup)
+    setup.incidents.add_source(team, incident["id"], foreign)
+    setup.incidents.add_source(team, incident["id"], camera)
+    setup.incidents.add_organization(team, incident["id"], setup.ids["a"])
+
+    visible = {item.id: item for item in visible_config_sources(session(setup.auth, "a-admin"), [own, foreign, camera])}
+    assert visible["a1"].publish_token == own.publish_token
+    assert visible["b1"].publish_token is None and visible["b1"].model_extra["publish_password"] is None
+    assert visible["kamera"].url == "rtsp://***@203.0.113.5/live"
+    # Admins der eigenen Wehr sehen weiterhin alles.
+    assert visible_config_sources(session(setup.auth, "kreis"), [foreign])[0].publish_token == foreign.publish_token
+
+    internal = SourceConfig(id="x", name="X", type="http", url="http://127.0.0.1:9997/v3/config/global/get")
+    assert fetches_internal_address(internal)
+    assert fetches_internal_address(SourceConfig(id="y", name="Y", type="rtsp", url="rtsp://192.168.1.10/live"))
+    assert not fetches_internal_address(SourceConfig(id="z", name="Z", type="rtsp", url="rtsp://9.9.9.9/live"))
+
+
+def test_involved_wehr_cannot_take_over_the_lead(setup) -> None:
+    incident = create(setup)
+    team = session(setup.auth, "b-team")
+    setup.incidents.add_organization(team, incident["id"], setup.ids["a"])
+    with pytest.raises(IncidentAccessError):
+        setup.incidents.update(session(setup.auth, "a-admin"), incident["id"], lead_organization_id=setup.ids["a"])
+    # Auch das Drohnenteam der führenden Wehr übergibt nicht.
+    with pytest.raises(IncidentAccessError):
+        setup.incidents.update(team, incident["id"], lead_organization_id=setup.ids["a"])
+    moved = setup.incidents.update(session(setup.auth, "kreis"), incident["id"], lead_organization_id=setup.ids["a"])
+    assert moved["lead_organization_id"] == setup.ids["a"]
+
+
+def test_cached_permissions_follow_changes_immediately(setup) -> None:
+    from open_bos_stream.core.models import SourceConfig
+
+    foreign = SourceConfig(id="b1", name="Drohne B", type="rtmp", organization_id=setup.ids["b"])
+    team = session(setup.auth, "b-team")
+    incident = create(setup)
+    setup.incidents.add_source(team, incident["id"], foreign)
+    assert session(setup.auth, "a-admin")["incident_source_ids"] == []
+    setup.incidents.add_organization(team, incident["id"], setup.ids["a"])
+    # Ohne Wartezeit: Der Änderungszähler macht den Cache ungültig.
+    assert session(setup.auth, "a-admin")["incident_source_ids"] == ["b1"]
+    setup.incidents.set_status(team, incident["id"], "ended")
+    assert session(setup.auth, "a-admin")["incident_source_ids"] == []

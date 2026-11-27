@@ -30,9 +30,18 @@ documents_router = APIRouter(
 )
 
 
+_cached_service: ChecklistService | None = None
+
+
 def _service() -> ChecklistService:
+    """Eine gemeinsame Instanz (gemeinsame Sperre), neu bei anderer Datenbank."""
+
+    global _cached_service
     auth_service.ready()
-    return ChecklistService(auth_service.incidents)
+    incidents = auth_service.incidents
+    if _cached_service is None or _cached_service.incidents is not incidents:
+        _cached_service = ChecklistService(incidents)
+    return _cached_service
 
 
 def _documents() -> DocumentStore:
@@ -179,9 +188,11 @@ class StatusIn(BaseModel):
 
 
 def _with_names(checklist: dict) -> dict:
+    """Wehr- und Einsatzangaben ergänzen (je eine gezielte Abfrage statt
+    aller Organisationen bei jedem Häkchen)."""
+
     service = _service()
-    names = _org_names(service)
-    result = checklist | {"organization_name": names.get(checklist["organization_id"], "?")}
+    result = checklist | {"organization_name": service.incidents.organization_label(checklist["organization_id"])}
     if checklist.get("incident_id"):
         incident = service.incidents.get(checklist["incident_id"])
         result["incident"] = (

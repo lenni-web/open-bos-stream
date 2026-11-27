@@ -27,10 +27,25 @@ def test_rtsp_preflight_rejects_invalid_url() -> None:
         "profile": "direct",
         "url": "http://127.0.0.1/kamera",
     }]
-    config = AppConfig.model_validate(data)
+    # Seit 0.25.1 lehnt bereits das Modell falsche Protokolle ab.
+    with pytest.raises(ValueError, match="RTSP"):
+        AppConfig.model_validate(data)
 
-    with pytest.raises(ConfigPreflightError, match="RTSP"):
-        ConfigPreflightValidator().validate(config)
+
+@pytest.mark.parametrize(
+    ("source_type", "url"),
+    [
+        ("http", "file:///etc/passwd"),
+        ("hls", "concat:/etc/passwd"),
+        ("rtsp", "pipe:0"),
+        ("udp", "file:///opt/open-bos-stream/config/auth.secret"),
+    ],
+)
+def test_local_protocols_are_rejected(source_type: str, url: str) -> None:
+    data = ConfigLoader().load().model_dump()
+    data["sources"] = [{"id": "quelle-x", "name": "X", "type": source_type, "url": url}]
+    with pytest.raises(ValueError, match="URL"):
+        AppConfig.model_validate(data)
 
 
 def test_capture_preflight_rejects_missing_device(

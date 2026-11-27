@@ -69,6 +69,14 @@ class OrgService:
     def __init__(self, database: Database) -> None:
         self.db = database
         self._lock = threading.RLock()
+        # Änderungszähler für zwischengespeicherte Rechte (auth/service.py):
+        # steigt bei jeder Änderung an Organisationen, Konten, Mitgliedschaften
+        # und Einsätzen.
+        self.revision = 0
+
+    def bump(self) -> None:
+        with self._lock:
+            self.revision += 1
 
     # -----------------------------------------------------
     # Organisationen
@@ -529,6 +537,7 @@ class OrgService:
                     organization_id=organization_id,
                 )
             )
+        self.bump()
 
     def audit_entries(self, organization_ids: set[int] | None = None, limit: int = 200) -> list[dict]:
         query = select(audit_log).order_by(audit_log.c.id.desc()).limit(limit)

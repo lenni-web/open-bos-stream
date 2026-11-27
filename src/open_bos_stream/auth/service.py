@@ -46,6 +46,10 @@ class AuthError(ValueError):
 class AuthService:
     COOKIE_NAME = "open_bos_session"
     SESSION_SECONDS = 12 * 60 * 60
+    # OWASP-Empfehlung für PBKDF2-SHA256; ältere Hashes werden beim
+    # nächsten erfolgreichen Anmelden automatisch neu berechnet.
+    PASSWORD_ITERATIONS = 600_000
+    _dummy_hash: str | None = None
 
     def __init__(
         self,
@@ -74,6 +78,7 @@ class AuthService:
         self._revoked_cache: tuple[tuple[int, int], dict[str, int]] | None = None
         self._secret_cache: bytes | None = None
         self._incidents: IncidentService | None = None
+        self._session_cache: dict[int, tuple] = {}
 
     @property
     def incidents(self) -> IncidentService:
@@ -132,10 +137,38 @@ class AuthService:
             return None
         return (stat.st_mtime_ns, stat.st_size)
 
+    # Rechte werden kurz zwischengespeichert: Ohne Cache liefen bei jeder
+    # Anfrage (Statusabfragen alle 2–8 s je Gerät) mehrere Datenbankabfragen.
+    # Jede Änderung an Organisationen oder Einsätzen erhöht org.revision und
+    # macht den Eintrag sofort ungültig; die Zeitgrenze fängt Restfälle ab.
+    SESSION_CACHE_SECONDS = 5.0
+
     def _session_user(self, stored: dict) -> dict:
         """Kontodaten einer Sitzung samt Rechten in Organisationen."""
 
         org = self.ready()
+        marker = (
+            id(org),
+            org.revision,
+            stored["username"],
+            stored.get("display_name"),
+            bool(stored.get("platform_admin")),
+        )
+        now = time.monotonic()
+        cached = self._session_cache.get(stored["id"])
+        if cached and cached[0] == marker and now - cached[1] < self.SESSION_CACHE_SECONDS:
+            return self._copy_session(cached[2])
+        result = self._build_session_user(org, stored)
+        if len(self._session_cache) > 2000:
+            self._session_cache.clear()
+        self._session_cache[stored["id"]] = (marker, now, result)
+        return self._copy_session(result)
+
+    @staticmethod
+    def _copy_session(session: dict) -> dict:
+        return {key: list(value) if isinstance(value, list) else value for key, value in session.items()}
+
+    def _build_session_user(self, org, stored: dict) -> dict:
         scope = org.scope(stored).as_dict()
         incident_sources = self.incidents.running_source_ids(scope)
         return {
@@ -292,14 +325,15 @@ class AuthService:
         if len(password) < 10:
             raise AuthError("Das Passwort muss mindestens 10 Zeichen haben.")
         salt = salt or secrets.token_bytes(16)
+        iterations = AuthService.PASSWORD_ITERATIONS
         digest = hashlib.pbkdf2_hmac(
             "sha256",
             password.encode(),
             salt,
-            240_000,
+            iterations,
         )
         return (
-            "pbkdf2_sha256$240000$"
+            f"pbkdf2_sha256${iterations}$"
             f"{base64.urlsafe_b64encode(salt).decode()}$"
             f"{base64.urlsafe_b64encode(digest).decode()}"
         )
@@ -368,19 +402,36 @@ class AuthService:
             raise AuthError(str(exc)) from exc
         return {"username": username, "role": role, "user_id": created["id"]}
 
+    @classmethod
+    def _needs_rehash(cls, encoded: str) -> bool:
+        try:
+            return int(encoded.split("$")[1]) < cls.PASSWORD_ITERATIONS
+        except (IndexError, ValueError):
+            return False
+
+    @classmethod
+    def _timing_dummy(cls) -> str:
+        # Gleich teure Prüfung für unbekannte Konten: Die Antwortzeit verrät
+        # nicht, ob ein Benutzername existiert.
+        if cls._dummy_hash is None or cls._needs_rehash(cls._dummy_hash):
+            cls._dummy_hash = cls._password_hash(secrets.token_urlsafe(16))
+        return cls._dummy_hash
+
     def authenticate(self, username: str, password: str) -> dict | None:
         stored = self.ready().user_by_username(username.strip().lower())
-        if (
-            stored
-            and stored["active"]
-            and self._verify_password(password, stored["password_hash"])
-        ):
-            self.org.update_user(
-                stored["id"],
-                last_login_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            )
-            return self._session_user(stored)
-        return None
+        if not stored or not stored["active"]:
+            self._verify_password(password, self._timing_dummy())
+            return None
+        if not self._verify_password(password, stored["password_hash"]):
+            return None
+        changes = {
+            "last_login_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        }
+        if self._needs_rehash(stored["password_hash"]):
+            # Neu berechnen; die neue Sitzung entsteht danach mit diesem Hash.
+            changes["password_hash"] = self._password_hash(password)
+        stored = self.org.update_user(stored["id"], actor="System", **changes)
+        return self._session_user(stored)
 
     def users(self) -> list[dict]:
         org = self.ready()

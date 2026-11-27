@@ -1,3 +1,4 @@
+import logging
 from dataclasses import asdict
 
 from fastapi import APIRouter, HTTPException, Query, Request, Response
@@ -24,6 +25,8 @@ from open_bos_stream.map.basemaps import (
     aerial_attribution,
 )
 from open_bos_stream.auth.roles import GUEST
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     dependencies=[GUEST],
@@ -61,9 +64,11 @@ def _default_map(service: MapService) -> tuple[str, object]:
             detail="Default map not found.",
         ) from exc
     except MBTilesError as exc:
+        # Details (Dateipfad) nur ins Protokoll, nicht an den Browser.
+        logger.error("Offline-Karte nicht lesbar: %s", exc)
         raise HTTPException(
             status_code=500,
-            detail=str(exc),
+            detail="Die Offline-Karte ist nicht lesbar.",
         ) from exc
 
     return default, metadata
@@ -150,9 +155,11 @@ def map_style(
             detail=str(exc),
         ) from exc
     except MBTilesError as exc:
+        # Details (Dateipfad) nur ins Protokoll, nicht an den Browser.
+        logger.error("Offline-Karte nicht lesbar: %s", exc)
         raise HTTPException(
             status_code=500,
-            detail=str(exc),
+            detail="Die Offline-Karte ist nicht lesbar.",
         ) from exc
 
 @router.get(
@@ -208,9 +215,11 @@ def map_metadata(
             detail=str(exc),
         ) from exc
     except MBTilesError as exc:
+        # Details (Dateipfad) nur ins Protokoll, nicht an den Browser.
+        logger.error("Offline-Karte nicht lesbar: %s", exc)
         raise HTTPException(
             status_code=500,
-            detail=str(exc),
+            detail="Die Offline-Karte ist nicht lesbar.",
         ) from exc
 
     return asdict(metadata)
@@ -253,9 +262,11 @@ def map_tile(
             detail=str(exc),
         ) from exc
     except MBTilesError as exc:
+        # Details (Dateipfad) nur ins Protokoll, nicht an den Browser.
+        logger.error("Offline-Karte nicht lesbar: %s", exc)
         raise HTTPException(
             status_code=500,
-            detail=str(exc),
+            detail="Die Offline-Karte ist nicht lesbar.",
         ) from exc
 
     if tile is None:

@@ -60,6 +60,8 @@ class StreamProbeService:
         ]
         if target.startswith("rtsp://"):
             command.extend(["-rtsp_transport", "tcp"])
+        if target.startswith(("http://", "https://")):
+            command.extend(["-protocol_whitelist", "http,https,tls,tcp,crypto"])
         command.extend([
             "-read_intervals",
             f"%+{self.SAMPLE_SECONDS}",

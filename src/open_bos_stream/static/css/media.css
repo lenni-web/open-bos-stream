@@ -194,39 +194,10 @@
    Media Activity Log
    ========================================================== */
 
-.media-event-log {
-
-    height: 300px;
-
-    overflow-y: auto;
-
-    border-top: 1px solid var(--bos-gray);
-
-}
-
-.media-event-entry {
-
-    padding: 10px 12px;
-
-    border-bottom: 1px solid var(--bos-gray);
-
-    font-size: 14px;
-
-    line-height: 1.5;
-
-}
-
-.media-event-entry:last-child {
-
-    border-bottom: none;
-
-}
-
 /* ==========================================================
    Media Preview
    ========================================================== */
 
-#media-player,
 #media-video {
 
     display: none;

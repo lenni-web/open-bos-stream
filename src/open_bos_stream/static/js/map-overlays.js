@@ -489,15 +489,11 @@ async function addOverlayLayer(
 
         access: "Zugang",
 
-        diameter: "Durchmesser",
-
         capacity: "Volumen",
 
         access_status: "Zugänglichkeit",
 
         water_source: "Wasserquelle",
-
-        capacity: "Volumen",
 
         note: "Hinweis"
 

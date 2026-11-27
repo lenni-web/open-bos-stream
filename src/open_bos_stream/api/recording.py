@@ -4,6 +4,8 @@ Recording API
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from fastapi.responses import FileResponse
@@ -26,6 +28,8 @@ from open_bos_stream.auth.roles import OPERATOR, SUPERADMIN
 
 # Aufnahmesteuerung bleibt Superadmins vorbehalten; das Archiv sehen
 # Drohnenteams für die Drohnen ihrer Wehr (auth/media_access.py).
+logger = logging.getLogger(__name__)
+
 router = APIRouter(
     prefix="/recording",
     tags=["Recording"],
@@ -151,9 +155,14 @@ async def play_compatible(filename: str, request: Request):
     try:
         compatible = await run_in_threadpool(playback_cache.prepare, file)
     except PlaybackPreparationError as exc:
+        # FFmpeg-Ausgabe enthält Serverpfade: nur ins Protokoll.
+        logger.warning("Aufnahme %s nicht aufbereitet: %s", file.name, exc)
         raise HTTPException(
             status_code=422,
-            detail=f"Aufnahme konnte nicht aufbereitet werden: {exc}",
+            detail=(
+                "Die Aufnahme konnte für den Browser nicht aufbereitet werden. "
+                "Bitte herunterladen und lokal abspielen."
+            ),
         ) from exc
 
     return FileResponse(

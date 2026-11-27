@@ -27,13 +27,6 @@ html.display-mode body {
     cursor: none;
 }
 
-.display-option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 12px;
-}
-
 /* ==========================================================
    Grundlayout
    ========================================================== */
@@ -56,14 +49,6 @@ body {
 /* ==========================================================
    Titel
    ========================================================== */
-
-.bos-title {
-
-    font-size: 2rem;
-
-    font-weight: 700;
-
-}
 
 /* ==========================================================
    Karten
@@ -172,51 +157,9 @@ body {
 
 }
 
-.status-green {
-
-    background: var(--bos-green);
-
-}
-
-.status-red {
-
-    background: var(--bos-red);
-
-}
-
-.status-yellow {
-
-    background: var(--bos-yellow);
-
-}
-
 /* ==========================================================
    Statusfarben
    ========================================================== */
-
-.status-running {
-
-    color: var(--bos-green);
-
-    font-weight: 700;
-
-}
-
-.status-stopped {
-
-    color: var(--bos-red);
-
-    font-weight: 700;
-
-}
-
-.status-warning {
-
-    color: var(--bos-yellow);
-
-    font-weight: 700;
-
-}
 
 /* ==========================================================
    Infozeilen

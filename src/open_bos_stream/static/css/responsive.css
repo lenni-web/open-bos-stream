@@ -16,30 +16,6 @@
 
     }
 
-    .video-titlebar {
-
-        flex-direction: column;
-
-        align-items: flex-start;
-
-        gap: 10px;
-
-    }
-
-    .video-toolbar {
-
-        flex-wrap: wrap;
-
-        width: 100%;
-
-    }
-
-    .video-toolbar-spacer {
-
-        display: none;
-
-    }
-
     .video-container video {
 
         height: auto;
@@ -96,25 +72,6 @@
 
     }
 
-    .video-toolbar {
-
-        gap: 8px;
-
-    }
-
-    .video-toolbar .bos-button {
-
-        flex: 1 1 180px;
-
-    }
-
-    #snapshot-button,
-    #fullscreen-button {
-
-        flex: 0 0 40px;
-
-    }
-
     .bos-nav-item {
 
         padding: 14px;
@@ -128,27 +85,6 @@
    ========================================================== */
 
 @media (max-width: 480px) {
-
-    .video-titlebar h2 {
-
-        font-size: 1.2rem;
-
-    }
-
-    .video-toolbar .bos-button {
-
-        flex: 1 1 100%;
-
-    }
-
-    #snapshot-button,
-    #fullscreen-button {
-
-        flex: 1 1 calc(50% - 4px);
-
-        height: 40px;
-
-    }
 
     .library-actions {
 

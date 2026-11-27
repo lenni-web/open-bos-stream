@@ -1,1 +1,0 @@
-"""Lokale Benutzer- und Sitzungsverwaltung."""

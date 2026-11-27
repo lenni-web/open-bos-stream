@@ -30,10 +30,12 @@ class HTTPInputBuilder(InputBuilder):
     ) -> list[str]:
 
         return [
-
+            # Verschachtelte Abrufe (HLS-Segmente) nur über das Netz,
+            # nie über file: oder andere lokale Protokolle.
+            "-protocol_whitelist",
+            "http,https,tls,tcp,crypto",
             "-i",
             source.url,
-
         ]
 
     def capability_fields(

@@ -1,3 +1,5 @@
+import ipaddress
+import socket
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, HTTPException, Request
@@ -76,6 +78,47 @@ def mask_url(url: str) -> str:
     return f"{parts.scheme}://{host}/***"
 
 
+SECRET_FIELD_HINTS = ("token", "password", "secret", "key")
+
+
+def strip_credentials(url: str | None) -> str | None:
+    """Adresse ohne Benutzername und Passwort (Host und Pfad bleiben)."""
+
+    if not url:
+        return url
+    parts = urlsplit(url)
+    if parts.username is None and parts.password is None:
+        return url
+    host = parts.hostname or ""
+    if parts.port:
+        host = f"{host}:{parts.port}"
+    return parts._replace(netloc=f"***@{host}").geturl()
+
+
+def redacted_source(source: SourceConfig) -> SourceConfig:
+    """Quelle einer anderen Wehr: sichtbar, aber ohne Sende-Schlüssel und
+    Zugangsdaten. model_construct, damit kein neuer Schlüssel entsteht."""
+
+    data = source.model_dump()
+    for key in list(data):
+        if any(hint in key.lower() for hint in SECRET_FIELD_HINTS):
+            data[key] = None
+    data["url"] = strip_credentials(data.get("url"))
+    data["preview_url"] = strip_credentials(data.get("preview_url"))
+    data["redacted"] = True
+    return SourceConfig.model_construct(**data)
+
+
+def visible_config_sources(user: dict, sources: list[SourceConfig]) -> list[SourceConfig]:
+    """Eigene Quellen vollständig, fremde sichtbare Quellen ohne Geheimnisse."""
+
+    return [
+        source if can_admin_source(user, source) else redacted_source(source)
+        for source in sources
+        if can_see_source(user, source)
+    ]
+
+
 @router.get("/")
 async def get_config(request: Request):
     config = loader.load()
@@ -92,9 +135,11 @@ async def get_config(request: Request):
     if is_restricted(user) and not user.get("server_admin"):
         # Wehr-Admins sehen nur Quellen ihrer Organisationen (und solche
         # ohne Zuordnung); bearbeiten dürfen sie nur ihre eigenen.
-        config.sources = [
-            source for source in config.sources if can_see_source(user, source)
-        ]
+        # Fremde Quellen (z. B. Drohnen anderer Wehren im gemeinsamen
+        # Einsatz) ohne Sende-Schlüssel und Zugangsdaten ausliefern.
+        config.sources = visible_config_sources(user, config.sources)
+        # Ältere RTMP-Eingänge (vor den Quellen) enthalten Sende-Schlüssel.
+        config.rtmp_inputs = []
     return config
 
 
@@ -131,6 +176,48 @@ async def save_sources(sources: list[SourceConfig], request: Request):
     return result
 
 
+# Quellen, die der Server selbst abruft (nicht nur empfängt).
+OUTBOUND_SOURCE_TYPES = {"rtsp", "http", "hls"}
+
+
+def _internal_ip(address: str) -> bool:
+    try:
+        ip = ipaddress.ip_address(address.split("%", 1)[0])
+    except ValueError:
+        return False
+    return (
+        ip.is_loopback or ip.is_private or ip.is_link_local
+        or ip.is_reserved or ip.is_multicast or ip.is_unspecified
+    )
+
+
+def fetches_internal_address(source: SourceConfig) -> bool:
+    """Würde der Server eine Adresse im eigenen bzw. internen Netz abrufen?
+
+    Schutz gegen Anfragen an interne Dienste (z. B. die MediaMTX-API) über
+    eine von Wehr-Admins eingetragene Quelle.
+    """
+
+    if source.type not in OUTBOUND_SOURCE_TYPES:
+        return False
+    for url in (source.url, source.preview_url):
+        if not url:
+            continue
+        host = (urlsplit(url).hostname or "").strip("[]").lower()
+        if not host or host == "localhost" or host.endswith(".localhost"):
+            return True
+        if _internal_ip(host):
+            return True
+        try:
+            addresses = {item[4][0] for item in socket.getaddrinfo(host, None)}
+        except OSError:
+            # Nicht auflösbar: FFmpeg erreicht die Quelle ohnehin nicht.
+            continue
+        if any(_internal_ip(address) for address in addresses):
+            return True
+    return False
+
+
 def merge_sources(
     user: dict,
     stored: list[SourceConfig],
@@ -165,6 +252,16 @@ def merge_sources(
                 detail=(
                     f"Quelle „{source.name}“: Bitte eine Organisation wählen, "
                     "in der Sie Wehr-Admin sind."
+                ),
+            )
+        changed = existing is None or (existing.url, existing.preview_url) != (source.url, source.preview_url)
+        if changed and fetches_internal_address(source):
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"Quelle „{source.name}“: Adressen im internen Netz des "
+                    "Servers (localhost, private Netze) richtet nur ein "
+                    "Kreis-Admin ein."
                 ),
             )
         incoming_by_id[source.id] = source

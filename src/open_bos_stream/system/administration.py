@@ -32,6 +32,8 @@ class SystemAdministrationService:
             r"\1***",
             value,
         )
+        # Gastlink-Codes aus älteren Zugriffsprotokollen.
+        value = re.sub(r"(/g/)[^/?\s\"]+", r"\1***", value)
         return re.sub(
             r"(?i)([a-z][a-z0-9+.-]*://)([^/@\s:]+):([^/@\s]+)@",
             r"\1***:***@",

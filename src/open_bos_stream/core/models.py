@@ -44,6 +44,14 @@ class InputConfig(BaseModel):
     fps: int = 25
     format: str = "v4l2"
 
+SOURCE_URL_SCHEMES = {
+    "rtsp": ("rtsp://", "rtsps://"),
+    "srt": ("srt://",),
+    "udp": ("udp://", "rtp://"),
+    "http": ("http://", "https://"),
+    "hls": ("http://", "https://"),
+}
+
 class SourceConfig(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -151,6 +159,15 @@ class SourceConfig(BaseModel):
             if not self.url:
                 raise ValueError(
                     f"Für die {self.type.upper()}-Quelle fehlt die URL."
+                )
+            # Nur Netzwerkprotokolle des jeweiligen Typs: FFmpeg würde sonst
+            # auch file:, concat:, pipe: o. ä. öffnen (lokale Dateien).
+            allowed = SOURCE_URL_SCHEMES[self.type]
+            if not self.url.strip().lower().startswith(allowed):
+                raise ValueError(
+                    f"Die URL einer {self.type.upper()}-Quelle muss mit "
+                    + " oder ".join(allowed)
+                    + " beginnen."
                 )
         if self.preview_url:
             if self.type != "rtsp":

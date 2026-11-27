@@ -11,6 +11,52 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.25.1] - 2026-11-27
+
+Sicherheits- und Aufräum-Update nach einem Code-Review.
+
+### Security
+
+- Wehr-Admins erhielten über die Konfiguration auch Sende-Schlüssel und
+  Zugangsdaten fremder Drohnen, die sie nur sehen dürfen (z. B. im
+  gemeinsamen Einsatz). Fremde Quellen kommen jetzt ohne Sende-Schlüssel,
+  Passwörter und Zugangsdaten in Adressen; ältere RTMP-Eingänge werden
+  Wehr-Admins nicht mehr ausgeliefert.
+- Das Drohnenteam einer nur beteiligten Wehr konnte die Einsatzführung auf
+  die eigene Wehr übertragen. Die Führung übergeben jetzt nur Admins der
+  führenden Wehr (Feld für alle anderen gesperrt).
+- Gastlink-Codes und Token-Parameter stehen nicht mehr im Klartext im
+  Zugriffsprotokoll und im Stream-Protokoll.
+- Quell-Adressen akzeptieren nur noch die Netzwerkprotokolle ihres Typs
+  (z. B. kein `file:`, `concat:` oder `pipe:`); HTTP- und HLS-Quellen
+  öffnet FFmpeg nur noch über Netzwerkprotokolle. Wehr-Admins können keine
+  Quellen mehr einrichten, die der Server im eigenen bzw. internen Netz
+  abruft (localhost, private Netze) – das bleibt Kreis-Admins vorbehalten.
+- Passwörter werden mit 600.000 PBKDF2-Iterationen gespeichert (bisher
+  240.000). Bestehende Passwörter werden beim nächsten Anmelden
+  automatisch umgestellt; andere Sitzungen dieses Kontos enden dabei
+  einmalig.
+- Anmeldungen mit unbekanntem Benutzernamen dauern gleich lange wie mit
+  falschem Passwort (Benutzernamen nicht mehr über die Antwortzeit
+  erkennbar).
+- Fehlermeldungen an den Browser enthalten keine Serverpfade bzw.
+  FFmpeg-Ausgaben mehr (Offline-Karte, Aufbereitung von Aufnahmen).
+
+### Changed
+
+- Rechte eines Kontos werden kurz zwischengespeichert statt bei jeder
+  Anfrage neu aus der Datenbank berechnet; jede Änderung an Organisationen,
+  Mitgliedschaften oder Einsätzen wirkt trotzdem sofort.
+- Abhaken von Checklisten benötigt weniger Datenbankabfragen; eine
+  gemeinsame Instanz des Checklisten-Dienstes.
+- Ungenutzte Stilregeln aus älteren Oberflächenständen entfernt (rund 600
+  Zeilen CSS); doppelte Beschriftungen in den Wasserentnahme-Popups
+  bereinigt.
+- Versehentlich eingecheckte Build-Dateien (`build/`) aus dem Repository
+  entfernt und künftig ignoriert.
+
+---
+
 ## [0.25.0] - 2026-11-27
 
 ### Added

@@ -257,6 +257,8 @@ class IncidentService:
     # -----------------------------------------------------
 
     def _log(self, connection, incident_id: int, actor: str, kind: str, text: str, at: datetime | None = None) -> None:
+        # Jede Einsatzänderung kann Rechte berühren (z. B. Drohnen im Einsatz).
+        self.org.bump()
         connection.execute(
             insert(incident_log).values(
                 incident_id=incident_id,
@@ -273,6 +275,11 @@ class IncidentService:
             .where(incidents.c.id == incident_id)
             .values(updated_at=iso(local_now()))
         )
+
+    def organization_label(self, organization_id: int | None) -> str:
+        """Kurzname bzw. Name einer Wehr („?“, wenn unbekannt)."""
+
+        return self._org_name(organization_id)
 
     def _org_name(self, organization_id: int | None) -> str:
         org = self.org.organization(organization_id) if organization_id else None
@@ -369,8 +376,10 @@ class IncidentService:
         new_lead = None
         if changes.get("lead_organization_id") and changes["lead_organization_id"] != incident["lead_organization_id"]:
             new_lead = int(changes["lead_organization_id"])
-            if not self.can_administer(user, incident) and new_lead not in set(user.get("org_operate") or []):
-                raise IncidentAccessError("Führung nur an eine eigene Wehr übergeben.")
+            # Nur Admins der führenden Wehr geben die Führung ab; sonst könnte
+            # eine beteiligte Wehr den Einsatz übernehmen und löschen.
+            if not self.can_administer(user, incident):
+                raise IncidentAccessError("Die Führung übergeben nur Admins der führenden Wehr.")
             if self.org.organization(new_lead) is None:
                 raise IncidentError("Wehr nicht gefunden.")
             new_lead_name = self._org_name(new_lead)
