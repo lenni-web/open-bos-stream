@@ -26,3 +26,6 @@ config/open-bos.db
 config/open-bos.db-wal
 config/open-bos.db-shm
 config/users.yaml.importiert
+
+# Interne Entwürfe (nicht veröffentlichen)
+docs/entwurf-*

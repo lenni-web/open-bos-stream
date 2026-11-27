@@ -419,8 +419,8 @@ function updateStreamDiagnostics(stream, storage, sources = []) {
                 `Warnung unter ${storage.warning_free_percent} % frei · ` +
                 `Mindestgrenze ${storage.minimum_free_percent} % · ` +
                 (storage.auto_cleanup
-                    ? "Älteste Medien werden bei Speichermangel gelöscht"
-                    : "Bei Speichermangel werden neue Medien gesperrt");
+                    ? "Älteste Aufnahmen werden bei Speichermangel gelöscht"
+                    : "Bei Speichermangel werden neue Aufnahmen gesperrt");
             if (storage.last_cleanup) {
                 text +=
                     ` · Letzte Bereinigung: ` +
