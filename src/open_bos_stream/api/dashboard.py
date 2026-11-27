@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import Response
 from starlette.concurrency import run_in_threadpool
 
+from open_bos_stream.system.load import message as load_message
 from open_bos_stream.core.container import (
     auth_service,
     config as runtime_config,
@@ -83,11 +84,20 @@ def filter_status_sources(data: dict, visible: set[str]) -> dict:
             if item.get("source_id", item.get("id")) in visible
         ]
 
+    load = data.get("server_load")
+    if load:
+        # Gesamtzahl der Quellen anderer Wehren nicht verraten.
+        load = {
+            **load,
+            "active_sources": None,
+            "message": load_message(load.get("level", "ok"), load.get("reasons") or [], 0),
+        }
     return {
         **data,
         "sources": keep(data.get("sources")),
         "recordings": keep(data.get("recordings")),
         "stream_outputs": keep(data.get("stream_outputs")),
+        "server_load": load,
     }
 
 

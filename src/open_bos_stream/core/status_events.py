@@ -20,6 +20,7 @@ class StatusEventTracker:
     _storage: str | None = None
     _outputs_failed: dict[str, bool] = field(default_factory=dict)
     _stream_running: bool | None = None
+    _load: str | None = None
 
     def evaluate(self, status: dict) -> list[tuple[str, str]]:
         return [
@@ -49,6 +50,7 @@ class StatusEventTracker:
             self._check_storage,
             self._check_outputs,
             self._check_stream,
+            self._check_load,
         ):
             events += [(level, message, None) for level, message in check(status)]
         return events
@@ -103,6 +105,24 @@ class StatusEventTracker:
             if online
             else ("error", "📡 Streaming-Server nicht erreichbar")
         ]
+
+    def _check_load(self, status: dict) -> list[tuple[str, str]]:
+        load = status.get("server_load") or {}
+        level = load.get("level")
+        if level is None:
+            return []
+        previous, self._load = self._load, level
+        if previous is None or previous == level:
+            return []
+        reasons = ", ".join(load.get("reasons") or [])
+        detail = f" ({reasons})" if reasons else ""
+        sources = load.get("active_sources")
+        count = f" bei {sources} aktiven Quellen" if sources else ""
+        if level == "critical":
+            return [("error", f"🖥 Server überlastet{detail}{count}")]
+        if level == "warning":
+            return [("warning", f"🖥 Hohe Serverauslastung{detail}{count}")]
+        return [("success", "🖥 Serverauslastung wieder normal")]
 
     def _check_storage(self, status: dict) -> list[tuple[str, str]]:
         storage = status.get("media_storage") or {}

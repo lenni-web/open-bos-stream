@@ -16,11 +16,11 @@
                 <div>
                     <span class="section-kicker">Mehrquellenempfang</span>
                     <h2>Quellen</h2>
-                    <p>Bis zu acht gleichwertige lokale oder Netzwerkquellen.</p>
+                    <p>Beliebig viele gleichwertige lokale oder Netzwerkquellen – die Serverlast wird überwacht.</p>
                     <p class="settings-profile-recommendation">
                         <strong>Profil-Empfehlung:</strong>
                         „Ausgewogen“ bietet bis zu vier Quellen in klarerer
-                        480p-Vorschau. Für fünf bis acht Quellen oder knappe
+                        480p-Vorschau. Ab fünf Quellen oder bei knappen
                         CPU-Reserven empfiehlt sich „Sparsam“ mit 360p.
                         Im Vollbild bleibt bei beiden das Original erhalten.
                     </p>
@@ -28,6 +28,8 @@
             </div>
 
             <div id="source-settings"></div>
+
+            <p id="source-count-hint" class="info-note source-count-hint" hidden></p>
 
             <button
                 id="source-add-button"
@@ -190,6 +192,7 @@
                 <label><input type="checkbox" data-notify-event="storage_low"> Speicher knapp oder erschöpft</label>
                 <label><input type="checkbox" data-notify-event="recording_problem"> Aufnahme abgebrochen oder fehlgeschlagen</label>
                 <label><input type="checkbox" data-notify-event="output_failed"> Streaming-Ausgang unerwartet beendet</label>
+                <label><input type="checkbox" data-notify-event="server_load"> Server überlastet (länger als 2 min)</label>
                 <label><input type="checkbox" data-notify-event="server_started"> Server gestartet (z. B. nach Neustart)</label>
             </fieldset>
 

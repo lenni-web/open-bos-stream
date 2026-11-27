@@ -771,10 +771,7 @@ function renderSources() {
         );
     });
 
-    const addButton = document.getElementById("source-add-button");
-    if (addButton) {
-        addButton.disabled = sources.length >= 8;
-    }
+    updateSourceCountHint(sources.length);
     if (typeof renderMediaCaptureConfig === "function") {
         renderMediaCaptureConfig();
     }
@@ -826,9 +823,6 @@ function saveSources() {
 function addSource() {
     saveSources();
     currentConfig.sources ??= [];
-    if (currentConfig.sources.length >= 8) {
-        return;
-    }
 
     let number = currentConfig.sources.length + 1;
     const ids = new Set(currentConfig.sources.map(source => source.id));
@@ -930,4 +924,21 @@ async function loadSourceEncoders() {
             }
         )
     );
+}
+
+
+// Keine feste Obergrenze mehr: ab neun Quellen auf die Serverlast hinweisen.
+const SOURCE_LOAD_HINT_FROM = 9;
+
+function updateSourceCountHint(count) {
+    const hint = document.getElementById("source-count-hint");
+    if (!hint) {
+        return;
+    }
+    hint.hidden = count < SOURCE_LOAD_HINT_FROM;
+    hint.textContent = count >= SOURCE_LOAD_HINT_FROM
+        ? `${count} Quellen eingerichtet. Jede aktive Quelle belegt Rechenleistung ` +
+          "auf dem Server. Die Auslastung wird überwacht; bei hoher Last erscheint " +
+          "ein Hinweis. Für viele Quellen das sparsame Vorschauprofil wählen."
+        : "";
 }

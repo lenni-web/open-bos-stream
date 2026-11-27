@@ -13,6 +13,8 @@ from dataclasses import dataclass, field
 
 SOURCE_OFFLINE_DELAY_SECONDS = 30
 MEDIAMTX_OFFLINE_DELAY_SECONDS = 20
+# Überlastung erst melden, wenn sie anhält (kurze Spitzen beim Start).
+SERVER_LOAD_DELAY_SECONDS = 120
 ALERT_COOLDOWN_SECONDS = 600
 
 RECORDING_PROBLEM_REASONS = {
@@ -64,11 +66,13 @@ class _Tracked:
 class NotificationMonitor:
     source_delay: float = SOURCE_OFFLINE_DELAY_SECONDS
     mediamtx_delay: float = MEDIAMTX_OFFLINE_DELAY_SECONDS
+    load_delay: float = SERVER_LOAD_DELAY_SECONDS
     cooldown: float = ALERT_COOLDOWN_SECONDS
 
     _initialized: bool = False
     _sources: dict[str, _Tracked] = field(default_factory=dict)
     _mediamtx: _Tracked = field(default_factory=_Tracked)
+    _load: _Tracked = field(default_factory=_Tracked)
     _storage_level: str = "ok"
     _storage_alerted: bool = False
     _recording_finished_at: dict[str, float | None] = field(
@@ -104,6 +108,7 @@ class NotificationMonitor:
         notices += self._check_storage(status, now)
         notices += self._check_recording(status, now)
         notices += self._check_outputs(status, now)
+        notices += self._check_load(status, now)
         return notices
 
     # ------------------------------------------------------------------
@@ -141,6 +146,36 @@ class NotificationMonitor:
             tracked.alerted = False
             return [recovery]
         return []
+
+    def _check_load(self, status: dict, now: float) -> list[Notice]:
+        load = status.get("server_load") or {}
+        reasons = ", ".join(load.get("reasons") or [])
+        return self._delayed_problem(
+            "server_load",
+            self._load,
+            load.get("level") == "critical",
+            now,
+            self.load_delay,
+            Notice(
+                event="server_load",
+                subject="Warnung: Server überlastet",
+                body=(
+                    "Der Server ist seit mindestens "
+                    f"{int(self.load_delay // 60)} Minuten sehr stark ausgelastet"
+                    + (f" ({reasons})" if reasons else "")
+                    + f" bei {load.get('active_sources') or 0} aktiven Quellen. "
+                    "Livebilder, Aufnahmen und Weiterleitungen können ruckeln "
+                    "oder abbrechen. Nicht benötigte Quellen deaktivieren oder "
+                    "das sparsame Vorschauprofil wählen."
+                ),
+            ),
+            Notice(
+                event="server_load",
+                subject="Entwarnung: Serverauslastung wieder normal",
+                body="Die Auslastung des Servers ist wieder im normalen Bereich.",
+                recovery=True,
+            ),
+        )
 
     def _check_mediamtx(self, status: dict, now: float) -> list[Notice]:
         online = bool(

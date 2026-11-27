@@ -450,6 +450,7 @@ class NotificationEventsConfig(BaseModel):
     storage_low: bool = True
     recording_problem: bool = True
     output_failed: bool = True
+    server_load: bool = True
     server_started: bool = True
 
 
@@ -580,14 +581,14 @@ class AppConfig(BaseModel):
         default_factory=InputConfig,
     )
 
+    # Keine feste Obergrenze: Die Serverlast wird stattdessen überwacht
+    # (system/load.py) und bei hoher Auslastung ein Hinweis angezeigt.
     sources: list[SourceConfig] = Field(
         default_factory=list,
-        max_length=8,
     )
 
     rtmp_inputs: list[RTMPInputConfig] = Field(
         default_factory=list,
-        max_length=8,
     )
 
     encoder: EncoderConfig

@@ -57,7 +57,7 @@ GUEST_SOURCE_FIELDS = (
 
 class GuestLinkCreate(BaseModel):
     label: str = Field(min_length=1, max_length=80)
-    source_ids: list[str] = Field(min_length=1, max_length=8)
+    source_ids: list[str] = Field(min_length=1, max_length=200)
     hours: float = Field(gt=0, le=MAX_HOURS)
 
 

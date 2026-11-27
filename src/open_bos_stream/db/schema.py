@@ -135,6 +135,7 @@ PUSH_EVENTS = {
     "mediamtx_offline": ("Streaming-Server gestört", "server"),
     "output_failed": ("Streaming-Ausgang unerwartet beendet", "server"),
     "storage_low": ("Speicher wird knapp", "server"),
+    "server_load": ("Server überlastet", "server"),
     "server_started": ("Server neu gestartet", "server"),
 }
 

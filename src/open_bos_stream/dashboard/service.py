@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import threading
 
+from open_bos_stream.system.load import ServerLoadMonitor
 from open_bos_stream.core.models import AppConfig
 from open_bos_stream.core.installation import (
     installation_profile,
@@ -42,6 +43,7 @@ class DashboardService:
         media_storage_service: MediaStorageService,
         stream_probe_service: StreamProbeService,
         runtime_status_store: StreamRuntimeStatusStore | None = None,
+        load_monitor: ServerLoadMonitor | None = None,
     ) -> None:
 
         self._config = config
@@ -56,6 +58,8 @@ class DashboardService:
         self._runtime_status = (
             runtime_status_store or StreamRuntimeStatusStore()
         )
+        # Ohne feste Obergrenze für Quellen: Auslastung beobachten.
+        self._load = load_monitor or ServerLoadMonitor()
         self._stream_state: str | None = None
         self._state_since = time.monotonic()
         self._stable_since: float | None = None
@@ -108,6 +112,11 @@ class DashboardService:
                 restart_count - self._restart_baseline,
             ),
         }
+
+    def _server_load(self, health) -> dict:
+        self._load.sample(health.system.cpu, health.system.ram)
+        active = sum(1 for item in self._config.sources if item.enabled)
+        return self._load.status(active_sources=active)
 
     def _build_status(self) -> dict:
         """Aktuellen Dashboard-Status zurückgeben."""
@@ -258,6 +267,8 @@ class DashboardService:
                 "temperature": health.system.temperature,
 
             },
+
+            "server_load": self._server_load(health),
 
             "system_info": system_info_data,
 

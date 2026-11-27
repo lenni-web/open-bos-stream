@@ -83,7 +83,7 @@ def test_up_to_eight_unique_rtmp_inputs_are_valid() -> None:
     assert len(config.rtmp_inputs) == 8
 
 
-def test_more_than_eight_rtmp_inputs_are_rejected() -> None:
+def test_more_than_eight_rtmp_inputs_are_allowed() -> None:
     data = ConfigLoader().load().model_dump()
     data["rtmp_inputs"] = [
         {
@@ -94,11 +94,11 @@ def test_more_than_eight_rtmp_inputs_are_rejected() -> None:
         for index in range(1, 10)
     ]
 
-    with pytest.raises(ValidationError):
-        AppConfig.model_validate(data)
+    # Keine feste Obergrenze mehr; die Serverlast wird überwacht.
+    assert len(AppConfig.model_validate(data).rtmp_inputs) == 9
 
 
-def test_more_than_eight_unified_sources_are_rejected() -> None:
+def test_more_than_eight_unified_sources_are_allowed() -> None:
     data = ConfigLoader().load().model_dump()
     data["sources"] = [
         {
@@ -106,11 +106,10 @@ def test_more_than_eight_unified_sources_are_rejected() -> None:
             "name": f"Quelle {index}",
             "type": "rtmp",
         }
-        for index in range(1, 10)
+        for index in range(1, 13)
     ]
 
-    with pytest.raises(ValidationError):
-        AppConfig.model_validate(data)
+    assert len(AppConfig.model_validate(data).sources) == 12
 
 
 def test_duplicate_rtmp_paths_are_rejected() -> None:

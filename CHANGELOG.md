@@ -9,6 +9,25 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- Keine feste Obergrenze mehr für gleichzeitig aktive Quellen (bisher 8);
+  ebenso für Gastlinks und Einsätze. Ab neun Quellen weist die
+  Quellenverwaltung auf die Serverlast hin.
+
+### Added
+
+- Überwachung der Serverauslastung (CPU, Arbeitsspeicher, Systemlast je
+  Kern) als Mittelwert der letzten 30 Sekunden mit Hysterese, damit kurze
+  Spitzen keinen Hinweis auslösen.
+  - Bei hoher bzw. sehr hoher Last erscheint auf allen Seiten ein Hinweis
+    mit Ursache und Empfehlung (Quellen deaktivieren, sparsames
+    Vorschauprofil).
+  - Wechsel der Laststufe stehen im Ereignisprotokoll.
+  - Hält eine Überlastung länger als 2 Minuten an, gibt es eine
+    Benachrichtigung per E-Mail und Push (für Kreis-Admins und Superadmins,
+    abschaltbar), samt Entwarnung.
+
 ---
 
 ## [0.24.2] - 2026-11-27

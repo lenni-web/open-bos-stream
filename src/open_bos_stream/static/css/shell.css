@@ -2383,3 +2383,34 @@ body {
     border-radius: var(--shell-radius-small);
     font-size: 0.88rem;
 }
+
+/* Hinweis bei hoher Serverauslastung */
+.server-load-banner {
+    display: grid;
+    gap: 2px;
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    border: 1px solid rgba(217, 149, 24, 0.45);
+    border-left: 4px solid var(--bos-yellow);
+    border-radius: var(--shell-radius-small);
+    background: rgba(217, 149, 24, 0.12);
+    font-size: 0.88rem;
+}
+
+.server-load-banner[hidden] {
+    display: none;
+}
+
+.server-load-banner.is-critical {
+    border-color: var(--shell-danger-border);
+    border-left-color: var(--bos-red);
+    background: var(--shell-danger-soft);
+}
+
+.server-load-banner span {
+    overflow-wrap: anywhere;
+}
+
+.source-count-hint[hidden] {
+    display: none;
+}

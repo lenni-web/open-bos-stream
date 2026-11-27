@@ -208,7 +208,7 @@ def test_settings_use_one_equal_source_list() -> None:
     assert "+ Quelle hinzufügen" in settings
     assert "Profil-Empfehlung:" in settings
     assert "bis zu vier Quellen" in settings
-    assert "fünf bis acht Quellen" in settings
+    assert "Ab fünf Quellen" in settings
     assert "Im Vollbild bleibt bei beiden das Original erhalten" in settings
     assert ".settings-profile-recommendation" in modern_css
     assert "RTMP-Eingang hinzufügen" not in settings

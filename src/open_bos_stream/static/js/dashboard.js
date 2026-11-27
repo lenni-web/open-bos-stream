@@ -14,6 +14,8 @@ async function refreshDashboard() {
 
         window.dashboard = dashboard;
 
+        updateServerLoadBanner(dashboard.server_load);
+
         updateDashboard(
             dashboard
         );
@@ -901,4 +903,27 @@ function updateOverviewSources(sources) {
             </li>
         `;
     }).join("");
+}
+
+
+// ----------------------------------------------------------
+// Hinweis bei hoher Serverauslastung (keine feste Quellengrenze mehr)
+// ----------------------------------------------------------
+
+function updateServerLoadBanner(load) {
+    const banner = document.getElementById("server-load-banner");
+    if (!banner) {
+        return;
+    }
+    const level = load?.level ?? "ok";
+    banner.hidden = level === "ok" || !load?.message;
+    if (banner.hidden) {
+        banner.innerHTML = "";
+        return;
+    }
+    banner.className = `server-load-banner is-${level}`;
+    const minutes = Math.floor((load.for_seconds ?? 0) / 60);
+    banner.innerHTML = `
+        <strong>${level === "critical" ? "Server überlastet" : "Hohe Serverauslastung"}</strong>
+        <span>${escapeHTML(load.message)}${minutes >= 1 ? ` Seit ${minutes} min.` : ""}</span>`;
 }

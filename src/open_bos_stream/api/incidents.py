@@ -236,7 +236,7 @@ class IncidentCreate(BaseModel):
     alerted_units: str = Field(default="", max_length=300)
     dispatch_number: str = Field(default="", max_length=40)
     exercise: bool = False
-    source_ids: list[str] = Field(default_factory=list, max_length=8)
+    source_ids: list[str] = Field(default_factory=list, max_length=200)
 
 
 class IncidentUpdate(BaseModel):
