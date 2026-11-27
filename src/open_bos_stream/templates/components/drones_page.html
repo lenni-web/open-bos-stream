@@ -2,12 +2,13 @@
 <section class="drones-page">
     <header class="page-header">
         <div>
-            <span class="page-eyebrow">Konfiguration</span>
+            <span class="page-eyebrow">{{ "Konfiguration" if can.admin else "Meine Wehr" }}</span>
             <h1>Drohnen</h1>
         </div>
-        <p>Quellen für die Livebilder sowie DJI-Fernsteuerungen und Drohnen verwalten.</p>
+        <p>{% if can.admin %}Quellen für die Livebilder sowie DJI-Fernsteuerungen und Drohnen verwalten.{% else %}Drohnen und DJI-Geräte der eigenen Wehr ansehen.{% endif %}</p>
     </header>
 
+    {% if can.admin %}
     <div id="drone-sources-content" class="settings-grid">
         <section class="bos-card settings-section settings-section-rtmp-inputs">
             <div class="settings-section-header">
@@ -81,6 +82,24 @@
     </div>
     </div>
 
+    {% else %}
+    <div class="settings-grid">
+        <section class="bos-card settings-section settings-section-dji" aria-labelledby="drone-list-title">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">{{ icon("layers", 20) }}</span>
+                <div>
+                    <span class="section-kicker">Livebilder</span>
+                    <h2 id="drone-list-title">Drohnen der Wehr</h2>
+                    <p>Änderungen nehmen die Admins vor.</p>
+                </div>
+            </div>
+            <div id="drone-source-list">
+                <p class="service-inline-status">Wird geladen …</p>
+            </div>
+        </section>
+    </div>
+    {% endif %}
+
     <div class="settings-grid">
         <section class="bos-card settings-section settings-section-dji" aria-labelledby="dji-devices-title">
             <div class="settings-section-header">
@@ -88,9 +107,27 @@
                 <div>
                     <span class="section-kicker">Cloud API</span>
                     <h2 id="dji-devices-title">DJI-Fernsteuerungen und Drohnen</h2>
-                    <p>Geräte benennen, einer Wehr zuordnen oder sperren.</p>
+                    <p>{{ "Geräte benennen, einer Wehr zuordnen oder sperren." if can.admin else "Geräte der eigenen Wehr, nur zum Ansehen." }}</p>
                 </div>
             </div>
+            <details class="dji-guide">
+                <summary>Kurzanleitung: Server in DJI Pilot 2 eintragen</summary>
+                <ol>
+                    <li>Fernsteuerung mit dem Internet verbinden (WLAN, Hotspot oder LTE).</li>
+                    <li>DJI Pilot 2 öffnen und auf der Startseite „Cloud Service“ (Cloud-Dienste) antippen.</li>
+                    <li>„Open Platforms“ (offene Plattformen) wählen.</li>
+                    <li>Diese Adresse eintragen und „Connect“ antippen:
+                        <code class="dji-guide-url" data-dji-url>https://&lt;domain&gt;/dji</code></li>
+                    <li>Mit dem eigenen Open-BOS-Konto anmelden (Drohnenteam oder höher) und auf
+                        „Verbunden“ warten.</li>
+                    <li>Drohne einschalten. {% if can.admin %}Neue Geräte erscheinen unten; dort benennen und
+                        einer Wehr zuordnen.{% else %}Neue Geräte benennt ein Admin und ordnet sie der
+                        Wehr zu; erst dann erscheinen sie hier.{% endif %}</li>
+                </ol>
+                <p>Die Bezeichnungen können je nach Version von Pilot 2 abweichen. Das gilt nur für
+                    Enterprise-Drohnen (z. B. Mavic 3E/3T), nicht für DJI Fly.</p>
+            </details>
+
             <div id="dji-devices">
                 <p class="service-inline-status">Wird geladen …</p>
             </div>

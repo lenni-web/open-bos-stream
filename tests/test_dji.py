@@ -267,5 +267,30 @@ def test_api_pilot_page_config_and_incident_data(api, monkeypatch, tmp_path) -> 
     assert api.get("/api/dji/live").json()["drones"] == []
 
 
+def test_viewers_see_only_their_own_drones_without_secrets(api, monkeypatch) -> None:  # noqa: F811
+    from open_bos_stream.api import dji as dji_api
+    from tests.test_organizations import source
+
+    monkeypatch.setattr(dji_api.config, "sources",
+                        [source("b1", api.ids["b"]), source("a1", api.ids["a"]), source("frei", None)])
+    api.login("b-zuschauer")
+    response = api.get("/api/drones/sources")
+    sources = response.json()["sources"]
+    assert len(sources) == 1 and set(sources[0]) == {"name", "drone_type", "enabled", "organization_name"}
+    assert "token" not in response.text and "rtmp://" not in response.text
+
+    service = dji_api.drone_service()
+    topology(service)
+    service.update_device(session_of_kreis(service), DRONE, organization_id=api.ids["b"])
+    devices = api.get("/api/dji/devices").json()["devices"]
+    assert [(item["serial"], item["can_manage"]) for item in devices] == [(DRONE, False)]
+    assert api.patch(f"/api/dji/devices/{DRONE}", json={"name": "x"}).status_code == 403
+    page = api.get("/").text
+    assert 'id="drone-source-list"' in page and 'id="source-settings"' not in page
+
+    api.login("a-admin")
+    assert DRONE not in [item["serial"] for item in api.get("/api/dji/devices").json()["devices"]]
+
+
 def session_of_kreis(service) -> dict:
     return {"username": "kreis", "role": "admin", "server_admin": True, "org_view": [], "org_admin": []}

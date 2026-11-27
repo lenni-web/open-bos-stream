@@ -8,8 +8,9 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
+from open_bos_stream.auth.guest_access import is_restricted
 from open_bos_stream.auth.roles import ADMIN, OPERATOR, PUBLIC, VIEWER
-from open_bos_stream.core.container import auth_service, server_event_log
+from open_bos_stream.core.container import auth_service, config, server_event_log
 from open_bos_stream.dji.config import load_config
 from open_bos_stream.dji.mqtt import BrokerClient
 from open_bos_stream.dji.service import DroneService
@@ -35,12 +36,12 @@ def start_broker() -> None:
     """Beim Anwendungsstart: nur mit eingerichteter ``config/dji.yaml``."""
 
     global _broker
-    config = load_config()
-    if not config.enabled:
+    dji = load_config()
+    if not dji.enabled:
         return
     service = drone_service()
     service.purge()
-    _broker = BrokerClient(config, lambda topic, payload: drone_service().handle(topic, payload))
+    _broker = BrokerClient(dji, lambda topic, payload: drone_service().handle(topic, payload))
     _broker.start()
 
 
@@ -86,8 +87,8 @@ async def pilot_page(request: Request):
 @router.get("/api/dji/pilot-config", dependencies=[OPERATOR])
 async def pilot_config(request: Request):
     user = _user(request)
-    config = load_config()
-    if not config.licensed:
+    dji = load_config()
+    if not dji.licensed:
         raise HTTPException(
             status_code=503,
             detail="Die DJI-Anbindung ist auf dem Server noch nicht eingerichtet.",
@@ -97,20 +98,49 @@ async def pilot_config(request: Request):
     )
     return JSONResponse(
         {
-            "app_id": config.app_id,
-            "app_key": config.app_key,
-            "license": config.license,
-            "platform_name": config.platform_name,
-            "workspace_id": config.workspace(),
+            "app_id": dji.app_id,
+            "app_key": dji.app_key,
+            "license": dji.license,
+            "platform_name": dji.platform_name,
+            "workspace_id": dji.workspace(),
             "workspace_name": user.get("display_name") or user["username"],
             "mqtt": {
-                "host": config.public_address(request.url.hostname or ""),
-                "username": config.pilot_username,
-                "password": config.pilot_password,
+                "host": dji.public_address(request.url.hostname or ""),
+                "username": dji.pilot_username,
+                "password": dji.pilot_password,
             },
         },
         headers={"Cache-Control": "no-store"},
     )
+
+
+# ----------------------------------------------------------------------
+# Quellen der eigenen Wehr (nur lesen)
+# ----------------------------------------------------------------------
+
+
+@router.get("/api/drones/sources", dependencies=[VIEWER])
+async def own_sources(request: Request) -> dict:
+    """Name, Typ und Wehr – bewusst ohne Adressen und Sende-Schlüssel."""
+
+    user = _user(request)
+    own = set(user.get("org_view") or [])
+    service = drone_service().incidents
+    return {
+        "sources": [
+            {
+                "name": source.name,
+                "drone_type": source.drone_type,
+                "enabled": source.enabled,
+                "organization_name": (
+                    await run_in_threadpool(service.organization_label, source.organization_id)
+                    if source.organization_id else ""
+                ),
+            }
+            for source in config.sources
+            if not is_restricted(user) or source.organization_id in own
+        ]
+    }
 
 
 # ----------------------------------------------------------------------
@@ -126,7 +156,7 @@ class DeviceUpdate(BaseModel):
 
 async def _devices(user: dict) -> dict:
     service = drone_service()
-    config = load_config()
+    dji = load_config()
     organizations = await run_in_threadpool(service.incidents.all_organizations)
     managed = set(user.get("org_admin") or [])
     unrestricted = user.get("platform_admin") or user.get("server_admin") or "org_view" not in user
@@ -137,7 +167,7 @@ async def _devices(user: dict) -> dict:
             for item in organizations if unrestricted or item["id"] in managed
         ],
         "organization_names": {item["id"]: item["short_name"] or item["name"] for item in organizations},
-        "configured": config.licensed,
+        "configured": dji.licensed,
         "broker_connected": bool(_broker and _broker.connected),
     }
 

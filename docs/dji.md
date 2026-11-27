@@ -38,7 +38,7 @@ Die Datei enthält Zugangsdaten: nicht kopieren, nicht ins Repository.
 
 ## Fernsteuerung
 
-1. In Pilot 2 die offene Plattform bzw. „Cloud-Dienste“ öffnen.
+1. In Pilot 2 „Cloud Service“ (Cloud-Dienste) → „Open Platforms“ öffnen.
 2. `https://<domain>/dji` eingeben und mit dem eigenen Konto anmelden
    (Drohnenteam oder höher).
 3. In Open BOS unter „Drohnen“ die neuen Geräte benennen und einer Wehr

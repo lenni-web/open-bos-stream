@@ -15,9 +15,8 @@ function renderDjiDevices() {
         return;
     }
     const hint = !data.configured
-        ? "Die DJI-Anbindung ist auf dem Server noch nicht eingerichtet (docs/dji.md)."
-        : `Fernsteuerung verbinden: in DJI Pilot 2 unter „Cloud-Dienste“ ${window.location.origin}/dji öffnen. `
-            + (data.broker_connected ? "Der Nachrichtendienst läuft." : "Der Nachrichtendienst ist nicht erreichbar.");
+        ? "Die DJI-Anbindung ist auf dem Server noch nicht eingerichtet."
+        : (data.broker_connected ? "Der Nachrichtendienst läuft." : "Der Nachrichtendienst ist nicht erreichbar.");
     const organizations = item => [
         `<option value="">– keine Wehr –</option>`,
         ...data.organizations.map(org => `<option value="${Number(org.id)}"
@@ -101,10 +100,38 @@ function deleteDjiDevice(button) {
     djiDeviceRequest(() => api.request(url, {method: "DELETE"}), "Gerät entfernt.");
 }
 
+// Ohne Verwaltungsrechte: Quellen der eigenen Wehr als Liste.
+function renderDroneSourceList(sources) {
+    const root = document.getElementById("drone-source-list");
+    if (!root) {
+        return;
+    }
+    root.innerHTML = sources.length
+        ? `<ul class="dji-device-list">${sources.map(item => `
+            <li>
+                <div class="dji-device-head">
+                    <strong>${escapeHTML(item.name)}</strong>
+                    ${item.enabled ? "" : '<span class="org-chip is-muted">deaktiviert</span>'}
+                </div>
+                <small class="is-muted">${escapeHTML(
+                    [item.drone_type, item.organization_name].filter(Boolean).join(" · ") || "–")}</small>
+            </li>`).join("")}</ul>`
+        : '<p class="incident-empty">Für die eigene Wehr ist noch keine Drohne eingetragen.</p>';
+}
+
 function setDjiDevicesActive(active) {
     window.clearInterval(djiDevices.timer);
+    // Adresse dieses Servers in die Kurzanleitung eintragen.
+    document.querySelectorAll("[data-dji-url]").forEach(element => {
+        element.textContent = `${window.location.origin}/dji`;
+    });
     if (!active || !document.getElementById("dji-devices")) {
         return;
+    }
+    if (document.getElementById("drone-source-list")) {
+        api.get("/api/drones/sources")
+            .then(data => renderDroneSourceList(data.sources))
+            .catch(error => console.debug("Drohnen:", error));
     }
     const load = () => {
         if (document.visibilityState === "visible") {

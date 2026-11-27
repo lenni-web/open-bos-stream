@@ -916,6 +916,7 @@ def test_drones_page_holds_sources_and_dji_devices() -> None:
     navigation = (ROOT / "static" / "js" / "navigation.js").read_text(encoding="utf-8")
 
     assert 'id="dji-devices"' in drones and "dji-devices" not in organization
+    assert "Open Platforms" in drones and "data-dji-url" in drones
     assert 'id="source-settings"' not in settings
     # Genau eine Speichern-Leiste, die zur jeweiligen Seite wandert.
     assert (drones + settings).count('id="config-save-button"') == 1
@@ -924,6 +925,8 @@ def test_drones_page_holds_sources_and_dji_devices() -> None:
     assert "#settings-content, #drone-sources-content" in config
     assert 'setDjiDevicesActive(page === "drones")' in navigation
     assert 'id="nav-drones"' in render_sidebar("admin")
-    assert 'id="nav-drones"' not in render_sidebar("operator", server_admin=False)
+    # Alle Konten sehen die Seite; verwaltet wird nur mit Admin-Rechten.
+    assert 'id="nav-drones"' in render_sidebar("viewer")
+    assert drones.index("{% if can.admin %}") < drones.index('id="source-settings"') < drones.index("    {% else %}\n")
     order = render_sidebar("superadmin")
     assert order.index('id="nav-media"') < order.index('id="nav-drones"') < order.index('id="nav-weather"')
