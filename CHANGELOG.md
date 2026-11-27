@@ -9,6 +9,18 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Fixed
+
+- Abmelden im Benutzermenü funktionierte seit 0.21.0 nicht mehr.
+
+### Changed
+
+- Organisation und Konten haben einen eigenen Menüpunkt **„Organisation“**
+  (für Wehr-Admins, Kreis-Admins und Superadmins) statt eines Bereichs am
+  Ende der Einstellungen.
+- Neuer Test: Jede in den Seiten per Klick aufgerufene Funktion muss im
+  JavaScript vorhanden sein.
+
 ---
 
 ## [0.21.0] - 2026-11-27

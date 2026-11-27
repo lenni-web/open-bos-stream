@@ -245,6 +245,18 @@ function updateShellStatus(services, system) {
     }
 }
 
+// ----------------------------------------------------------
+// Abmelden (Benutzermenü)
+// ----------------------------------------------------------
+
+async function logoutUser() {
+    try {
+        await fetch("/auth/logout", {method: "POST"});
+    } finally {
+        window.location.href = "/login";
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     initSidebar();
     initPopovers();

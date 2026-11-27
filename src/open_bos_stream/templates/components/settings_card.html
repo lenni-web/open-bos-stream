@@ -438,21 +438,6 @@
         </section>
         {% endif %}
 
-        {% if can.admin %}
-        <section class="bos-card settings-section settings-section-org">
-            <div class="settings-section-header">
-                <span class="settings-icon" aria-hidden="true">{{ icon("users", 20) }}</span>
-                <div>
-                    <span class="section-kicker">Zugriff</span>
-                    <h2>Organisation und Konten</h2>
-                    <p>Wehren im Landkreis, Konten, Rollen und Fernpilotennachweise.</p>
-                </div>
-            </div>
-            <div id="org-management" class="org-management">
-                <p class="service-inline-status">Wird geladen …</p>
-            </div>
-        </section>
-        {% endif %}
     </div>
 
     {% if can.admin %}

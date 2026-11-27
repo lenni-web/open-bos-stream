@@ -182,6 +182,16 @@
 
             </div>
 
+            {% if can.admin %}
+            <div
+                id="page-organization"
+                class="page">
+
+                {% include "components/organization_page.html" %}
+
+            </div>
+            {% endif %}
+
             {% if can.operate %}
             <div
                 id="page-settings"

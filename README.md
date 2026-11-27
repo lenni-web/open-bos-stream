@@ -885,8 +885,8 @@ Transcoding-Profil oder der Kamera-Substream geprüft werden.
 
 ## Oberfläche
 
-- **Seitenleiste:** Übersicht, Livebilder, Karte, Wetter, Medien,
-  Einstellungen und System mit einheitlichen Symbolen. Am Desktop sitzt sie fest am linken Rand
+- **Seitenleiste:** Übersicht, Livebilder, Karte, Wetter, Organisation,
+  Medien, Einstellungen und System mit einheitlichen Symbolen. Am Desktop sitzt sie fest am linken Rand
   und lässt sich unten über „Einklappen“ auf Symbole reduzieren; der Browser
   merkt sich die Wahl. Auf Tablets zeigt sie nur Symbole. Auf Smartphones
   stehen Übersicht, Livebilder, Karte und Wetter in der Leiste am unteren Rand, alle
@@ -951,7 +951,8 @@ Landkreis
 └── Kreiseinheiten (bei Bedarf)
 ```
 
-Unter „Einstellungen → Organisation und Konten“ legen Admins Untereinheiten
+Im Menüpunkt **„Organisation“** (für Wehr-Admins, Kreis-Admins und
+Superadmins) legen Admins Untereinheiten
 an, benennen sie (mit Kurzname, z. B. „OF Hagen“), hinterlegen den Standort
 der Wache, archivieren oder löschen leere Einheiten.
 

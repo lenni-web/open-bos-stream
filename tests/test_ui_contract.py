@@ -447,7 +447,7 @@ def test_offline_sources_and_role_ui_are_present() -> None:
     assert "offlineOrder" in source_js
     assert "window.currentUser" in index
     assert 'user.role == "superadmin"' in settings
-    assert "Organisation und Konten" in settings
+    assert "Organisation und Konten" not in settings
 
 
 def render_sidebar(role: str, *, server_admin: bool | None = None) -> str:
@@ -756,7 +756,9 @@ def test_organisation_management_replaces_flat_user_list() -> None:
 
     assert not (ROOT / "static" / "js" / "auth_users.js").exists()
     assert "/static/js/organizations.js" in index
-    assert 'id="org-management"' in settings
+    page = (ROOT / "templates" / "components" / "organization_page.html").read_text(encoding="utf-8")
+    assert 'id="org-management"' in page
+    assert '{% include "components/organization_page.html" %}' in index
     for endpoint in (
         '"/api/org/organizations"',
         '"/api/org/users"',
@@ -850,3 +852,35 @@ def test_stream_output_names_are_escaped_and_not_inlined_in_handlers() -> None:
     assert "StreamOutput('${output.name}')" not in outputs
     assert 'value="${escapeHTML(output.name)}"' in settings
     assert 'value="${escapeHTML(output.url)}"' in settings
+
+
+def test_logout_and_organisation_menu_are_available() -> None:
+    shell = (ROOT / "static" / "js" / "shell.js").read_text(encoding="utf-8")
+    header = (ROOT / "templates" / "components" / "header.html").read_text(encoding="utf-8")
+
+    assert 'onclick="logoutUser()"' in header
+    assert "async function logoutUser()" in shell
+    assert 'id="nav-organization"' in render_sidebar("admin")
+    assert 'id="nav-organization"' not in render_sidebar("operator", server_admin=False)
+
+
+def test_every_onclick_handler_is_defined() -> None:
+    """Ein Klick auf einen Knopf darf nicht ins Leere laufen."""
+
+    import re
+
+    scripts = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (ROOT / "static" / "js").glob("*.js")
+    )
+    defined = set(re.findall(r"(?:async\s+)?function\s+(\w+)\s*\(", scripts))
+    defined |= set(re.findall(r"window\.(\w+)\s*=", scripts))
+    builtins = {"event", "showPage", "this", "orgState"}
+    missing = set()
+    for template in (ROOT / "templates").rglob("*.html"):
+        text = template.read_text(encoding="utf-8")
+        for handler in re.findall(r'on(?:click|change|submit|toggle)="([^"]+)"', text):
+            for name in re.findall(r"(?<![\w.])([A-Za-z_]\w*)\s*\(", handler):
+                if name not in defined and name not in builtins:
+                    missing.add(f"{template.name}: {name}")
+    assert missing == set()
