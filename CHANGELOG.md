@@ -9,6 +9,14 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- Farben des Logos als Akzente in der Oberfläche: Seitenleiste in
+  Logo-Dunkelblau mit rotem Strich am aktiven Menüpunkt, Überschriften in
+  Dunkelblau, rote Linie unter der Kopfzeile, aktiver Punkt der
+  Smartphone-Leiste in Dunkelblau, Anmeldeseite mit dunkelblauem
+  Hintergrund. Hell- und Dunkelmodus sind angepasst.
+
 ---
 
 ## [0.24.0] - 2026-11-27

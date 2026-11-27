@@ -1,0 +1,214 @@
+/* ==========================================================
+   Markenfarben aus dem Logo: Dunkelblau (Kachel) und Rot (Schild)
+   Wird nach allen anderen Stilen geladen und setzt nur Akzente.
+   ========================================================== */
+
+:root {
+    --brand-navy: #0b2d4d;
+    --brand-navy-raised: #123b62;
+    --brand-navy-line: rgba(255, 255, 255, 0.1);
+    --brand-red: #c9202f;
+    --brand-heading: #0b2d4d;
+    --brand-navy-soft: rgba(11, 45, 77, 0.07);
+    --brand-navy-border: rgba(11, 45, 77, 0.28);
+}
+
+html[data-color-scheme="dark"] {
+    --brand-navy: #0a2340;
+    --brand-navy-raised: #13355a;
+    --brand-navy-line: rgba(255, 255, 255, 0.08);
+    --brand-heading: var(--bos-dark);
+    --brand-navy-soft: rgba(106, 165, 245, 0.1);
+    --brand-navy-border: rgba(106, 165, 245, 0.35);
+}
+
+/* Hintergrund: leichter Schimmer in Logo-Blau statt neutralem Blau */
+body {
+    background:
+        radial-gradient(circle at top right, rgba(11, 45, 77, 0.09), transparent 34rem),
+        radial-gradient(circle at bottom left, rgba(201, 32, 47, 0.035), transparent 28rem),
+        var(--bos-light);
+}
+
+html[data-color-scheme="dark"] body {
+    background:
+        radial-gradient(circle at top right, rgba(36, 92, 150, 0.16), transparent 34rem),
+        var(--bos-light);
+}
+
+/* Überschriften in Logo-Blau */
+.page-header h1,
+.app-topbar-title strong,
+.bos-card h2,
+.bos-card h3,
+.incident-section h2,
+.incident-section h3 {
+    color: var(--brand-heading);
+}
+
+/* Neutrale Schaltflächen: Hover in Logo-Blau */
+.bos-button:not(.bos-button-red):not(.bos-button-green):hover {
+    border-color: var(--brand-navy-border);
+    background: var(--brand-navy-soft);
+    color: var(--brand-heading);
+}
+
+/* ----------------------------------------------------------
+   Seitenleiste (Computer und Tablet) wie die Logo-Kachel
+   ---------------------------------------------------------- */
+
+@media (min-width: 769px) {
+    .app-sidebar {
+        border-right: 0;
+        background:
+            linear-gradient(180deg, var(--brand-navy-raised) 0%, var(--brand-navy) 38%),
+            var(--brand-navy);
+        color: rgba(255, 255, 255, 0.78);
+    }
+
+    .app-sidebar-brand {
+        margin: 0 -12px 8px;
+        padding: 0 18px 16px;
+        border-bottom: 1px solid var(--brand-navy-line);
+    }
+
+    .app-sidebar-logo {
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14);
+    }
+
+    .app-sidebar-name strong {
+        color: #fff;
+    }
+
+    .app-sidebar-name span {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .app-sidebar .app-nav-item,
+    .app-sidebar-collapse {
+        color: rgba(255, 255, 255, 0.74);
+    }
+
+    .app-sidebar .app-nav-item:hover,
+    .app-sidebar-collapse:hover {
+        background: rgba(255, 255, 255, 0.07);
+        color: #fff;
+    }
+
+    .app-sidebar .app-nav-item.active {
+        background: rgba(255, 255, 255, 0.11);
+        color: #fff;
+    }
+
+    /* Roter Markierungsstrich wie das Schild im Logo */
+    .app-sidebar .app-nav-item.active::before {
+        content: "";
+        position: absolute;
+        top: 9px;
+        bottom: 9px;
+        left: 0;
+        width: 3px;
+        border-radius: 0 3px 3px 0;
+        background: var(--brand-red);
+    }
+
+    .app-sidebar .app-nav-item.active .ui-icon {
+        color: #ff6b76;
+    }
+
+    .app-sidebar .app-nav-item:focus-visible,
+    .app-sidebar-collapse:focus-visible {
+        outline-color: #fff;
+    }
+
+    .app-nav-badge {
+        box-shadow: 0 0 0 2px var(--brand-navy);
+    }
+
+    .app-sidebar-footer {
+        border-top-color: var(--brand-navy-line);
+    }
+
+    .app-sidebar-version {
+        color: rgba(255, 255, 255, 0.45);
+    }
+}
+
+/* Kopfzeile: feine Linie in Logo-Rot unter dem Seitentitel-Bereich */
+.app-topbar {
+    box-shadow: inset 0 -1px 0 var(--bos-gray);
+}
+
+.app-topbar::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 72px;
+    height: 2px;
+    background: var(--brand-red);
+}
+
+/* ----------------------------------------------------------
+   Smartphone: aktiver Punkt der unteren Leiste in Logo-Blau
+   ---------------------------------------------------------- */
+
+@media (max-width: 768px) {
+    .app-topbar::after {
+        width: 48px;
+    }
+
+    .app-shell .app-sidebar .app-nav-item.active,
+    .app-shell .app-sidebar .app-nav-more.active,
+    .app-shell .app-sidebar .app-nav-more[aria-expanded="true"] {
+        background: var(--brand-navy);
+        color: #fff;
+    }
+
+    html[data-color-scheme="dark"] .app-shell .app-sidebar .app-nav-item.active,
+    html[data-color-scheme="dark"] .app-shell .app-sidebar .app-nav-more.active {
+        background: var(--brand-navy-raised);
+    }
+
+    .app-more-item.active {
+        background: var(--brand-navy);
+        color: #fff;
+    }
+}
+
+/* Abschnittsmarken (z. B. „LAGE“, „EINSATZ“) bleiben rot wie das Schild */
+.page-eyebrow,
+.section-kicker {
+    color: var(--brand-red);
+}
+
+html[data-color-scheme="dark"] .page-eyebrow,
+html[data-color-scheme="dark"] .section-kicker {
+    color: var(--bos-red);
+}
+
+/* ----------------------------------------------------------
+   Anmeldung: Hintergrund wie die Logo-Kachel
+   ---------------------------------------------------------- */
+
+body.auth-page {
+    background:
+        radial-gradient(circle at 18% 12%, rgba(201, 32, 47, 0.22), transparent 26rem),
+        radial-gradient(circle at 85% 90%, rgba(36, 107, 206, 0.22), transparent 30rem),
+        linear-gradient(160deg, #123b62 0%, #0b2d4d 55%, #07203a 100%);
+}
+
+html[data-color-scheme="dark"] body.auth-page {
+    background:
+        radial-gradient(circle at 18% 12%, rgba(201, 32, 47, 0.18), transparent 26rem),
+        linear-gradient(160deg, #0d2a47 0%, #081d33 60%, #05121f 100%);
+}
+
+.auth-page .auth-card {
+    box-shadow: 0 24px 60px rgba(3, 14, 28, 0.45);
+}
+
+.auth-page .auth-heading h1,
+.auth-page .auth-brand strong {
+    color: var(--brand-heading);
+}
