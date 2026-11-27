@@ -11,6 +11,17 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.25.7] - 2026-11-27
+
+Standort der Wache auf der Karte wählen.
+
+### Added
+
+- Organisation: Den Standort der Wache per Pin auf der Karte wählen (Karte
+  oder Luftbild), statt Koordinaten einzutippen.
+
+---
+
 ## [0.25.6] - 2026-11-27
 
 Organisationen lassen sich in der Hierarchie verschieben.

@@ -1561,6 +1561,49 @@ body {
     background: var(--shell-surface-muted);
 }
 
+/* Standort der Wache auf der Karte wählen. */
+.org-form .org-location-toggle {
+    justify-self: start;
+    align-self: flex-start;
+    width: auto;
+}
+
+.org-location {
+    display: grid;
+    gap: 6px;
+}
+
+.org-location[hidden] {
+    display: none;
+}
+
+.org-location-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.org-location-bar small {
+    flex: 1 1 200px;
+}
+
+.org-location-bar .bos-input {
+    width: auto;
+}
+
+.org-location-map {
+    height: min(360px, 55vh);
+    border: 1px solid var(--bos-gray);
+    border-radius: var(--shell-radius-small);
+    overflow: hidden;
+}
+
+.org-location-map .maplibregl-canvas {
+    cursor: crosshair;
+}
+
 .org-user {
     border: 1px solid var(--bos-gray);
     border-radius: var(--shell-radius-small);

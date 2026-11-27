@@ -57,6 +57,7 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.25.7** (2026-11-27): Standort der Wache per Pin auf der Karte wählen
 - **0.25.6** (2026-11-27): Organisationen in der Hierarchie verschieben,
   Baumdarstellung mit passenden Einordnungen je Art
 - **0.25.5** (2026-11-27): Rolle Ortsbrandmeister, erneut erfasstes

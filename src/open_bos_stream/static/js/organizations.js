@@ -204,6 +204,7 @@ function updateParentOptions(select) {
 
 function renderOrganizationForm() {
     // Das Formular steht direkt unter der betroffenen Zeile.
+    destroyLocationPicker();
     document.querySelectorAll("[data-org-slot]").forEach(item => {
         item.innerHTML = "";
     });
@@ -272,6 +273,19 @@ function renderOrganizationForm() {
                     <input class="bos-input" name="longitude" inputmode="decimal"
                         value="${org?.longitude ?? ""}" placeholder="9.53">
                 </label>
+                <div class="form-field form-field-wide">
+                    <button class="bos-button bos-button-small org-location-toggle" type="button"
+                        aria-expanded="false" onclick="toggleLocationPicker(this)">Auf Karte wählen</button>
+                    <div class="org-location" hidden>
+                        <div class="org-location-bar">
+                            <small data-location-hint role="status"></small>
+                            <select class="bos-input" data-location-base aria-label="Grundkarte" hidden></select>
+                            <button class="bos-button bos-button-small" type="button"
+                                onclick="clearLocation(this.form)">Standort entfernen</button>
+                        </div>
+                        <div class="org-location-map"></div>
+                    </div>
+                </div>
             </div>
             <div class="org-form-actions">
                 <button class="bos-button bos-button-small bos-button-green" type="submit">Speichern</button>
@@ -287,6 +301,149 @@ function renderOrganizationForm() {
         </form>
     `;
     slot.querySelector('input[name="name"]').focus();
+    const form = slot.querySelector("form");
+    for (const name of ["latitude", "longitude"]) {
+        form.elements[name].addEventListener("input", () => showLocationPin(form, true));
+    }
+}
+
+// ----------------------------------------------------------
+// Standort der Wache auf der Karte wählen
+// ----------------------------------------------------------
+
+const locationPicker = {map: null, marker: null};
+
+function destroyLocationPicker() {
+    locationPicker.map?.remove();
+    locationPicker.map = null;
+    locationPicker.marker = null;
+}
+
+function formLocation(form) {
+    const latitude = numberOrNull(form.elements.latitude.value);
+    const longitude = numberOrNull(form.elements.longitude.value);
+    const valid = latitude !== null && longitude !== null
+        && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180;
+    return valid ? [longitude, latitude] : null;
+}
+
+// Ohne eigenen Standort: der nächste hinterlegte Standort darüber.
+function inheritedLocation() {
+    const editing = orgState.editingOrg;
+    const find = id => orgState.organizations.find(item => item.id === id);
+    let org = find(editing?.id ?? editing?.parentId);
+    while (org) {
+        if (org.latitude !== null && org.longitude !== null) {
+            return [org.longitude, org.latitude];
+        }
+        org = find(org.parent_id);
+    }
+    return null;
+}
+
+function setLocation(form, lngLat) {
+    form.elements.latitude.value = lngLat.lat.toFixed(6);
+    form.elements.longitude.value = lngLat.lng.toFixed(6);
+    showLocationPin(form);
+}
+
+function clearLocation(form) {
+    form.elements.latitude.value = "";
+    form.elements.longitude.value = "";
+    showLocationPin(form);
+}
+
+function showLocationPin(form, center = false) {
+    const map = locationPicker.map;
+    if (!map) {
+        return;
+    }
+    const position = formLocation(form);
+    if (!position) {
+        locationPicker.marker?.remove();
+        locationPicker.marker = null;
+        return;
+    }
+    if (!locationPicker.marker) {
+        locationPicker.marker = new maplibregl.Marker({color: "#c92835", draggable: true})
+            .setLngLat(position)
+            .addTo(map);
+        locationPicker.marker.on("dragend", () => setLocation(form, locationPicker.marker.getLngLat()));
+    } else {
+        locationPicker.marker.setLngLat(position);
+    }
+    if (center) {
+        map.jumpTo({center: position});
+    }
+}
+
+async function toggleLocationPicker(button) {
+    const form = button.form;
+    const box = form.querySelector(".org-location");
+    const open = box.hidden;
+    box.hidden = !open;
+    button.setAttribute("aria-expanded", String(open));
+    button.textContent = open ? "Karte schließen" : "Auf Karte wählen";
+    destroyLocationPicker();
+    if (!open) {
+        return;
+    }
+    const hint = box.querySelector("[data-location-hint]");
+    const stale = () => !box.isConnected || box.hidden || locationPicker.map;
+    hint.textContent = "Karte wird geladen …";
+    try {
+        await maplibreReady();
+        const info = await loadBaseMaps();
+        if (!info.options.length) {
+            hint.textContent = "Keine Karte verfügbar. Bitte Koordinaten eintippen.";
+            return;
+        }
+        const base = await loadBaseStyle(preferredBaseMap(info));
+        if (stale()) {
+            return;
+        }
+        const own = formLocation(form);
+        const near = own ?? inheritedLocation();
+        const map = new maplibregl.Map({
+            container: box.querySelector(".org-location-map"),
+            style: base.style,
+            center: near ?? info.center.slice(0, 2),
+            zoom: own ? 16 : near ? 12 : info.center[2] ?? 10,
+            maxZoom: 19,
+            attributionControl: false,
+        });
+        locationPicker.map = map;
+        applyBaseZoomRange(map, info, base.id);
+        map.addControl(new maplibregl.NavigationControl({showCompass: false}), "top-right");
+        map.addControl(new maplibregl.AttributionControl({compact: true}));
+        map.once("load", () => collapseMapAttribution(map));
+        map.on("click", event => setLocation(form, event.lngLat.wrap()));
+        showLocationPin(form);
+        bindLocationBaseSelect(box.querySelector("[data-location-base]"), info, base);
+        hint.textContent = "Auf die Karte tippen oder den Pin ziehen, dann speichern.";
+    } catch (error) {
+        console.error("Standortkarte:", error);
+        hint.textContent = "Karte konnte nicht geladen werden. Bitte Koordinaten eintippen.";
+    }
+}
+
+// Karte oder Luftbild; die Wahl gilt nur für dieses Formular.
+function bindLocationBaseSelect(select, info, base) {
+    let ids = baseStyleIds(base.style);
+    select.innerHTML = info.options.map(option => `
+        <option value="${option.id}" ${option.id === base.id ? "selected" : ""}>${escapeHTML(option.label)}</option>
+    `).join("");
+    select.hidden = info.options.length < 2;
+    select.onchange = async () => {
+        const next = await loadBaseStyle(select.value);
+        const map = locationPicker.map;
+        if (!map || !select.isConnected) {
+            return;
+        }
+        ids = applyBaseStyle(map, next, ids);
+        applyBaseZoomRange(map, info, next.id);
+        select.value = next.id;
+    };
 }
 
 function membershipChips(user) {
@@ -481,6 +638,7 @@ function renderNewUserForm() {
 }
 
 function renderOrganizationManagement() {
+    destroyLocationPicker();
     const organizations = orgElement();
     if (organizations) {
         organizations.innerHTML = `
