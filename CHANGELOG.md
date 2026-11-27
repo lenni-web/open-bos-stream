@@ -11,6 +11,19 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.26.7] - 2026-11-27
+
+Flächengröße, Flugzeit und Akkus auf der Einsatzkarte.
+
+### Added
+
+- Einsatzkarte: Größe von Rastern, Flächen und Quadranten mit grober
+  Schätzung für Flugzeit und Akkus – schon beim Zeichnen, je Quadrant,
+  gesamt und für das noch Abzusuchende. Drohne/Kamera, Höhe, Tempo,
+  Überlappung und Flugzeit je Akku lassen sich anpassen.
+
+---
+
 ## [0.26.6] - 2026-11-27
 
 Eigene Checklisten für Wehren, Zuständigkeit aus der Drohnenliste, Gastlinks
@@ -23,10 +36,6 @@ bleiben 30 Tage nachvollziehbar.
 - Einsatzkarte: „Zuständig“ eines Quadranten wird aus den vorhandenen
   Drohnen (DJI-Drohnen und Drohnen mit Livebild) ausgewählt; „Drohne / Trupp
   manuell eingeben“ bleibt als Option für alles andere.
-- Einsatzkarte: Größe von Rastern, Flächen und Quadranten mit grober
-  Schätzung für Flugzeit und Akkus – schon beim Zeichnen, je Quadrant,
-  gesamt und für das noch Abzusuchende. Drohne/Kamera, Höhe, Tempo,
-  Überlappung und Flugzeit je Akku lassen sich anpassen.
 
 ### Changed
 

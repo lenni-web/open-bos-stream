@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.26.7** (2026-11-27): Einsatzkarte schätzt Flächengröße, Flugzeit und
+  Akkus für Raster, Flächen und Quadranten
 - **0.26.6** (2026-11-27): Wehren pflegen eigene Checklisten, Zuständigkeit
   auf der Einsatzkarte aus der Drohnenliste, Gastlinks werden nach 30 Tagen
   gelöscht
