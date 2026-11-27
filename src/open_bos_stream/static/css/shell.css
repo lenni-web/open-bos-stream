@@ -2002,6 +2002,8 @@ body {
 
 .incident-section {
     display: grid;
+    /* Lange Einträge in Auswahllisten dürfen die Karte nicht verbreitern. */
+    grid-template-columns: minmax(0, 1fr);
     gap: 10px;
     align-content: start;
     min-width: 0;

@@ -57,6 +57,7 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.26.2** (2026-11-27): Einsatzansicht auf dem Handy ohne Überstand
 - **0.26.1** (2026-11-27): Seite „Drohnen“ für alle Konten (eigene Wehr, nur
   lesen), Kurzanleitung für DJI Pilot 2
 - **0.26.0** (2026-11-27): DJI-Anbindung über Pilot 2 mit Live-Position und

@@ -11,6 +11,17 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.26.2] - 2026-11-27
+
+Korrektur der Einsatzansicht auf dem Handy.
+
+### Fixed
+
+- Einsatzansicht auf dem Handy: Lange Wehr- oder Drohnennamen in den
+  Auswahllisten schieben Inhalte nicht mehr aus der Karte.
+
+---
+
 ## [0.26.1] - 2026-11-27
 
 Seite „Drohnen“ für alle Konten und Kurzanleitung für Pilot 2.
