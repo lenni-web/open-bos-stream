@@ -173,6 +173,9 @@ notification_service = NotificationService(
     event_log=server_event_log,
 )
 
+# Einheitliche Dokumente des Landkreises (Checklisten-Modul).
+documents_directory = ConfigLoader().config_file.parent / "documents"
+
 push_service = PushService(
     config,
     auth_service,

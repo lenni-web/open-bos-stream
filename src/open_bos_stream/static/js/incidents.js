@@ -548,6 +548,57 @@ function renderIncidentMapSection(detail) {
         </section>`;
 }
 
+function renderIncidentChecklists(detail) {
+    const lists = detail.checklists || [];
+    const templates = detail.checklist_templates || [];
+    const canAdd = detail.can.edit;
+    return `
+        <section class="bos-card incident-section">
+            <h3>Checklisten</h3>
+            ${lists.length ? `<ul class="org-memberships">
+                ${lists.map(list => `
+                    <li>
+                        <span>
+                            <strong>${escapeHTML(list.title)}</strong>
+                            <small class="is-muted">${list.done}/${list.total} erledigt${list.open_required.length
+                                ? ` · <span class="incident-warning">${list.open_required.length} Pflicht offen</span>` : ""}</small>
+                        </span>
+                        <button class="bos-button bos-button-small" type="button"
+                            onclick="openChecklist(${Number(list.id)})">${canAdd ? "Abhaken" : "Ansehen"}</button>
+                    </li>`).join("")}
+            </ul>` : '<p class="incident-empty">Noch keine Checkliste in diesem Einsatz.</p>'}
+            ${canAdd ? `
+                <div class="org-inline-add">
+                    <select id="incident-add-checklist" class="bos-input" aria-label="Vorlage">
+                        ${templates.map(item => `<option value="${Number(item.id)}">${escapeHTML(item.title)} (${item.item_count})</option>`).join("")}
+                        <option value="">Leere Liste</option>
+                    </select>
+                    <button class="bos-button bos-button-small" type="button" onclick="addIncidentChecklist()">Checkliste hinzufügen</button>
+                </div>` : ""}
+        </section>`;
+}
+
+async function addIncidentChecklist() {
+    const value = document.getElementById("incident-add-checklist")?.value;
+    try {
+        const result = await api.post("/api/checklists", {
+            incident_id: incidentState.openId,
+            template_id: value ? Number(value) : null,
+            title: value ? "" : "Checkliste",
+        });
+        openChecklist(result.checklist.id);
+    } catch (error) {
+        setIncidentMessage(error.message, true);
+        renderIncidents();
+    }
+}
+
+function incidentOpenRequired() {
+    return (incidentState.detail?.checklists || [])
+        .filter(list => list.open_required.length)
+        .map(list => `„${list.title}“: ${list.open_required.join(", ")}`);
+}
+
 function renderIncidentOrganizations(detail) {
     const incident = detail.incident;
     const can = detail.can;
@@ -765,6 +816,7 @@ function renderIncidentDetail() {
         <div class="incident-grid">
             ${renderIncidentAlarm(detail)}
             ${renderIncidentMapSection(detail)}
+            ${renderIncidentChecklists(detail)}
             ${renderIncidentSources(detail)}
             ${renderIncidentOrganizations(detail)}
             ${renderIncidentWeather(detail)}
@@ -840,6 +892,13 @@ async function setIncidentStatus(status) {
         ended: "Einsatz beenden? Drohnen werden aus dem Einsatz genommen und Einsatz-Gastlinks gesperrt.",
         closed: "Einsatz abschließen? Danach können nur noch Admins der führenden Wehr Änderungen vornehmen.",
     };
+    const openRequired = status === "ended" || status === "closed" ? incidentOpenRequired() : [];
+    if (openRequired.length && !window.confirm(
+        "Offene Pflichtpositionen in Checklisten:\n– " + openRequired.join("\n– ") +
+        "\n\nTrotzdem fortfahren?"
+    )) {
+        return;
+    }
     if (texts[status] && !window.confirm(texts[status])) {
         return;
     }

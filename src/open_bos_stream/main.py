@@ -77,6 +77,10 @@ from open_bos_stream.api.weather import router as weather_router
 from open_bos_stream.api.organizations import router as organizations_router
 from open_bos_stream.api.push import router as push_router
 from open_bos_stream.api.incidents import router as incidents_router
+from open_bos_stream.api.checklists import (
+    documents_router,
+    router as checklists_router,
+)
 from open_bos_stream.logging.logger import setup_logging
 import logging
 
@@ -294,3 +298,5 @@ app.include_router(weather_router)
 app.include_router(organizations_router)
 app.include_router(push_router)
 app.include_router(incidents_router)
+app.include_router(checklists_router)
+app.include_router(documents_router)

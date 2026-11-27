@@ -328,3 +328,112 @@ incident_map_items = Table(
     Column("updated_by", String(80), nullable=False, default=""),
     Column("updated_at", String(32), nullable=False),
 )
+
+# ----------------------------------------------------------------------
+# Checklisten und Dokumente (ab 0.25)
+# ----------------------------------------------------------------------
+
+CHECKLIST_STATUS = {
+    "open": "offen",
+    "completed": "abgeschlossen",
+}
+
+# Vorlagen pflegt der Landkreis; Positionen als JSON-Liste
+# [{"section", "text", "required", "hint"}].
+checklist_templates = Table(
+    "checklist_templates",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column(
+        "organization_id",
+        Integer,
+        ForeignKey("organizations.id", ondelete="RESTRICT"),
+        nullable=False,
+    ),
+    Column("title", String(120), nullable=False),
+    Column("description", Text, nullable=False, default=""),
+    Column("items", Text, nullable=False, default="[]"),
+    Column("version", Integer, nullable=False, default=1),
+    Column("archived", Boolean, nullable=False, default=False),
+    Column("created_by", String(80), nullable=False, default=""),
+    Column("created_at", String(32), nullable=False),
+    Column("updated_by", String(80), nullable=False, default=""),
+    Column("updated_at", String(32), nullable=False),
+)
+
+checklists = Table(
+    "checklists",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("title", String(120), nullable=False),
+    Column("description", Text, nullable=False, default=""),
+    Column(
+        "template_id",
+        Integer,
+        ForeignKey("checklist_templates.id", ondelete="SET NULL"),
+        nullable=True,
+    ),
+    Column("template_version", Integer, nullable=True),
+    # Wehr, der die Liste gehört (bei Einsätzen: führende Wehr beim Anlegen).
+    Column(
+        "organization_id",
+        Integer,
+        ForeignKey("organizations.id", ondelete="RESTRICT"),
+        nullable=False,
+    ),
+    Column(
+        "incident_id",
+        Integer,
+        ForeignKey("incidents.id", ondelete="CASCADE"),
+        nullable=True,
+    ),
+    Column("status", String(16), nullable=False, default="open"),
+    Column("created_by", String(80), nullable=False, default=""),
+    Column("created_at", String(32), nullable=False),
+    Column("completed_by", String(80), nullable=True),
+    Column("completed_at", String(32), nullable=True),
+)
+
+checklist_items = Table(
+    "checklist_items",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column(
+        "checklist_id",
+        Integer,
+        ForeignKey("checklists.id", ondelete="CASCADE"),
+        nullable=False,
+    ),
+    Column("position", Integer, nullable=False, default=0),
+    Column("section", String(80), nullable=False, default=""),
+    Column("text", String(300), nullable=False),
+    Column("hint", String(300), nullable=False, default=""),
+    Column("required", Boolean, nullable=False, default=False),
+    Column("checked", Boolean, nullable=False, default=False),
+    Column("checked_by", String(80), nullable=True),
+    Column("checked_at", String(32), nullable=True),
+    Column("note", String(1000), nullable=False, default=""),
+    Column("note_by", String(80), nullable=True),
+    Column("note_at", String(32), nullable=True),
+)
+
+# Einheitliche Dokumente des Landkreises (Dateien liegen neben stream.yaml).
+documents = Table(
+    "documents",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column(
+        "organization_id",
+        Integer,
+        ForeignKey("organizations.id", ondelete="RESTRICT"),
+        nullable=False,
+    ),
+    Column("title", String(120), nullable=False),
+    Column("description", String(500), nullable=False, default=""),
+    Column("stored_name", String(80), nullable=False, unique=True),
+    Column("original_name", String(200), nullable=False),
+    Column("content_type", String(100), nullable=False),
+    Column("size", Integer, nullable=False),
+    Column("uploaded_by", String(80), nullable=False, default=""),
+    Column("uploaded_at", String(32), nullable=False),
+)

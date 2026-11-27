@@ -86,6 +86,10 @@ function showPage(page) {
         history.replaceState(null, "", window.location.pathname);
     }
 
+    if (typeof setChecklistsPageActive === "function") {
+        setChecklistsPageActive(page === "checklists");
+    }
+
     if (typeof setIncidentsPageActive === "function") {
         setIncidentsPageActive(page === "incidents");
     }

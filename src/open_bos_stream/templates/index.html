@@ -153,6 +153,14 @@
             {% endif %}
 
             <div
+                id="page-checklists"
+                class="page">
+
+                {% include "components/checklists_page.html" %}
+
+            </div>
+
+            <div
                 id="page-incidents"
                 class="page">
 
@@ -405,6 +413,7 @@ window.openBosMediaToken = {{ media_token | tojson }};
 
 <script src="/static/js/pwa.js?v={{ version }}"></script>
 <script src="/static/js/incidents.js?v={{ version }}"></script>
+<script src="/static/js/checklists.js?v={{ version }}"></script>
 {% if user.user_id %}
 <script src="/static/js/push.js?v={{ version }}"></script>
 <script src="/static/js/account.js?v={{ version }}"></script>

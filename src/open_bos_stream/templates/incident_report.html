@@ -168,6 +168,24 @@
     </table>
     {% endif %}
 
+    {% if detail.checklists %}
+    <h2>Checklisten</h2>
+    {% for list in detail.checklists %}
+    <p><strong>{{ list.title }}</strong> <span class="muted">– {{ list.done }} von {{ list.total }} erledigt{% if list.open_required %}, {{ list.open_required | length }} Pflichtposition(en) offen{% endif %}</span></p>
+    <table>
+        <tr><th style="width: 5%"></th><th>Position</th><th style="width: 30%">Anmerkung</th><th style="width: 22%">erledigt</th></tr>
+        {% for item in list["items"] %}
+        <tr>
+            <td>{{ "☑" if item.checked else "☐" }}</td>
+            <td>{% if item.section %}<span class="muted">{{ item.section }} · </span>{% endif %}{{ item.text }}{% if item.required %} <span class="warn">(Pflicht{% if not item.checked %}, offen{% endif %})</span>{% endif %}</td>
+            <td class="text">{{ item.note }}</td>
+            <td class="muted">{% if item.checked %}{{ item.checked_by }}, {{ local(item.checked_at, false) }} Uhr{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endfor %}
+    {% endif %}
+
     <h2>Eingesetzte Drohnen</h2>
     {% if detail.sources %}
     <table>

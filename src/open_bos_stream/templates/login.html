@@ -88,7 +88,13 @@
                 <small>Funktionsübersicht der Software (PDF, eine Seite)</small>
             </span>
         </a>
-        <footer class="auth-footer">Version {{ version }}</footer>
+        <footer class="auth-footer">
+            <span>Version {{ version }}</span>
+            <span class="auth-dedication">
+                Gemacht für die Freiwilligen Feuerwehren – mit Dank an alle
+                Ehrenamtlichen, besonders der FF Agathenburg.
+            </span>
+        </footer>
     </main>
     <script>
         const params = new URLSearchParams(location.search);

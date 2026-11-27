@@ -1,0 +1,17 @@
+<header class="page-header">
+    <div>
+        <span class="page-eyebrow">Einsatz</span>
+        <h1>Checklisten</h1>
+    </div>
+    <p>Checklisten abhaken, Vorlagen des Landkreises und einheitliche Dokumente.</p>
+</header>
+
+<nav class="checklist-tabs" role="tablist" aria-label="Bereiche">
+    <button type="button" role="tab" data-checklist-tab="lists" aria-selected="true" onclick="showChecklistTab('lists')">Checklisten</button>
+    <button type="button" role="tab" data-checklist-tab="templates" aria-selected="false" onclick="showChecklistTab('templates')">Vorlagen</button>
+    <button type="button" role="tab" data-checklist-tab="documents" aria-selected="false" onclick="showChecklistTab('documents')">Dokumente</button>
+</nav>
+
+<div id="checklists-root" class="incidents-root" aria-live="polite">
+    <p class="service-inline-status">Wird geladen …</p>
+</div>

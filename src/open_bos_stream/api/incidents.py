@@ -27,6 +27,7 @@ from open_bos_stream.core.container import (
     snapshot_library,
 )
 from open_bos_stream.db.schema import INCIDENT_ROLES, INCIDENT_STATUS
+from open_bos_stream.checklists.service import ChecklistService
 from open_bos_stream.incidents.map import IncidentMap
 from open_bos_stream.incidents.service import (
     IncidentAccessError,
@@ -133,6 +134,13 @@ def _detail(user: dict, incident_id: int) -> dict:
         "participants": service.participants(incident_id),
         "sources": sources,
         "log": service.log(incident_id),
+        "checklists": [
+            {
+                key: item[key]
+                for key in ("id", "title", "total", "done", "open_required", "items", "template_id")
+            }
+            for item in ChecklistService(service).for_incident(incident_id)
+        ],
         "map_items": [
             {key: item[key] for key in ("id", "name", "status", "status_label", "assignee", "note", "updated_at", "updated_by")}
             for item in _map().items(incident_id)
@@ -150,6 +158,10 @@ def _detail(user: dict, incident_id: int) -> dict:
             {"id": item.id, "name": item.name, "drone_type": item.drone_type}
             for item in config.sources
             if item.enabled and item.id not in assigned and can_operate_source(user, item)
+        ]
+        detail["checklist_templates"] = [
+            {"id": item["id"], "title": item["title"], "item_count": item["item_count"]}
+            for item in ChecklistService(service).templates()
         ]
         detail["guest_links"] = [
             link.public() for link in guest_link_store.list()

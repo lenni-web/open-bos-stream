@@ -220,10 +220,12 @@ Schwerpunkt bleiben Drohnen und Drohneneinsätze. Geplante Reihenfolge:
    Zusammenarbeit mehrerer Wehren, Einsatz-Gastlinks ✔
 6. **0.24** Einsatzkarte mit Quadranten: zeichnen, benennen, Status; für
    alle Beteiligten sofort sichtbar; Übungen kennzeichnen ✔
-7. **0.25+** DJI Cloud API (Pilot 2, Enterprise-Drohnen wie Matrice 30/350/4T
+7. **0.25** Checklisten-Modul: Vorlagen des Landkreises, eigene Listen der
+   Wehren, Checklisten im Einsatz mit Pflichtpositionen, Dokumente
+8. **0.26+** DJI Cloud API (Pilot 2, Enterprise-Drohnen wie Matrice 30/350/4T
    und Mavic 3T): Live-Telemetrie auf der Karte, Kartenelemente und
    Quadranten in beide Richtungen
-8. **1.0** Umbenennung in „Open BOS“ mit Migrationsskript, Dokumenten-Modul
+9. **1.0** Umbenennung in „Open BOS“ mit Migrationsskript, Dokumenten-Modul
 
 ---
 

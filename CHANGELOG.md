@@ -9,6 +9,34 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- **Checklisten** als eigenes Modul mit eigenem Menüpunkt (Reiter
+  Checklisten, Vorlagen, Dokumente):
+  - **Vorlagen** legen Drohnenteams und Admins auf Landkreisebene an:
+    Positionen mit Abschnitt, Hinweis und Kennzeichnung als Pflicht;
+    Vorlagen lassen sich bearbeiten (neue Version) und archivieren.
+  - **Eigene Listen**: Jede Wehr kann eigene Checklisten anlegen – aus einer
+    Vorlage oder komplett frei mit eigenen Positionen –, aber keine
+    Vorlagen.
+  - **Im Einsatz**: Knopf „Checkliste hinzufügen“ auf der Einsatzseite
+    übernimmt eine Vorlage; alle Beteiligten haken ab und tragen
+    Anmerkungen ein (mit Name und Uhrzeit). Nach dem Abschluss des
+    Einsatzes ist die Liste gesperrt; ändern dürfen dann nur Admins der
+    führenden Wehr. Eigene Listen ohne Einsatz werden über „Abschließen“
+    gesperrt.
+  - **Pflichtpositionen**: Beim Beenden bzw. Abschließen eines Einsatzes
+    (und einer eigenen Liste) erscheint ein Hinweis auf offene
+    Pflichtpositionen.
+  - Checklisten stehen mit allen Häkchen und Anmerkungen im
+    Einsatzbericht.
+  - **Dokumente**: Der Landkreis stellt einheitliche Unterlagen bereit
+    (PDF, Office, OpenDocument, Text, Bilder; bis 25 MB), alle Wehren
+    können sie öffnen und herunterladen.
+- Widmung in der Seitenleiste und auf der Anmeldeseite: „Gemacht für die
+  Freiwilligen Feuerwehren – mit Dank an alle Ehrenamtlichen, besonders
+  der FF Agathenburg.“
+
 ---
 
 ## [0.24.4] - 2026-11-27
