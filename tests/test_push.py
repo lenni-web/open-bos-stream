@@ -303,7 +303,7 @@ def test_push_api_round_trip(api) -> None:
     api.login("b-zuschauer")
     overview = api.get("/api/push").json()
     assert overview["public_key"]
-    assert [item["key"] for item in overview["events"]] == ["source_offline", "recording_problem"]
+    assert [item["key"] for item in overview["events"]] == ["incident_started", "source_offline", "recording_problem"]
 
     assert api.post("/api/push/test").status_code == 422
 

@@ -9,6 +9,46 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- **Einsätze** als eigener Menüpunkt (auf dem Smartphone in der unteren
+  Leiste, mit Zähler laufender Einsätze):
+  - Anlegen mit führender Wehr, Alarmzeit, Alarmstichwort, Einsatzadresse,
+    Alarmierungstext, alarmierten Einheiten und Leitstellen-Nummer.
+  - Einsatzkennung aus Datum und Alarmzeit (z. B. `2026-11-26-1432`, bei
+    gleicher Minute mit Zusatz `-2`); eine korrigierte Alarmzeit ändert die
+    Kennung mit.
+  - Weitere Wehren beteiligen: Sie sehen den Einsatz und – solange er
+    läuft – die Livebilder der eingesetzten Drohnen, auch wenn diese einer
+    anderen Wehr gehören.
+  - Personen mit Einsatzrolle (Einsatzleiter, Abschnittsleiter Drohne,
+    Fernpilot, Luftraumbeobachter, Payload-Operator, Dokumentation,
+    Sonstige), auch ohne eigenes Konto; Hinweis bei Fernpiloten ohne
+    gültigen Nachweis.
+  - Drohnen dem Einsatz zuordnen und wieder herausnehmen (mit Zeitraum).
+  - Wetter am Einsatzort wird beim Anlegen festgehalten und lässt sich neu
+    erfassen.
+  - Aufnahmen und Snapshots der Einsatzdrohnen im Einsatzzeitraum werden
+    automatisch zugeordnet und sind für alle Beteiligten abrufbar.
+  - Verlauf mit allen Änderungen und eigenen Notizen; Lage- und
+    Abschlussbericht.
+  - Einsatzbericht als druckfertige Seite („Drucken / Als PDF speichern“).
+  - Status laufend → beendet → abgeschlossen; abgeschlossene Einsätze
+    ändern und löschen nur Admins der führenden Wehr. Keine automatische
+    Löschung.
+- **Einsatz-Gastlinks** für externe Stellen: zeigen alle Drohnen des
+  Einsatzes (neu zugeordnete erscheinen automatisch) und werden mit dem
+  Einsatzende gesperrt. Öffnen und Sperren stehen im Einsatzverlauf.
+- Push-Benachrichtigung „Neuer Einsatz“ für alle, die den Einsatz sehen
+  dürfen; ein Tippen öffnet den Einsatz.
+
+### Changed
+
+- „Wetter“ steht auf dem Smartphone jetzt unter „Mehr“, damit „Einsätze“
+  in die untere Leiste passt.
+- Organisationen, die in Einsätzen vorkommen, lassen sich nicht mehr
+  löschen, nur archivieren.
+
 ---
 
 ## [0.22.0] - 2026-11-27

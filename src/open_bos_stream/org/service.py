@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 
 from sqlalchemy import delete, func, insert, select, update
+from sqlalchemy.exc import IntegrityError
 
 from open_bos_stream.db.database import Database
 from open_bos_stream.db.schema import (
@@ -245,10 +246,17 @@ class OrgService:
                 "Nur leere Organisationen ohne Untereinheiten und Mitglieder "
                 "lassen sich löschen. Sonst bitte archivieren."
             )
-        with self.db.engine.begin() as connection:
-            connection.execute(
-                delete(organizations).where(organizations.c.id == organization_id)
-            )
+        try:
+            with self.db.engine.begin() as connection:
+                connection.execute(
+                    delete(organizations).where(organizations.c.id == organization_id)
+                )
+        except IntegrityError as exc:
+            # z. B. Einsätze, die diese Wehr geführt hat oder an denen sie beteiligt war.
+            raise OrgError(
+                "Diese Organisation kommt in Einsätzen vor und bleibt für die "
+                "Dokumentation erhalten. Bitte archivieren."
+            ) from exc
         self.audit(actor, "Organisation gelöscht", current["name"], current["parent_id"])
 
     # -----------------------------------------------------

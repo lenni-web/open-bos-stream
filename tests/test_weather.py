@@ -542,7 +542,7 @@ def test_weather_page_is_in_the_menu_for_everyone() -> None:
         ROOT / "src" / "open_bos_stream" / "static" / "js" / "navigation.js"
     ).read_text(encoding="utf-8")
 
-    assert '"page": "weather", "label": "Wetter", "icon": "weather", "primary": true, "visible": true' in sidebar
+    assert '"page": "weather", "label": "Wetter", "icon": "weather", "primary": false, "visible": true' in sidebar
     assert 'id="page-weather"' in index
     assert '{% include "components/weather_page.html" %}' in index
     assert 'id="weather-radar-slider"' in page

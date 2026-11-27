@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>Einsatzbericht {{ incident.code }} · Open BOS Drohnen</title>
+    <style>
+        :root {
+            --ink: #17202b;
+            --muted: #5d6878;
+            --line: #d5dbe3;
+            --red: #c92835;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: #eef1f5;
+            color: var(--ink);
+            font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+        .sheet {
+            max-width: 210mm;
+            margin: 16px auto;
+            padding: 18mm 16mm;
+            background: #fff;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+        }
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 16px auto 0;
+            max-width: 210mm;
+            padding: 0 16px;
+        }
+        .toolbar button {
+            padding: 8px 14px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .toolbar .primary { background: var(--red); border-color: var(--red); color: #fff; }
+        header.report-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--red);
+        }
+        header.report-head small { color: var(--muted); }
+        h1 { margin: 2px 0 0; font-size: 22px; }
+        h2 {
+            margin: 18px 0 6px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid var(--line);
+            font-size: 15px;
+            break-after: avoid;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 4px 6px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+        th { color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        table.facts th { width: 34%; text-transform: none; font-size: 13px; }
+        .text { white-space: pre-wrap; overflow-wrap: anywhere; }
+        .muted { color: var(--muted); }
+        .warn { color: var(--red); font-size: 12px; }
+        .thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px; }
+        .thumbs figure { margin: 0; font-size: 11px; color: var(--muted); }
+        .thumbs img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 3px; }
+        footer { margin-top: 24px; padding-top: 6px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+        tr { break-inside: avoid; }
+        @media (max-width: 640px) {
+            .sheet { margin: 0; padding: 16px; }
+            .thumbs { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media print {
+            @page { size: A4; margin: 14mm 12mm; }
+            body { background: #fff; }
+            .sheet { margin: 0; padding: 0; max-width: none; box-shadow: none; }
+            .toolbar { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="toolbar">
+    <button class="primary" type="button" onclick="window.print()">Drucken / Als PDF speichern</button>
+    <button type="button" onclick="window.close()">Schließen</button>
+</div>
+
+<main class="sheet">
+    <header class="report-head">
+        <div>
+            <small>Einsatzbericht Drohneneinsatz · Open BOS Drohnen</small>
+            <h1>{{ incident.keyword or incident.title or "Einsatz" }}</h1>
+            {% if incident.title and incident.keyword %}<div>{{ incident.title }}</div>{% endif %}
+        </div>
+        <div style="text-align: right">
+            <strong>{{ incident.code }}</strong><br>
+            <span class="muted">{{ incident.status_label }}</span>
+        </div>
+    </header>
+
+    <h2>Alarmierung</h2>
+    <table class="facts">
+        <tr><th>Alarmstichwort</th><td>{{ incident.keyword or "–" }}</td></tr>
+        <tr><th>Alarmzeit</th><td>{{ local(incident.alarm_at) }}</td></tr>
+        <tr><th>Einsatzende</th><td>{{ local(incident.ended_at) }}</td></tr>
+        <tr><th>Einsatzadresse</th><td>{{ incident.address or "–" }}</td></tr>
+        {% if incident.latitude is not none %}
+        <tr><th>Koordinate</th><td>{{ "%.5f"|format(incident.latitude) }}, {{ "%.5f"|format(incident.longitude) }}</td></tr>
+        {% endif %}
+        <tr><th>Alarmierte Einheiten</th><td>{{ incident.alerted_units or "–" }}</td></tr>
+        <tr><th>Einsatznummer Leitstelle</th><td>{{ incident.dispatch_number or "–" }}</td></tr>
+        <tr><th>Führende Wehr</th><td>{{ incident.lead_name }}</td></tr>
+        <tr><th>Beteiligte Wehren</th><td>
+            {% for entry in incident.involved %}{{ entry.name }} (ab {{ local(entry.added_at, false) }} Uhr){% if not loop.last %}, {% endif %}{% else %}–{% endfor %}
+        </td></tr>
+    </table>
+    {% if incident.alarm_text %}
+    <p class="text">{{ incident.alarm_text }}</p>
+    {% endif %}
+
+    <h2>Personen im Einsatz</h2>
+    {% if detail.participants %}
+    <table>
+        <tr><th>Name</th><th>Funktion</th><th>Wehr</th><th>von</th><th>bis</th></tr>
+        {% for person in detail.participants %}
+        <tr>
+            <td>{{ person.name }}{% if not person.user_id %} <span class="muted">(ohne Konto)</span>{% endif %}
+                {% if person.warning %}<br><span class="warn">{{ person.warning }}</span>{% endif %}</td>
+            <td>{{ person.role_label }}</td>
+            <td>{{ person.organization_name or "–" }}</td>
+            <td>{{ local(person.from_at, false) }}</td>
+            <td>{{ local(person.until_at, false) if person.until_at else "–" }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}<p class="muted">Keine Personen erfasst.</p>{% endif %}
+
+    <h2>Eingesetzte Drohnen</h2>
+    {% if detail.sources %}
+    <table>
+        <tr><th>Drohne</th><th>Typ</th><th>von</th><th>bis</th></tr>
+        {% for source in detail.sources %}
+        <tr>
+            <td>{{ source.name }}</td>
+            <td>{{ source.drone_type or "–" }}</td>
+            <td>{{ local(source.added_at) }}</td>
+            <td>{{ local(source.removed_at) if source.removed_at else "im Einsatz" }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}<p class="muted">Keine Drohnen zugeordnet.</p>{% endif %}
+
+    <h2>Wetter</h2>
+    {% set weather = incident.weather %}
+    {% if weather %}
+    {% set current = weather.current or {} %}
+    <table class="facts">
+        <tr><th>Bewertung Flugbetrieb</th><td>{{ (weather.assessment or {}).summary or "–" }}</td></tr>
+        <tr><th>Wind / Böen</th><td>{{ current.wind_speed_ms if current.wind_speed_ms is not none else "–" }} m/s / {{ current.wind_gust_ms if current.wind_gust_ms is not none else "–" }} m/s</td></tr>
+        <tr><th>Temperatur</th><td>{{ current.temperature_c if current.temperature_c is not none else "–" }} °C</td></tr>
+        <tr><th>Niederschlag</th><td>{{ current.precipitation_mm_h if current.precipitation_mm_h is not none else "–" }} mm/h</td></tr>
+        <tr><th>Sicht</th><td>{% if current.visibility_m is not none %}{{ "%.1f"|format(current.visibility_m / 1000) }} km{% else %}–{% endif %}</td></tr>
+        {% if weather.kp and weather.kp.kp is not none %}<tr><th>Kp-Index</th><td>{{ weather.kp.kp }}</td></tr>{% endif %}
+        {% if weather.alerts %}<tr><th>DWD-Warnungen</th><td>{% for alert in weather.alerts %}{{ alert.headline or alert.event }}{% if not loop.last %}; {% endif %}{% endfor %}</td></tr>{% endif %}
+        <tr><th>Erfasst</th><td>{{ local(weather.captured_at) }} · {{ (weather.location or {}).name }}</td></tr>
+    </table>
+    {% if (weather.assessment or {}).reasons %}
+    <p class="muted">{% for reason in weather.assessment.reasons %}{{ reason.text or reason.message or "" }}{% if not loop.last %} · {% endif %}{% endfor %}</p>
+    {% endif %}
+    {% if weather.attribution %}<p class="muted" style="font-size: 11px">Quelle: {{ weather.attribution if weather.attribution is string else weather.attribution | join(", ") }}</p>{% endif %}
+    {% else %}<p class="muted">Kein Wetter erfasst.</p>{% endif %}
+
+    <h2>Aufnahmen</h2>
+    {% if detail.media %}
+    <table>
+        <tr><th>Zeit</th><th>Art</th><th>Datei</th></tr>
+        {% for item in detail.media %}
+        <tr>
+            <td>{{ local(item.taken_at) }}</td>
+            <td>{{ "Snapshot" if item.type == "snapshot" else "Video" }}</td>
+            <td>{{ item.name }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% set snaps = detail.media | selectattr("type", "equalto", "snapshot") | list %}
+    {% if snaps %}
+    <div class="thumbs">
+        {% for item in snaps[:12] %}
+        <figure>
+            <img src="/api/incidents/{{ incident.id }}/media/{{ item.name | urlencode }}" alt="">
+            <figcaption>{{ local(item.taken_at, false) }} Uhr</figcaption>
+        </figure>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% else %}<p class="muted">Keine Aufnahmen im Einsatzzeitraum.</p>{% endif %}
+
+    {% if incident.summary %}
+    <h2>Lage- und Abschlussbericht</h2>
+    <p class="text">{{ incident.summary }}</p>
+    {% endif %}
+
+    <h2>Verlauf</h2>
+    <table>
+        <tr><th style="width: 18%">Zeit</th><th>Eintrag</th><th style="width: 22%">von</th></tr>
+        {% for entry in detail.log %}
+        <tr>
+            <td>{{ local(entry.at) }}</td>
+            <td class="text">{{ entry.text }}</td>
+            <td class="muted">{{ entry.actor }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <footer>
+        Erstellt {{ printed_at }} von {{ printed_by }} · Open BOS Drohnen {{ version }} ·
+        Einsatz angelegt von {{ incident.created_by or "–" }} am {{ local(incident.created_at) }}
+    </footer>
+</main>
+</body>
+</html>

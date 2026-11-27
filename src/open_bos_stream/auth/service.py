@@ -21,6 +21,7 @@ from pathlib import Path
 import yaml
 
 from open_bos_stream.db.database import Database
+from open_bos_stream.incidents.service import IncidentService
 from open_bos_stream.org.service import OrgError, OrgService
 
 
@@ -72,6 +73,15 @@ class AuthService:
         )
         self._revoked_cache: tuple[tuple[int, int], dict[str, int]] | None = None
         self._secret_cache: bytes | None = None
+        self._incidents: IncidentService | None = None
+
+    @property
+    def incidents(self) -> IncidentService:
+        """Einsätze in derselben Datenbank wie die Organisationen."""
+
+        if self._incidents is None or self._incidents.org is not self.org:
+            self._incidents = IncidentService(self.org)
+        return self._incidents
 
     def ready(self) -> OrgService:
         """Datenbank migrieren, Grundstruktur anlegen, alte Konten übernehmen."""
@@ -126,13 +136,16 @@ class AuthService:
         """Kontodaten einer Sitzung samt Rechten in Organisationen."""
 
         org = self.ready()
-        scope = org.scope(stored)
+        scope = org.scope(stored).as_dict()
+        incident_sources = self.incidents.running_source_ids(scope)
         return {
             "username": stored["username"],
             "role": org.effective_role(stored),
             "user_id": stored["id"],
             "display_name": stored.get("display_name") or stored["username"],
-            **scope.as_dict(),
+            **scope,
+            # Drohnen laufender Einsätze der eigenen bzw. beteiligten Wehren.
+            "incident_source_ids": incident_sources,
         }
 
     def session_user_for(self, user_id: int) -> dict | None:
@@ -499,13 +512,21 @@ class AuthService:
         link = self.guest_links.active_link(payload["sub"][len(GUEST_PREFIX):])
         if link is None:
             return None
-        return {
+        user = {
             "username": f"Gast: {link.label}",
             "role": "guest",
             "guest_link": link.id,
             "source_ids": list(link.source_ids),
             "expires_at": link.expires_at,
         }
+        if link.incident_id is not None:
+            incident = self.incidents.get(link.incident_id)
+            # Einsatz-Gastlinks enden spätestens mit dem Einsatz.
+            if incident is None or incident["status"] != "running":
+                return None
+            user["incident_id"] = incident["id"]
+            user["source_ids"] = self.incidents.active_source_ids(incident["id"])
+        return user
 
     def create_display_token(self) -> str:
         return self.create_token({

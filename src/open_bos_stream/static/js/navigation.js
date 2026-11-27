@@ -81,9 +81,18 @@ function showPage(page) {
         setWeatherPageActive(page === "weather");
     }
 
+    if (typeof setIncidentsPageActive === "function") {
+        setIncidentsPageActive(page === "incidents");
+    }
+
 }
 
 function restorePage() {
+
+    // Direkter Link auf einen Einsatz (z. B. aus einer Push-Nachricht).
+    if (typeof incidentFromHash === "function" && incidentFromHash()) {
+        return;
+    }
 
     const page =
         localStorage.getItem("currentPage")

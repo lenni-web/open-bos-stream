@@ -78,6 +78,25 @@ function updateGuestExpiry() {
     element.classList.toggle("is-ending", remaining < 15 * 60 * 1000);
 }
 
+function renderGuestIncident(incident) {
+    const box = document.getElementById("guest-incident");
+    if (!box) {
+        return;
+    }
+    box.hidden = !incident;
+    if (!incident) {
+        return;
+    }
+    const alarm = new Date(incident.alarm_at);
+    const time = Number.isNaN(alarm.getTime())
+        ? ""
+        : alarm.toLocaleString("de-DE", {dateStyle: "short", timeStyle: "short"});
+    box.innerHTML = `
+        <strong>${escapeHTML(incident.keyword || "Einsatz")}</strong>
+        <span>${incident.address ? `${escapeHTML(incident.address)} · ` : ""}Alarm ${escapeHTML(time)}
+            · ${escapeHTML(incident.code)}</span>`;
+}
+
 async function pollGuestStatus() {
     if (guestEnded) {
         return;
@@ -98,6 +117,7 @@ async function pollGuestStatus() {
             const data = await response.json();
             const sources = data.sources ?? [];
             updateMultiSources(sources);
+            renderGuestIncident(data.incident);
             const empty = document.getElementById("guest-empty");
             if (empty) {
                 empty.hidden = sources.length > 0;

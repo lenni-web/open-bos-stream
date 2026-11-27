@@ -48,6 +48,9 @@ class Notice:
     recovery: bool = False
     # Betroffene Quelle; Push erhalten nur Konten, die sie sehen dürfen.
     source_id: str | None = None
+    # Einsatz (Push nur an Konten, die ihn sehen dürfen) und Ziel beim Antippen.
+    incident_id: int | None = None
+    url: str = "/"
 
 
 @dataclass

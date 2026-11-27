@@ -104,7 +104,12 @@ async def list_guest_links(request: Request) -> dict:
     links = await run_in_threadpool(guest_link_store.list)
     user = request.state.user
     return {
-        "links": [_describe(link) for link in links if _may_manage(user, link)],
+        # Einsatz-Gastlinks verwaltet der Einsatz selbst.
+        "links": [
+            _describe(link)
+            for link in links
+            if link.incident_id is None and _may_manage(user, link)
+        ],
         "max_hours": MAX_HOURS,
     }
 
@@ -199,6 +204,11 @@ async def revoke_guest_link(link_id: str, request: Request) -> dict:
 @router.get("/g/{token}", response_class=HTMLResponse, dependencies=[PUBLIC])
 async def open_guest_link(token: str, request: Request):
     link = await run_in_threadpool(guest_link_store.find_by_token, token)
+    incident = None
+    if link is not None and link.incident_id is not None:
+        incident = await run_in_threadpool(auth_service.incidents.get, link.incident_id)
+        if incident is None or incident["status"] != "running":
+            link = None
     if link is None:
         return templates.TemplateResponse(
             request=request,
@@ -221,6 +231,13 @@ async def open_guest_link(token: str, request: Request):
         f"🔗 Gastlink „{link.label}“ geöffnet",
         organization_id=link.organization_id,
     )
+    if incident is not None:
+        await run_in_threadpool(
+            auth_service.incidents.record,
+            incident["id"],
+            f"Gastlink „{link.label}“ geöffnet",
+            kind="guest",
+        )
     await run_in_threadpool(guest_link_store.touch, link.id)
     response = RedirectResponse("/guest", status_code=303)
     response.set_cookie(
@@ -270,8 +287,18 @@ async def guest_status(request: Request) -> dict:
         for item in status.get("sources", [])
         if item.get("id") in allowed
     ]
-    return {
+    result = {
         "label": user["username"].removeprefix("Gast: "),
         "expires_at": int(user["expires_at"]),
         "sources": sources,
+        "incident": None,
     }
+    if user.get("incident_id"):
+        incident = await run_in_threadpool(auth_service.incidents.get, user["incident_id"])
+        if incident:
+            # Nur, was die externe Stelle zur Einordnung braucht.
+            result["incident"] = {
+                key: incident.get(key)
+                for key in ("code", "keyword", "address", "alarm_at", "latitude", "longitude")
+            }
+    return result

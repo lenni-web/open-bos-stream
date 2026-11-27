@@ -471,17 +471,18 @@ def test_mobile_menu_keeps_three_main_items_and_moves_the_rest() -> None:
     superadmin = render_sidebar("superadmin")
     viewer = render_sidebar("viewer")
 
-    for page in ("dashboard", "streams", "map", "weather"):
+    for page in ("dashboard", "incidents", "streams", "map"):
         assert f'id="nav-{page}"' in viewer
         tag = superadmin[superadmin.index(f'id="nav-{page}"'):]
         assert "app-nav-secondary" not in tag[:tag.index(">")]
-    for page in ("media", "settings", "system"):
+    for page in ("weather", "media", "settings", "system"):
         tag = superadmin[superadmin.index(f'id="nav-{page}"'):]
         assert "app-nav-secondary" in tag[:tag.index(">")]
         assert f'data-page="{page}"' in superadmin
     assert 'id="nav-more"' in superadmin
-    # Zuschauer haben nur Hauptpunkte und brauchen kein „Mehr“.
-    assert 'id="nav-more"' not in viewer
+    # Auch Zuschauer erreichen das Wetter über „Mehr“.
+    assert 'id="nav-more"' in viewer
+    assert 'data-page="weather"' in viewer
     assert "BOS Drohnen Suite" in superadmin
 
 

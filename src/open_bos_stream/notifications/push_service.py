@@ -48,7 +48,7 @@ def available_events(user: dict) -> dict[str, str]:
     return {
         key: label
         for key, (label, scope) in PUSH_EVENTS.items()
-        if scope == "source" or server
+        if scope in ("source", "incident") or server
     }
 
 
@@ -267,6 +267,13 @@ class PushService:
             return False
         if entry[1] == "server":
             return may_receive_server_events(user)
+        if entry[1] == "incident":
+            incident = (
+                self._auth.incidents.get(notice.incident_id)
+                if notice.incident_id is not None
+                else None
+            )
+            return incident is not None and self._auth.incidents.can_view(user, incident)
         if notice.source_id is None:
             return True
         source = next(
@@ -315,8 +322,8 @@ class PushService:
             "title": notice.subject,
             "body": body,
             # Entwarnung ersetzt auf dem Gerät die Störungsmeldung.
-            "tag": f"{notice.event}:{notice.source_id or ''}",
-            "url": "/",
+            "tag": f"{notice.event}:{notice.source_id or notice.incident_id or ''}",
+            "url": notice.url or "/",
             "recovery": notice.recovery,
         }
 
