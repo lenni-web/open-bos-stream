@@ -127,7 +127,21 @@ function incidentMapAddLayers() {
             source: "incident-items",
             paint: {
                 "fill-color": color,
-                "fill-opacity": ["case", ["get", "selected"], 0.42, 0.2],
+                "fill-opacity": ["case", ["get", "selected"], 0.5, 0.3],
+            },
+        });
+    }
+    // Weißer Rand: Die Flächen heben sich auch über Geozonen, Radar und
+    // Luftbild ab.
+    if (!m.getLayer("incident-items-casing")) {
+        m.addLayer({
+            id: "incident-items-casing",
+            type: "line",
+            source: "incident-items",
+            layout: {"line-join": "round"},
+            paint: {
+                "line-color": "#ffffff",
+                "line-width": ["case", ["get", "selected"], 8, 6],
             },
         });
     }
@@ -136,9 +150,10 @@ function incidentMapAddLayers() {
             id: "incident-items-line",
             type: "line",
             source: "incident-items",
+            layout: {"line-join": "round"},
             paint: {
                 "line-color": color,
-                "line-width": ["case", ["get", "selected"], 4, 2],
+                "line-width": ["case", ["get", "selected"], 5, 3],
             },
         });
     }
@@ -148,13 +163,19 @@ function incidentMapAddLayers() {
             type: "fill",
             source: "incident-draft",
             filter: ["==", ["geometry-type"], "Polygon"],
-            paint: {"fill-color": "#246bce", "fill-opacity": 0.15},
+            paint: {"fill-color": "#246bce", "fill-opacity": 0.25},
+        });
+        m.addLayer({
+            id: "incident-draft-casing",
+            type: "line",
+            source: "incident-draft",
+            paint: {"line-color": "#ffffff", "line-width": 6},
         });
         m.addLayer({
             id: "incident-draft-line",
             type: "line",
             source: "incident-draft",
-            paint: {"line-color": "#246bce", "line-width": 2, "line-dasharray": [2, 1]},
+            paint: {"line-color": "#246bce", "line-width": 3, "line-dasharray": [2, 1]},
         });
         m.addLayer({
             id: "incident-draft-points",

@@ -101,6 +101,16 @@ def test_map_api_sync_and_guest_view(api, tmp_path: Path) -> None:  # noqa: F811
     assert api.post(f"/api/incidents/{incident_id}/map/items", json={"name": "X", "geometry": {}}).status_code == 403
 
 
+def test_own_areas_are_drawn_above_other_layers_with_a_casing() -> None:
+    static = Path(__file__).resolve().parents[1] / "src" / "open_bos_stream" / "static" / "js"
+    script = (static / "map-incident.js").read_text(encoding="utf-8")
+    assert script.index('id: "incident-items-casing"') < script.index('id: "incident-items-line"')
+    # Die Einsatzkarte wird nach Geozonen und Radar eingebunden.
+    start = (static / "map.js").read_text(encoding="utf-8")
+    assert start.index("addDipulLayers(") < start.index("initIncidentMap(map)")
+    assert start.index("addWeatherLayers(") < start.index("initIncidentMap(map)")
+
+
 def test_search_estimate_is_loaded_before_the_incident_map() -> None:
     package = Path(__file__).resolve().parents[1] / "src" / "open_bos_stream"
     for page in ("index.html", "guest.html"):

@@ -19,6 +19,8 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ### Fixed
 
+- Selbst gezeichnete Raster und Flächen heben sich mit weißem Rand und
+  kräftigerer Füllung deutlich von Geozonen, Regenradar und Luftbild ab.
 - Ein träges Luftbild bremst die normale Karte nicht mehr aus.
 
 ---
