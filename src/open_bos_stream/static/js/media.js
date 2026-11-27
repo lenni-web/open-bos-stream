@@ -25,16 +25,12 @@ function formatFileSize(bytes) {
 
 }
 
-function formatMediaDate(timestamp) {
+// Das Datum steht in der Gruppenüberschrift, in der Zeile reicht die Uhrzeit.
+function formatMediaTime(timestamp) {
 
-    const date = new Date(timestamp * 1000);
-
-    return date.toLocaleString(
+    return new Date(timestamp * 1000).toLocaleTimeString(
         "de-DE",
         {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
             hour: "2-digit",
             minute: "2-digit",
         }
@@ -157,22 +153,14 @@ function mediaProtectedBadge(file) {
 
 function mediaTitle(file) {
 
-    if (file.type === "recording") {
-
-        return `
-            <span class="media-recording">
-                🎬 Aufnahme
-            </span>
-            ${mediaProtectedBadge(file)}
-        `;
-
-    }
+    const type = file.type === "recording"
+        ? '<span class="media-recording" role="img" aria-label="Aufnahme">🎬</span>'
+        : '<span class="media-snapshot" role="img" aria-label="Snapshot">📸</span>';
 
     return `
-        <span class="media-snapshot">
-            📸 Snapshot
-        </span>
-        ${mediaProtectedBadge(file)}
+        ${type}
+        <span class="library-time">${formatMediaTime(file.modified)}</span>
+        <span class="library-source">${escapeHTML(file.source_name || "Ohne Drohne")}</span>
     `;
 
 }
@@ -248,29 +236,16 @@ function renderMediaLibrary(containerId, files, actions) {
         row.innerHTML = `
             <div class="library-row">
 
-                <div class="library-meta">
+                <div class="library-meta" title="${escapeHTML(file.name)}">
 
-                    <div
-                        class="library-title"
-                        title="${escapeHTML(file.name)}">
-
+                    <div class="library-title">
                         ${mediaTitle(file)}
-
-                    </div>
-
-                    <div
-                        class="library-filename"
-                        title="${escapeHTML(file.name)}">
-                        ${escapeHTML(file.name)}
                     </div>
 
                     <div class="library-info">
-
-                        ${formatMediaDate(file.modified)}
-                        &nbsp;•&nbsp;
-                        ${formatFileSize(file.size)}
-                        ${file.source_name ? `&nbsp;•&nbsp;${escapeHTML(file.source_name)}` : ""}
-
+                        ${file.type === "recording" ? "Aufnahme" : "Snapshot"}
+                        · ${formatFileSize(file.size)}
+                        ${mediaProtectedBadge(file)}
                     </div>
 
                 </div>

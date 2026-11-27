@@ -1,5 +1,57 @@
 let mediaLibraryFiles = [];
 
+// Dateien entfernter oder nicht erkennbarer Drohnen (sehen nur Admins).
+const MEDIA_WITHOUT_SOURCE = "none";
+
+// Die Auswahl bietet nur Drohnen an, von denen es Dateien gibt.
+function updateMediaSourceFilter() {
+    const select =
+        document.getElementById(
+            "media-source-filter"
+        );
+
+    if (!select) {
+        return;
+    }
+
+    const selected = select.value;
+    const sources = new Map();
+    let withoutSource = false;
+
+    for (const file of mediaLibraryFiles) {
+        if (file.source_id) {
+            sources.set(file.source_id, file.source_name || file.source_id);
+        } else {
+            withoutSource = true;
+        }
+    }
+
+    const options = [new Option("Alle Drohnen", "all")];
+
+    [...sources]
+        .sort((a, b) => a[1].localeCompare(b[1], "de-DE", { numeric: true }))
+        .forEach(([id, name]) => options.push(new Option(name, `source:${id}`)));
+
+    if (withoutSource) {
+        options.push(new Option("Ohne zugeordnete Drohne", MEDIA_WITHOUT_SOURCE));
+    }
+
+    select.replaceChildren(...options);
+    select.value = options.some(option => option.value === selected)
+        ? selected
+        : "all";
+}
+
+function matchesMediaSource(file, source) {
+    if (source === "all") {
+        return true;
+    }
+    if (source === MEDIA_WITHOUT_SOURCE) {
+        return !file.source_id;
+    }
+    return source === `source:${file.source_id}`;
+}
+
 function filteredMediaFiles() {
     const query = (
         document.getElementById(
@@ -12,6 +64,11 @@ function filteredMediaFiles() {
             "media-type-filter"
         )?.value ?? "all";
 
+    const source =
+        document.getElementById(
+            "media-source-filter"
+        )?.value ?? "all";
+
     return mediaLibraryFiles.filter(file => {
         const matchesType =
             type === "all" ||
@@ -22,7 +79,11 @@ function filteredMediaFiles() {
                 .toLocaleLowerCase("de-DE")
                 .includes(query);
 
-        return matchesType && matchesQuery;
+        return (
+            matchesType &&
+            matchesQuery &&
+            matchesMediaSource(file, source)
+        );
     });
 }
 
@@ -108,6 +169,7 @@ async function toggleMediaProtection(type, filename, protectedFlag) {
 function bindMediaFilters() {
     for (const id of [
         "media-search",
+        "media-source-filter",
         "media-type-filter",
     ]) {
         const element =
@@ -136,6 +198,7 @@ async function refreshMediaLibrary() {
         mediaLibraryFiles =
             await api.mediaFiles();
 
+        updateMediaSourceFilter();
         renderFilteredMediaLibrary();
 
     } catch (err) {

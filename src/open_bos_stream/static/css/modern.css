@@ -141,7 +141,8 @@ body {
 }
 
 .library-entry {
-    padding: 11px 12px;
+    padding: 5px 8px;
+    line-height: 1.35;
 }
 
 .library-entry-active {
@@ -190,12 +191,13 @@ body {
 
 .media-tools {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     margin-bottom: 14px;
 }
 
 .media-search {
+    grid-column: 1 / -1;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -225,22 +227,13 @@ body {
 }
 
 .media-filter {
+    min-width: 0;
     min-height: 42px;
     padding: 0 10px;
     border: 1px solid var(--bos-gray);
     border-radius: 10px;
     background: var(--bos-white);
     color: var(--bos-dark);
-}
-
-.library-filename {
-    margin-top: 2px;
-    overflow: hidden;
-    color: var(--bos-dark);
-    font-size: 0.76rem;
-    font-weight: 650;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .map-wrapper {
@@ -1413,10 +1406,6 @@ body {
     }
 
     .media-layout {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .media-tools {
         grid-template-columns: minmax(0, 1fr);
     }
 

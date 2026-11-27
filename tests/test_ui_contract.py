@@ -43,6 +43,7 @@ def test_media_controls_remain_available() -> None:
     assert {
         "media-count",
         "media-search",
+        "media-source-filter",
         "media-type-filter",
         "media-library",
         "media-title",

@@ -9,8 +9,16 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Seite „Aufnahmen“: Die Mediathek lässt sich nach Drohne filtern,
+  zusätzlich zu Art und Dateiname.
+
 ### Changed
 
+- Die Mediathek ist kompakter: je Datei zwei kurze Zeilen mit Uhrzeit,
+  Drohne, Art und Größe. Der Dateiname erscheint beim Überfahren mit der
+  Maus, die Suche findet ihn weiterhin.
 - Die bisherigen „Quellen“ heißen in Oberfläche, Meldungen und
   Benachrichtigungen jetzt „Drohnen“. Auf der Seite „Drohnen“ ersetzt
   „Drohnen mit Livebild“ den Titel „Mehrquellenempfang“. Eigene Namen,

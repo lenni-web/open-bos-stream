@@ -10,9 +10,7 @@
 
     justify-content: space-between;
 
-    gap: 16px;
-
-    min-height: 52px;
+    gap: 8px;
 
 }
 
@@ -26,11 +24,31 @@
 
 .library-title {
 
-    font-size: 15px;
+    display: flex;
+
+    align-items: baseline;
+
+    gap: 6px;
+
+    min-width: 0;
+
+    font-size: 14px;
 
     font-weight: 600;
 
     white-space: nowrap;
+
+}
+
+.library-time {
+
+    font-variant-numeric: tabular-nums;
+
+}
+
+.library-source {
+
+    min-width: 0;
 
     overflow: hidden;
 
@@ -39,8 +57,6 @@
 }
 
 .library-info {
-
-    margin-top: 2px;
 
     font-size: 12px;
 
@@ -58,7 +74,9 @@
 
     align-items: center;
 
-    gap: 8px;
+    flex: none;
+
+    gap: 2px;
 
 }
 
@@ -164,9 +182,9 @@
 
 .library-group {
 
-    margin: 16px 0 8px;
+    margin: 10px 0 2px;
 
-    padding-bottom: 4px;
+    padding-bottom: 2px;
 
     border-bottom: 1px solid var(--bos-gray);
 
@@ -326,30 +344,6 @@
     color: #2d8f57;
 
     font-weight: 600;
-
-}
-
-/* ==========================================================
-   Responsive
-   ========================================================== */
-
-@media (max-width: 1100px) {
-
-    .library-row {
-
-        flex-direction: column;
-
-        align-items: flex-start;
-
-    }
-
-    .library-actions {
-
-        width: 100%;
-
-        justify-content: flex-end;
-
-    }
 
 }
 

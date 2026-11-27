@@ -40,22 +40,6 @@
 
     }
 
-    .library-row {
-
-        flex-direction: column;
-
-        align-items: flex-start;
-
-    }
-
-    .library-actions {
-
-        width: 100%;
-
-        justify-content: flex-end;
-
-    }
-
 }
 
 /* ==========================================================
@@ -75,22 +59,6 @@
     .bos-nav-item {
 
         padding: 14px;
-
-    }
-
-}
-
-/* ==========================================================
-   Small Smartphones
-   ========================================================== */
-
-@media (max-width: 480px) {
-
-    .library-actions {
-
-        width: 100%;
-
-        justify-content: space-between;
 
     }
 
