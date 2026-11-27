@@ -23,7 +23,8 @@ self.addEventListener("push", event => {
     const options = {
         body: data.body || "",
         icon: "/static/icons/open-bos-stream-192.png",
-        badge: "/static/icons/open-bos-stream-192.png",
+        // Android zeigt in der Statusleiste nur die Deckkraft des Bildes.
+        badge: "/static/icons/open-bos-stream-badge-96.png",
         tag: data.tag || undefined,
         // Eine Entwarnung ersetzt die Störung still, eine Störung meldet sich.
         renotify: Boolean(data.tag) && !data.recovery,

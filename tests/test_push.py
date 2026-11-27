@@ -341,3 +341,13 @@ def test_service_worker_is_served_publicly_at_the_root(api) -> None:
     assert response.headers["content-type"].startswith("text/javascript")
     assert response.headers["service-worker-allowed"] == "/"
     assert "showNotification" in response.text
+
+
+def test_service_worker_uses_logo_and_transparent_badge() -> None:
+    static = Path("src/open_bos_stream/static")
+    worker = (static / "js/service-worker.js").read_text(encoding="utf-8")
+    assert 'icon: "/static/icons/open-bos-stream-192.png"' in worker
+    assert 'badge: "/static/icons/open-bos-stream-badge-96.png"' in worker
+    # PNG-Farbtyp 6 = RGBA; ohne Transparenz zeigt Android nur ein Quadrat.
+    badge = (static / "icons/open-bos-stream-badge-96.png").read_bytes()
+    assert badge[25] == 6
