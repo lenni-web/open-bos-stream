@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.24.1] - 2026-11-27
+
 ### Changed
 
 - Farben des Logos als Akzente in der Oberfläche: Seitenleiste in

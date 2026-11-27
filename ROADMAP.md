@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.24.1** (2026-11-27): Logofarben als Akzente, neue Beschreibung auf
+  der Anmeldeseite
 - **0.24.0** (2026-11-27): Einsatzkarte mit live abgeglichenen Quadranten,
   Kennzeichnung von Übungen
 - **0.23.0** (2026-11-27): Einsätze mit Alarmierung, beteiligten Wehren,
