@@ -11,6 +11,42 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.26.3] - 2026-11-27
+
+Einsätze je Drohne, neue Benutzerseite, mehrere Rollen je Organisation und
+Anmeldung per E-Mail.
+
+### Added
+
+- Seite „Drohnen“: je Drohne (Video-Quelle und DJI-Drohne) aufklappbar
+  die Einsätze mit Datum und beteiligten Personen sowie ein Zähler,
+  Übungen eingeschlossen. Beteiligt ist, wer laut „Personen im Einsatz“
+  im Zeitraum der Drohne dabei war; auch frühere Einsätze erscheinen.
+  Namen sieht nur, wer den Einsatz sehen darf.
+- Mehrere Rollen je Konto in derselben Organisation (z. B.
+  Ortsbrandmeister und Drohnenteam); es gelten die Rechte der höchsten
+  Rolle. Datenbank-Migration `0008` läuft beim Start automatisch.
+- Anmeldung mit Benutzernamen oder E-Mail-Adresse. Eine Adresse kann
+  nur noch einem Konto zugeordnet werden; war sie schon mehrfach
+  vergeben, gilt dort weiter nur der Benutzername.
+
+### Changed
+
+- Seite „Benutzer“ neu: sortierbare Liste mit Suche, Filtern nach
+  Organisation (samt Untereinheiten), Rolle und Status, Kennzahlen zu
+  abgelaufenen oder bald ablaufenden Nachweisen; Konto, Rollen und
+  Nachweise sind beim Bearbeiten getrennt dargestellt.
+- Benutzermenü übersichtlicher gegliedert, Rollen je Organisation einzeln.
+- Der Benutzername steht beim Bearbeiten eines Kontos und in der
+  Meldung nach dem Anlegen.
+
+### Fixed
+
+- Das Datum beim Fernpilotennachweis ist jetzt als „Gültig bis
+  (Ablaufdatum)“ beschriftet.
+
+---
+
 ## [0.26.2] - 2026-11-27
 
 Korrektur der Einsatzansicht auf dem Handy.

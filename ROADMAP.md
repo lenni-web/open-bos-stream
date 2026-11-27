@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.26.3** (2026-11-27): Einsätze je Drohne mit Zähler und Beteiligten,
+  neue Benutzerseite, mehrere Rollen je Organisation, Anmeldung per E-Mail
 - **0.26.2** (2026-11-27): Einsatzansicht auf dem Handy ohne Überstand
 - **0.26.1** (2026-11-27): Seite „Drohnen“ für alle Konten (eigene Wehr, nur
   lesen), Kurzanleitung für DJI Pilot 2
