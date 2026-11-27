@@ -11,6 +11,32 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.26.0] - 2026-11-27
+
+DJI-Anbindung für Enterprise-Drohnen (noch ohne Test mit echter Hardware).
+
+### Added
+
+- DJI Pilot 2 (Cloud API): Anmeldung der Fernsteuerung über `/dji`,
+  MQTT-Broker mit TLS (`scripts/configure-dji.sh`, siehe `docs/dji.md`).
+- Neue Seite „Drohnen“: DJI-Fernsteuerungen und Drohnen benennen, Wehren
+  zuordnen und sperren.
+- Karte: Drohnen live mit Kurs, Höhe und Akku, Flugspur im Einsatz,
+  Standort der Fernsteuerung.
+- Einsatz: Alle Meldungen der Drohne und Fernsteuerung werden aufgezeichnet,
+  im Bericht zusammengefasst und lassen sich als CSV oder JSONL laden.
+- Einsatzkarte: eigenen Standort mit den Beteiligten teilen (freiwillig,
+  nur letzte Position).
+
+### Changed
+
+- Quellen stehen auf der neuen Seite „Drohnen“ statt unter „Einstellungen“.
+- Menü: „Aufnahmen“ direkt unter „Karte“, darunter „Drohnen“.
+- Beim Update wird der Browser-Standortzugriff für die eigene Seite erlaubt
+  (`Permissions-Policy`).
+
+---
+
 ## [0.25.7] - 2026-11-27
 
 Standort der Wache auf der Karte wählen.

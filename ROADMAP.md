@@ -57,6 +57,9 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.26.0** (2026-11-27): DJI-Anbindung über Pilot 2 mit Live-Position und
+  Aufzeichnung aller Drohnendaten im Einsatz (noch ohne Test mit echter
+  Hardware), neue Seite „Drohnen“, Standort per Smartphone
 - **0.25.7** (2026-11-27): Standort der Wache per Pin auf der Karte wählen
 - **0.25.6** (2026-11-27): Organisationen in der Hierarchie verschieben,
   Baumdarstellung mit passenden Einordnungen je Art
@@ -238,7 +241,8 @@ Schwerpunkt bleiben Drohnen und Drohneneinsätze. Geplante Reihenfolge:
    alle Beteiligten sofort sichtbar; Übungen kennzeichnen ✔
 7. **0.25** Checklisten-Modul: Vorlagen des Landkreises, eigene Listen der
    Wehren, Checklisten im Einsatz mit Pflichtpositionen, Dokumente ✔
-8. **0.26+** DJI Cloud API (Pilot 2, Enterprise-Drohnen wie Matrice 30/350/4T
+8. **0.26+** (0.26.0: Anbindung, Telemetrie, Aufzeichnung ✔; offen: Test mit
+   Mavic 3T, Livebild-Zuordnung, Kartenelemente) DJI Cloud API (Pilot 2, Enterprise-Drohnen wie Matrice 30/350/4T
    und Mavic 3T): Live-Telemetrie auf der Karte, Kartenelemente und
    Quadranten in beide Richtungen
 9. **1.0** Umbenennung in „Open BOS“ mit Migrationsskript, Dokumenten-Modul
