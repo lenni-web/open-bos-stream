@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from open_bos_stream.version import VERSION
@@ -92,5 +92,20 @@ async def display_stream(request: Request):
         context={
             "request": request,
             "version": VERSION,
+        },
+    )
+
+
+@router.get("/sw.js", include_in_schema=False, dependencies=[PUBLIC])
+async def service_worker():
+    """Service Worker im Wurzelpfad, damit er für die ganze App gilt."""
+
+    return FileResponse(
+        "src/open_bos_stream/static/js/service-worker.js",
+        media_type="text/javascript",
+        headers={
+            # Updates sofort übernehmen, nie aus einem Zwischenspeicher.
+            "Cache-Control": "no-cache",
+            "Service-Worker-Allowed": "/",
         },
     )

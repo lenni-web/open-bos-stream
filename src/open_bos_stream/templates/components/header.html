@@ -107,6 +107,18 @@
                     Als App installieren
                 </button>
 
+                {% if user.user_id %}
+                <button
+                    id="push-menu-entry"
+                    class="app-popover-link"
+                    type="button"
+                    data-close-popover
+                    onclick="openPushDialog()">
+                    {{ icon("bell", 16) }}
+                    Benachrichtigungen
+                </button>
+                {% endif %}
+
                 <button class="app-popover-link app-logout" type="button" onclick="logoutUser()">
                     {{ icon("logout", 16) }}
                     Abmelden

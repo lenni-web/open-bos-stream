@@ -135,6 +135,14 @@ class AuthService:
             **scope.as_dict(),
         }
 
+    def session_user_for(self, user_id: int) -> dict | None:
+        """Aktuelle Rechte eines aktiven Kontos (z. B. für Push-Empfänger)."""
+
+        stored = self.ready().user_by_id(user_id)
+        if not stored or not stored.get("active", True):
+            return None
+        return self._session_user(stored)
+
     def _secret(self) -> bytes:
         if self._secret_cache is not None:
             return self._secret_cache

@@ -219,6 +219,9 @@
 </div>
 
 {% include "components/pwa_install.html" %}
+{% if user.user_id %}
+{% include "components/push_dialog.html" %}
+{% endif %}
 
 {% if can.operate %}
 
@@ -381,6 +384,9 @@ window.openBosMediaToken = {{ media_token | tojson }};
 <script src="/static/js/weather-radar.js?v={{ version }}"></script>
 
 <script src="/static/js/pwa.js?v={{ version }}"></script>
+{% if user.user_id %}
+<script src="/static/js/push.js?v={{ version }}"></script>
+{% endif %}
 </body>
 
 </html>

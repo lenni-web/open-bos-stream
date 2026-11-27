@@ -9,6 +9,22 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Push-Benachrichtigungen (Web Push) für Smartphone, Tablet und Computer:
+  Im Benutzermenü unter „Benachrichtigungen“ schaltet jedes Konto sie pro
+  Gerät ein, wählt die Ereignisse und kann eine Testnachricht senden.
+  Gemeldet werden dieselben Störungen wie per E-Mail. Meldungen zu einer
+  Quelle erhalten nur Konten, die diese Drohne sehen dürfen; serverweite
+  Störungen (Streaming-Server, Speicher, Neustart) nur Kreis-Admins und
+  Superadmins. Eine Entwarnung ersetzt die Störungsmeldung auf dem Gerät.
+- Auf iPhone und iPad funktionieren Benachrichtigungen nur in der
+  installierten App (ab iOS 16.4); der Dialog verweist dann auf die
+  Installationsanleitung. Voraussetzung ist eine HTTPS-Adresse.
+- Neue Abhängigkeit `cryptography` (Verschlüsselung nach RFC 8291/8292).
+  Der Serverschlüssel liegt in `config/webpush.key` (0600) und gehört in
+  die Sicherung, sonst müssen alle Geräte neu angemeldet werden.
+
 ### Fixed
 
 - Smartphone: Die Seite ließ sich seitlich verschieben, wenn einzelne

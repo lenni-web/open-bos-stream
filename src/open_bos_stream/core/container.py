@@ -34,6 +34,7 @@ from open_bos_stream.auth.service import AuthService
 from open_bos_stream.auth.guest_links import GuestLinkStore
 from open_bos_stream.core.event_log import ServerEventLog
 from open_bos_stream.notifications.service import NotificationService
+from open_bos_stream.notifications.push_service import PushService
 from open_bos_stream.auth.rate_limit import LoginRateLimiter
 from open_bos_stream.stream_output.service import (
     StreamOutputService,
@@ -170,6 +171,12 @@ snapshot_service = SnapshotService(
 notification_service = NotificationService(
     config,
     event_log=server_event_log,
+)
+
+push_service = PushService(
+    config,
+    auth_service,
+    key_file=ConfigLoader().config_file.parent / "webpush.key",
 )
 
 dashboard_service = DashboardService(

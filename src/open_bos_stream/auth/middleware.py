@@ -8,6 +8,7 @@ from open_bos_stream.display.ticket import TICKET_PARAMETER, ticket_valid
 
 PUBLIC_PREFIXES = (
     "/static/",
+    "/sw.js",
     "/auth/status",
     "/auth/setup",
     "/auth/login",

@@ -124,3 +124,35 @@ audit_log = Table(
     Column("target", String(200), nullable=False, default=""),
     Column("organization_id", Integer, nullable=True),
 )
+
+# Ereignisse, die ein Gerät per Web Push abonnieren kann. ``scope`` legt
+# fest, wer sie erhält: "source" = wer die Quelle sehen darf,
+# "server" = nur Kreis-Admins und Superadmins (serverweite Störungen).
+PUSH_EVENTS = {
+    "source_offline": ("Quelle ohne Signal", "source"),
+    "recording_problem": ("Aufnahme abgebrochen oder fehlgeschlagen", "source"),
+    "mediamtx_offline": ("Streaming-Server gestört", "server"),
+    "output_failed": ("Streaming-Ausgang unerwartet beendet", "server"),
+    "storage_low": ("Speicher wird knapp", "server"),
+    "server_started": ("Server neu gestartet", "server"),
+}
+
+push_subscriptions = Table(
+    "push_subscriptions",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column(
+        "user_id",
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    ),
+    Column("endpoint", String(1000), nullable=False, unique=True),
+    Column("p256dh", String(120), nullable=False),
+    Column("auth", String(40), nullable=False),
+    Column("label", String(80), nullable=False, default=""),
+    Column("events", Text, nullable=False, default="[]"),
+    Column("created_at", String(32), nullable=False),
+    Column("last_success_at", String(32), nullable=True),
+    Column("last_error", String(200), nullable=False, default=""),
+)
