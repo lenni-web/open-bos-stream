@@ -9,6 +9,13 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.26.6] - 2026-11-27
+
+Eigene Checklisten für Wehren, Zuständigkeit aus der Drohnenliste, Gastlinks
+bleiben 30 Tage nachvollziehbar.
+
 ### Added
 
 - Checklisten: Wehren erstellen eigene wiederverwendbare Checklisten, die nur

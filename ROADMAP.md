@@ -57,6 +57,9 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.26.6** (2026-11-27): Wehren pflegen eigene Checklisten, Zuständigkeit
+  auf der Einsatzkarte aus der Drohnenliste, Gastlinks werden nach 30 Tagen
+  gelöscht
 - **0.26.5** (2026-11-27): Drohnen im Einsatz nehmen automatisch auf,
   Snapshot und Aufnahme an jeder Drohnenkachel
 - **0.26.4** (2026-11-27): Mediathek nach Drohne filterbar und kompakter,
