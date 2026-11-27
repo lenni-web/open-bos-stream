@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.21.0] - 2026-11-27
+
 ### Added
 
 - **Organisationen:** Landkreis, Stadt-/Gemeinde-/Samtgemeindefeuerwehren,
