@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.22.0] - 2026-11-27
+
 ### Added
 
 - Push-Benachrichtigungen (Web Push) für Smartphone, Tablet und Computer:
@@ -24,6 +28,12 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 - Neue Abhängigkeit `cryptography` (Verschlüsselung nach RFC 8291/8292).
   Der Serverschlüssel liegt in `config/webpush.key` (0600) und gehört in
   die Sicherung, sonst müssen alle Geräte neu angemeldet werden.
+
+### Changed
+
+- Der Menüpunkt „Medien“ heißt jetzt „Aufnahmen“; der Filter unterscheidet
+  Videos und Snapshots.
+- Der interne Entwurf des Datenmodells ist nicht mehr Teil des Repositorys.
 
 ### Fixed
 

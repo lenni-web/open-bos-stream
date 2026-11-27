@@ -57,6 +57,9 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.22.0** (2026-11-27): Push-Benachrichtigungen pro Gerät, Menüpunkt
+  „Aufnahmen“ statt „Medien“, Seite auf Smartphones nicht mehr seitlich
+  verschiebbar
 - **0.21.1** (2026-11-27): Abmelden repariert, eigener Menüpunkt Organisation
 - **0.21.0** (2026-11-27): Organisationen (Landkreis, Samtgemeinden, Ortswehren),
   Rollen, Fernpilotennachweise, Quellen je Wehr; eigene Seite Livebilder
@@ -199,14 +202,16 @@ Schwerpunkt bleiben Drohnen und Drohneneinsätze. Geplante Reihenfolge:
 2. **0.20** Umstieg auf MapLibre 6, Online-Grundkarte basemap.de und Luftbild ✔
 3. **0.21** Datenbank (SQLite) und Organisationsmodell: Landkreis, Wehren,
    Mitglieder, Rollen je Wehr und auf Landkreisebene ✔
-4. **0.22** Einsätze: Beteiligte mit Einsatzrollen, Zuordnung von Aufnahmen,
-   Snapshots und Ereignissen, Einsatzbericht als PDF; Zusammenarbeit
-   mehrerer Wehren an einem Einsatz
-5. **0.23** Quadranten pro Einsatz zeichnen, benennen, zuweisen, Status
-6. **0.24+** DJI Cloud API (Pilot 2, Enterprise-Drohnen wie Matrice 30/350/4T
+4. **0.22** Push-Benachrichtigungen pro Gerät ✔
+5. **0.23** Einsätze: Alarmierung, Beteiligte mit Einsatzrollen, Zuordnung
+   von Aufnahmen, Snapshots und Ereignissen, Einsatzbericht als PDF;
+   Zusammenarbeit mehrerer Wehren, Einsatz-Gastlinks
+6. **0.24** Einsatzkarte mit Quadranten: zeichnen, benennen, Status; für
+   alle Beteiligten sofort sichtbar
+7. **0.25+** DJI Cloud API (Pilot 2, Enterprise-Drohnen wie Matrice 30/350/4T
    und Mavic 3T): Live-Telemetrie auf der Karte, Kartenelemente und
    Quadranten in beide Richtungen
-7. **1.0** Umbenennung in „Open BOS“ mit Migrationsskript, Dokumenten-Modul
+8. **1.0** Umbenennung in „Open BOS“ mit Migrationsskript, Dokumenten-Modul
 
 ---
 
