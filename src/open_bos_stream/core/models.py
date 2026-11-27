@@ -56,7 +56,7 @@ class SourceConfig(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     id: str
-    name: str = "Quelle"
+    name: str = "Drohne"
     drone_type: str = Field(default="", max_length=100)
     type: str
     profile: Literal[
@@ -113,7 +113,7 @@ class SourceConfig(BaseModel):
     def validate_name(cls, value: str) -> str:
         value = value.strip()
         if not value:
-            raise ValueError("Quellenname darf nicht leer sein.")
+            raise ValueError("Drohnenname darf nicht leer sein.")
         return value
 
     @field_validator("drone_type")
@@ -173,11 +173,11 @@ class SourceConfig(BaseModel):
             if self.type != "rtsp":
                 raise ValueError(
                     "Eine separate Vorschau-URL wird derzeit nur für "
-                    "RTSP-Quellen unterstützt."
+                    "den RTSP-Abruf unterstützt."
                 )
             if not self.preview_url.startswith("rtsp://"):
                 raise ValueError(
-                    "Die Vorschau-URL einer RTSP-Quelle muss mit "
+                    "Die Vorschau-URL einer RTSP-Drohne muss mit "
                     "rtsp:// beginnen."
                 )
         if self.type != "rtmp":
@@ -194,8 +194,8 @@ class SourceConfig(BaseModel):
                 )
         if self.is_preview_transcode and self.type != "rtmp":
             raise ValueError(
-                "Das Mehrquellen-Vorschauprofil ist nur für "
-                "RTMP-Quellen verfügbar."
+                "Das Übersichts-Vorschauprofil ist nur für "
+                "den RTMP-Empfang verfügbar."
             )
         if self.type == "v4l2" and not self.device:
             raise ValueError("Für die Capture Card fehlt das Gerät.")
@@ -269,7 +269,7 @@ class RTMPInputConfig(BaseModel):
     def validate_name(cls, value: str) -> str:
         value = value.strip()
         if not value:
-            raise ValueError("Quellenname darf nicht leer sein.")
+            raise ValueError("Drohnenname darf nicht leer sein.")
         return value
 
     @field_validator("path")
@@ -392,7 +392,7 @@ class MediaCaptureConfig(BaseModel):
     """Superadmin-Auswahl für Snapshots und Aufzeichnungen.
 
     ``source_id`` ist die Medienquelle für Snapshot und manuelle Aufnahme.
-    ``automatic_source_ids`` sind die Quellen, die bei Eingangssignal
+    ``automatic_source_ids`` sind die Drohnen, die bei Eingangssignal
     selbstständig aufnehmen (ohne feste Obergrenze; die Serverlast wird
     überwacht).
     ``recording_mode`` stammt aus Versionen bis 0.18 und wird nur noch zur
@@ -633,7 +633,7 @@ class AppConfig(BaseModel):
 
     @model_validator(mode="after")
     def normalize_capture_card_mode(self) -> "AppConfig":
-        """Bekannte Quellenprofile konsistent halten."""
+        """Bekannte Profile konsistent halten."""
 
         if self.source_profile is None:
             if self.input.type == "v4l2":
@@ -716,11 +716,11 @@ class AppConfig(BaseModel):
     def validate_rtmp_inputs(self) -> "AppConfig":
         source_ids = [item.id for item in self.sources]
         if len(source_ids) != len(set(source_ids)):
-            raise ValueError("Quellen-IDs müssen eindeutig sein.")
+            raise ValueError("Drohnen-IDs müssen eindeutig sein.")
         viewer_paths = [item.viewer_path for item in self.sources]
         if len(viewer_paths) != len(set(viewer_paths)):
             raise ValueError(
-                "Wiedergabepfade der Quellen müssen eindeutig sein."
+                "Wiedergabepfade der Drohnen müssen eindeutig sein."
             )
 
         # Übergangsweise folgen Einzelstream-Verbraucher wie Diagnose,

@@ -245,7 +245,7 @@ def test_direct_rtmp_source_applies_without_stream_restart() -> None:
     assert stream.restarts == 0
     assert len(runtime.sources) == 2
     assert loader.last_known_good is not None
-    assert "direkte Quellen" in message
+    assert "Drohnen im Direktbetrieb" in message
 
 
 def test_removing_last_managed_source_stops_without_restart(
@@ -274,4 +274,4 @@ def test_removing_last_managed_source_stops_without_restart(
     assert stream.stops == 1
     assert stream.restarts == 0
     assert loader.last_known_good is not None
-    assert "0 direkte Quellen" in message
+    assert "0 Drohnen im Direktbetrieb" in message

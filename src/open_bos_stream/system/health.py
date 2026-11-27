@@ -48,7 +48,7 @@ class HealthService:
 
     @property
     def input_available(self) -> bool:
-        """Prüft, ob die aktive Eingangsquelle verfügbar ist."""
+        """Prüft, ob die aktive Drohne verfügbar ist."""
 
         from pathlib import Path
 

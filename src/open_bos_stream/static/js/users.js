@@ -469,7 +469,7 @@ function renderNewUserForm() {
             </div>
             <p class="users-hint">
                 Zuschauer sehen Livebilder, Karte und Wetter ihrer Organisation. Drohnenteams
-                erstellen zusätzlich Gastlinks. Wehr-Admins verwalten Quellen und Konten.
+                erstellen zusätzlich Gastlinks. Wehr-Admins verwalten Drohnen und Konten.
                 Der Ortsbrandmeister (nur in Ortsfeuerwehren) hat dieselben Rechte.
                 Rollen gelten auch für alle Untereinheiten.
             </p>

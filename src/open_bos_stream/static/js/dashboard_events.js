@@ -55,7 +55,7 @@ function checkSourceEvents(sources = []) {
         }
         addEvent(
             "info",
-            `⚪ ${previous.name}: Quelle deaktiviert oder entfernt`
+            `⚪ ${previous.name}: Drohne deaktiviert oder entfernt`
         );
         delete lastDashboardState.sources[sourceId];
     }

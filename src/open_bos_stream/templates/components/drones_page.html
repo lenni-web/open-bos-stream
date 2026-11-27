@@ -5,22 +5,22 @@
             <span class="page-eyebrow">{{ "Konfiguration" if can.admin else "Meine Wehr" }}</span>
             <h1>Drohnen</h1>
         </div>
-        <p>{% if can.admin %}Quellen für die Livebilder sowie DJI-Fernsteuerungen und Drohnen verwalten.{% else %}Drohnen und DJI-Geräte der eigenen Wehr ansehen.{% endif %}</p>
+        <p>{% if can.admin %}Drohnen und ihre Livebilder sowie DJI-Fernsteuerungen verwalten.{% else %}Drohnen und DJI-Geräte der eigenen Wehr ansehen.{% endif %}</p>
     </header>
 
     {% if can.admin %}
     <div id="drone-sources-content" class="settings-grid">
         <section class="bos-card settings-section settings-section-rtmp-inputs">
             <div class="settings-section-header">
-                <span class="settings-icon" aria-hidden="true">{{ icon("layers", 20) }}</span>
+                <span class="settings-icon" aria-hidden="true">{{ icon("drone", 20) }}</span>
                 <div>
-                    <span class="section-kicker">Mehrquellenempfang</span>
-                    <h2>Quellen</h2>
-                    <p>Beliebig viele gleichwertige lokale oder Netzwerkquellen – die Serverlast wird überwacht.</p>
+                    <span class="section-kicker">Livebild-Übertragung</span>
+                    <h2>Drohnen mit Livebild</h2>
+                    <p>Beliebig viele gleichberechtigte Drohnen und Kameras – die Serverlast wird überwacht.</p>
                     <p class="settings-profile-recommendation">
                         <strong>Profil-Empfehlung:</strong>
-                        „Ausgewogen“ bietet bis zu vier Quellen in klarerer
-                        480p-Vorschau. Ab fünf Quellen oder bei knappen
+                        „Ausgewogen“ bietet bis zu vier Drohnen in klarerer
+                        480p-Vorschau. Ab fünf Drohnen oder bei knappen
                         CPU-Reserven empfiehlt sich „Sparsam“ mit 360p.
                         Im Vollbild bleibt bei beiden das Original erhalten.
                     </p>
@@ -36,7 +36,7 @@
                 class="bos-button"
                 type="button"
                 onclick="addSource()">
-                + Quelle hinzufügen
+                + Drohne hinzufügen
             </button>
 
             <div class="info-note">
@@ -105,8 +105,8 @@
             <div class="settings-section-header">
                 <span class="settings-icon" aria-hidden="true">{{ icon("drone", 20) }}</span>
                 <div>
-                    <span class="section-kicker">Cloud API</span>
-                    <h2 id="dji-devices-title">DJI-Fernsteuerungen und Drohnen</h2>
+                    <span class="section-kicker">DJI Cloud API</span>
+                    <h2 id="dji-devices-title">DJI-Fernsteuerungen und Flugdaten</h2>
                     <p>{{ "Geräte benennen, einer Wehr zuordnen oder sperren." if can.admin else "Geräte der eigenen Wehr, nur zum Ansehen." }}</p>
                 </div>
             </div>

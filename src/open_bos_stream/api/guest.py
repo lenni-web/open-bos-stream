@@ -121,14 +121,14 @@ async def create_guest_link(payload: GuestLinkCreate, request: Request) -> dict:
     if unknown:
         raise HTTPException(
             status_code=422,
-            detail="Unbekannte oder deaktivierte Quelle ausgewählt.",
+            detail="Unbekannte oder deaktivierte Drohne ausgewählt.",
         )
     user = request.state.user
     chosen = [enabled[item] for item in payload.source_ids]
     if not all(can_operate_source(user, source) for source in chosen):
         raise HTTPException(
             status_code=403,
-            detail="Gastlinks nur für Quellen der eigenen Organisation.",
+            detail="Gastlinks nur für Drohnen der eigenen Organisation.",
         )
     organization_id = next(
         (source.organization_id for source in chosen if source.organization_id),
@@ -148,7 +148,7 @@ async def create_guest_link(payload: GuestLinkCreate, request: Request) -> dict:
     except GuestLinkError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     logger.info(
-        "Gastlink „%s“ von %s erstellt (Quellen: %s, gültig bis %s).",
+        "Gastlink „%s“ von %s erstellt (Drohnen: %s, gültig bis %s).",
         link.label,
         creator,
         ", ".join(link.source_ids),

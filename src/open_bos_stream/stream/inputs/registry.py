@@ -57,7 +57,7 @@ class InputRegistry:
                 try:
                     fields = builder.metadata_fields()
                 except (RuntimeError, TimeoutError, OSError):
-                    # Die übrigen Quellentypen bleiben auch dann
+                    # Die übrigen Anschlussarten bleiben auch dann
                     # konfigurierbar, wenn die lokale Hardwareerkennung
                     # auf diesem System nicht verfügbar ist.
                     fields = builder.fields

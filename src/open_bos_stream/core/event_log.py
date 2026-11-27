@@ -1,6 +1,6 @@
 """Serverseitiges, dauerhaftes Ereignisprotokoll.
 
-Alle wichtigen Ereignisse (Quellen, Aufnahmen, Weiterleitungen, Speicher,
+Alle wichtigen Ereignisse (Drohnen, Aufnahmen, Weiterleitungen, Speicher,
 Konfiguration, Gastlinks, Benachrichtigungen, Serverstart) werden auf dem
 Server erfasst – auch ohne geöffnete Oberfläche – und in
 ``config/event_log.jsonl`` gespeichert. Einträge bleiben 30 Tage erhalten und

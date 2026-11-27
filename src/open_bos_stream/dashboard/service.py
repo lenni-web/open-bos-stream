@@ -204,7 +204,7 @@ class DashboardService:
             stream_state = "repairing"
             stream_message = (
                 "Stream online; Zeitstempel-Reparatur für die "
-                "instabile RTMP-Quelle ist aktiv."
+                "instabile RTMP-Drohne ist aktiv."
             )
             stream_error = None
         elif stream_running and mediamtx.ready and timestamp_warning:
@@ -365,7 +365,7 @@ class DashboardService:
                         else (
                             "Lokale Capture Card"
                             if item.type == "v4l2"
-                            else f"{item.type.upper()}-Netzwerkquelle"
+                            else f"{item.type.upper()}-Netzwerkstream"
                         )
                     ),
                     "online": (
@@ -507,6 +507,6 @@ class DashboardService:
             raise KeyError(source_id)
         if not self._mediamtx.status(source.viewer_path).ready:
             raise RuntimeError(
-                "Die Quelle liefert momentan kein ausgabefähiges Signal."
+                "Die Drohne liefert momentan kein ausgabefähiges Signal."
             )
         return self._probe.probe_source(source)

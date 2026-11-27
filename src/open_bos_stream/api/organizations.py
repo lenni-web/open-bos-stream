@@ -303,7 +303,7 @@ def delete_organization(organization_id: int, request: Request) -> dict:
     if any(source.organization_id == organization_id for source in runtime_config.sources):
         raise HTTPException(
             status_code=409,
-            detail="Der Organisation sind noch Quellen zugeordnet.",
+            detail="Der Organisation sind noch Drohnen zugeordnet.",
         )
     try:
         org.delete_organization(organization_id, actor=_actor(request))

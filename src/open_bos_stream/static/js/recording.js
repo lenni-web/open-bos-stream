@@ -310,7 +310,7 @@ function updateRecordingUI(
         : window.dashboard?.media_capture?.source_name;
     updateValue(
         "media-capture-source-name",
-        selectedName || "Keine Quelle ausgewählt"
+        selectedName || "Keine Drohne ausgewählt"
     );
 
     const startButton =

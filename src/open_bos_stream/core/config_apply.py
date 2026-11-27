@@ -69,7 +69,7 @@ class ConfigApplyService:
                 and installation_profile() == "server"
             ):
                 raise ConfigApplyError(
-                    f"Die Capture-Quelle '{source.name}' ist im "
+                    f"Die lokale Kamera '{source.name}' ist im "
                     "Server-Profil nicht verfügbar."
                 )
             if (
@@ -77,12 +77,12 @@ class ConfigApplyService:
                 and not Path(source.device or "").exists()
             ):
                 raise ConfigApplyError(
-                    f"Capture-Gerät '{source.device}' der Quelle "
+                    f"Capture-Gerät '{source.device}' der Drohne "
                     f"'{source.name}' ist nicht verfügbar."
                 )
             if source.type == "rtsp" and not source.url:
                 raise ConfigApplyError(
-                    f"Für die RTSP-Quelle '{source.name}' fehlt die URL."
+                    f"Für die RTSP-Drohne '{source.name}' fehlt die URL."
                 )
 
     def _replace_runtime(self, config: AppConfig) -> None:
@@ -123,7 +123,7 @@ class ConfigApplyService:
                 self._loader.save_last_known_good(candidate)
                 return (
                     f"Vorabprüfung erfolgreich ({len(checks)} Prüfungen). "
-                    f"{len(candidate.sources)} direkte Quellen übernommen; "
+                    f"{len(candidate.sources)} Drohnen im Direktbetrieb übernommen; "
                     "MediaMTX wartet auf Publisher."
                 )
 
@@ -141,8 +141,8 @@ class ConfigApplyService:
             self._loader.save_last_known_good(candidate)
             return (
                 f"Vorabprüfung erfolgreich ({len(checks)} Prüfungen). "
-                f"{len(candidate.sources)} Quellen aktiviert und "
-                "Mehrquellen-Streamer neu gestartet."
+                f"{len(candidate.sources)} Drohnen aktiviert und "
+                "Streamer neu gestartet."
             )
 
         except Exception as exc:

@@ -55,19 +55,19 @@ class StreamOutputService:
 
         if source is None:
             raise RuntimeError(
-                "Für den Streaming Output ist keine gültige Quelle gewählt."
+                "Für den Streaming Output ist keine gültige Drohne gewählt."
             )
 
         if not source.enabled:
             raise RuntimeError(
-                f"Die gewählte Quelle '{source.name}' ist deaktiviert."
+                f"Die gewählte Drohne '{source.name}' ist deaktiviert."
             )
 
         path = self._mediamtx.path(source.viewer_path)
 
         if path is None:
             raise RuntimeError(
-                f"Die gewählte Quelle '{source.name}' ist nicht aktiv."
+                f"Die gewählte Drohne '{source.name}' ist nicht aktiv."
             )
 
         if not path.get(
@@ -75,7 +75,7 @@ class StreamOutputService:
             False,
         ):
             raise RuntimeError(
-                f"Die gewählte Quelle '{source.name}' ist nicht bereit."
+                f"Die gewählte Drohne '{source.name}' ist nicht bereit."
             )
 
         try:

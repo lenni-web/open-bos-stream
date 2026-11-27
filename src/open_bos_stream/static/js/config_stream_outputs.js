@@ -71,7 +71,7 @@ function renderStreamOutputs() {
 
                     </select>
 
-                    <label>Weiterzuleitende Quelle</label>
+                    <label>Weiterzuleitende Drohne</label>
 
                     <select
                         class="bos-input"
@@ -81,7 +81,7 @@ function renderStreamOutputs() {
 
                         ${sourceOptions || `
                             <option value="">
-                                Keine Quelle verfügbar
+                                Keine Drohne verfügbar
                             </option>
                         `}
 

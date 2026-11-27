@@ -193,7 +193,7 @@ function renderPushEvents() {
                     onchange="savePushEvents()">
                 <span>${escapeHTML(event.label)}</span>
             </label>`).join("")}
-        <p class="push-hint">Meldungen zu Quellen kommen nur für Drohnen der eigenen
+        <p class="push-hint">Meldungen zu Drohnen kommen nur für Drohnen der eigenen
             Wehr(en). Entwarnungen ersetzen die Störungsmeldung.</p>`;
 }
 

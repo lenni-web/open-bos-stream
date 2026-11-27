@@ -144,7 +144,7 @@ class StreamService:
             (
                 ("Device or resource busy",),
                 "device_busy",
-                "Prüfen, ob ein anderer Prozess die Quelle verwendet.",
+                "Prüfen, ob ein anderer Prozess die Drohne verwendet.",
             ),
             (
                 ("No such file or directory",),
@@ -157,7 +157,7 @@ class StreamService:
                     "non monotonically increasing",
                 ),
                 "timestamps",
-                "Zeitstempel der Eingangsquelle sind instabil.",
+                "Zeitstempel des Eingangssignals sind instabil.",
             ),
             (
                 (
@@ -165,7 +165,7 @@ class StreamService:
                     "Input/output error",
                 ),
                 "input_unavailable",
-                "Eingangsquelle und Verbindung prüfen.",
+                "Drohne und Verbindung prüfen.",
             ),
             (
                 ("Unknown encoder", "Encoder not found"),

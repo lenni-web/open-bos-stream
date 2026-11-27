@@ -22,11 +22,11 @@ function sourceProfileOptions(selected, sourceType) {
         ],
         [
             "preview_transcode",
-            "Mehrquellen-Vorschau · ausgewogen (max. 480p)",
+            "Übersichts-Vorschau · ausgewogen (max. 480p)",
         ],
         [
             "preview_transcode_economy",
-            "Mehrquellen-Vorschau · sparsam (max. 360p)",
+            "Übersichts-Vorschau · sparsam (max. 360p)",
         ],
         ["transcode", "Transcodieren"],
         [
@@ -109,7 +109,7 @@ function sourceTranscodingFields(source) {
     const codec = source.codec ?? encoder.codec;
     return `
         <fieldset class="source-transcoding form-field-wide">
-            <legend>Transcoding dieser Quelle</legend>
+            <legend>Transcoding dieser Drohne</legend>
             <div class="form-grid">
                 <div class="form-field">
                     <label>Encoder</label>
@@ -162,7 +162,7 @@ function sourcePreviewProfileHint(source) {
         <div class="form-field form-field-wide source-profile-hint">
             <small>
                 Die Übersicht nutzt eine H.264-Vorschau mit maximal
-                ${quality} und ohne Audio. Kleinere Quellen werden
+                ${quality} und ohne Audio. Kleinere Drohnen werden
                 nicht hochskaliert; Vollbild zeigt den Originalstream.
             </small>
         </div>
@@ -321,7 +321,7 @@ function sourceOrganizationField(source) {
                     </option>
                 `).join("")}
             </select>
-            <small>Mitglieder dieser Organisation sehen die Quelle.</small>
+            <small>Mitglieder dieser Organisation sehen die Drohne.</small>
         </div>
     `;
 }
@@ -472,7 +472,7 @@ function sourceSpecificFields(source) {
         );
         return `
             <div class="form-field form-field-wide">
-                <label>${escapeHTML(urlField?.label ?? "Quell-URL")}</label>
+                <label>${escapeHTML(urlField?.label ?? "Stream-URL")}</label>
                 <input
                     class="bos-input"
                     data-field="url"
@@ -538,7 +538,7 @@ function renderSources() {
     const sources = currentConfig.sources ?? [];
     container.innerHTML = sources.length
         ? ""
-        : `<p class="empty-state">Noch keine Quelle konfiguriert.</p>`;
+        : `<p class="empty-state">Noch keine Drohne konfiguriert.</p>`;
 
     sources.forEach((source, index) => {
         const card = document.createElement("details");
@@ -547,7 +547,7 @@ function renderSources() {
         card.innerHTML = `
             <summary class="rtmp-input-config-header">
                 <div>
-                    <strong>Quelle ${index + 1}: ${escapeHTML(source.name)}</strong>
+                    <strong>${escapeHTML(source.name || `Drohne ${index + 1}`)}</strong>
                     <small>${escapeHTML(
                         source.type === "rtmp" && source.ingest_protocol === "srt"
                             ? "srt-empfang"
@@ -557,16 +557,16 @@ function renderSources() {
                 <div class="source-order-actions">
                     <button class="bos-button bos-button-small"
                         type="button"
-                        title="Quelle nach oben verschieben"
-                        aria-label="Quelle nach oben verschieben"
+                        title="Drohne nach oben verschieben"
+                        aria-label="Drohne nach oben verschieben"
                         onclick="event.preventDefault(); event.stopPropagation(); moveSource(${index}, -1)"
                         ${index === 0 ? "disabled" : ""}>
                         ↑
                     </button>
                     <button class="bos-button bos-button-small"
                         type="button"
-                        title="Quelle nach unten verschieben"
-                        aria-label="Quelle nach unten verschieben"
+                        title="Drohne nach unten verschieben"
+                        aria-label="Drohne nach unten verschieben"
                         onclick="event.preventDefault(); event.stopPropagation(); moveSource(${index}, 1)"
                         ${index === sources.length - 1 ? "disabled" : ""}>
                         ↓
@@ -600,7 +600,7 @@ function renderSources() {
                     <small>Nur Kleinbuchstaben, Zahlen, „-“ und „_“.</small>
                 </div>
                 <div class="form-field">
-                    <label>Quellentyp</label>
+                    <label>Anschlussart</label>
                     <select class="bos-input" data-field="type">
                         ${sourceTypeOptions(source.type)}
                     </select>
@@ -628,7 +628,7 @@ function renderSources() {
             <label class="switch-row">
                 <input type="checkbox" data-field="enabled"
                     ${source.enabled ? "checked" : ""}>
-                <span><strong>Quelle aktivieren</strong></span>
+                <span><strong>Drohne aktivieren</strong></span>
             </label>
             <div data-source-history="${escapeHTML(source.id)}"></div>
         `;
@@ -830,7 +830,7 @@ function addSource() {
 
     let number = currentConfig.sources.length + 1;
     const ids = new Set(currentConfig.sources.map(source => source.id));
-    while (ids.has(`quelle-${number}`)) {
+    while (ids.has(`drohne-${number}`)) {
         number += 1;
     }
     // Wehr-Admins sehen nicht alle Quellen des Servers; eine zufällige
@@ -838,10 +838,10 @@ function addSource() {
     const restricted = !window.currentPermissions?.server_admin;
     const newId = restricted
         ? `drohne-${Math.random().toString(36).slice(2, 7)}`
-        : `quelle-${number}`;
+        : `drohne-${number}`;
     currentConfig.sources.push({
         id: newId,
-        name: `Quelle ${number}`,
+        name: `Drohne ${number}`,
         drone_type: "",
         type: "rtmp",
         profile: "direct",
@@ -941,8 +941,8 @@ function updateSourceCountHint(count) {
     }
     hint.hidden = count < SOURCE_LOAD_HINT_FROM;
     hint.textContent = count >= SOURCE_LOAD_HINT_FROM
-        ? `${count} Quellen eingerichtet. Jede aktive Quelle belegt Rechenleistung ` +
+        ? `${count} Drohnen eingerichtet. Jede aktive Drohne belegt Rechenleistung ` +
           "auf dem Server. Die Auslastung wird überwacht; bei hoher Last erscheint " +
-          "ein Hinweis. Für viele Quellen das sparsame Vorschauprofil wählen."
+          "ein Hinweis. Für viele Drohnen das sparsame Vorschauprofil wählen."
         : "";
 }

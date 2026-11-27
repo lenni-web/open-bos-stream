@@ -140,7 +140,7 @@ function renderOrganizationRow(org) {
             <div class="org-row-main">
                 <strong>${escapeHTML(org.name)}</strong>
                 <small>${escapeHTML(org.kind_label)}${org.short_name ? ` · ${escapeHTML(org.short_name)}` : ""}
-                    · ${org.member_count} Konten · ${org.source_count} Quellen
+                    · ${org.member_count} Konten · ${org.source_count} Drohnen
                     ${org.archived ? " · archiviert" : ""}
                     ${misplaced ? " · Einordnung prüfen" : ""}</small>
             </div>

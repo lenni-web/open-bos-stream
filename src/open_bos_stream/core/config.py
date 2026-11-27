@@ -120,7 +120,7 @@ class ConfigLoader:
                 if path:
                     data["rtmp_inputs"].append({
                         "id": "quelle-1",
-                        "name": "Quelle 1",
+                        "name": "Drohne 1",
                         "path": path,
                         "viewer_path": (
                             data.get("stream", {}).get("name")
@@ -190,7 +190,7 @@ class ConfigLoader:
 
             sources.append({
                 "id": primary_id,
-                "name": "Quelle 1",
+                "name": "Drohne 1",
                 "type": input_config.get("type", "v4l2"),
                 "profile": profile,
                 "enabled": True,

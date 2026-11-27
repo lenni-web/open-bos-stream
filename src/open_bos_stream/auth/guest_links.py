@@ -2,7 +2,7 @@
 
 Der Link enthält einen zufälligen Code; gespeichert wird nur dessen
 SHA-256-Hash. Ein Gastlink gilt höchstens 48 Stunden, nur für die beim
-Erstellen gewählten Quellen und lässt sich jederzeit sperren. Abgelaufene
+Erstellen gewählten Drohnen und lässt sich jederzeit sperren. Abgelaufene
 und gesperrte Links bleiben sieben Tage zur Nachvollziehbarkeit sichtbar.
 """
 
@@ -143,7 +143,7 @@ class GuestLinkStore:
             raise GuestLinkError("Die Bezeichnung ist zu lang (max. 80 Zeichen).")
         source_ids = list(dict.fromkeys(source_ids))
         if not source_ids and incident_id is None:
-            raise GuestLinkError("Bitte mindestens eine Quelle auswählen.")
+            raise GuestLinkError("Bitte mindestens eine Drohne auswählen.")
         if not 0 < hours <= MAX_HOURS:
             raise GuestLinkError(
                 f"Ein Gastlink gilt höchstens {MAX_HOURS} Stunden."

@@ -103,7 +103,7 @@ class SnapshotService:
         path = self._mediamtx.path(source.viewer_path)
         if path is None or not path.get("ready", False):
             raise RuntimeError(
-                f"Quelle '{source.name}' ist nicht verfügbar."
+                f"Drohne '{source.name}' ist nicht verfügbar."
             )
         if self._storage is not None:
             self._storage.ensure_capacity()
@@ -182,5 +182,5 @@ class SnapshotService:
                 None,
             )
         if source is None:
-            raise RuntimeError("Keine aktive Medienquelle konfiguriert.")
+            raise RuntimeError("Keine aktive Drohne konfiguriert.")
         return source

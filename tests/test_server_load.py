@@ -38,7 +38,7 @@ def test_sustained_high_cpu_warns_and_recovers_with_hysteresis() -> None:
     status = load_monitor.status(active_sources=10)
     assert status["level"] == "warning"
     assert "CPU 88 %" in status["reasons"]
-    assert "10 aktiven Quellen" in status["message"]
+    assert "10 aktiven Drohnen" in status["message"]
 
     # Knapp unter der Schwelle bleibt der Hinweis (kein Flackern).
     feed(load_monitor, clock, 76)
@@ -64,19 +64,19 @@ def test_overload_is_reported_after_two_minutes_and_logged() -> None:
     notifier.evaluate({}, 0)
     assert not [n for n in notifier.evaluate(status, 10) if n.event == "server_load"]
     notices = [n for n in notifier.evaluate(status, 140) if n.event == "server_load"]
-    assert notices and "12 aktiven Quellen" in notices[0].body
+    assert notices and "12 aktiven Drohnen" in notices[0].body
     recovered = notifier.evaluate({"server_load": {"level": "ok"}}, 200)
     assert any(n.event == "server_load" and n.recovery for n in recovered)
 
     tracker = StatusEventTracker()
     tracker.evaluate({"server_load": {"level": "ok"}})
-    assert tracker.evaluate(status) == [("error", "🖥 Server überlastet (CPU 97 %) bei 12 aktiven Quellen")]
+    assert tracker.evaluate(status) == [("error", "🖥 Server überlastet (CPU 97 %) bei 12 aktiven Drohnen")]
 
 
 def test_restricted_users_do_not_learn_total_source_count() -> None:
     data = {"sources": [], "server_load": {
         "level": "warning", "reasons": ["CPU 85 %"], "active_sources": 14,
-        "message": "Hohe Serverauslastung (CPU 85 %) bei 14 aktiven Quellen.",
+        "message": "Hohe Serverauslastung (CPU 85 %) bei 14 aktiven Drohnen.",
     }}
     filtered = filter_status_sources(data, set())["server_load"]
     assert filtered["active_sources"] is None

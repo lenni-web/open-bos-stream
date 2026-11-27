@@ -54,7 +54,7 @@ class ConfigPreflightValidator:
 
         enabled = [source for source in config.sources if source.enabled]
         if not enabled:
-            checks.append("Keine Quelle aktiviert")
+            checks.append("Keine Drohne aktiviert")
             return checks
 
         managed = [source for source in enabled if source.requires_process]
@@ -65,7 +65,7 @@ class ConfigPreflightValidator:
                 device = Path(source.device or "")
                 if not device.exists():
                     raise ConfigPreflightError(
-                        f"Capture-Gerät '{device}' der Quelle "
+                        f"Capture-Gerät '{device}' der Drohne "
                         f"'{source.name}' ist nicht verfügbar."
                     )
             schemes = {
@@ -77,7 +77,7 @@ class ConfigPreflightValidator:
             }.get(source.type)
             if schemes and not self._valid_url(source.url, schemes):
                 raise ConfigPreflightError(
-                    f"{source.type.upper()}-URL der Quelle "
+                    f"{source.type.upper()}-URL der Drohne "
                     f"'{source.name}' ist ungültig."
                 )
 

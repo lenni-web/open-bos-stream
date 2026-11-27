@@ -11,6 +11,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ### Changed
 
+- Die bisherigen „Quellen“ heißen in Oberfläche, Meldungen und
+  Benachrichtigungen jetzt „Drohnen“. Auf der Seite „Drohnen“ ersetzt
+  „Drohnen mit Livebild“ den Titel „Mehrquellenempfang“. Eigene Namen,
+  IDs und Empfangsadressen bleiben unverändert.
 - Das Wetter der Kartenmitte liegt nicht mehr über der Karte, sondern in
   einem eigenen Feld darunter – vor allem auf dem Smartphone bleibt so
   mehr Karte sichtbar.

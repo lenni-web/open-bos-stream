@@ -228,7 +228,7 @@ function renderMediaCaptureConfig() {
                 ${escapeHTML(source.name)}
             </option>
         `).join("")
-        : '<option value="">Keine aktive Quelle</option>';
+        : '<option value="">Keine aktive Drohne</option>';
 
     const selected = currentConfig.media_capture?.source_id;
     if (selected && sources.some(source => source.id === selected)) {
@@ -256,7 +256,7 @@ function renderAutomaticRecordingSources(sources) {
                 <span><strong>${escapeHTML(source.name)}</strong></span>
             </label>
         `).join("")
-        : "<small>Keine aktive Quelle.</small>";
+        : "<small>Keine aktive Drohne.</small>";
     if (!list.dataset.immediateSaveBound) {
         list.dataset.immediateSaveBound = "true";
         list.addEventListener("change", () => {
@@ -359,8 +359,8 @@ async function saveRecordingModeImmediately() {
             status.textContent = count === 0
                 ? "Keine automatische Aufnahme aktiv."
                 : count === 1
-                    ? "Eine Quelle nimmt automatisch auf."
-                    : `${count} Quellen nehmen automatisch auf.`;
+                    ? "Eine Drohne nimmt automatisch auf."
+                    : `${count} Drohnen nehmen automatisch auf.`;
         }
     } catch (err) {
         if (status) {

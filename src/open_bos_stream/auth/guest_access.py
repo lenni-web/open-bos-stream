@@ -2,7 +2,7 @@
 
 * Gäste: nur die Quellen ihres Gastlinks.
 * Konten: Quellen der Organisationen, in denen sie eine Rolle haben
-  (inklusive Unterbaum), dazu Quellen ohne Zuordnung.
+  (inklusive Unterbaum), dazu Drohnen ohne Zuordnung.
 * Superadmin und das lokale Display: alles.
 """
 
@@ -123,7 +123,7 @@ def require_source_access(user: dict | None, source_id: str, config: AppConfig) 
     if source is not None and not can_see_source(user, source):
         raise HTTPException(
             status_code=403,
-            detail="Diese Quelle gehört zu einer anderen Organisation.",
+            detail="Diese Drohne gehört zu einer anderen Organisation.",
         )
 
 
@@ -148,5 +148,5 @@ def require_guest_source(user: dict | None, source_id: str) -> None:
     if is_guest(user) and source_id not in set(user.get("source_ids") or []):
         raise HTTPException(
             status_code=403,
-            detail="Diese Quelle ist für den Gastzugang nicht freigegeben.",
+            detail="Diese Drohne ist für den Gastzugang nicht freigegeben.",
         )

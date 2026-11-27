@@ -31,7 +31,7 @@ def source_health(
 
     timestamp = time.time() if now is None else now
     code = "stable" if ready else "offline"
-    message = "Quelle liefert ein ausgabefähiges Signal."
+    message = "Drohne liefert ein ausgabefähiges Signal."
 
     if not managed:
         if not ready:
@@ -75,7 +75,7 @@ def source_health(
     if state in {"restarting", "waiting_restart"}:
         return _result(
             "recovering",
-            "Die Quelle wird automatisch neu verbunden.",
+            "Die Drohne wird automatisch neu verbunden.",
         )
     if not ready:
         return _result(

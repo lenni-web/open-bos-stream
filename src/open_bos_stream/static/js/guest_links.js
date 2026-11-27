@@ -26,10 +26,10 @@ function renderGuestLinkSources() {
         return;
     }
     const sources = window.dashboard?.sources ?? [];
-    const legend = '<legend>Freigegebene Quellen</legend>';
+    const legend = '<legend>Freigegebene Drohnen</legend>';
     if (sources.length === 0) {
         fieldset.innerHTML = legend +
-            "<p>Es sind keine aktiven Quellen eingerichtet.</p>";
+            "<p>Es sind keine aktiven Drohnen eingerichtet.</p>";
         return;
     }
     const anyOnline = sources.some(source => source.ready);
@@ -93,7 +93,7 @@ async function submitGuestLink(event) {
         return;
     }
     if (sourceIds.length === 0) {
-        status.textContent = "Bitte mindestens eine Quelle auswählen.";
+        status.textContent = "Bitte mindestens eine Drohne auswählen.";
         return;
     }
 

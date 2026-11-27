@@ -78,7 +78,7 @@ class FullscreenRelayManager:
             raise KeyError(source_id)
         if source.fullscreen_viewer_path == source.viewer_path:
             raise ValueError(
-                "Für diese Quelle ist kein separater Hauptstream konfiguriert."
+                "Für diese Drohne ist kein separater Hauptstream konfiguriert."
             )
         return source
 
@@ -119,7 +119,7 @@ class FullscreenRelayManager:
                 relay = FullscreenRelay(source=source, process=process)
                 self._relays[source_id] = relay
                 logger.info(
-                    "Hauptstream für Quelle %s bereitgestellt (PID %s)",
+                    "Hauptstream für Drohne %s bereitgestellt (PID %s)",
                     source_id,
                     process.pid if process is not None else "direkt",
                 )
@@ -171,7 +171,7 @@ class FullscreenRelayManager:
             except ProcessLookupError:
                 pass
         self._relays.pop(source_id, None)
-        logger.info("Hauptstream für Quelle %s freigegeben", source_id)
+        logger.info("Hauptstream für Drohne %s freigegeben", source_id)
 
     def _monitor_relays(self) -> None:
         while not self._stopping.wait(1.0):

@@ -172,7 +172,7 @@ async def save_sources(sources: list[SourceConfig], request: Request):
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     result = await apply_config(candidate)
-    _log_change("Quellen gespeichert und aktiviert", request)
+    _log_change("Drohnen gespeichert und aktiviert", request)
     return result
 
 
@@ -195,7 +195,7 @@ def fetches_internal_address(source: SourceConfig) -> bool:
     """Würde der Server eine Adresse im eigenen bzw. internen Netz abrufen?
 
     Schutz gegen Anfragen an interne Dienste (z. B. die MediaMTX-API) über
-    eine von Wehr-Admins eingetragene Quelle.
+    eine von Wehr-Admins eingetragene Drohne.
     """
 
     if source.type not in OUTBOUND_SOURCE_TYPES:
@@ -226,7 +226,7 @@ def merge_sources(
     """Quellen aus dem Browser mit dem Serverstand zusammenführen.
 
     Kreis-Admins und Superadmins ersetzen die Liste. Wehr-Admins ändern nur
-    Quellen ihrer Organisationen; alle übrigen bleiben unverändert.
+    Drohnen ihrer Organisationen; alle übrigen bleiben unverändert.
     """
 
     if not is_restricted(user) or user.get("server_admin"):
@@ -242,7 +242,7 @@ def merge_sources(
             raise HTTPException(
                 status_code=409,
                 detail=(
-                    f"Die ID „{source.id}“ ist bereits an eine Quelle einer "
+                    f"Die ID „{source.id}“ ist bereits an eine Drohne einer "
                     "anderen Organisation vergeben. Bitte eine andere ID wählen."
                 ),
             )
@@ -250,7 +250,7 @@ def merge_sources(
             raise HTTPException(
                 status_code=403,
                 detail=(
-                    f"Quelle „{source.name}“: Bitte eine Organisation wählen, "
+                    f"Drohne „{source.name}“: Bitte eine Organisation wählen, "
                     "in der Sie Wehr-Admin sind."
                 ),
             )
@@ -259,7 +259,7 @@ def merge_sources(
             raise HTTPException(
                 status_code=422,
                 detail=(
-                    f"Quelle „{source.name}“: Adressen im internen Netz des "
+                    f"Drohne „{source.name}“: Adressen im internen Netz des "
                     "Servers (localhost, private Netze) richtet nur ein "
                     "Kreis-Admin ein."
                 ),

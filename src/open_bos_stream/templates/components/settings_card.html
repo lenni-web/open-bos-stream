@@ -5,7 +5,7 @@
             <span class="page-eyebrow">Konfiguration</span>
             <h1>Einstellungen</h1>
         </div>
-        <p>Aufnahmen, Gastlinks und Serverdienste verwalten. Quellen stehen unter „Drohnen“.</p>
+        <p>Aufnahmen, Gastlinks und Serverdienste verwalten. Drohnen werden unter „Drohnen“ eingerichtet.</p>
     </header>
 
     <div id="settings-content" class="settings-grid">
@@ -15,12 +15,12 @@
                 <span class="settings-icon" aria-hidden="true">{{ icon("camera", 20) }}</span>
                 <div>
                     <span class="section-kicker">Mediathek</span>
-                    <h2>Snapshot- und Aufnahmequelle</h2>
-                    <p>Legt fest, welche Livequelle für neue Aufnahmen verwendet wird.</p>
+                    <h2>Snapshot und Aufnahme</h2>
+                    <p>Legt fest, welche Drohne für neue Aufnahmen verwendet wird.</p>
                 </div>
             </div>
             <label class="form-field">
-                <span>Ausgewählte Quelle</span>
+                <span>Ausgewählte Drohne</span>
                 <select id="cfg-media-source" class="bos-input"></select>
                 <small>Die Auswahl kann nur ein Superadmin ändern.</small>
             </label>
@@ -28,9 +28,9 @@
                 <legend>Automatisch aufnehmen</legend>
                 <div id="cfg-recording-automatic-list"></div>
                 <small>
-                    Angehakte Quellen starten die Aufnahme beim
+                    Angehakte Drohnen starten die Aufnahme beim
                     Eingangssignal und schließen sie beim Signalende
-                    selbstständig ab. Beliebig viele Quellen; die Aufnahmen
+                    selbstständig ab. Beliebig viele Drohnen; die Aufnahmen
                     laufen parallel. Jede Aufnahme belegt Rechenleistung und
                     Speicher – bei hoher Serverlast erscheint ein Hinweis.
                     Die Auswahl wird sofort gespeichert.
@@ -151,7 +151,7 @@
 
             <fieldset class="notification-events">
                 <legend>Melden bei</legend>
-                <label><input type="checkbox" data-notify-event="source_offline"> Quelle ohne Signal (nach 30 s)</label>
+                <label><input type="checkbox" data-notify-event="source_offline"> Drohne ohne Signal (nach 30 s)</label>
                 <label><input type="checkbox" data-notify-event="mediamtx_offline"> Streaming-Server nicht erreichbar (nach 20 s)</label>
                 <label><input type="checkbox" data-notify-event="storage_low"> Speicher knapp oder erschöpft</label>
                 <label><input type="checkbox" data-notify-event="recording_problem"> Aufnahme abgebrochen oder fehlgeschlagen</label>

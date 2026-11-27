@@ -159,7 +159,7 @@ audit_log = Table(
 # "server" = nur Kreis-Admins und Superadmins (serverweite Störungen).
 PUSH_EVENTS = {
     "incident_started": ("Neuer Einsatz (eigene oder beteiligte Wehr)", "incident"),
-    "source_offline": ("Quelle ohne Signal", "source"),
+    "source_offline": ("Drohne ohne Signal", "source"),
     "recording_problem": ("Aufnahme abgebrochen oder fehlgeschlagen", "source"),
     "mediamtx_offline": ("Streaming-Server gestört", "server"),
     "output_failed": ("Streaming-Ausgang unerwartet beendet", "server"),

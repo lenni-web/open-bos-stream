@@ -192,7 +192,7 @@ function updateMediaCaptureBar(mediaCapture, storage = null) {
     bar.hidden = false;
     updateValue(
         "media-capture-source-name",
-        mediaCapture?.source_name || "Keine Quelle ausgewählt"
+        mediaCapture?.source_name || "Keine Drohne ausgewählt"
     );
     const automatic = (mediaCapture?.automatic_source_ids ?? []).includes(
         mediaCapture?.source_id
@@ -235,7 +235,7 @@ function updateStreamDiagnostics(stream, storage, sources = []) {
 
     updateValue(
         "stream-diagnostic-primary",
-        sources[0]?.name || "Keine aktive Quelle"
+        sources[0]?.name || "Keine aktive Drohne"
     );
 
     if (diagnostics) {
@@ -484,7 +484,7 @@ function updateStreamDiagnostics(stream, storage, sources = []) {
         ].includes(diagnostics?.mode)
     ) {
         alerts.push(
-            "Empfehlung: Quellenprofil „RTMP Copy mit " +
+            "Empfehlung: Profil „RTMP Copy mit " +
             "Zeitstempel-Reparatur“ aktivieren."
         );
     }
@@ -505,7 +505,7 @@ function updateSourceDiagnostics(sources) {
     }
     if (!sources.length) {
         container.innerHTML =
-            '<p class="empty-state">Keine aktive Quelle konfiguriert.</p>';
+            '<p class="empty-state">Keine aktive Drohne konfiguriert.</p>';
         return;
     }
 
@@ -879,7 +879,7 @@ function updateOverviewSources(sources) {
     }
     if (!sources.length) {
         list.innerHTML =
-            '<li class="overview-empty">Noch keine Quelle eingerichtet oder freigegeben.</li>';
+            '<li class="overview-empty">Noch keine Drohne eingerichtet oder freigegeben.</li>';
         return;
     }
     // Online zuerst, danach alphabetisch.

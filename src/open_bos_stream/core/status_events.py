@@ -41,7 +41,7 @@ class StatusEventTracker:
             online = sum(1 for item in sources if item.get("ready"))
             events.append((
                 "success" if online else "info",
-                f"📡 {online} von {len(sources)} Quellen online",
+                f"📡 {online} von {len(sources)} Drohnen online",
                 None,
             ))
         events += self._check_sources(sources)
@@ -117,7 +117,7 @@ class StatusEventTracker:
         reasons = ", ".join(load.get("reasons") or [])
         detail = f" ({reasons})" if reasons else ""
         sources = load.get("active_sources")
-        count = f" bei {sources} aktiven Quellen" if sources else ""
+        count = f" bei {sources} aktiven Drohnen" if sources else ""
         if level == "critical":
             return [("error", f"🖥 Server überlastet{detail}{count}")]
         if level == "warning":

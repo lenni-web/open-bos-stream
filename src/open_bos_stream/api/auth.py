@@ -110,7 +110,7 @@ async def login(payload: Credentials, request: Request, response: Response):
 async def media_access(request: Request):
     """Sitzungsprüfung für Caddys HLS-/WHEP-Weiterleitung.
 
-    Gäste erhalten nur die Streams der Quellen ihres Gastlinks. Caddy
+    Gäste erhalten nur die Streams der Drohnen ihres Gastlinks. Caddy
     reicht die angefragte Adresse in X-Forwarded-Uri weiter.
     """
 

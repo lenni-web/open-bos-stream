@@ -1,6 +1,6 @@
 """Originalstream für Aufnahmen und Snapshots bereitstellen.
 
-Quellen mit Vorschauprofil liefern im Dashboard nur einen reduzierten
+Drohnen mit Vorschauprofil liefern im Dashboard nur einen reduzierten
 Viewerpfad. Für Medien wird stattdessen derselbe Hauptstream verwendet wie in
 der Vollbildanzeige: bei RTMP-Vorschauprofilen der unveränderte
 Publisherpfad, bei RTSP mit Vorschau-URL ein bedarfsgesteuerter Relay des
@@ -84,7 +84,7 @@ class CaptureInputProvider:
 
         self._relays.release(source.id, lease_id)
         logger.warning(
-            "Hauptstream der Quelle %s nicht verfügbar; Medien werden in "
+            "Hauptstream der Drohne %s nicht verfügbar; Medien werden in "
             "Vorschauqualität erstellt.",
             source.id,
         )

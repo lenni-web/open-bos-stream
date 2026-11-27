@@ -67,7 +67,7 @@ def status(*, ready=True, mediamtx=True, storage="ok", failed=False, running=Tru
 
 def test_status_tracker_reports_changes_once() -> None:
     tracker = StatusEventTracker()
-    assert tracker.evaluate(status()) == [("success", "📡 1 von 1 Quellen online")]
+    assert tracker.evaluate(status()) == [("success", "📡 1 von 1 Drohnen online")]
     assert tracker.evaluate(status()) == []
 
     # Signalverlust erst nach zwei Prüfungen.

@@ -227,7 +227,7 @@ def main() -> int:
 
     if not sources:
         print(
-            "Keine verwalteten Quellen konfiguriert; "
+            "Keine verwalteten Drohnen konfiguriert; "
             "direkte RTMP-Eingänge laufen über MediaMTX.",
             flush=True,
         )
@@ -267,7 +267,7 @@ def main() -> int:
             restart_states[source.id] = RestartState()
             print("=" * 48, flush=True)
             print(
-                f"Quelle {source.id}: {source.name} "
+                f"Drohne {source.id}: {source.name} "
                 f"({source.type}/{source.profile})",
                 flush=True,
             )
@@ -288,7 +288,7 @@ def main() -> int:
                     ):
                         if source_id not in waiting_for_source:
                             print(
-                                f"Quelle {source_id}: warte auf "
+                                f"Drohne {source_id}: warte auf "
                                 "RTMP-Publisher.",
                                 flush=True,
                             )
@@ -298,7 +298,7 @@ def main() -> int:
                         continue
                     if source_id in waiting_for_source:
                         print(
-                            f"Quelle {source_id}: RTMP-Publisher erkannt; "
+                            f"Drohne {source_id}: RTMP-Publisher erkannt; "
                             "Verarbeitung startet.",
                             flush=True,
                         )
@@ -341,7 +341,7 @@ def main() -> int:
                         actual_delay = _staggered_delay(source_id, delay)
                         restart_states[source_id].record("start_failed")
                         print(
-                            f"Quelle {source_id} konnte nicht gestartet "
+                            f"Drohne {source_id} konnte nicht gestartet "
                             f"werden: {exc}; neuer Versuch in "
                             f"{actual_delay:.1f}s.",
                             file=sys.stderr,
@@ -363,7 +363,7 @@ def main() -> int:
                         restart_at[source_id] = now
                         backoff[source_id] = 1.0
                         print(
-                            f"Quelle {source_id}: RTMP-Publisher nicht "
+                            f"Drohne {source_id}: RTMP-Publisher nicht "
                             "mehr verfügbar; warte auf neues Signal.",
                             flush=True,
                         )
@@ -377,7 +377,7 @@ def main() -> int:
                     )
                     restart_states[source_id].record(reason)
                     print(
-                        f"Quelle {source_id} beendet "
+                        f"Drohne {source_id} beendet "
                         f"(Exit {returncode}); neuer Versuch "
                         f"in {actual_delay:.1f}s.",
                         file=sys.stderr,
@@ -395,7 +395,7 @@ def main() -> int:
                 if runtime.stale_since is not None:
                     if now - runtime.stale_since >= FORCE_KILL_SECONDS:
                         print(
-                            f"Quelle {source_id}: FFmpeg reagiert nicht; "
+                            f"Drohne {source_id}: FFmpeg reagiert nicht; "
                             "Prozess wird beendet.",
                             file=sys.stderr,
                             flush=True,
@@ -411,7 +411,7 @@ def main() -> int:
                 ):
                     runtime.stale_since = now
                     print(
-                        f"Quelle {source_id}: kein Medienfortschritt "
+                        f"Drohne {source_id}: kein Medienfortschritt "
                         f"seit mindestens {STALE_TIMEOUT_SECONDS:.0f}s; "
                         "FFmpeg wird neu gestartet.",
                         file=sys.stderr,

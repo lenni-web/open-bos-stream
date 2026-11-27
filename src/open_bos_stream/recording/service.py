@@ -1,8 +1,8 @@
 """
 Recording Service
 
-Jede Quelle hat einen eigenen Aufnahmekanal. Die gewählte Medienquelle
-lässt sich manuell aufnehmen; Quellen in ``automatic_source_ids`` starten
+Jede Drohne hat einen eigenen Aufnahmekanal. Die gewählte Medienquelle
+lässt sich manuell aufnehmen; Drohnen in ``automatic_source_ids`` starten
 und beenden ihre Aufnahme selbstständig mit dem Eingangssignal. Es laufen
 höchstens vier Aufnahmen gleichzeitig.
 """
@@ -82,7 +82,7 @@ class RecordingService:
             sources = self._enabled_sources()
             source = sources[0] if sources else None
         if source is None:
-            raise RuntimeError("Keine aktive Medienquelle konfiguriert.")
+            raise RuntimeError("Keine aktive Drohne konfiguriert.")
         return source
 
     def automatic_source_ids(self) -> list[str]:
@@ -231,7 +231,7 @@ class RecordingService:
                 else self._selected_source()
             )
             if source is None:
-                raise RuntimeError("Quelle ist nicht aktiv.")
+                raise RuntimeError("Drohne ist nicht aktiv.")
             self._start(source, automatic=automatic, actor=actor)
 
     def _start(
@@ -253,7 +253,7 @@ class RecordingService:
         path = self._mediamtx.path(source.viewer_path)
         if path is None:
             raise RuntimeError(
-                f"Quelle '{source.name}' ist nicht verfügbar."
+                f"Drohne '{source.name}' ist nicht verfügbar."
             )
         if not path.get("ready", False):
             raise RuntimeError(

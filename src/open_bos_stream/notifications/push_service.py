@@ -1,7 +1,7 @@
 """Push-Benachrichtigungen an angemeldete Geräte (PWA, Browser).
 
 Jedes Konto meldet seine Geräte selbst an und wählt die Ereignisse. Beim
-Versand wird pro Gerät neu geprüft, ob das Konto die betroffene Quelle noch
+Versand wird pro Gerät neu geprüft, ob das Konto die betroffene Drohne noch
 sehen darf; serverweite Störungen gehen nur an Kreis-Admins und
 Superadmins. Der Versand läuft wie bei E-Mail in einem eigenen Thread.
 """

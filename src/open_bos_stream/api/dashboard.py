@@ -106,7 +106,7 @@ async def probe_source(source_id: str, request: Request):
     except KeyError as exc:
         raise HTTPException(
             status_code=404,
-            detail="Aktive Quelle wurde nicht gefunden.",
+            detail="Aktive Drohne wurde nicht gefunden.",
         ) from exc
     except ProbeBusyError as exc:
         raise HTTPException(
@@ -135,7 +135,7 @@ async def acquire_fullscreen_stream(source_id: str, request: Request):
             source_id,
         )
     except KeyError as exc:
-        raise HTTPException(404, "Aktive Quelle wurde nicht gefunden.") from exc
+        raise HTTPException(404, "Aktive Drohne wurde nicht gefunden.") from exc
     except ValueError as exc:
         raise HTTPException(409, str(exc)) from exc
     except OSError as exc:

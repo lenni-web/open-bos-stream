@@ -1,12 +1,12 @@
 """Wer welche Aufnahmen und Snapshots sehen und verwalten darf.
 
-Aufnahmen gehören zur Quelle (Drohne), deren Kennung im Dateinamen steht
+Aufnahmen gehören zur Drohne, deren Kennung im Dateinamen steht
 (``recording_<quelle>_<zeit>.mp4``, ``snapshot_<quelle>_<zeit>.jpg``):
 
 * Drohnenteam der Wehr: ansehen, herunterladen, „Behalten“ setzen.
 * Wehr-Admin: zusätzlich löschen.
 * Kreis-Admins und Superadmins: alle Dateien, auch solche ohne
-  erkennbare oder inzwischen entfernte Quelle.
+  erkennbare oder inzwischen entfernte Drohne.
 """
 
 from __future__ import annotations

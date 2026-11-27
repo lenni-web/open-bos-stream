@@ -117,7 +117,7 @@ class LivePlayer {
                 );
 
                 console.log(
-                    "Quelle:",
+                    "Drohne:",
                     this.video.currentSrc
                 );
 

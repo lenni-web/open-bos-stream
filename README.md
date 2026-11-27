@@ -16,7 +16,7 @@ eigenständige Web-App mit Open-BOS-Stream-Icon abgelegt werden.
 
 ## Features
 
-- Beliebig viele gleichwertige Live-Quellen mit RTMP, RTSP, SRT, UDP, HTTP,
+- Beliebig viele gleichwertige Live-Quellen (vornehmlich Drohnen) mit RTMP, RTSP, SRT, UDP, HTTP,
   HLS oder lokaler Capture Card; die Serverlast wird überwacht und bei hoher
   Auslastung ein Hinweis angezeigt
 - WebRTC-Wiedergabe mit optionalem Stream Copy, Zeitstempel-Reparatur oder
@@ -662,7 +662,11 @@ In der eigenständigen minimalen labwc-Sitzung wird kein Bildschirmschoner
 oder Desktop-Power-Manager gestartet. Bei aktivierter Option bleibt die
 Anzeige daher ohne zusätzliche, privilegierte Inhibit-Sperre aktiv.
 
-## Mehrere gleichwertige Quellen
+## Mehrere gleichwertige Quellen (vornehmlich Drohnen)
+
+Eine Quelle ist alles, was ein Livebild liefert – vornehmlich Drohnen, aber
+auch Netzwerkkameras oder eine Capture Card. In der Oberfläche heißen alle
+Quellen „Drohnen“.
 
 Auf der Seite „Drohnen“ lassen sich beliebig viele Quellen anlegen; eine feste
 Obergrenze gibt es nicht. Stattdessen bewertet die Anwendung laufend CPU,
@@ -678,10 +682,10 @@ ID sowie ein Verarbeitungsprofil:
 - `Copy mit Zeitstempel-Korrektur`: Originalvideo mit reparierten Zeitstempeln
 - `Copy-Reparatur · geringe Latenz`: kleinere Eingangsqueue und eng begrenzter
   RTSP-Puffer für bereits weitgehend stabile Quellen
-- `Mehrquellen-Vorschau · ausgewogen (max. 480p)` (nur RTMP): transkodierte
+- `Übersichts-Vorschau · ausgewogen (max. 480p)` (nur RTMP): transkodierte
   H.264-Vorschau mit maximal 854×480 Pixeln, 12 fps und etwa 1,1 Mbit/s;
   empfohlen für bis zu vier gleichzeitig aktive Quellen
-- `Mehrquellen-Vorschau · sparsam (max. 360p)` (nur RTMP): transkodierte
+- `Übersichts-Vorschau · sparsam (max. 360p)` (nur RTMP): transkodierte
   H.264-Vorschau mit maximal 640×360 Pixeln, 12 fps und etwa 800 kbit/s;
   empfohlen für viele gleichzeitige Quellen oder knappere CPU-Reserven
 - `Transcodieren`: den pro Quelle gewählten Encoder verwenden
@@ -709,7 +713,7 @@ der Substream verwendet. Eine leere Vorschau-URL verwendet weiterhin den
 Hauptstream.
 
 Liefert ein RTMP-Publisher nur einen einzelnen Stream, erzeugen die beiden
-Mehrquellen-Profile daraus eine leichtere Browserausgabe. `Ausgewogen`
+Vorschau-Profile daraus eine leichtere Browserausgabe. `Ausgewogen`
 begrenzt das Bild auf 854×480, 12 fps und etwa 1,1 Mbit/s. Diese Variante ist
 für bis zu vier gleichzeitig aktive Quellen der empfohlene Standard und bleibt
 auf Tablets deutlich klarer. `Sparsam` begrenzt auf 640×360, 12 fps und etwa
@@ -723,7 +727,7 @@ Profilen auf den unveränderten RTMP-Eingang. Da die Vorschauen per Software
 kodiert werden, sollte ihre CPU-Auslastung vor einem breiten Einsatz mit realen
 Quellen geprüft werden.
 
-Bestehende Konfigurationen mit dem bisherigen Mehrquellen-Profil werden nach
+Bestehende Konfigurationen mit dem bisherigen Vorschau-Profil werden nach
 dem Update automatisch als `ausgewogen` interpretiert. Wer die geringere Last
 der 360p-Variante behalten möchte, wählt anschließend ausdrücklich `sparsam`.
 
@@ -1185,7 +1189,7 @@ Gemeldet werden, jeweils einzeln abschaltbar:
 
 | Ereignis | Auslöser |
 |---|---|
-| Quelle ohne Signal | Eine Quelle, die gesendet hat, ist 30 s ohne Signal |
+| Drohne ohne Signal | Eine Quelle, die gesendet hat, ist 30 s ohne Signal |
 | Streaming-Server nicht erreichbar | MediaMTX ist 20 s nicht erreichbar |
 | Speicher knapp oder erschöpft | Warnschwelle bzw. Mindestgrenze unterschritten |
 | Aufnahme abgebrochen oder fehlgeschlagen | Streamabbruch, Speichermangel oder ungültige Datei |

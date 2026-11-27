@@ -163,9 +163,9 @@ class NotificationMonitor:
                     "Der Server ist seit mindestens "
                     f"{int(self.load_delay // 60)} Minuten sehr stark ausgelastet"
                     + (f" ({reasons})" if reasons else "")
-                    + f" bei {load.get('active_sources') or 0} aktiven Quellen. "
+                    + f" bei {load.get('active_sources') or 0} aktiven Drohnen. "
                     "Livebilder, Aufnahmen und Weiterleitungen können ruckeln "
-                    "oder abbrechen. Nicht benötigte Quellen deaktivieren oder "
+                    "oder abbrechen. Nicht benötigte Drohnen deaktivieren oder "
                     "das sparsame Vorschauprofil wählen."
                 ),
             ),
@@ -230,17 +230,17 @@ class NotificationMonitor:
                 self.source_delay,
                 Notice(
                     event="source_offline",
-                    subject=f"Störung: Quelle „{name}“ ohne Signal",
+                    subject=f"Störung: Drohne „{name}“ ohne Signal",
                     body=(
-                        f"Die Quelle „{name}“ sendet seit mindestens "
+                        f"Die Drohne „{name}“ sendet seit mindestens "
                         f"{int(self.source_delay)} Sekunden kein Signal mehr."
                     ),
                     source_id=source_id,
                 ),
                 Notice(
                     event="source_offline",
-                    subject=f"Entwarnung: Quelle „{name}“ wieder online",
-                    body=f"Die Quelle „{name}“ sendet wieder.",
+                    subject=f"Entwarnung: Drohne „{name}“ wieder online",
+                    body=f"Die Drohne „{name}“ sendet wieder.",
                     recovery=True,
                     source_id=source_id,
                 ),
@@ -328,7 +328,7 @@ class NotificationMonitor:
             source = recording.get("source_name")
             details = [recording.get("end_message") or title]
             if source:
-                details.append(f"Quelle: {source}")
+                details.append(f"Drohne: {source}")
             if recording.get("completed_filename"):
                 details.append(f"Datei: {recording['completed_filename']}")
             notices.append(

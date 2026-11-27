@@ -1,8 +1,8 @@
 """Serverauslastung beobachten und bewerten.
 
-Die Zahl gleichzeitiger Quellen ist nicht mehr fest begrenzt. Stattdessen
+Die Zahl gleichzeitiger Drohnen ist nicht mehr fest begrenzt. Stattdessen
 bewertet dieser Dienst laufend CPU, Arbeitsspeicher und Systemlast. Kurze
-Spitzen (z. B. beim Start einer Quelle) lösen keinen Hinweis aus: Bewertet
+Spitzen (z. B. beim Start einer Drohne) lösen keinen Hinweis aus: Bewertet
 wird der Mittelwert der letzten 30 Sekunden, und eine Stufe gilt erst als
 beendet, wenn die Werte deutlich darunter liegen (Hysterese).
 """
@@ -143,14 +143,14 @@ def message(level: str, reasons: list[str], active_sources: int) -> str:
     if level == "ok":
         return ""
     detail = f" ({', '.join(reasons)})" if reasons else ""
-    sources = f" bei {active_sources} aktiven Quellen" if active_sources else ""
+    sources = f" bei {active_sources} aktiven Drohnen" if active_sources else ""
     if level == "critical":
         return (
             f"Server sehr stark ausgelastet{detail}{sources}. Livebilder, Aufnahmen "
             "und Weiterleitungen können ruckeln oder abbrechen. Nicht benötigte "
-            "Quellen deaktivieren oder das sparsame Vorschauprofil wählen."
+            "Drohnen deaktivieren oder das sparsame Vorschauprofil wählen."
         )
     return (
-        f"Hohe Serverauslastung{detail}{sources}. Weitere Quellen, Aufnahmen "
+        f"Hohe Serverauslastung{detail}{sources}. Weitere Drohnen, Aufnahmen "
         "oder Weiterleitungen können die Bildqualität beeinträchtigen."
     )

@@ -49,7 +49,7 @@ class StreamProbeService:
         if not target:
             return {
                 "available": False,
-                "error": "Keine diagnostizierbare Quelle konfiguriert.",
+                "error": "Keine diagnostizierbare Drohne konfiguriert.",
                 "warnings": [],
             }
 
@@ -94,7 +94,7 @@ class StreamProbeService:
                 "available": False,
                 "error": (
                     result.stderr.strip()
-                    or "ffprobe konnte die Quelle nicht lesen."
+                    or "ffprobe konnte die Drohne nicht lesen."
                 ),
                 "warnings": [],
             }
@@ -202,7 +202,7 @@ class StreamProbeService:
         if packets and missing == len(packets):
             warnings.append({
                 "code": "missing_dts",
-                "message": "Die Quelle liefert keine auswertbaren DTS.",
+                "message": "Die Drohne liefert keine auswertbaren DTS.",
             })
         if (
             expected_delta > 0
@@ -262,7 +262,7 @@ class StreamProbeService:
 
         if not self._probe_lock.acquire(blocking=False):
             raise ProbeBusyError(
-                "Eine andere Quellenmessung läuft bereits."
+                "Eine andere Messung läuft bereits."
             )
 
         try:
@@ -294,7 +294,7 @@ class StreamProbeService:
         if not source_ready or not source_id:
             return {
                 "available": False,
-                "error": "Quelle ist noch nicht online.",
+                "error": "Drohne ist noch nicht online.",
                 "warnings": [],
             }
         with self._cache_lock:

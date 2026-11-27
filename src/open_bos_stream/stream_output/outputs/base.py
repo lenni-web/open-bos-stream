@@ -13,7 +13,7 @@ from open_bos_stream.stream_output.audio.factory import (
 class BaseOutput(ABC):
     """Gemeinsamer FFmpeg-Aufbau aller Streaming-Ausgänge.
 
-    Jeder Ausgang liest die gewählte Quelle vom lokalen RTSP-Viewerpfad,
+    Jeder Ausgang liest die gewählte Drohne vom lokalen RTSP-Viewerpfad,
     übernimmt das Video unverändert und unterscheidet sich nur in Container
     und Ziel-URL.
     """

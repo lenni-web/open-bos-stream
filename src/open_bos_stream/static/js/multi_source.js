@@ -163,14 +163,14 @@ function playerRecoveryReason(entry, input, now) {
         PLAYER_HEALTHY_STATES.has(health) &&
         entry.player.state !== "playing"
     ) {
-        reason = "Quelle wieder verfügbar";
+        reason = "Drohne wieder verfügbar";
     }
     if (
         input.ready &&
         recovery.lastRestartCount !== null &&
         restartCount > recovery.lastRestartCount
     ) {
-        reason = "Quellenprozess neu gestartet";
+        reason = "Streamprozess neu gestartet";
     }
 
     const frames = Number(diagnostics.frames_decoded || 0);
@@ -301,7 +301,7 @@ function updateSourceFullscreenButton(entry) {
     button.textContent = fullscreen ? "⛶ Vollbild beenden" : "⛶ Vollbild";
     button.title = fullscreen
         ? "Vollbildmodus beenden"
-        : "Quelle im Vollbild anzeigen";
+        : "Drohne im Vollbild anzeigen";
     button.setAttribute("aria-label", button.title);
 }
 
@@ -442,7 +442,7 @@ async function openSourceFullscreen(entry) {
         }
     }
     console.error(
-        "Quellen-Vollbild wird von diesem Browser nicht unterstützt."
+        "Drohnen-Vollbild wird von diesem Browser nicht unterstützt."
     );
     releaseFullscreenStream(entry);
 }
@@ -550,8 +550,8 @@ function multiSourceCard(input) {
             <button
                 class="multi-source-fullscreen bos-button bos-button-small"
                 type="button"
-                title="Quelle im Vollbild anzeigen"
-                aria-label="Quelle im Vollbild anzeigen">
+                title="Drohne im Vollbild anzeigen"
+                aria-label="Drohne im Vollbild anzeigen">
                 ⛶ Vollbild
             </button>
         </footer>

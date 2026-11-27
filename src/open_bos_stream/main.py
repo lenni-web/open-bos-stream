@@ -203,7 +203,7 @@ async def lifespan(app: FastAPI):
     if assigned:
         server_event_log.record(
             "info",
-            "🏢 Quellen der Start-Organisation zugeordnet: " + ", ".join(assigned),
+            "🏢 Drohnen der Start-Organisation zugeordnet: " + ", ".join(assigned),
         )
 
     setup_code = auth_service.ensure_setup_code()

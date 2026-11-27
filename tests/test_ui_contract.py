@@ -110,7 +110,7 @@ def test_system_diagnostics_controls_remain_available() -> None:
     assert "function sourceProbeResultMarkup(source, state)" in dashboard
     assert "data-source-probe" in dashboard
     assert "api.probeSource(sourceId)" in dashboard
-    assert "Mehrquellenstatus" in (
+    assert "Drohnenstatus" in (
         ROOT / "templates" / "components" / "system_card.html"
     ).read_text(encoding="utf-8")
     health = (
@@ -205,10 +205,10 @@ def test_settings_use_one_equal_source_list() -> None:
 
     assert 'id="source-settings"' in settings
     assert 'id="source-add-button"' in settings
-    assert "+ Quelle hinzufügen" in settings
+    assert "+ Drohne hinzufügen" in settings
     assert "Profil-Empfehlung:" in settings
-    assert "bis zu vier Quellen" in settings
-    assert "Ab fünf Quellen" in settings
+    assert "bis zu vier Drohnen" in settings
+    assert "Ab fünf Drohnen" in settings
     assert "Im Vollbild bleibt bei beiden das Original erhalten" in settings
     assert ".settings-profile-recommendation" in modern_css
     assert "RTMP-Eingang hinzufügen" not in settings
@@ -310,8 +310,8 @@ def test_rtmp_multi_source_preview_profile_is_selectable() -> None:
 
     assert '"preview_transcode"' in source_js
     assert '"preview_transcode_economy"' in source_js
-    assert "Mehrquellen-Vorschau · ausgewogen (max. 480p)" in source_js
-    assert "Mehrquellen-Vorschau · sparsam (max. 360p)" in source_js
+    assert "Übersichts-Vorschau · ausgewogen (max. 480p)" in source_js
+    assert "Übersichts-Vorschau · sparsam (max. 360p)" in source_js
     assert '"640×360, 12 fps und etwa 800 kbit/s"' in source_js
     assert '"854×480, 12 fps und etwa 1,1 Mbit/s"' in source_js
     assert "Vollbild zeigt den Originalstream" in source_js
@@ -553,9 +553,9 @@ def test_superadmin_media_source_controls_are_present() -> None:
 
     assert 'id="cfg-media-source"' in settings
     assert 'id="cfg-recording-automatic-list"' in settings
-    assert "Beliebig viele Quellen" in settings
+    assert "Beliebig viele Drohnen" in settings
     assert 'id="cfg-recording-mode-status"' in settings
-    assert "Snapshot- und Aufnahmequelle" in settings
+    assert "Snapshot und Aufnahme" in settings
     assert '{% if user.role == "superadmin" %}' in panel
     assert 'id="media-capture-bar"' in panel
     assert 'id="media-recording-mode"' in panel
@@ -713,7 +713,7 @@ def test_stream_outputs_offer_an_explicit_source_selection() -> None:
         ROOT / "static" / "js" / "config_stream_outputs.js"
     ).read_text(encoding="utf-8")
 
-    assert "Weiterzuleitende Quelle" in outputs
+    assert "Weiterzuleitende Drohne" in outputs
     assert 'data-field="source-id"' in outputs
     assert "source_id:" in outputs
 
@@ -746,7 +746,7 @@ def test_transcoding_options_belong_to_each_source() -> None:
     ).read_text(encoding="utf-8")
 
     assert "cfg-encoder-codec" not in settings
-    assert "Transcoding dieser Quelle" in sources
+    assert "Transcoding dieser Drohne" in sources
     assert "sourceTranscodingFields(source)" in sources
     assert "loadSourceEncoders" in sources
 
