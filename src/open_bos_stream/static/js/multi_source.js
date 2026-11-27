@@ -512,7 +512,8 @@ function updateSourceRecordingBadge(card, recording) {
     if (active) {
         badge.textContent =
             `● ${recording.automatic ? "Auto-Aufnahme" : "Aufnahme"} ` +
-            formatRecordingClock(recording.duration);
+            formatRecordingClock(recording.duration) +
+            (recording.full_quality === false ? " · Vorschauqualität" : "");
         badge.title = recording.automatic
             ? "Automatische Aufnahme läuft"
             : "Aufnahme läuft";
@@ -547,6 +548,19 @@ function multiSourceCard(input) {
         <footer class="multi-source-meta">
             <span data-value="format">—</span>
             <span data-value="viewers">0 Viewer</span>
+            ${window.currentUser?.role === "superadmin" ? `
+            <span class="multi-source-capture">
+                <button
+                    class="multi-source-snapshot bos-button bos-button-small"
+                    type="button">
+                    Snapshot
+                </button>
+                <button
+                    class="multi-source-record bos-button bos-button-small"
+                    type="button">
+                    ⏺ Aufnehmen
+                </button>
+            </span>` : ""}
             <button
                 class="multi-source-fullscreen bos-button bos-button-small"
                 type="button"
@@ -675,6 +689,9 @@ function updateMultiSources(inputs = []) {
                 recovery: playerRecoveryState(),
                 lastInput: input,
             };
+            if (typeof bindSourceCaptureButtons === "function") {
+                bindSourceCaptureButtons(card, input.id);
+            }
             card.querySelector(
                 ".multi-source-fullscreen"
             ).addEventListener(
@@ -740,6 +757,9 @@ function updateMultiSources(inputs = []) {
             input.ready
         );
         updateSourceRecordingBadge(entry.card, input.recording);
+        if (typeof updateSourceCaptureButtons === "function") {
+            updateSourceCaptureButtons(entry.card, input);
+        }
         state.textContent = sourceStateLabel(entry, input.ready);
 
         const frame =

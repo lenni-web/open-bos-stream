@@ -274,6 +274,20 @@ class IncidentService:
             ).all()
         return sorted({row.source_id for row in rows})
 
+    def recording_source_ids(self) -> set[str]:
+        """Drohnen laufender Einsätze für die automatische Aufnahme."""
+
+        with self._engine.connect() as connection:
+            rows = connection.execute(
+                select(incident_sources.c.source_id)
+                .join(incidents, incidents.c.id == incident_sources.c.incident_id)
+                .where(
+                    incidents.c.status == "running",
+                    incident_sources.c.removed_at.is_(None),
+                )
+            ).all()
+        return {row.source_id for row in rows}
+
     # -----------------------------------------------------
     # Kennung
     # -----------------------------------------------------

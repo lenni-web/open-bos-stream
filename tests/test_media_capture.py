@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from open_bos_stream.core.config import ConfigLoader
 from open_bos_stream.recording.service import RecordingService
 from open_bos_stream.snapshot.service import SnapshotService
@@ -76,7 +78,7 @@ def selected_second_source():
     return config, second
 
 
-def test_snapshot_uses_selected_source(tmp_path: Path) -> None:
+def test_snapshot_uses_requested_source(tmp_path: Path) -> None:
     config, source = selected_second_source()
     runner = FakeRunner()
     service = SnapshotService(
@@ -86,7 +88,7 @@ def test_snapshot_uses_selected_source(tmp_path: Path) -> None:
         runner=runner,
     )
 
-    filename = service.create()
+    filename = service.create(source.id)
 
     assert source.id in filename.name
     assert runner.command is not None
@@ -123,12 +125,8 @@ def test_recording_uses_and_remembers_selected_source(
     assert manager.transcode_audio is False
 
 
-def test_media_source_falls_back_to_first_enabled_source(
-    tmp_path: Path,
-) -> None:
-    config, first = selected_second_source()
-    config.media_capture.source_id = "nicht-mehr-vorhanden"
-    first = config.sources[0]
+def test_snapshot_rejects_unknown_source(tmp_path: Path) -> None:
+    config, _source = selected_second_source()
     runner = FakeRunner()
     service = SnapshotService(
         config,
@@ -137,13 +135,10 @@ def test_media_source_falls_back_to_first_enabled_source(
         runner=runner,
     )
 
-    service.create()
+    with pytest.raises(RuntimeError, match="nicht aktiv"):
+        service.create("nicht-mehr-vorhanden")
 
-    assert runner.command is not None
-    assert (
-        f"rtsp://127.0.0.1:8554/{first.viewer_path}"
-        in runner.command
-    )
+    assert runner.command is None
 
 
 def test_h265_recording_keeps_original_video(tmp_path: Path) -> None:
@@ -269,7 +264,7 @@ def test_full_storage_blocks_recordings_and_snapshots(
     else:
         raise AssertionError("Aufnahme hätte gesperrt sein müssen.")
     try:
-        snapshot.create()
+        snapshot.create(_source.id)
     except RuntimeError as exc:
         assert "Speicher" in str(exc)
     else:
@@ -373,7 +368,7 @@ def test_snapshot_uses_original_stream_and_releases_it(
         relays=relays,
     )
 
-    service.create()
+    service.create(source.id)
 
     assert (
         f"rtsp://127.0.0.1:8554/{source.fullscreen_viewer_path}"
@@ -561,3 +556,67 @@ def test_legacy_automatic_mode_is_migrated() -> None:
 
     many = MediaCaptureConfig(automatic_source_ids=["a", "b", "c", "d", "e", "f"])
     assert len(many.automatic_source_ids) == 6
+
+
+def test_drones_of_running_incidents_record_automatically(tmp_path: Path) -> None:
+    config = sources_config(2)
+    config.media_capture.automatic_source_ids = []
+    assigned: set[str] = {"drohne-2"}
+    managers: list[FakeRecordingManager] = []
+
+    def factory():
+        managers.append(FakeRecordingManager())
+        return managers[-1]
+
+    service = RecordingService(
+        config,
+        SwitchableReadyMediaMTX(),
+        manager_factory=factory,
+        incident_sources=lambda: assigned,
+    )
+    service._recorder = FakeRecorder(tmp_path)
+
+    def running() -> dict:
+        return {item.source_id: item.recording for item in service.statuses()}
+
+    service.reconcile_automatic()
+    assert running() == {"drohne-1": False, "drohne-2": True}
+    assert service.automatic_source_ids() == ["drohne-2"]
+
+    # Einsatzende bzw. Drohne aus dem Einsatz genommen.
+    assigned = set()
+    service.reconcile_automatic()
+    assert running() == {"drohne-1": False, "drohne-2": False}
+
+
+def test_incident_adopts_manual_recording_and_survives_db_errors(
+    tmp_path: Path,
+) -> None:
+    config = sources_config(1)
+    config.media_capture.automatic_source_ids = []
+    state = {"ids": set(), "fail": False}
+
+    def incident_sources():
+        if state["fail"]:
+            raise OSError("Datenbank gesperrt")
+        return state["ids"]
+
+    service = RecordingService(
+        config,
+        SwitchableReadyMediaMTX(),
+        manager_factory=FakeRecordingManager,
+        incident_sources=incident_sources,
+    )
+    service._recorder = FakeRecorder(tmp_path)
+    service.start(source_id="drohne-1")
+
+    state["ids"] = {"drohne-1"}
+    service.reconcile_automatic()
+    state["fail"] = True
+    service.reconcile_automatic()
+    assert service.statuses()[0].recording is True
+
+    state.update(ids=set(), fail=False)
+    service.reconcile_automatic()
+    assert service.statuses()[0].recording is False
+

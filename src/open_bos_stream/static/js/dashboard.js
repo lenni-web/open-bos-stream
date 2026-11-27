@@ -132,6 +132,10 @@ function updateDashboard(data) {
         data
     );
 
+    if (typeof updateMediaStorageHint === "function") {
+        updateMediaStorageHint(data.media_storage);
+    }
+
     updateMultiSources(
         data.sources ?? []
     );
@@ -172,62 +176,10 @@ function updateDashboard(data) {
         data.stream_outputs
     );
 
-    updateRecordingUI(
-        data.recording
-    );
-
-    updateMediaCaptureBar(data.media_capture, data.media_storage);
-
     updateStreamOutputs(
         data.stream_outputs
     );
 
-}
-
-function updateMediaCaptureBar(mediaCapture, storage = null) {
-    const bar = document.getElementById("media-capture-bar");
-    if (!bar) {
-        return;
-    }
-    bar.hidden = false;
-    updateValue(
-        "media-capture-source-name",
-        mediaCapture?.source_name || "Keine Drohne ausgewählt"
-    );
-    const automatic = (mediaCapture?.automatic_source_ids ?? []).includes(
-        mediaCapture?.source_id
-    );
-    const previewQuality = Boolean(
-        window.dashboard?.recording?.active
-        && window.dashboard.recording.full_quality === false
-    );
-    updateValue(
-        "media-recording-mode",
-        (automatic ? "Automatische Aufnahme" : "Manuelle Aufnahme")
-        + (previewQuality
-            ? " · Vorschauqualität (Hauptstream nicht verfügbar)"
-            : "")
-    );
-    const blocked = Boolean(storage?.blocked);
-    const hint = document.getElementById("media-storage-hint");
-    if (hint) {
-        hint.hidden = !storage || storage.level === "ok";
-        hint.classList.toggle("is-warning", storage?.level === "warning");
-        hint.textContent = blocked
-            ? storage.blocked_message
-            : storage?.level === "warning"
-                ? `Speicher wird knapp: ${storage.free_percent.toFixed(1)} % frei.`
-                : "";
-    }
-    const snapshot = document.getElementById("media-snapshot-button");
-    const recording = document.getElementById("media-recording-toggle");
-    if (snapshot) snapshot.disabled = blocked || !mediaCapture?.ready;
-    if (recording) {
-        const active = Boolean(window.dashboard?.recording?.active);
-        recording.disabled = automatic || (
-            !active && (blocked || !mediaCapture?.ready)
-        );
-    }
 }
 
 function updateStreamDiagnostics(stream, storage, sources = []) {

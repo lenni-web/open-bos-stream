@@ -152,12 +152,18 @@ media_storage_service = MediaStorageService(
     playback_cache=playback_cache,
 )
 
+def _incident_recording_sources() -> set[str]:
+    auth_service.ready()
+    return auth_service.incidents.recording_source_ids()
+
+
 recording_service = RecordingService(
     config=config,
     mediamtx=mediamtx_client,
     storage=media_storage_service,
     relays=fullscreen_relay_manager,
     event_log=server_event_log,
+    incident_sources=_incident_recording_sources,
 )
 
 snapshot_service = SnapshotService(

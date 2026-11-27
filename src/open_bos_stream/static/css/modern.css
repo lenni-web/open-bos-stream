@@ -1278,8 +1278,7 @@ body {
 }
 
 .media-storage-hint {
-    flex-basis: 100%;
-    margin: 0;
+    margin: 0 0 12px;
     color: var(--bos-red);
     font-size: 0.76rem;
     font-weight: 700;
@@ -1520,21 +1519,6 @@ body {
    --------------------------------------------------------- */
 
 @media (max-width: 768px) {
-
-    /* Medienbalken: Auswahl umbrechen statt über den Rand laufen. */
-    .media-capture-bar {
-        min-width: 0;
-    }
-
-    .media-capture-selection {
-        min-width: 0;
-        flex-wrap: wrap;
-        row-gap: 2px;
-    }
-
-    .media-capture-selection strong {
-        overflow-wrap: anywhere;
-    }
 
     /* Kartenkopf (z. B. Ereignisprotokoll) bei Platzmangel umbrechen. */
     .card-header {

@@ -387,6 +387,7 @@ class DashboardService:
                             "automatic": (
                                 recordings[item.id].mode == "automatic"
                             ),
+                            "full_quality": recordings[item.id].full_quality,
                         }
                         if item.id in recordings
                         else None

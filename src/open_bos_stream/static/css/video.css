@@ -310,3 +310,34 @@
     border-radius: 0;
 
 }
+
+/* Snapshot und Aufnahme je Kachel (Superadmin) */
+.multi-source-meta {
+    flex-wrap: wrap;
+}
+
+.multi-source-capture {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.multi-source-record[hidden] {
+    display: none;
+}
+
+@media (max-width: 600px) {
+    .multi-source-capture {
+        width: 100%;
+    }
+
+    .multi-source-capture button,
+    .multi-source-capture ~ .multi-source-fullscreen {
+        flex: 1 1 0;
+    }
+
+    .multi-source-capture ~ .multi-source-fullscreen {
+        flex-basis: 100%;
+    }
+}

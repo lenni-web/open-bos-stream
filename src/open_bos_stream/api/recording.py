@@ -40,61 +40,39 @@ class ProtectionRequest(BaseModel):
     protected: bool
 
 
-@router.get("/status", dependencies=[SUPERADMIN])
-async def status():
+def _status(source_id: str):
+    return next(
+        (
+            item for item in recording_service.statuses()
+            if item.source_id == source_id
+        ),
+        None,
+    )
 
-    return recording_service.status
 
-
-@router.post("/start", dependencies=[SUPERADMIN])
-async def start(request: Request):
-
+async def _control(action, source_id: str, request: Request) -> dict:
     try:
-
         # Das Öffnen des Hauptstreams kann einige Sekunden dauern und darf
         # die übrigen Anfragen nicht blockieren.
         await run_in_threadpool(
-            lambda: recording_service.start(
-                actor=request.state.user["username"]
+            lambda: action(
+                source_id=source_id,
+                actor=request.state.user["username"],
             )
         )
-
-        return {
-            "success": True,
-            "filename": recording_service.status.filename,
-            "status": recording_service.status,
-        }
-
     except RuntimeError as exc:
-
-        return {
-            "success": False,
-            "error": str(exc),
-        }
+        return {"success": False, "error": str(exc)}
+    return {"success": True, "status": _status(source_id)}
 
 
-@router.post("/stop", dependencies=[SUPERADMIN])
-async def stop(request: Request):
+@router.post("/sources/{source_id}/start", dependencies=[SUPERADMIN])
+async def start(source_id: str, request: Request):
+    return await _control(recording_service.start, source_id, request)
 
-    try:
 
-        await run_in_threadpool(
-            lambda: recording_service.stop(
-                actor=request.state.user["username"]
-            )
-        )
-
-        return {
-            "success": True,
-            "status": recording_service.status,
-        }
-
-    except RuntimeError as exc:
-
-        return {
-            "success": False,
-            "error": str(exc),
-        }
+@router.post("/sources/{source_id}/stop", dependencies=[SUPERADMIN])
+async def stop(source_id: str, request: Request):
+    return await _control(recording_service.stop, source_id, request)
 
 
 @router.get("/files", dependencies=[OPERATOR])

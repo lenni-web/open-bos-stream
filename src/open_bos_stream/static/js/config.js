@@ -215,27 +215,12 @@ function collectConfigForm() {
 }
 
 function renderMediaCaptureConfig() {
-    const select = document.getElementById("cfg-media-source");
-    if (!select || !currentConfig) {
+    if (!currentConfig) {
         return;
     }
     const sources = (currentConfig.sources ?? []).filter(
         source => source.enabled
     );
-    select.innerHTML = sources.length
-        ? sources.map(source => `
-            <option value="${escapeHTML(source.id)}">
-                ${escapeHTML(source.name)}
-            </option>
-        `).join("")
-        : '<option value="">Keine aktive Drohne</option>';
-
-    const selected = currentConfig.media_capture?.source_id;
-    if (selected && sources.some(source => source.id === selected)) {
-        select.value = selected;
-    } else {
-        select.value = sources[0]?.id ?? "";
-    }
 
     renderAutomaticRecordingSources(sources);
 }
@@ -333,16 +318,15 @@ async function saveStorageSettings() {
 
 async function saveRecordingModeImmediately() {
     const list = document.getElementById("cfg-recording-automatic-list");
-    const source = document.getElementById("cfg-media-source");
     const status = document.getElementById(
         "cfg-recording-mode-status"
     );
-    if (!list || !source || !currentConfig) {
+    if (!list || !currentConfig) {
         return;
     }
 
     const payload = {
-        source_id: source.value || null,
+        source_id: currentConfig.media_capture?.source_id ?? null,
         recording_mode: "manual",
         automatic_source_ids: automaticRecordingSelection(),
     };
@@ -373,13 +357,12 @@ async function saveRecordingModeImmediately() {
 }
 
 function saveMediaCaptureConfig() {
-    const select = document.getElementById("cfg-media-source");
-    if (!select || !currentConfig) {
+    const list = document.getElementById("cfg-recording-automatic-list");
+    if (!list || !currentConfig) {
         return;
     }
     currentConfig.media_capture = {
         ...(currentConfig.media_capture ?? {}),
-        source_id: select.value || null,
         recording_mode: "manual",
         automatic_source_ids: automaticRecordingSelection(),
     };

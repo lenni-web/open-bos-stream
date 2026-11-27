@@ -211,26 +211,18 @@ class OBSApi {
     // Recording
     // ---------------------------------------------------------
 
-    async recordingStatus() {
+    async startRecording(sourceId) {
 
-        return await this.get(
-            "/recording/status"
+        return await this.post(
+            `/recording/sources/${encodeURIComponent(sourceId)}/start`
         );
 
     }
 
-    async startRecording() {
+    async stopRecording(sourceId) {
 
         return await this.post(
-            "/recording/start"
-        );
-
-    }
-
-    async stopRecording() {
-
-        return await this.post(
-            "/recording/stop"
+            `/recording/sources/${encodeURIComponent(sourceId)}/stop`
         );
 
     }
@@ -255,18 +247,10 @@ class OBSApi {
     // Snapshot
     // ---------------------------------------------------------
 
-    async snapshotStatus() {
-
-        return await this.get(
-            "/snapshot/status"
-        );
-
-    }
-
-    async createSnapshot() {
+    async createSnapshot(sourceId) {
 
         return await this.post(
-            "/snapshot/create"
+            `/snapshot/sources/${encodeURIComponent(sourceId)}`
         );
 
     }

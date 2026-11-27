@@ -2,13 +2,14 @@
 Recording Service
 
 Jede Drohne hat einen eigenen Aufnahmekanal. Die gewählte Medienquelle
-lässt sich manuell aufnehmen; Drohnen in ``automatic_source_ids`` starten
-und beenden ihre Aufnahme selbstständig mit dem Eingangssignal. Es laufen
-höchstens vier Aufnahmen gleichzeitig.
+lässt sich manuell aufnehmen. Drohnen in ``automatic_source_ids`` und alle
+Drohnen laufender Einsätze starten und beenden ihre Aufnahme selbstständig
+mit dem Eingangssignal.
 """
 
 from __future__ import annotations
 
+import logging
 import time
 from dataclasses import dataclass, field
 from threading import RLock
@@ -24,6 +25,8 @@ from open_bos_stream.recording.recorder import Recorder
 AUTOMATIC_RETRY_SECONDS = 5
 AUTOMATIC_OFFLINE_SAMPLES = 2
 CAPTURE_RENEW_SECONDS = 10
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -51,6 +54,7 @@ class RecordingService:
         relays=None,
         manager_factory=RecordingManager,
         event_log=None,
+        incident_sources=None,
     ) -> None:
         self._config = config
         self._recorder = Recorder()
@@ -60,6 +64,10 @@ class RecordingService:
         self._capture = CaptureInputProvider(mediamtx, relays)
         self._channels: dict[str, _Channel] = {}
         self._events = event_log
+        # Liefert die Drohnen laufender Einsätze; der Stand wird je
+        # Automatikdurchlauf einmal gelesen.
+        self._incident_sources = incident_sources
+        self._incident_source_ids: frozenset[str] = frozenset()
         self._control_lock = RLock()
 
     # ------------------------------------------------------------------
@@ -86,12 +94,24 @@ class RecordingService:
         return source
 
     def automatic_source_ids(self) -> list[str]:
+        """Fest gewählte Drohnen und Drohnen laufender Einsätze."""
+
         enabled = {item.id for item in self._enabled_sources()}
-        return [
-            item
-            for item in self._config.media_capture.automatic_source_ids
-            if item in enabled
-        ]
+        wanted = dict.fromkeys([
+            *self._config.media_capture.automatic_source_ids,
+            *sorted(self._incident_source_ids),
+        ])
+        return [item for item in wanted if item in enabled]
+
+    def _refresh_incident_sources(self) -> None:
+        if self._incident_sources is None:
+            return
+        try:
+            self._incident_source_ids = frozenset(self._incident_sources())
+        except Exception:
+            # Ein Datenbankfehler darf laufende Aufnahmen nicht beenden:
+            # der letzte bekannte Stand gilt weiter.
+            logger.exception("Einsatzdrohnen konnten nicht gelesen werden.")
 
     def is_automatic(self, source_id: str) -> bool:
         return source_id in self.automatic_source_ids()
@@ -425,6 +445,7 @@ class RecordingService:
         """Aufnahmen aller automatischen Quellen an ihr Signal angleichen."""
 
         with self._control_lock:
+            self._refresh_incident_sources()
             automatic = set(self.automatic_source_ids())
             enabled = {item.id: item for item in self._enabled_sources()}
 
@@ -449,6 +470,9 @@ class RecordingService:
         ready = bool(path and path.get("ready", False))
 
         if channel.manager.running:
+            # Auch eine von Hand gestartete Aufnahme übernimmt die Automatik,
+            # damit sie mit Signal- oder Einsatzende sicher abgeschlossen wird.
+            channel.started_automatically = True
             if ready:
                 channel.offline_samples = 0
                 status.automatic_error = None

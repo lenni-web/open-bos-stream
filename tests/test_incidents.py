@@ -116,6 +116,17 @@ def test_involved_wehr_sees_foreign_drone_only_while_incident_runs(setup) -> Non
     assert setup.incidents.sources(incident["id"])[0]["removed_at"]
 
 
+def test_recording_sources_follow_running_incidents(setup) -> None:
+    service = setup.incidents
+    assert service.recording_source_ids() == set()
+    incident = create(setup)
+    user = session(setup.auth, "b-team")
+    service.add_source(user, incident["id"], source("b1", setup.ids["b"]))
+    assert service.recording_source_ids() == {"b1"}
+    service.set_status(user, incident["id"], "ended")
+    assert service.recording_source_ids() == set()
+
+
 def test_incident_media_matches_drones_and_time_window(setup) -> None:
     team = session(setup.auth, "b-team")
     incident = create(setup, alarm_at="2026-11-26T14:00")

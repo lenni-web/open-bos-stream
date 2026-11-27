@@ -32,19 +32,12 @@ class ProtectionRequest(BaseModel):
     protected: bool
 
 
-@router.get("/status", dependencies=[SUPERADMIN])
-async def status():
-    """Aktuellen Snapshot-Status."""
-
-    return snapshot_service.status
-
-
-@router.post("/create", dependencies=[SUPERADMIN])
-async def create(request: Request):
-    """Neuen Snapshot erstellen."""
+@router.post("/sources/{source_id}", dependencies=[SUPERADMIN])
+async def create(source_id: str, request: Request):
+    """Neuen Snapshot einer Drohne erstellen."""
 
     try:
-        filename = await run_in_threadpool(snapshot_service.create)
+        filename = await run_in_threadpool(snapshot_service.create, source_id)
     except (RuntimeError, TimeoutError) as exc:
         raise HTTPException(
             status_code=409,

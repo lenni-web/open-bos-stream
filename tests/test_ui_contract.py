@@ -322,15 +322,8 @@ def test_dashboard_polling_uses_two_second_interval() -> None:
     app_js = (ROOT / "static" / "js" / "app.js").read_text(
         encoding="utf-8"
     )
-    recording_js = (
-        ROOT / "static" / "js" / "recording.js"
-    ).read_text(encoding="utf-8")
-
     assert "refreshDashboard,\n        2000" in app_js
     assert "updateClock,\n        1000" in app_js
-    assert "updateRecordingTimer,\n        1000" in app_js
-    assert "function updateRecordingTimer()" in recording_js
-    assert "currentRecordingDuration()" in recording_js
 
 
 def test_mobile_web_app_manifest_and_icons_are_linked() -> None:
@@ -531,7 +524,7 @@ def test_viewer_streams_update_without_system_page() -> None:
     ).read_text(encoding="utf-8")
 
     update = dashboard.split("function updateDashboard(data)", 1)[1].split(
-        "function updateMediaCaptureBar", 1
+        "function updateStreamDiagnostics", 1
     )[0]
     assert update.index("updateMultiSources(") < update.index(
         'document.getElementById("page-system")'
@@ -552,16 +545,14 @@ def test_superadmin_media_source_controls_are_present() -> None:
         ROOT / "static" / "js" / "config.js"
     ).read_text(encoding="utf-8")
 
-    assert 'id="cfg-media-source"' in settings
+    assert 'id="cfg-media-source"' not in settings
     assert 'id="cfg-recording-automatic-list"' in settings
     assert "Beliebig viele Drohnen" in settings
     assert 'id="cfg-recording-mode-status"' in settings
     assert "Snapshot und Aufnahme" in settings
     assert '{% if user.role == "superadmin" %}' in panel
-    assert 'id="media-capture-bar"' in panel
-    assert 'id="media-recording-mode"' in panel
-    assert 'id="media-snapshot-button"' in panel
-    assert 'id="media-recording-toggle"' in panel
+    assert 'id="media-capture-bar"' not in panel
+    assert 'id="media-storage-hint"' in panel
     assert "function renderMediaCaptureConfig()" in config
     assert "function saveMediaCaptureConfig()" in config
     assert "function saveRecordingModeImmediately()" in config
@@ -575,24 +566,19 @@ def test_superadmin_media_source_controls_are_present() -> None:
         encoding="utf-8"
     )
     assert "updateSourceRecordingBadge(entry.card, input.recording)" in multi
+    assert "updateSourceCaptureButtons(entry.card, input)" in multi
+    assert "multi-source-snapshot" in multi
+    assert "multi-source-record" in multi
 
 
-def test_admin_initialization_does_not_call_superadmin_media_functions() -> None:
+def test_media_library_loads_for_drone_teams() -> None:
     app = (
         ROOT / "static" / "js" / "app.js"
     ).read_text(encoding="utf-8")
 
-    superadmin_block = app.split(
-        'if (window.currentUser?.role === "superadmin") {',
-        1,
-    )[1].split("}", 1)[0]
-    assert "refreshSnapshot();" in superadmin_block
     # Das Aufnahmen-Archiv lädt jedes Drohnenteam (gefiltert nach Wehr).
     operate_block = app.split("if (window.currentPermissions?.operate) {", 1)[1].split("}", 1)[0]
     assert "refreshMediaLibrary();" in operate_block
-    assert app.index("window.currentPermissions?.admin") < app.index(
-        "refreshSnapshot();"
-    )
 
 
 def test_installation_check_uses_public_auth_status() -> None:

@@ -96,10 +96,19 @@ class SnapshotService:
 
         return files[0]
 
-    def create(self) -> Path:
-        """Neuen Snapshot erzeugen."""
+    def create(self, source_id: str) -> Path:
+        """Neuen Snapshot einer Drohne erzeugen."""
 
-        source = self._selected_source()
+        source = next(
+            (
+                item
+                for item in self._config.sources
+                if item.enabled and item.id == source_id
+            ),
+            None,
+        )
+        if source is None:
+            raise RuntimeError("Drohne ist nicht aktiv.")
         path = self._mediamtx.path(source.viewer_path)
         if path is None or not path.get("ready", False):
             raise RuntimeError(
@@ -165,22 +174,3 @@ class SnapshotService:
         self._last_snapshot = filename
 
         return filename
-
-    def _selected_source(self):
-        selected_id = self._config.media_capture.source_id
-        source = next(
-            (
-                item
-                for item in self._config.sources
-                if item.enabled and item.id == selected_id
-            ),
-            None,
-        )
-        if source is None:
-            source = next(
-                (item for item in self._config.sources if item.enabled),
-                None,
-            )
-        if source is None:
-            raise RuntimeError("Keine aktive Drohne konfiguriert.")
-        return source
