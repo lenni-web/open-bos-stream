@@ -11,6 +11,22 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.26.1] - 2026-11-27
+
+Seite „Drohnen“ für alle Konten und Kurzanleitung für Pilot 2.
+
+### Added
+
+- Seite „Drohnen“: Kurzanleitung zum Eintragen des Servers in DJI Pilot 2.
+
+### Changed
+
+- Seite „Drohnen“ für alle Konten: Zuschauer und Drohnenteams sehen die
+  Drohnen und DJI-Geräte der eigenen Wehr (nur lesen, ohne Adressen und
+  Sende-Schlüssel).
+
+---
+
 ## [0.26.0] - 2026-11-27
 
 DJI-Anbindung für Enterprise-Drohnen (noch ohne Test mit echter Hardware).

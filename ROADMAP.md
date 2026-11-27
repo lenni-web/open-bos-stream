@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.26.1** (2026-11-27): Seite „Drohnen“ für alle Konten (eigene Wehr, nur
+  lesen), Kurzanleitung für DJI Pilot 2
 - **0.26.0** (2026-11-27): DJI-Anbindung über Pilot 2 mit Live-Position und
   Aufzeichnung aller Drohnendaten im Einsatz (noch ohne Test mit echter
   Hardware), neue Seite „Drohnen“, Standort per Smartphone
