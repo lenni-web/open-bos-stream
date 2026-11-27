@@ -59,6 +59,8 @@ def can_see_source(user: dict | None, source: SourceConfig) -> bool:
     return (
         source.organization_id is None
         or source.organization_id in set(user.get("org_view") or [])
+        # Drohnen anderer Wehren, solange ein gemeinsamer Einsatz läuft.
+        or source.id in set(user.get("incident_source_ids") or [])
     )
 
 

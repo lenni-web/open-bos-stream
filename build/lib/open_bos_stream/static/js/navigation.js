@@ -73,13 +73,31 @@ function showPage(page) {
         initMapPage();
     }
 
+    if (typeof setStreamsPageActive === "function") {
+        setStreamsPageActive(page === "streams");
+    }
+
     if (typeof setWeatherPageActive === "function") {
         setWeatherPageActive(page === "weather");
+    }
+
+    // Einsatz-Link in der Adresse nur auf der Einsatzseite behalten.
+    if (page !== "incidents" && window.location.hash.startsWith("#incidents")) {
+        history.replaceState(null, "", window.location.pathname);
+    }
+
+    if (typeof setIncidentsPageActive === "function") {
+        setIncidentsPageActive(page === "incidents");
     }
 
 }
 
 function restorePage() {
+
+    // Direkter Link auf einen Einsatz (z. B. aus einer Push-Nachricht).
+    if (typeof incidentFromHash === "function" && incidentFromHash()) {
+        return;
+    }
 
     const page =
         localStorage.getItem("currentPage")

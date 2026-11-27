@@ -81,6 +81,7 @@
         <main class="content app-content">
 
             <div id="page-live" class="page active">
+                <section id="guest-incident" class="guest-incident" hidden aria-live="polite"></section>
                 {% include "components/multi_source_panel.html" %}
                 <p id="guest-empty" class="guest-empty" hidden>
                     Für diesen Gastzugang ist derzeit keine Quelle verfügbar.
@@ -119,6 +120,7 @@ window.openBosMediaToken = {{ media_token | tojson }};
 <script src="/static/js/map-basemap.js?v={{ version }}"></script>
 
 <script src="/static/js/map-weather.js?v={{ version }}"></script>
+<script src="/static/js/map-incident.js?v={{ version }}"></script>
 <script src="/static/js/map.js?v={{ version }}"></script>
 <script src="/static/js/guest.js?v={{ version }}"></script>
 </body>

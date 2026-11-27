@@ -81,6 +81,11 @@ function showPage(page) {
         setWeatherPageActive(page === "weather");
     }
 
+    // Einsatz-Link in der Adresse nur auf der Einsatzseite behalten.
+    if (page !== "incidents" && window.location.hash.startsWith("#incidents")) {
+        history.replaceState(null, "", window.location.pathname);
+    }
+
     if (typeof setIncidentsPageActive === "function") {
         setIncidentsPageActive(page === "incidents");
     }

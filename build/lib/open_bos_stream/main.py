@@ -25,6 +25,7 @@ from open_bos_stream.core.container import recording_service
 from open_bos_stream.core.container import media_storage_service
 from open_bos_stream.core.container import dashboard_service
 from open_bos_stream.core.container import notification_service
+from open_bos_stream.core.container import push_service
 from open_bos_stream.core.container import guest_link_store
 from open_bos_stream.core.container import server_event_log
 from open_bos_stream.core.container import config_apply_service
@@ -74,6 +75,8 @@ from open_bos_stream.api.notifications import (
 from open_bos_stream.api.guest import router as guest_router
 from open_bos_stream.api.weather import router as weather_router
 from open_bos_stream.api.organizations import router as organizations_router
+from open_bos_stream.api.push import router as push_router
+from open_bos_stream.api.incidents import router as incidents_router
 from open_bos_stream.logging.logger import setup_logging
 import logging
 
@@ -138,7 +141,7 @@ def report_expired_guest_links(previously_active: set[str]) -> set[str]:
 
 
 async def notification_loop() -> None:
-    """Erkennt Störungen und meldet sie per E-Mail (falls eingerichtet)."""
+    """Erkennt Störungen und meldet sie per E-Mail und Web Push."""
 
     monitor = NotificationMonitor()
     tracker = StatusEventTracker()
@@ -154,6 +157,7 @@ async def notification_loop() -> None:
             status = await asyncio.to_thread(dashboard_service.status)
             for notice in monitor.evaluate(status, time.monotonic()):
                 notification_service.enqueue(notice)
+                push_service.enqueue(notice)
             for level, message, organization_id in tracker.evaluate_detailed(status):
                 server_event_log.record(
                     level,
@@ -288,3 +292,5 @@ app.include_router(notifications_router)
 app.include_router(guest_router)
 app.include_router(weather_router)
 app.include_router(organizations_router)
+app.include_router(push_router)
+app.include_router(incidents_router)

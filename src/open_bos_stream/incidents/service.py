@@ -394,6 +394,8 @@ class IncidentService:
             if not values:
                 return incident
             values["updated_at"] = iso(local_now())
+            if "latitude" in values:
+                values["map_revision"] = incidents.c.map_revision + 1
             connection.execute(update(incidents).where(incidents.c.id == incident_id).values(**values))
             if "latitude" in values and values.get("latitude") != incident.get("latitude"):
                 notes.append("Einsatzort auf der Karte gesetzt" if values.get("latitude") is not None else "Einsatzort entfernt")

@@ -508,6 +508,35 @@ function renderIncidentSources(detail) {
         </section>`;
 }
 
+function renderIncidentMapSection(detail) {
+    const items = detail.map_items || [];
+    const statusCounts = {};
+    items.forEach(item => {
+        statusCounts[item.status_label] = (statusCounts[item.status_label] || 0) + 1;
+    });
+    return `
+        <section class="bos-card incident-section">
+            <div class="org-block-header">
+                <h3>Einsatzkarte</h3>
+                <button class="bos-button bos-button-small" type="button"
+                    onclick="openIncidentMap(${Number(detail.incident.id)})">Karte öffnen</button>
+            </div>
+            ${items.length ? `
+                <p class="incident-hint">${Object.entries(statusCounts)
+                    .map(([label, count]) => `${count} ${escapeHTML(label)}`).join(" · ")}</p>
+                <ul class="incident-quadrants">
+                    ${items.map(item => `
+                        <li class="is-${escapeHTML(item.status)}">
+                            <strong>${escapeHTML(item.name)}</strong>
+                            <span>${escapeHTML(item.status_label)}${item.assignee ? ` · ${escapeHTML(item.assignee)}` : ""}</span>
+                        </li>`).join("")}
+                </ul>` : `<p class="incident-empty">Noch keine Quadranten. ${detail.can.edit
+                    ? "Auf der Karte lassen sich Raster und Suchflächen zeichnen und der Einsatzort setzen."
+                    : ""}</p>`}
+            <p class="incident-hint">Alle Beteiligten sehen Änderungen auf der Karte sofort.</p>
+        </section>`;
+}
+
 function renderIncidentOrganizations(detail) {
     const incident = detail.incident;
     const can = detail.can;
@@ -724,6 +753,7 @@ function renderIncidentDetail() {
         ${renderIncidentHeader(detail)}
         <div class="incident-grid">
             ${renderIncidentAlarm(detail)}
+            ${renderIncidentMapSection(detail)}
             ${renderIncidentSources(detail)}
             ${renderIncidentOrganizations(detail)}
             ${renderIncidentWeather(detail)}

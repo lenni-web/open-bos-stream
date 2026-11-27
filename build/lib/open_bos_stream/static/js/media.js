@@ -152,7 +152,7 @@ function renderMediaLibrary(containerId, files, actions) {
 
         container.innerHTML = `
             <div class="library-entry">
-                Keine passenden Medien gefunden.
+                Keine passenden Aufnahmen gefunden.
             </div>
         `;
 

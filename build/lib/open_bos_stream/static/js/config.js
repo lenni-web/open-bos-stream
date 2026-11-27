@@ -327,8 +327,8 @@ async function saveStorageSettings() {
         renderStorageSettings();
         if (status) {
             status.textContent = result.storage.auto_cleanup
-                ? "Gespeichert. Älteste Medien werden bei Speichermangel gelöscht."
-                : "Gespeichert. Bei Speichermangel werden neue Medien gesperrt.";
+                ? "Gespeichert. Älteste Aufnahmen werden bei Speichermangel gelöscht."
+                : "Gespeichert. Bei Speichermangel werden neue Aufnahmen gesperrt.";
         }
     } catch (err) {
         renderStorageSettings();

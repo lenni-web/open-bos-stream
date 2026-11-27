@@ -314,6 +314,16 @@ async function createMap() {
             }
 
 
+            // Einsatzkarte (Einsatzort, Quadranten) liegt über allem.
+            if (typeof initIncidentMap === "function") {
+                try {
+                    initIncidentMap(map);
+                } catch (error) {
+                    console.error("Einsatzkarte nicht verfügbar:", error);
+                }
+            }
+
+
             requestAnimationFrame(() => {
                 map.resize();
             });

@@ -51,7 +51,7 @@
                 <div>
                     <span class="section-kicker">Mediathek</span>
                     <h2>Snapshot- und Aufnahmequelle</h2>
-                    <p>Legt fest, welche Livequelle für neue Medien verwendet wird.</p>
+                    <p>Legt fest, welche Livequelle für neue Aufnahmen verwendet wird.</p>
                 </div>
             </div>
             <label class="form-field">
@@ -98,11 +98,11 @@
             <label class="switch-row">
                 <input id="cfg-storage-auto-cleanup" type="checkbox">
                 <span>
-                    <strong>Älteste Medien bei Speichermangel löschen</strong>
+                    <strong>Älteste Aufnahmen bei Speichermangel löschen</strong>
                     <small>
                         Unter der Mindestgrenze werden die ältesten Aufnahmen
                         und Snapshots gelöscht, bis wieder genug Speicher frei
-                        ist. Als „Behalten“ markierte Medien bleiben erhalten.
+                        ist. Als „Behalten“ markierte Aufnahmen bleiben erhalten.
                         Ausgeschaltet werden neue Aufnahmen und Snapshots
                         stattdessen gesperrt.
                     </small>
@@ -438,21 +438,6 @@
         </section>
         {% endif %}
 
-        {% if can.admin %}
-        <section class="bos-card settings-section settings-section-org">
-            <div class="settings-section-header">
-                <span class="settings-icon" aria-hidden="true">{{ icon("users", 20) }}</span>
-                <div>
-                    <span class="section-kicker">Zugriff</span>
-                    <h2>Organisation und Konten</h2>
-                    <p>Wehren im Landkreis, Konten, Rollen und Fernpilotennachweise.</p>
-                </div>
-            </div>
-            <div id="org-management" class="org-management">
-                <p class="service-inline-status">Wird geladen …</p>
-            </div>
-        </section>
-        {% endif %}
     </div>
 
     {% if can.admin %}

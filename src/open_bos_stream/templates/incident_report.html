@@ -140,6 +140,22 @@
     </table>
     {% else %}<p class="muted">Keine Personen erfasst.</p>{% endif %}
 
+    {% if detail.map_items %}
+    <h2>Quadranten (Suchabschnitte)</h2>
+    <table>
+        <tr><th>Quadrant</th><th>Status</th><th>Zuständig</th><th>Notiz</th><th>zuletzt</th></tr>
+        {% for item in detail.map_items %}
+        <tr>
+            <td><strong>{{ item.name }}</strong></td>
+            <td>{{ item.status_label }}</td>
+            <td>{{ item.assignee or "–" }}</td>
+            <td>{{ item.note or "" }}</td>
+            <td class="muted">{{ local(item.updated_at, false) }} · {{ item.updated_by }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
     <h2>Eingesetzte Drohnen</h2>
     {% if detail.sources %}
     <table>

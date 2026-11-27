@@ -46,6 +46,11 @@ class Notice:
     subject: str
     body: str
     recovery: bool = False
+    # Betroffene Quelle; Push erhalten nur Konten, die sie sehen dürfen.
+    source_id: str | None = None
+    # Einsatz (Push nur an Konten, die ihn sehen dürfen) und Ziel beim Antippen.
+    incident_id: int | None = None
+    url: str = "/"
 
 
 @dataclass
@@ -195,12 +200,14 @@ class NotificationMonitor:
                         f"Die Quelle „{name}“ sendet seit mindestens "
                         f"{int(self.source_delay)} Sekunden kein Signal mehr."
                     ),
+                    source_id=source_id,
                 ),
                 Notice(
                     event="source_offline",
                     subject=f"Entwarnung: Quelle „{name}“ wieder online",
                     body=f"Die Quelle „{name}“ sendet wieder.",
                     recovery=True,
+                    source_id=source_id,
                 ),
             )
         for source_id in set(self._sources) - current:
@@ -294,6 +301,7 @@ class NotificationMonitor:
                     event="recording_problem",
                     subject=f"{title} ({source})" if source else title,
                     body="\n".join(details),
+                    source_id=key,
                 )
             )
         return notices

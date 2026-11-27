@@ -111,7 +111,7 @@
                     </div>
                 </div>
 
-                {% include "components/multi_source_panel.html" %}
+                {% include "components/overview_sources.html" %}
 
                 {% set weather_card_variant = "dashboard" %}
                 {% include "components/weather_card.html" %}
@@ -147,6 +147,34 @@
             {% endif %}
 
             <div
+                id="page-incidents"
+                class="page">
+
+                {% include "components/incidents_page.html" %}
+
+            </div>
+
+            <div
+                id="page-streams"
+                class="page">
+
+                <header class="page-header">
+                    <div>
+                        <span class="page-eyebrow">Einsatz</span>
+                        <h1>Livebilder</h1>
+                    </div>
+                    <p>Livebilder aller Drohnen und Kameras Ihrer Organisation.</p>
+                </header>
+
+                <p id="streams-empty" class="empty-state" hidden>
+                    Noch keine Quelle eingerichtet oder freigegeben.
+                </p>
+
+                {% include "components/multi_source_panel.html" %}
+
+            </div>
+
+            <div
                 id="page-weather"
                 class="page">
 
@@ -161,6 +189,16 @@
                 {% include "components/map.html" %}
 
             </div>
+
+            {% if can.admin %}
+            <div
+                id="page-organization"
+                class="page">
+
+                {% include "components/organization_page.html" %}
+
+            </div>
+            {% endif %}
 
             {% if can.operate %}
             <div
@@ -189,6 +227,9 @@
 </div>
 
 {% include "components/pwa_install.html" %}
+{% if user.user_id %}
+{% include "components/push_dialog.html" %}
+{% endif %}
 
 {% if can.operate %}
 
@@ -344,6 +385,7 @@ window.openBosMediaToken = {{ media_token | tojson }};
 
 <script src="/static/js/map-weather.js?v={{ version }}"></script>
 
+<script src="/static/js/map-incident.js?v={{ version }}"></script>
 <script src="/static/js/map.js?v={{ version }}"></script>
 
 <script src="/static/js/weather.js?v={{ version }}"></script>
@@ -351,6 +393,10 @@ window.openBosMediaToken = {{ media_token | tojson }};
 <script src="/static/js/weather-radar.js?v={{ version }}"></script>
 
 <script src="/static/js/pwa.js?v={{ version }}"></script>
+<script src="/static/js/incidents.js?v={{ version }}"></script>
+{% if user.user_id %}
+<script src="/static/js/push.js?v={{ version }}"></script>
+{% endif %}
 </body>
 
 </html>

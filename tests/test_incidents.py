@@ -218,6 +218,10 @@ def api(auth, tmp_path: Path, monkeypatch):  # noqa: F811
     store = GuestLinkStore(tmp_path / "guest_links.json")
     monkeypatch.setattr(real, "guest_links", store)
     monkeypatch.setattr(incidents_api, "guest_link_store", store)
+    from open_bos_stream.api import guest as guest_api
+
+    monkeypatch.setattr(guest_api, "guest_link_store", store)
+    monkeypatch.setattr(guest_api, "server_event_log", ServerEventLog(None))
     monkeypatch.setattr(incidents_api, "server_event_log", ServerEventLog(None))
     monkeypatch.setattr(incidents_api, "capture_weather", lambda *args, **kwargs: False)
     monkeypatch.setattr(incidents_api.push_service, "enqueue", lambda notice: True)

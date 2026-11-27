@@ -38,6 +38,9 @@ class GuestLink(BaseModel):
     expires_at: float
     # Organisation, der der Link gehört (für Sichtbarkeit und Protokoll).
     organization_id: int | None = None
+    # Einsatz-Gastlink: zeigt die jeweils eingesetzten Drohnen des Einsatzes
+    # und endet spätestens mit dem Einsatz.
+    incident_id: int | None = None
     revoked_at: float | None = None
     revoked_by: str | None = None
     last_used_at: float | None = None
@@ -131,6 +134,7 @@ class GuestLinkStore:
         hours: float,
         created_by: str,
         organization_id: int | None = None,
+        incident_id: int | None = None,
     ) -> tuple[GuestLink, str]:
         label = " ".join(str(label or "").split())
         if not label:
@@ -138,7 +142,7 @@ class GuestLinkStore:
         if len(label) > 80:
             raise GuestLinkError("Die Bezeichnung ist zu lang (max. 80 Zeichen).")
         source_ids = list(dict.fromkeys(source_ids))
-        if not source_ids:
+        if not source_ids and incident_id is None:
             raise GuestLinkError("Bitte mindestens eine Quelle auswählen.")
         if not 0 < hours <= MAX_HOURS:
             raise GuestLinkError(
@@ -155,6 +159,7 @@ class GuestLinkStore:
             created_at=now,
             expires_at=now + hours * 3600,
             organization_id=organization_id,
+            incident_id=incident_id,
         )
         with self._lock:
             links = self._purge(list(self._read()), now)
@@ -203,6 +208,23 @@ class GuestLinkStore:
                         self._write(links)
                     return link
         raise KeyError(link_id)
+
+    def revoke_for_incident(self, incident_id: int, revoked_by: str) -> int:
+        """Alle aktiven Links eines Einsatzes sperren (Einsatzende)."""
+
+        with self._lock:
+            links = list(self._read())
+            now = time.time()
+            changed = 0
+            for index, link in enumerate(links):
+                if link.incident_id == incident_id and link.active(now):
+                    links[index] = link.model_copy(
+                        update={"revoked_at": now, "revoked_by": revoked_by}
+                    )
+                    changed += 1
+            if changed:
+                self._write(links)
+            return changed
 
     # ------------------------------------------------------------------
     # Prüfung

@@ -2323,3 +2323,31 @@ body {
     color: var(--bos-muted);
     font-size: 0.85rem;
 }
+
+.incident-quadrants {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.incident-quadrants li {
+    display: grid;
+    padding: 6px 8px;
+    border: 1px solid var(--bos-gray);
+    border-left: 4px solid #5b6b82;
+    border-radius: 6px;
+    font-size: 0.8rem;
+}
+
+.incident-quadrants li span {
+    color: var(--bos-muted);
+    font-size: 0.74rem;
+}
+
+.incident-quadrants li.is-assigned { border-left-color: #d99518; }
+.incident-quadrants li.is-searching { border-left-color: #e0700b; }
+.incident-quadrants li.is-done { border-left-color: #17845b; }
+.incident-quadrants li.is-finding { border-left-color: #c92835; }

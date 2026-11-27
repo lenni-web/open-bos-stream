@@ -154,6 +154,11 @@ function formatDipulZones(zones) {
 
 function bindDipulClick(mapInstance) {
     mapInstance.on("click", async event => {
+        // Beim Zeichnen auf der Einsatzkarte oder Antippen eines Quadranten
+        // keine Geozonen-Abfrage öffnen.
+        if (typeof incidentMapClaimsClick === "function" && incidentMapClaimsClick(event)) {
+            return;
+        }
         const groups = dipulVisibleGroups(mapInstance);
         if (groups.length === 0) {
             return;

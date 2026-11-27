@@ -457,6 +457,10 @@ async function addOverlayLayer(
     });
 
     mapInstance.on("click", overlay.id, event => {
+        // Beim Zeichnen auf der Einsatzkarte kein Popup öffnen.
+        if (typeof incidentMapDrawing === "function" && incidentMapDrawing()) {
+            return;
+        }
 
         const feature = event.features?.[0];
 

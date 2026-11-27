@@ -207,6 +207,9 @@ incidents = Table(
     Column("created_by", String(80), nullable=False, default=""),
     Column("created_at", String(32), nullable=False),
     Column("updated_at", String(32), nullable=False),
+    # Zähler für die Einsatzkarte: Jede Änderung erhöht ihn, damit alle
+    # geöffneten Karten nur bei Bedarf neu laden.
+    Column("map_revision", Integer, nullable=False, default=0),
 )
 
 incident_organizations = Table(
@@ -289,4 +292,36 @@ incident_log = Table(
     Column("actor", String(80), nullable=False, default=""),
     Column("kind", String(24), nullable=False, default="note"),
     Column("text", Text, nullable=False),
+)
+
+# Status eines Quadranten (Suchabschnitts) auf der Einsatzkarte.
+MAP_ITEM_STATUS = {
+    "open": "offen",
+    "assigned": "zugewiesen",
+    "searching": "wird abgesucht",
+    "done": "abgesucht",
+    "finding": "Fund / Hinweis",
+}
+
+incident_map_items = Table(
+    "incident_map_items",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column(
+        "incident_id",
+        Integer,
+        ForeignKey("incidents.id", ondelete="CASCADE"),
+        nullable=False,
+    ),
+    Column("kind", String(16), nullable=False, default="sector"),
+    Column("name", String(40), nullable=False),
+    # GeoJSON-Geometrie (Polygon, WGS84).
+    Column("geometry", Text, nullable=False),
+    Column("status", String(16), nullable=False, default="open"),
+    Column("assignee", String(80), nullable=False, default=""),
+    Column("note", String(300), nullable=False, default=""),
+    Column("created_by", String(80), nullable=False, default=""),
+    Column("created_at", String(32), nullable=False),
+    Column("updated_by", String(80), nullable=False, default=""),
+    Column("updated_at", String(32), nullable=False),
 )

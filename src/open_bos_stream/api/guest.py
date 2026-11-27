@@ -302,3 +302,20 @@ async def guest_status(request: Request) -> dict:
                 for key in ("code", "keyword", "address", "alarm_at", "latitude", "longitude")
             }
     return result
+
+
+@router.get("/guest/incident-map", dependencies=[GUEST])
+async def guest_incident_map(request: Request, since: int | None = None) -> dict:
+    """Einsatzkarte für Einsatz-Gastlinks (nur lesen)."""
+
+    from open_bos_stream.api.incidents import map_state
+
+    user = request.state.user
+    if not is_guest(user) or not user.get("incident_id"):
+        raise HTTPException(404, "Kein Einsatz zu diesem Gastzugang.")
+    incident = await run_in_threadpool(auth_service.incidents.get, user["incident_id"])
+    if incident is None:
+        raise HTTPException(404, "Einsatz nicht gefunden.")
+    state = await run_in_threadpool(map_state, incident, since)
+    state["can_edit"] = False
+    return state

@@ -27,6 +27,7 @@ from open_bos_stream.core.container import (
     snapshot_library,
 )
 from open_bos_stream.db.schema import INCIDENT_ROLES, INCIDENT_STATUS
+from open_bos_stream.incidents.map import IncidentMap
 from open_bos_stream.incidents.service import (
     IncidentAccessError,
     IncidentError,
@@ -47,6 +48,10 @@ templates = Jinja2Templates(directory="src/open_bos_stream/templates")
 def _service():
     auth_service.ready()
     return auth_service.incidents
+
+
+def _map() -> IncidentMap:
+    return IncidentMap(_service())
 
 
 def _actor(user: dict) -> str:
@@ -128,6 +133,10 @@ def _detail(user: dict, incident_id: int) -> dict:
         "participants": service.participants(incident_id),
         "sources": sources,
         "log": service.log(incident_id),
+        "map_items": [
+            {key: item[key] for key in ("id", "name", "status", "status_label", "assignee", "note", "updated_at", "updated_by")}
+            for item in _map().items(incident_id)
+        ],
         "media": _incident_media(incident),
         "can": {
             "edit": can_edit,
@@ -483,6 +492,107 @@ async def incident_media(incident_id: int, name: str, request: Request, download
         filename=file.name if download else None,
         media_type="image/jpeg" if item["type"] == "snapshot" else "video/mp4",
     )
+
+
+# ----------------------------------------------------------------------
+# Einsatzkarte (Quadranten)
+# ----------------------------------------------------------------------
+
+
+def map_state(incident: dict, since: int | None = None) -> dict:
+    incident_map = _map()
+    revision = incident_map.revision(incident["id"]) or 0
+    if since is not None and since == revision:
+        # Nichts geändert: kleine Antwort für den Abgleich alle paar Sekunden.
+        return {"incident_id": incident["id"], "revision": revision, "changed": False}
+    state = incident_map.state(incident)
+    state.update(
+        changed=True,
+        code=incident["code"],
+        keyword=incident["keyword"],
+        status=incident["status"],
+    )
+    return state
+
+
+@router.get("/{incident_id}/map")
+async def get_map(incident_id: int, request: Request, since: int | None = None) -> dict:
+    user = _user(request)
+    incident = await _call(_service().require, user, incident_id)
+    state = await run_in_threadpool(map_state, incident, since)
+    state["can_edit"] = _service().can_edit(user, incident)
+    return state
+
+
+class MapItemIn(BaseModel):
+    name: str = Field(min_length=1, max_length=40)
+    geometry: dict
+    status: str = Field(default="open", max_length=16)
+    assignee: str = Field(default="", max_length=80)
+    note: str = Field(default="", max_length=300)
+
+
+class MapItemUpdate(BaseModel):
+    name: str | None = Field(default=None, max_length=40)
+    geometry: dict | None = None
+    status: str | None = Field(default=None, max_length=16)
+    assignee: str | None = Field(default=None, max_length=80)
+    note: str | None = Field(default=None, max_length=300)
+
+
+class GridIn(BaseModel):
+    west: float
+    south: float
+    east: float
+    north: float
+    rows: int = Field(ge=1, le=12)
+    columns: int = Field(ge=1, le=12)
+    prefix: str = Field(default="", max_length=10)
+
+
+async def _map_response(user: dict, incident_id: int) -> dict:
+    incident = await _call(_service().require, user, incident_id)
+    state = await run_in_threadpool(map_state, incident, None)
+    state["can_edit"] = _service().can_edit(user, incident)
+    return state
+
+
+@router.post("/{incident_id}/map/items")
+async def add_map_item(incident_id: int, payload: MapItemIn, request: Request) -> dict:
+    user = _user(request)
+    await _call(_map().add_item, user, incident_id, **payload.model_dump())
+    return await _map_response(user, incident_id)
+
+
+@router.post("/{incident_id}/map/grid")
+async def add_map_grid(incident_id: int, payload: GridIn, request: Request) -> dict:
+    user = _user(request)
+    await _call(_map().add_grid, user, incident_id, **payload.model_dump())
+    return await _map_response(user, incident_id)
+
+
+@router.patch("/{incident_id}/map/items/{item_id}")
+async def update_map_item(incident_id: int, item_id: int, payload: MapItemUpdate, request: Request) -> dict:
+    user = _user(request)
+    await _call(_map().update_item, user, incident_id, item_id, **payload.model_dump(exclude_unset=True))
+    return await _map_response(user, incident_id)
+
+
+@router.delete("/{incident_id}/map/items/{item_id}")
+async def delete_map_item(incident_id: int, item_id: int, request: Request) -> dict:
+    user = _user(request)
+    await _call(_map().delete_item, user, incident_id, item_id)
+    return await _map_response(user, incident_id)
+
+
+@router.put("/{incident_id}/map/position")
+async def set_map_position(incident_id: int, payload: PositionUpdate, request: Request) -> dict:
+    user = _user(request)
+    await _call(
+        _service().update, user, incident_id,
+        latitude=payload.latitude, longitude=payload.longitude,
+    )
+    return await _map_response(user, incident_id)
 
 
 # ----------------------------------------------------------------------

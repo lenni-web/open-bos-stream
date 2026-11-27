@@ -134,6 +134,8 @@ function updateDashboard(data) {
         data.sources ?? []
     );
 
+    updateOverviewSources(data.sources ?? []);
+
     updateServerEvents(data.server_events);
 
     // Systemdiagnosen existieren für Viewer absichtlich nicht im DOM.
@@ -417,8 +419,8 @@ function updateStreamDiagnostics(stream, storage, sources = []) {
                 `Warnung unter ${storage.warning_free_percent} % frei · ` +
                 `Mindestgrenze ${storage.minimum_free_percent} % · ` +
                 (storage.auto_cleanup
-                    ? "Älteste Medien werden bei Speichermangel gelöscht"
-                    : "Bei Speichermangel werden neue Medien gesperrt");
+                    ? "Älteste Aufnahmen werden bei Speichermangel gelöscht"
+                    : "Bei Speichermangel werden neue Aufnahmen gesperrt");
             if (storage.last_cleanup) {
                 text +=
                     ` · Letzte Bereinigung: ` +
@@ -845,4 +847,58 @@ function updateSystemWebAccess(info) {
         card.classList.remove("is-offline");
         card.classList.add("is-online");
     }
+}
+
+// ==========================================================
+// Übersicht: alle Quellen kompakt
+// ==========================================================
+
+function overviewResolution(source) {
+    return source.width && source.height ? `${source.width}×${source.height}` : "";
+}
+
+function updateOverviewSources(sources) {
+    const list = document.getElementById("overview-source-list");
+    const count = document.getElementById("overview-online-count");
+    if (!list) {
+        return;
+    }
+    const online = sources.filter(source => source.ready).length;
+    if (count) {
+        count.textContent = `${online} / ${sources.length}`;
+    }
+    if (!sources.length) {
+        list.innerHTML =
+            '<li class="overview-empty">Noch keine Quelle eingerichtet oder freigegeben.</li>';
+        return;
+    }
+    // Online zuerst, danach alphabetisch.
+    const sorted = [...sources].sort((a, b) =>
+        Number(Boolean(b.ready)) - Number(Boolean(a.ready)) ||
+        String(a.name).localeCompare(String(b.name), "de")
+    );
+    list.innerHTML = sorted.map(source => {
+        const details = [
+            source.organization_name,
+            source.drone_type,
+            source.ready ? overviewResolution(source) : "",
+        ].filter(Boolean);
+        const recording = source.recording?.active
+            ? '<span class="overview-recording" title="Aufnahme läuft">⏺ Aufnahme</span>'
+            : "";
+        return `
+            <li>
+                <button class="overview-source${source.ready ? " is-online" : ""}"
+                    type="button" onclick="showPage('streams')">
+                    <span class="overview-dot" aria-hidden="true"></span>
+                    <span class="overview-source-name">
+                        <strong>${escapeHTML(source.name)}</strong>
+                        ${details.length ? `<small>${escapeHTML(details.join(" · "))}</small>` : ""}
+                    </span>
+                    ${recording}
+                    <span class="overview-state">${source.ready ? "online" : "offline"}</span>
+                </button>
+            </li>
+        `;
+    }).join("");
 }

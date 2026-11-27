@@ -45,6 +45,17 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   Einsatzende gesperrt. Öffnen und Sperren stehen im Einsatzverlauf.
 - Push-Benachrichtigung „Neuer Einsatz“ für alle, die den Einsatz sehen
   dürfen; ein Tippen öffnet den Einsatz.
+- **Einsatzkarte mit Quadranten**: Auf der Karte einen Einsatz wählen,
+  dann Raster aufziehen (z. B. 3 × 3, benannt A1 … C3, optional mit Präfix),
+  Suchflächen frei zeichnen und den Einsatzort setzen. Jeder Quadrant hat
+  Status (offen, zugewiesen, wird abgesucht, abgesucht, Fund / Hinweis),
+  Zuständigkeit (Drohne / Trupp) und Notiz.
+  - Alle, die den Einsatz sehen dürfen, sehen neue und geänderte Quadranten
+    nach spätestens zwei Sekunden – auch über Einsatz-Gastlinks (dort nur
+    lesend).
+  - Zeichnen und Ändern dürfen die Drohnenteams der beteiligten Wehren;
+    Statuswechsel stehen im Einsatzverlauf.
+  - Übersicht der Quadranten auf der Einsatzseite und im Einsatzbericht.
 
 ### Changed
 
