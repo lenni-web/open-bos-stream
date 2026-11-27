@@ -276,3 +276,30 @@ def test_incident_api_flow(api) -> None:
     assert api.get(f"/api/incidents/{incident_id}").status_code == 404
     api.login("kreis")
     assert api.delete(f"/api/incidents/{incident_id}").status_code == 200
+
+
+def test_exercise_is_marked_everywhere(setup) -> None:
+    incident = create(setup, exercise=True)
+    assert incident["exercise"] is True
+    assert setup.incidents.log(incident["id"])[0]["text"].startswith("Übung angelegt")
+
+    team = session(setup.auth, "b-team")
+    real = setup.incidents.update(team, incident["id"], exercise=False)
+    assert real["exercise"] is False
+    assert setup.incidents.log(incident["id"])[-1]["text"] == "Als Realeinsatz gekennzeichnet"
+
+
+def test_exercise_report_and_push_subject(api, monkeypatch) -> None:
+    from open_bos_stream.api import incidents as incidents_api
+
+    sent = []
+    monkeypatch.setattr(incidents_api.push_service, "enqueue", sent.append)
+    api.login("b-team")
+    created = api.post("/api/incidents", json={
+        "lead_organization_id": api.ids["b"], "keyword": "Flächensuche", "exercise": True,
+    }).json()["incident"]
+    assert created["exercise"] is True
+    assert sent[0].subject == "Übung: Flächensuche"
+    report = api.get(f"/api/incidents/{created['id']}/report").text
+    assert "Übungsbericht" in report and "ÜBUNG – kein Realeinsatz" in report
+    assert api.get(f"/api/incidents/{created['id']}/map").json()["exercise"] is True

@@ -92,7 +92,7 @@ function renderGuestIncident(incident) {
         ? ""
         : alarm.toLocaleString("de-DE", {dateStyle: "short", timeStyle: "short"});
     box.innerHTML = `
-        <strong>${escapeHTML(incident.keyword || "Einsatz")}</strong>
+        <strong>${incident.exercise ? "ÜBUNG · " : ""}${escapeHTML(incident.keyword || "Einsatz")}</strong>
         <span>${incident.address ? `${escapeHTML(incident.address)} · ` : ""}Alarm ${escapeHTML(time)}
             · ${escapeHTML(incident.code)}</span>`;
 }

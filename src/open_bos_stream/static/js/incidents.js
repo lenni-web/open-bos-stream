@@ -57,8 +57,9 @@ function incidentDuration(start, end) {
     return hours ? `${hours} h ${minutes % 60} min` : `${minutes} min`;
 }
 
-function incidentStatusChip(status, label) {
-    return `<span class="incident-status is-${escapeHTML(status)}">${escapeHTML(label || status)}</span>`;
+function incidentStatusChip(status, label, exercise = false) {
+    return `<span class="incident-status is-${escapeHTML(status)}">${escapeHTML(label || status)}</span>${exercise
+        ? '<span class="incident-exercise" title="Übung, kein Realeinsatz">Übung</span>' : ""}`;
 }
 
 function incidentOptions(items, selected, valueKey = "id", labelFn = item => item.name) {
@@ -199,9 +200,9 @@ function incidentCard(item) {
     const title = item.keyword || item.title || "Einsatz";
     return `
         <li>
-            <button class="incident-card is-${escapeHTML(item.status)}" type="button" onclick="openIncident(${Number(item.id)})">
+            <button class="incident-card is-${escapeHTML(item.status)}${item.exercise ? " is-exercise" : ""}" type="button" onclick="openIncident(${Number(item.id)})">
                 <span class="incident-card-head">
-                    ${incidentStatusChip(item.status, item.status_label)}
+                    ${incidentStatusChip(item.status, item.status_label, item.exercise)}
                     <span class="incident-code">${escapeHTML(item.code)}</span>
                 </span>
                 <strong>${escapeHTML(title)}</strong>
@@ -263,6 +264,10 @@ function renderIncidentCreateForm() {
                     <input class="bos-input" name="dispatch_number" maxlength="40">
                 </label>
             </div>
+            <label class="incident-exercise-toggle">
+                <input type="checkbox" name="exercise">
+                <span><strong>Übung</strong> – kein Realeinsatz; wird überall deutlich als Übung gekennzeichnet.</span>
+            </label>
             ${sources.length ? `
                 <fieldset class="incident-sources-pick">
                     <legend>Drohnen im Einsatz</legend>
@@ -327,6 +332,7 @@ async function createIncident(event) {
         alarm_text: data.get("alarm_text"),
         alerted_units: data.get("alerted_units"),
         dispatch_number: data.get("dispatch_number"),
+        exercise: data.get("exercise") === "on",
         source_ids: data.getAll("source_ids"),
     };
     form.querySelector('button[type="submit"]').disabled = true;
@@ -378,10 +384,10 @@ function renderIncidentHeader(detail) {
             <button class="incident-back" type="button" onclick="closeIncident()">← Alle Einsätze</button>
         </div>
         ${incidentMessageHTML()}
-        <section class="bos-card incident-head is-${escapeHTML(incident.status)}">
+        <section class="bos-card incident-head is-${escapeHTML(incident.status)}${incident.exercise ? " is-exercise" : ""}">
             <div class="incident-head-main">
                 <span class="incident-card-head">
-                    ${incidentStatusChip(incident.status, incident.status_label)}
+                    ${incidentStatusChip(incident.status, incident.status_label, incident.exercise)}
                     <span class="incident-code">${escapeHTML(incident.code)}</span>
                 </span>
                 <h2>${escapeHTML(title)}</h2>
@@ -443,6 +449,10 @@ function renderIncidentAlarm(detail) {
                             <input class="bos-input" name="dispatch_number" maxlength="40" value="${escapeHTML(incident.dispatch_number)}">
                         </label>
                     </div>
+                    <label class="incident-exercise-toggle">
+                        <input type="checkbox" name="exercise" ${incident.exercise ? "checked" : ""}>
+                        <span><strong>Übung</strong> – kein Realeinsatz</span>
+                    </label>
                     <p class="incident-hint">Eine geänderte Alarmzeit ändert auch die Einsatzkennung.</p>
                     <div class="org-form-actions">
                         <button class="bos-button bos-button-small bos-button-green" type="submit">Speichern</button>
@@ -452,6 +462,7 @@ function renderIncidentAlarm(detail) {
             </section>`;
     }
     const rows = [
+        ["Art", incident.exercise ? "Übung (kein Realeinsatz)" : "Realeinsatz"],
         ["Alarmstichwort", incident.keyword],
         ["Alarmzeit", incidentTime(incident.alarm_at)],
         ["Einsatzadresse", incident.address],
@@ -813,6 +824,7 @@ async function saveIncidentAlarm(event) {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.target));
     data.lead_organization_id = Number(data.lead_organization_id);
+    data.exercise = data.exercise === "on";
     incidentState.editingAlarm = false;
     await incidentAction(() => api.patch(incidentUrl(), data), "Alarmierung gespeichert.");
 }

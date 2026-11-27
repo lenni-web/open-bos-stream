@@ -1,4 +1,4 @@
-"""Einsatzkarte mit Quadranten (Suchabschnitten)
+"""Einsatzkarte mit Quadranten (Suchabschnitten), Kennzeichnung als Übung
 
 Revision ID: 0004_incident_map
 Revises: 0003_incidents
@@ -19,6 +19,10 @@ def upgrade() -> None:
     op.add_column(
         "incidents",
         sa.Column("map_revision", sa.Integer, nullable=False, server_default="0"),
+    )
+    op.add_column(
+        "incidents",
+        sa.Column("exercise", sa.Boolean, nullable=False, server_default=sa.false()),
     )
     op.create_table(
         "incident_map_items",
@@ -47,4 +51,5 @@ def downgrade() -> None:
     op.drop_index("ix_incident_map_items_incident_id", "incident_map_items")
     op.drop_table("incident_map_items")
     with op.batch_alter_table("incidents") as batch:
+        batch.drop_column("exercise")
         batch.drop_column("map_revision")

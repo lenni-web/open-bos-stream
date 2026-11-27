@@ -2351,3 +2351,35 @@ body {
 .incident-quadrants li.is-searching { border-left-color: #e0700b; }
 .incident-quadrants li.is-done { border-left-color: #17845b; }
 .incident-quadrants li.is-finding { border-left-color: #c92835; }
+
+/* Übungen deutlich von Realeinsätzen unterscheiden */
+.incident-exercise {
+    display: inline-flex;
+    padding: 2px 8px;
+    border: 1.5px solid var(--bos-blue);
+    border-radius: 999px;
+    color: var(--bos-blue);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.incident-card.is-exercise.is-running,
+.incident-head.is-exercise.is-running {
+    border-left-color: var(--bos-blue);
+}
+
+.is-exercise .incident-status.is-running {
+    background: var(--bos-blue);
+}
+
+.incident-exercise-toggle {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    padding: 8px 10px;
+    border: 1px dashed var(--bos-blue);
+    border-radius: var(--shell-radius-small);
+    font-size: 0.88rem;
+}

@@ -89,7 +89,7 @@ def _summary(incident: dict) -> dict:
         for key in (
             "id", "code", "title", "keyword", "address", "alarm_at", "ended_at",
             "status", "status_label", "lead_organization_id", "organization_ids",
-            "latitude", "longitude",
+            "latitude", "longitude", "exercise",
         )
     } | {
         "lead_name": service._org_name(incident["lead_organization_id"]),
@@ -201,16 +201,17 @@ def capture_weather(incident: dict, actor: str = "System") -> bool:
 def _announce(incident: dict) -> None:
     title = incident["keyword"] or incident["title"] or "Einsatz"
     place = f" · {incident['address']}" if incident["address"] else ""
+    kind = "Übung" if incident.get("exercise") else "Einsatz"
     server_event_log.record(
-        "warning",
-        f"🚨 Einsatz {incident['code']} angelegt: {title}{place}",
+        "info" if incident.get("exercise") else "warning",
+        f"🚨 {kind} {incident['code']} angelegt: {title}{place}",
         actor=incident["created_by"],
         organization_id=incident["lead_organization_id"],
     )
     push_service.enqueue(
         Notice(
             event="incident_started",
-            subject=f"Einsatz: {title}",
+            subject=f"{kind}: {title}",
             body=(incident["address"] or "Neuer Drohneneinsatz") + f" ({incident['code']})",
             incident_id=incident["id"],
             url=f"/#incidents/{incident['id']}",
@@ -234,6 +235,7 @@ class IncidentCreate(BaseModel):
     alarm_text: str = Field(default="", max_length=4000)
     alerted_units: str = Field(default="", max_length=300)
     dispatch_number: str = Field(default="", max_length=40)
+    exercise: bool = False
     source_ids: list[str] = Field(default_factory=list, max_length=8)
 
 
@@ -247,6 +249,7 @@ class IncidentUpdate(BaseModel):
     dispatch_number: str | None = Field(default=None, max_length=40)
     summary: str | None = Field(default=None, max_length=8000)
     lead_organization_id: int | None = None
+    exercise: bool | None = None
 
 
 class PositionUpdate(BaseModel):
@@ -510,6 +513,7 @@ def map_state(incident: dict, since: int | None = None) -> dict:
         changed=True,
         code=incident["code"],
         keyword=incident["keyword"],
+        exercise=bool(incident.get("exercise")),
         status=incident["status"],
     )
     return state

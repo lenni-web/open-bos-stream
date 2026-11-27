@@ -299,7 +299,7 @@ async def guest_status(request: Request) -> dict:
             # Nur, was die externe Stelle zur Einordnung braucht.
             result["incident"] = {
                 key: incident.get(key)
-                for key in ("code", "keyword", "address", "alarm_at", "latitude", "longitude")
+                for key in ("code", "keyword", "address", "alarm_at", "latitude", "longitude", "exercise")
             }
     return result
 

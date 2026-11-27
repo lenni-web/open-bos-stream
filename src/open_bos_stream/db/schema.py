@@ -210,6 +210,8 @@ incidents = Table(
     # Zähler für die Einsatzkarte: Jede Änderung erhöht ihn, damit alle
     # geöffneten Karten nur bei Bedarf neu laden.
     Column("map_revision", Integer, nullable=False, default=0),
+    # Übung statt Realeinsatz (deutlich gekennzeichnet, eigener Bericht).
+    Column("exercise", Boolean, nullable=False, default=False),
 )
 
 incident_organizations = Table(

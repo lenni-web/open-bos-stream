@@ -288,6 +288,7 @@ class IncidentService:
         alarm_at=None,
         latitude: float | None = None,
         longitude: float | None = None,
+        exercise: bool = False,
         **fields,
     ) -> dict:
         if not _unrestricted(user) and lead_organization_id not in set(user.get("org_operate") or []):
@@ -312,6 +313,7 @@ class IncidentService:
                     code=code,
                     alarm_at=iso(alarm),
                     status="running",
+                    exercise=bool(exercise),
                     lead_organization_id=lead_organization_id,
                     created_by=actor,
                     created_at=now,
@@ -324,7 +326,7 @@ class IncidentService:
                 incident_id,
                 actor,
                 "created",
-                "Einsatz angelegt"
+                ("Übung angelegt" if exercise else "Einsatz angelegt")
                 + (f" · {values['keyword']}" if values.get("keyword") else "")
                 + f" · führende Wehr: {lead_name}",
             )
@@ -361,6 +363,9 @@ class IncidentService:
             else:
                 values.update(self._clean_position(changes.get("latitude"), changes.get("longitude")))
         notes = []
+        if changes.get("exercise") is not None and bool(changes["exercise"]) != bool(incident.get("exercise")):
+            values["exercise"] = bool(changes["exercise"])
+            notes.append("Als Übung gekennzeichnet" if values["exercise"] else "Als Realeinsatz gekennzeichnet")
         new_lead = None
         if changes.get("lead_organization_id") and changes["lead_organization_id"] != incident["lead_organization_id"]:
             new_lead = int(changes["lead_organization_id"])

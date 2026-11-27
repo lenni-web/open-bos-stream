@@ -445,7 +445,7 @@ function renderIncidentMapPanel() {
         running.push({id: incidentMap.data.incident_id, keyword: incidentMap.data.keyword, code: incidentMap.data.code});
     }
     const title = incidentMap.data
-        ? `${escapeHTML(incidentMap.data.keyword || "Einsatz")} · ${escapeHTML(incidentMap.data.code)}`
+        ? `${incidentMap.data.exercise ? "ÜBUNG · " : ""}${escapeHTML(incidentMap.data.keyword || "Einsatz")} · ${escapeHTML(incidentMap.data.code)}`
         : "Kein Einsatz gewählt";
     const selector = incidentMap.guest ? "" : `
         <select class="bos-input" aria-label="Einsatz für die Karte" onchange="selectIncidentMap(this.value)">
