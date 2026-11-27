@@ -57,6 +57,9 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.25.0** (2026-11-27): Checklisten-Modul (Vorlagen des Landkreises,
+  eigene Listen, Einsatz-Checklisten mit Pflichtpositionen, Dokumente);
+  Widmung an die Freiwilligen Feuerwehren
 - **0.24.4** (2026-11-27): Mein Konto, Aufnahmen je Wehr, aktualisierte
   Funktionsübersicht
 - **0.24.3** (2026-11-27): Keine feste Grenze mehr für Quellen und
@@ -221,7 +224,7 @@ Schwerpunkt bleiben Drohnen und Drohneneinsätze. Geplante Reihenfolge:
 6. **0.24** Einsatzkarte mit Quadranten: zeichnen, benennen, Status; für
    alle Beteiligten sofort sichtbar; Übungen kennzeichnen ✔
 7. **0.25** Checklisten-Modul: Vorlagen des Landkreises, eigene Listen der
-   Wehren, Checklisten im Einsatz mit Pflichtpositionen, Dokumente
+   Wehren, Checklisten im Einsatz mit Pflichtpositionen, Dokumente ✔
 8. **0.26+** DJI Cloud API (Pilot 2, Enterprise-Drohnen wie Matrice 30/350/4T
    und Mavic 3T): Live-Telemetrie auf der Karte, Kartenelemente und
    Quadranten in beide Richtungen

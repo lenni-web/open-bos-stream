@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.25.0] - 2026-11-27
+
 ### Added
 
 - **Checklisten** als eigenes Modul mit eigenem Menüpunkt (Reiter
