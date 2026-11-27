@@ -27,7 +27,7 @@ html, body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: e
 <a href="https://www.ffw-stream.de" style="font-family: 'Space Grotesk', Inter, sans-serif; font-size: 14px; font-weight: 700; color: #0b2d4d; text-decoration: none">www.ffw-stream.de</a>
 </div>
 <h1 style="margin: 0; font-family: 'Space Grotesk', Inter, sans-serif; font-size: 34px; line-height: 1.08; font-weight: 700; color: #0b2d4d; text-wrap: balance">Drohnenbilder live – direkt in den Browser.</h1>
-<p style="margin: 2px 0 0; font-size: 14px; line-height: 1.45; color: #3b4a5c">Live-Video, Aufnahmen und Lagekarte für Feuerwehr und BOS – im Browser, auf eigenem Server betrieben.</p>
+<p style="margin: 2px 0 0; font-size: 14px; line-height: 1.45; color: #3b4a5c">Livebilder, Einsätze, Lagekarte und Flugwetter für Feuerwehr und BOS – im Browser, auf eigenem Server betrieben.</p>
 </div>
 </header>
 
@@ -69,36 +69,44 @@ html, body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: e
 </section>
 
 <section style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; flex: 1 1 auto">
-
 <article style="border: 1px solid #d8e0ea; border-radius: 12px; padding: 13px 14px; display: flex; flex-direction: column; gap: 8px">
 <div style="display: flex; align-items: center; gap: 9px">
 <span style="width: 32px; height: 32px; border-radius: 8px; background: #fbe9eb; display: flex; align-items: center; justify-content: center; flex: 0 0 auto"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#c9202f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="6" width="13" height="12" rx="2"></rect><path d="m15.5 10.5 6-3.5v10l-6-3.5"></path></svg></span>
 <h3 style="margin: 0; font-family: 'Space Grotesk', Inter, sans-serif; font-size: 15px; font-weight: 700; color: #0b2d4d">Live-Video</h3>
 </div>
 <ul style="margin: 0; padding-left: 15px; display: flex; flex-direction: column; gap: 5px; font-size: 12px; line-height: 1.42; color: #1f2b38">
-<li>Beliebig viele Quellen gleichzeitig (Serverlast wird überwacht): RTMP, RTSP, SRT, UDP, HLS oder HDMI-Capture-Card</li>
+<li>Beliebig viele Drohnen gleichzeitig: RTMP, RTSP, SRT, UDP, HLS oder HDMI</li>
 <li>Wiedergabe im Browser per WebRTC mit geringer Verzögerung</li>
-<li>Vollbild im Originalstream, sparsame Vorschau bei vielen Quellen</li>
-<li>Jede Quelle verbindet sich nach Ausfall selbst neu</li>
-<li>Weiterleitung an weitere Ziele per RTMP, SRT oder RTSP</li>
-<li>Optional Videoaufnahmen möglich</li>
+<li>Vollbild im Original, sparsame Vorschau bei vielen Quellen</li>
+<li>Aufnahmen und Snapshots – je Wehr abrufbar</li>
+<li>Weiterleitung per RTMP, SRT oder RTSP</li>
 </ul>
 </article>
-
+<article style="border: 1px solid #d8e0ea; border-radius: 12px; padding: 13px 14px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; gap: 9px">
+<span style="width: 32px; height: 32px; border-radius: 8px; background: #fbe9eb; display: flex; align-items: center; justify-content: center; flex: 0 0 auto"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#c9202f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18v-6a5 5 0 0 1 10 0v6"/><path d="M5 21h14"/><path d="M5 18h14"/><path d="M12 3V2"/><path d="m4.2 6.2-.7-.7"/><path d="m19.8 6.2.7-.7"/><path d="M12 10v4"/></svg></span>
+<h3 style="margin: 0; font-family: 'Space Grotesk', Inter, sans-serif; font-size: 15px; font-weight: 700; color: #0b2d4d">Einsätze</h3>
+</div>
+<ul style="margin: 0; padding-left: 15px; display: flex; flex-direction: column; gap: 5px; font-size: 12px; line-height: 1.42; color: #1f2b38">
+<li>Alarmierung, beteiligte Wehren und Einsatzrollen – auch ohne Konto</li>
+<li>Einsatzkarte mit Quadranten: live für alle Beteiligten</li>
+<li>Wetter, Aufnahmen und Verlauf automatisch dokumentiert</li>
+<li>Einsatzbericht als PDF; Übungen deutlich gekennzeichnet</li>
+<li>Einsatz-Gastlinks für Leitstelle und Polizei</li>
+</ul>
+</article>
 <article style="border: 1px solid #d8e0ea; border-radius: 12px; padding: 13px 14px; display: flex; flex-direction: column; gap: 8px">
 <div style="display: flex; align-items: center; gap: 9px">
 <span style="width: 32px; height: 32px; border-radius: 8px; background: #fbe9eb; display: flex; align-items: center; justify-content: center; flex: 0 0 auto"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#c9202f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 6 6-2.5 6 2.5 6-2.5v14.5L15 20.5 9 18l-6 2.5Z"></path><path d="M9 3.5V18M15 6v14.5"></path></svg></span>
-<h3 style="margin: 0; font-family: 'Space Grotesk', Inter, sans-serif; font-size: 15px; font-weight: 700; color: #0b2d4d">Lagekarte</h3>
+<h3 style="margin: 0; font-family: 'Space Grotesk', Inter, sans-serif; font-size: 15px; font-weight: 700; color: #0b2d4d">Lagekarte &amp; Wetter</h3>
 </div>
 <ul style="margin: 0; padding-left: 15px; display: flex; flex-direction: column; gap: 5px; font-size: 12px; line-height: 1.42; color: #1f2b38">
-<li>Amtliche Karte (basemap.de), Luftbild und Offline-Karte ohne Internet</li>
-<li>Wasserentnahmestellen: Hydranten, Brunnen, Saugstellen, Teiche</li>
-<li>Drohnen-Geozonen von dipul: Kontrollzonen, NOTAMs, Schutzgebiete, Infrastruktur</li>
-<li>Zonenabfrage per Klick mit Höhengrenzen und Rechtsgrundlage</li>
-<li>Flugwetter: Ampel, Wind in 120&nbsp;m, DWD-Warnungen und Regenradar mit Vorhersage</li>
+<li>Amtliche Karte (basemap.de), Luftbild und Offline-Karte</li>
+<li>Hydranten und unabhängige Löschwasserstellen</li>
+<li>Drohnen-Geozonen von dipul mit Zonenabfrage per Klick</li>
+<li>Flugwetter: Ampel, Wind in 120&nbsp;m, DWD-Warnungen, Regenradar</li>
 </ul>
 </article>
-
 <article style="border: 1px solid #d8e0ea; border-radius: 12px; padding: 13px 14px; display: flex; flex-direction: column; gap: 8px">
 <div style="display: flex; align-items: center; gap: 9px">
 <span style="width: 32px; height: 32px; border-radius: 8px; background: #e6eef6; display: flex; align-items: center; justify-content: center; flex: 0 0 auto"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0b2d4d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5 4 5.5v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10v-6Z"></path><path d="m8.8 12 2.2 2.2 4.3-4.4"></path></svg></span>
@@ -107,38 +115,22 @@ html, body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: e
 <ul style="margin: 0; padding-left: 15px; display: flex; flex-direction: column; gap: 5px; font-size: 12px; line-height: 1.42; color: #1f2b38">
 <li>Landkreis, Samtgemeinden und Ortswehren – jede Wehr sieht ihre Drohnen</li>
 <li>Rollen Zuschauer, Drohnenteam, Wehr-Admin; Fernpilotennachweise</li>
-<li>Gastlinks: Livebilder befristet teilen – ohne Konto, per Link oder QR-Code</li>
-<li>HTTPS mit Let’s Encrypt und Firewall-Regeln</li>
-<li>Eigener Sende-Schlüssel für jede Drohne</li>
-<li>Livebilder und Medien nur nach Anmeldung</li>
+<li>Gastlinks: Livebilder befristet teilen, per Link oder QR-Code</li>
+<li>HTTPS, eigener Sende-Schlüssel je Drohne, Zugriff nur nach Anmeldung</li>
 </ul>
 </article>
-
 <article style="border: 1px solid #d8e0ea; border-radius: 12px; padding: 13px 14px; display: flex; flex-direction: column; gap: 8px">
 <div style="display: flex; align-items: center; gap: 9px">
 <span style="width: 32px; height: 32px; border-radius: 8px; background: #e6eef6; display: flex; align-items: center; justify-content: center; flex: 0 0 auto"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0b2d4d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12h4l2.5-6 4.5 12 2.5-6h5.5"></path></svg></span>
-<h3 style="margin: 0; font-family: 'Space Grotesk', Inter, sans-serif; font-size: 15px; font-weight: 700; color: #0b2d4d">Betrieb &amp; Diagnose</h3>
+<h3 style="margin: 0; font-family: 'Space Grotesk', Inter, sans-serif; font-size: 15px; font-weight: 700; color: #0b2d4d">Betrieb &amp; Benachrichtigung</h3>
 </div>
 <ul style="margin: 0; padding-left: 15px; display: flex; flex-direction: column; gap: 5px; font-size: 12px; line-height: 1.42; color: #1f2b38">
-<li>Installation und Updates per Skript</li>
-<li>Systemseite mit Bildrate, Aussetzern, CPU, RAM und Speicher</li>
-<li>Stream-Protokoll und Tiefendiagnose je Quelle</li>
-<li>E-Mail bei Störungen, mit Entwarnung</li>
+<li>Push-Benachrichtigungen aufs Smartphone und E-Mail bei Störungen</li>
+<li>Serverlast im Blick: Hinweis bei hoher Auslastung</li>
+<li>Als App auf iPhone und Android installierbar, hell oder dunkel</li>
+<li>Installation und Updates per Skript, Diagnose je Quelle</li>
 </ul>
 </article>
-
-<article style="border: 1px solid #d8e0ea; border-radius: 12px; padding: 13px 14px; display: flex; flex-direction: column; gap: 8px">
-<div style="display: flex; align-items: center; gap: 9px">
-<span style="width: 32px; height: 32px; border-radius: 8px; background: #e6eef6; display: flex; align-items: center; justify-content: center; flex: 0 0 auto"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0b2d4d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4" width="13" height="10" rx="1.5"></rect><path d="M6 17.5h6"></path><rect x="15" y="9" width="6.5" height="11.5" rx="1.5"></rect></svg></span>
-<h3 style="margin: 0; font-family: 'Space Grotesk', Inter, sans-serif; font-size: 15px; font-weight: 700; color: #0b2d4d">Überall nutzbar</h3>
-</div>
-<ul style="margin: 0; padding-left: 15px; display: flex; flex-direction: column; gap: 5px; font-size: 12px; line-height: 1.42; color: #1f2b38">
-<li>Läuft im Browser – keine App-Installation nötig</li>
-<li>Als App auf iPhone und Android installierbar – Anleitung direkt in der Oberfläche</li>
-<li>Optimiert für Smartphone, Tablet und Desktop – hell oder dunkel</li>
-</ul>
-</article>
-
 <article style="background: #eef3f8; border-radius: 12px; padding: 13px 14px; display: flex; flex-direction: column; gap: 8px">
 <div style="display: flex; align-items: center; gap: 9px">
 <span style="width: 32px; height: 32px; border-radius: 8px; background: #ffffff; display: flex; align-items: center; justify-content: center; flex: 0 0 auto"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0b2d4d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"></rect><rect x="8.5" y="8.5" width="7" height="7" rx="1"></rect><path d="M9 1.5v2.5M15 1.5v2.5M9 20v2.5M15 20v2.5M1.5 9h2.5M1.5 15h2.5M20 9h2.5M20 15h2.5"></path></svg></span>
@@ -150,7 +142,6 @@ html, body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: e
 <li>Auf Wunsch Weiterleitung zum Server per RTMP oder SRT</li>
 </ul>
 </article>
-
 </section>
 
 <footer style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 12px; border-top: 1px solid #d8e0ea; font-size: 12px; line-height: 1.4; color: #3b4a5c">
@@ -158,7 +149,7 @@ html, body { margin: 0; -webkit-print-color-adjust: exact; print-color-adjust: e
 <a href="https://www.ffw-stream.de" style="font-family: 'Space Grotesk', Inter, sans-serif; font-size: 16px; font-weight: 700; color: #0b2d4d; text-decoration: none">www.ffw-stream.de</a>
 <span>Läuft auf Debian-Server und Raspberry Pi</span>
 </div>
-<div style="text-align: right">Open Source (MIT-Lizenz) · github.com/lenni-web/open-bos-stream<br>Stand: November 2026 · Version 0.21</div>
+<div style="text-align: right">Open Source (MIT-Lizenz) · github.com/lenni-web/open-bos-stream<br>Stand: November 2026 · Version 0.24</div>
 </footer>
 
 </div>

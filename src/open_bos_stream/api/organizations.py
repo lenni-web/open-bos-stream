@@ -13,16 +13,19 @@ from __future__ import annotations
 
 from datetime import date
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
+from open_bos_stream.auth.middleware import secure_cookies
 from open_bos_stream.auth.roles import ADMIN, VIEWER
 from open_bos_stream.auth.service import AuthError
 from open_bos_stream.core.container import (
     auth_service,
     config as runtime_config,
+    login_rate_limiter,
     server_event_log,
 )
+from open_bos_stream.core.models import EMAIL_ADDRESS_PATTERN
 from open_bos_stream.db.schema import (
     MEMBERSHIP_ROLES,
     ORGANIZATION_KINDS,
@@ -469,42 +472,92 @@ class OwnAccountUpdate(BaseModel):
     new_password: str | None = Field(default=None, min_length=10, max_length=1024)
 
 
+def _own_account(org, stored: dict) -> dict:
+    names = {
+        item["id"]: item["short_name"] or item["name"]
+        for item in org.organizations()
+    }
+    return {
+        "id": stored["id"],
+        "username": stored["username"],
+        "display_name": stored["display_name"],
+        "email": stored["email"],
+        "platform_admin": bool(stored.get("platform_admin")),
+        "created_at": stored.get("created_at"),
+        "last_login_at": stored.get("last_login_at"),
+        "memberships": [
+            item | {
+                "organization_name": names.get(item["organization_id"], "?"),
+                "role_label": MEMBERSHIP_ROLES.get(item["role"], item["role"]),
+            }
+            for item in org.memberships(stored["id"])
+        ],
+        "qualifications": org.qualifications(stored["id"]),
+    }
+
+
 @router.get("/me", dependencies=[VIEWER])
 def me(request: Request) -> dict:
     org = _org()
     stored = org.user_by_id(_user(request).get("user_id") or 0)
     if stored is None:
         raise HTTPException(status_code=404, detail="Kein persönliches Konto.")
-    return {
-        "user": {
-            "id": stored["id"],
-            "username": stored["username"],
-            "display_name": stored["display_name"],
-            "email": stored["email"],
-            "memberships": org.memberships(stored["id"]),
-            "qualifications": org.qualifications(stored["id"]),
-        }
-    }
+    return {"user": _own_account(org, stored)}
 
 
 @router.patch("/me", dependencies=[VIEWER])
-def update_me(payload: OwnAccountUpdate, request: Request) -> dict:
+def update_me(payload: OwnAccountUpdate, request: Request, response: Response) -> dict:
     org = _org()
     stored = org.user_by_id(_user(request).get("user_id") or 0)
     if stored is None:
         raise HTTPException(status_code=404, detail="Kein persönliches Konto.")
-    changes = {
-        key: value
-        for key, value in payload.model_dump(exclude_unset=True).items()
-        if key in {"display_name", "email"} and value is not None
-    }
+    changes = {}
+    if payload.display_name is not None:
+        changes["display_name"] = " ".join(payload.display_name.split())
+    if payload.email is not None:
+        email = payload.email.strip()
+        if email and not EMAIL_ADDRESS_PATTERN.match(email):
+            raise HTTPException(status_code=422, detail="Ungültige E-Mail-Adresse.")
+        changes["email"] = email
+    password_changed = False
     if payload.new_password:
-        if not auth_service.authenticate(stored["username"], payload.current_password or ""):
+        client_ip = request.client.host if request.client else "unknown"
+        retry_after = login_rate_limiter.retry_after(stored["username"], client_ip)
+        if retry_after:
+            raise HTTPException(
+                status_code=429,
+                detail="Zu viele Fehlversuche. Bitte später erneut versuchen.",
+                headers={"Retry-After": str(retry_after)},
+            )
+        if not auth_service._verify_password(payload.current_password or "", stored["password_hash"]):
+            login_rate_limiter.record_failure(stored["username"], client_ip)
             raise HTTPException(status_code=403, detail="Das bisherige Passwort ist falsch.")
+        if payload.new_password == payload.current_password:
+            raise HTTPException(status_code=422, detail="Das neue Passwort muss sich vom bisherigen unterscheiden.")
+        if payload.new_password.strip().lower() == stored["username"]:
+            raise HTTPException(status_code=422, detail="Das Passwort darf nicht dem Benutzernamen entsprechen.")
+        login_rate_limiter.record_success(stored["username"], client_ip)
         auth_service.set_password(stored["id"], payload.new_password, actor=stored["username"])
+        password_changed = True
     if changes:
         org.update_user(stored["id"], actor=stored["username"], **changes)
-    return {"success": True}
+    if password_changed:
+        # Andere Sitzungen enden mit dem alten Passwort; diese bleibt bestehen.
+        session = auth_service._session_user(org.user_by_id(stored["id"]))
+        response.set_cookie(
+            auth_service.COOKIE_NAME,
+            auth_service.create_token(session),
+            max_age=auth_service.SESSION_SECONDS,
+            httponly=True,
+            samesite="strict",
+            secure=secure_cookies(request),
+            path="/",
+        )
+    return {
+        "success": True,
+        "password_changed": password_changed,
+        "user": _own_account(org, org.user_by_id(stored["id"])),
+    }
 
 
 @router.get("/audit", dependencies=[ADMIN])

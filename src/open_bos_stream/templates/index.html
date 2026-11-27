@@ -142,7 +142,7 @@
 
             </div>
 
-            {% if user.role == "superadmin" %}
+            {% if can.operate %}
             <div
                 id="page-media"
                 class="page">
@@ -235,6 +235,7 @@
 {% include "components/pwa_install.html" %}
 {% if user.user_id %}
 {% include "components/push_dialog.html" %}
+{% include "components/account_dialog.html" %}
 {% endif %}
 
 {% if can.operate %}
@@ -328,11 +329,15 @@ window.openBosMediaToken = {{ media_token | tojson }};
 
 <script src="/static/js/web_access.js?v={{ version }}"></script>
 
-{% if user.role == "superadmin" %}
+{% if can.operate %}
+<!-- Aufnahmen-Archiv: Drohnenteams sehen die Dateien ihrer Wehr. -->
 <script src="/static/js/media.js?v={{ version }}"></script>
 <script src="/static/js/library.js?v={{ version }}"></script>
 <script src="/static/js/snapshot_library.js?v={{ version }}"></script>
 <script src="/static/js/media_library.js?v={{ version }}"></script>
+{% endif %}
+
+{% if user.role == "superadmin" %}
 <script src="/static/js/notifications.js?v={{ version }}"></script>
 {% endif %}
 
@@ -402,6 +407,7 @@ window.openBosMediaToken = {{ media_token | tojson }};
 <script src="/static/js/incidents.js?v={{ version }}"></script>
 {% if user.user_id %}
 <script src="/static/js/push.js?v={{ version }}"></script>
+<script src="/static/js/account.js?v={{ version }}"></script>
 {% endif %}
 </body>
 

@@ -33,9 +33,11 @@ window.addEventListener("load", async () => {
         await refreshConfig();
         await loadOrganizationManagement();
     }
+    if (window.currentPermissions?.operate) {
+        refreshMediaLibrary();
+    }
     if (window.currentUser?.role === "superadmin") {
         refreshSnapshot();
-        refreshMediaLibrary();
         if (window.installationProfile === "local") {
             await loadDisplayConfig();
             await loadWebAccessConfig();

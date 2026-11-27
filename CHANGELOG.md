@@ -11,6 +11,31 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.24.4] - 2026-11-27
+
+### Added
+
+- **Mein Konto** im Benutzermenü: Anzeigename und E-Mail ändern, eigene
+  Rollen und Fernpilotennachweise ansehen, Passwort ändern. Nach einer
+  Passwortänderung bleibt das aktuelle Gerät angemeldet, alle anderen
+  Sitzungen enden. Falsche Eingaben des bisherigen Passworts werden wie
+  bei der Anmeldung gebremst.
+- **Aufnahmen je Wehr**: Die Seite „Aufnahmen“ steht jetzt allen
+  Drohnenteams offen und zeigt die Videos und Snapshots der Drohnen der
+  eigenen Wehr(en) mit Angabe der Drohne. Drohnenteams können ansehen,
+  herunterladen und „Behalten“ setzen; löschen dürfen Admins der Wehr.
+  Dateien ohne erkennbare Quelle sehen weiterhin nur Kreis-Admins und
+  Superadmins. Aufnahme- und Snapshot-Steuerung bleiben Superadmins
+  vorbehalten.
+
+### Changed
+
+- Funktionsübersicht (PDF) um Einsätze, Einsatzkarte, Übungen,
+  Push-Benachrichtigungen und Lastüberwachung ergänzt.
+- In der Kopfzeile steht der Anzeigename statt des Benutzernamens.
+
+---
+
 ## [0.24.3] - 2026-11-27
 
 ### Changed

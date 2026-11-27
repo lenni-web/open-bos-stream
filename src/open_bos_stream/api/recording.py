@@ -10,16 +10,23 @@ from fastapi.responses import FileResponse
 from starlette.concurrency import run_in_threadpool
 
 from open_bos_stream.core.container import (
+    config,
     playback_cache,
     recording_library,
     recording_service,
     server_event_log,
 )
 from open_bos_stream.recording.playback import PlaybackPreparationError
-from open_bos_stream.auth.roles import SUPERADMIN
+from open_bos_stream.auth.media_access import (
+    media_organization,
+    require_media_access,
+    visible_media,
+)
+from open_bos_stream.auth.roles import OPERATOR, SUPERADMIN
 
+# Aufnahmesteuerung bleibt Superadmins vorbehalten; das Archiv sehen
+# Drohnenteams für die Drohnen ihrer Wehr (auth/media_access.py).
 router = APIRouter(
-    dependencies=[SUPERADMIN],
     prefix="/recording",
     tags=["Recording"],
 )
@@ -29,13 +36,13 @@ class ProtectionRequest(BaseModel):
     protected: bool
 
 
-@router.get("/status")
+@router.get("/status", dependencies=[SUPERADMIN])
 async def status():
 
     return recording_service.status
 
 
-@router.post("/start")
+@router.post("/start", dependencies=[SUPERADMIN])
 async def start(request: Request):
 
     try:
@@ -62,7 +69,7 @@ async def start(request: Request):
         }
 
 
-@router.post("/stop")
+@router.post("/stop", dependencies=[SUPERADMIN])
 async def stop(request: Request):
 
     try:
@@ -86,14 +93,15 @@ async def stop(request: Request):
         }
 
 
-@router.get("/files")
-async def files():
+@router.get("/files", dependencies=[OPERATOR])
+async def files(request: Request):
 
-    return recording_library.list()
+    return visible_media(request.state.user, recording_library.list(), config)
 
 
-@router.get("/download/{filename}")
-async def download(filename: str):
+@router.get("/download/{filename}", dependencies=[OPERATOR])
+async def download(filename: str, request: Request):
+    require_media_access(request.state.user, filename, config)
 
     file = recording_library.get_file(filename)
 
@@ -110,8 +118,9 @@ async def download(filename: str):
     )
 
 
-@router.get("/play/{filename}")
-async def play(filename: str):
+@router.get("/play/{filename}", dependencies=[OPERATOR])
+async def play(filename: str, request: Request):
+    require_media_access(request.state.user, filename, config)
 
     file = recording_library.get_file(filename)
 
@@ -127,8 +136,9 @@ async def play(filename: str):
     )
 
 
-@router.get("/play-compatible/{filename}")
-async def play_compatible(filename: str):
+@router.get("/play-compatible/{filename}", dependencies=[OPERATOR])
+async def play_compatible(filename: str, request: Request):
+    require_media_access(request.state.user, filename, config)
     """Liefert eine vollständig abgeschlossene, browserkompatible MP4-Datei."""
 
     file = recording_library.get_file(filename)
@@ -153,8 +163,9 @@ async def play_compatible(filename: str):
     )
 
 
-@router.delete("/{filename}")
+@router.delete("/{filename}", dependencies=[OPERATOR])
 async def delete(filename: str, request: Request):
+    require_media_access(request.state.user, filename, config, level="admin")
     file = recording_library.get_file(filename)
     success = recording_library.delete(filename)
     if success:
@@ -162,6 +173,7 @@ async def delete(filename: str, request: Request):
             "warning",
             f"🗑 Aufnahme gelöscht · {filename}",
             actor=request.state.user["username"],
+            organization_id=media_organization(filename, config),
         )
 
     if success and file is not None:
@@ -172,9 +184,11 @@ async def delete(filename: str, request: Request):
     }
 
 
-@router.put("/{filename}/protected")
-async def set_protected(filename: str, request: ProtectionRequest):
+@router.put("/{filename}/protected", dependencies=[OPERATOR])
+async def set_protected(filename: str, request: ProtectionRequest, http: Request):
     """Aufnahme vor automatischer Bereinigung schützen oder freigeben."""
+
+    require_media_access(http.state.user, filename, config)
 
     if not recording_library.set_protected(filename, request.protected):
         raise HTTPException(

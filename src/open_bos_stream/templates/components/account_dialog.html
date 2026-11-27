@@ -1,0 +1,20 @@
+{% from "components/icons.html" import icon %}
+<dialog id="account-dialog" class="pwa-install-dialog account-dialog" aria-labelledby="account-title">
+    <div class="pwa-install-content">
+        <header class="pwa-install-header">
+            <span class="push-dialog-icon account-dialog-icon">{{ icon("user", 28) }}</span>
+            <div>
+                <h2 id="account-title" tabindex="-1" autofocus>Mein Konto</h2>
+                <p>Eigene Angaben, Rollen, Fernpilotennachweise und Passwort.</p>
+            </div>
+        </header>
+
+        <div id="account-body" class="account-body" aria-live="polite">
+            <p class="service-inline-status">Wird geladen …</p>
+        </div>
+
+        <form method="dialog" class="pwa-install-actions">
+            <button class="bos-button bos-button-small" type="submit">Schließen</button>
+        </form>
+    </div>
+</dialog>

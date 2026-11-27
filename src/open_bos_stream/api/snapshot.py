@@ -8,14 +8,21 @@ from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
 from open_bos_stream.core.container import (
+    config,
     server_event_log,
     snapshot_library,
     snapshot_service,
 )
-from open_bos_stream.auth.roles import SUPERADMIN
+from open_bos_stream.auth.media_access import (
+    media_organization,
+    require_media_access,
+    visible_media,
+)
+from open_bos_stream.auth.roles import OPERATOR, SUPERADMIN
 
+# Snapshot-Steuerung bleibt Superadmins vorbehalten; das Archiv sehen
+# Drohnenteams für die Drohnen ihrer Wehr (auth/media_access.py).
 router = APIRouter(
-    dependencies=[SUPERADMIN],
     prefix="/snapshot",
     tags=["Snapshot"],
 )
@@ -25,14 +32,14 @@ class ProtectionRequest(BaseModel):
     protected: bool
 
 
-@router.get("/status")
+@router.get("/status", dependencies=[SUPERADMIN])
 async def status():
     """Aktuellen Snapshot-Status."""
 
     return snapshot_service.status
 
 
-@router.post("/create")
+@router.post("/create", dependencies=[SUPERADMIN])
 async def create(request: Request):
     """Neuen Snapshot erstellen."""
 
@@ -59,15 +66,16 @@ async def create(request: Request):
     }
 
 
-@router.get("/files")
-async def files():
-    """Liste aller Snapshots."""
+@router.get("/files", dependencies=[OPERATOR])
+async def files(request: Request):
+    """Snapshots der Drohnen, die dieses Konto verwalten darf."""
 
-    return snapshot_library.list()
+    return visible_media(request.state.user, snapshot_library.list(), config)
 
 
-@router.get("/download/{filename}")
-async def download(filename: str):
+@router.get("/download/{filename}", dependencies=[OPERATOR])
+async def download(filename: str, request: Request):
+    require_media_access(request.state.user, filename, config)
     """Snapshot herunterladen."""
 
     file = snapshot_library.get_file(filename)
@@ -85,8 +93,9 @@ async def download(filename: str):
     )
 
 
-@router.get("/view/{filename}")
-async def view(filename: str):
+@router.get("/view/{filename}", dependencies=[OPERATOR])
+async def view(filename: str, request: Request):
+    require_media_access(request.state.user, filename, config)
     """Snapshot anzeigen."""
 
     file = snapshot_library.get_file(filename)
@@ -103,16 +112,18 @@ async def view(filename: str):
     )
 
 
-@router.delete("/{filename}")
+@router.delete("/{filename}", dependencies=[OPERATOR])
 async def delete(filename: str, request: Request):
     """Snapshot löschen."""
 
+    require_media_access(request.state.user, filename, config, level="admin")
     success = snapshot_library.delete(filename)
     if success:
         server_event_log.record(
             "warning",
             f"🗑 Snapshot gelöscht · {filename}",
             actor=request.state.user["username"],
+            organization_id=media_organization(filename, config),
         )
 
     return {
@@ -120,9 +131,11 @@ async def delete(filename: str, request: Request):
     }
 
 
-@router.put("/{filename}/protected")
-async def set_protected(filename: str, request: ProtectionRequest):
+@router.put("/{filename}/protected", dependencies=[OPERATOR])
+async def set_protected(filename: str, request: ProtectionRequest, http: Request):
     """Snapshot vor automatischer Bereinigung schützen oder freigeben."""
+
+    require_media_access(http.state.user, filename, config)
 
     if not snapshot_library.set_protected(filename, request.protected):
         raise HTTPException(

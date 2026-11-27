@@ -358,7 +358,7 @@ def test_media_player_has_compatibility_fallback() -> None:
 
     assert "tryCompatibleMediaPlayback" in media
     assert "/recording/play-compatible/" in media
-    assert '@router.get("/play-compatible/{filename}")' in recording
+    assert '@router.get("/play-compatible/{filename}", dependencies=[OPERATOR])' in recording
     assert "RecordingPlaybackCache" in container
     assert "run_in_threadpool(playback_cache.prepare" in recording
 
@@ -486,7 +486,7 @@ def test_mobile_menu_keeps_three_main_items_and_moves_the_rest() -> None:
     assert "BOS Drohnen Suite" in superadmin
 
 
-def test_media_page_is_visible_only_to_superadmins() -> None:
+def test_media_page_is_visible_to_drone_teams() -> None:
     index = (
         ROOT / "templates" / "index.html"
     ).read_text(encoding="utf-8")
@@ -494,12 +494,12 @@ def test_media_page_is_visible_only_to_superadmins() -> None:
         ROOT / "templates" / "components" / "sidebar.html"
     ).read_text(encoding="utf-8")
 
-    assert index.index('{% if user.role == "superadmin" %}') < index.index(
-        'id="page-media"'
-    )
-    assert '"visible": user.role == "superadmin"' in sidebar
+    page = index.index('id="page-media"')
+    assert index.rindex("{% if can.operate %}", 0, page) > index.rindex("{% endif %}", 0, page)
+    assert '"label": "Aufnahmen", "icon": "media", "primary": false, "visible": can.operate' in sidebar
     assert 'id="nav-media"' in render_sidebar("superadmin")
-    assert 'id="nav-media"' not in render_sidebar("admin")
+    assert 'id="nav-media"' in render_sidebar("admin")
+    assert 'id="nav-media"' not in render_sidebar("viewer")
 
 
 def test_system_page_is_hidden_from_viewers() -> None:
@@ -586,7 +586,9 @@ def test_admin_initialization_does_not_call_superadmin_media_functions() -> None
         1,
     )[1].split("}", 1)[0]
     assert "refreshSnapshot();" in superadmin_block
-    assert "refreshMediaLibrary();" in superadmin_block
+    # Das Aufnahmen-Archiv lädt jedes Drohnenteam (gefiltert nach Wehr).
+    operate_block = app.split("if (window.currentPermissions?.operate) {", 1)[1].split("}", 1)[0]
+    assert "refreshMediaLibrary();" in operate_block
     assert app.index("window.currentPermissions?.admin") < app.index(
         "refreshSnapshot();"
     )

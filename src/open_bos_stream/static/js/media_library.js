@@ -58,7 +58,7 @@ function renderFilteredMediaLibrary() {
                         `downloadRecording('${file.name}')`
                     )}
                     ${protect}
-                    ${createMediaButton(
+                    ${file.can_delete === false ? "" : createMediaButton(
                         "🗑",
                         "Löschen",
                         `deleteRecording('${file.name}')`
@@ -78,7 +78,7 @@ function renderFilteredMediaLibrary() {
                     `downloadSnapshot('${file.name}')`
                 )}
                 ${protect}
-                ${createMediaButton(
+                ${file.can_delete === false ? "" : createMediaButton(
                     "🗑",
                     "Löschen",
                     `deleteSnapshot('${file.name}')`

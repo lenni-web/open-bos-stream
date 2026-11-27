@@ -2414,3 +2414,62 @@ body {
 .source-count-hint[hidden] {
     display: none;
 }
+
+/* Mein Konto */
+.account-body {
+    display: grid;
+    gap: 14px;
+}
+
+.account-section {
+    display: grid;
+    gap: 8px;
+    padding: 12px 14px;
+    border: 1px solid var(--bos-gray);
+    border-radius: var(--shell-radius-small);
+}
+
+.account-section h3 {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.account-form {
+    display: grid;
+    gap: 8px;
+}
+
+.account-form .form-field {
+    display: grid;
+    gap: 3px;
+    font-size: 0.82rem;
+    color: var(--bos-muted);
+}
+
+.account-list {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.88rem;
+}
+
+.account-list li {
+    display: grid;
+    gap: 1px;
+}
+
+.account-list span {
+    color: var(--bos-muted);
+    font-size: 0.8rem;
+}
+
+.account-list li.is-expired strong,
+.account-list li.is-expired span {
+    color: var(--bos-red);
+}
+
+.account-dialog-icon {
+    color: var(--bos-blue);
+}

@@ -435,3 +435,29 @@ def test_migrations_and_module_files_are_packaged() -> None:
         '"static/vendor/maplibre/*.mjs"',
     ):
         assert pattern in pyproject
+
+
+def test_own_account_profile_and_password(api) -> None:
+    api.login("b-team")
+    me = api.get("/api/org/me").json()["user"]
+    assert me["username"] == "b-team"
+    assert me["memberships"][0]["role_label"] == "Drohnenteam"
+    assert me["memberships"][0]["organization_name"] == "Ortsfeuerwehr B"
+
+    updated = api.patch("/api/org/me", json={"display_name": "  Bea  Team ", "email": "bea@example.org"})
+    assert updated.json()["user"]["display_name"] == "Bea Team"
+    assert api.patch("/api/org/me", json={"email": "kaputt"}).status_code == 422
+
+    assert api.patch("/api/org/me", json={
+        "current_password": "falsch-falsch", "new_password": "neues-passwort-1",
+    }).status_code == 403
+    old_cookie = api.cookies.get("open_bos_session")
+    changed = api.patch("/api/org/me", json={
+        "current_password": PASSWORD, "new_password": "neues-passwort-1",
+    })
+    assert changed.status_code == 200 and changed.json()["password_changed"]
+    # Diese Sitzung bleibt angemeldet (neues Cookie), die alte ist ungültig.
+    assert api.get("/api/org/me").status_code == 200
+    api.cookies.clear()
+    api.cookies.set("open_bos_session", old_cookie)
+    assert api.get("/api/org/me").status_code == 401

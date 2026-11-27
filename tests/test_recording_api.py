@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 import asyncio
 
 import pytest
@@ -24,7 +25,7 @@ def test_missing_recording_returns_404(
     )
 
     with pytest.raises(HTTPException) as error:
-        asyncio.run(endpoint("missing.mp4"))
+        asyncio.run(endpoint("missing.mp4", SimpleNamespace(state=SimpleNamespace(user={"username": "x", "role": "superadmin"}))))
 
     assert error.value.status_code == 404
     assert error.value.detail == "Aufnahme nicht gefunden."

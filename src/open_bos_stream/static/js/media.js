@@ -230,6 +230,7 @@ function renderMediaLibrary(containerId, files, actions) {
                         ${formatMediaDate(file.modified)}
                         &nbsp;•&nbsp;
                         ${formatFileSize(file.size)}
+                        ${file.source_name ? `&nbsp;•&nbsp;${escapeHTML(file.source_name)}` : ""}
 
                     </div>
 

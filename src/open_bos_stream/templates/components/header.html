@@ -74,7 +74,7 @@
                 aria-expanded="false"
                 aria-controls="user-panel">
                 <span class="app-avatar" aria-hidden="true">{{ user.username[:1] | upper }}</span>
-                <span class="app-user-name">{{ user.username }}</span>
+                <span class="app-user-name">{{ user.display_name or user.username }}</span>
                 {{ icon("chevron-down", 16) }}
             </button>
 
@@ -108,6 +108,16 @@
                 </button>
 
                 {% if user.user_id %}
+                <button
+                    id="account-menu-entry"
+                    class="app-popover-link"
+                    type="button"
+                    data-close-popover
+                    onclick="openAccountDialog()">
+                    {{ icon("user", 16) }}
+                    Mein Konto
+                </button>
+
                 <button
                     id="push-menu-entry"
                     class="app-popover-link"
