@@ -9,6 +9,11 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- Widmung schließt jetzt mehr Menschen ein: „Danke an alle helfenden Hände
+  im Einsatz, besonders der FF Agathenburg.“
+
 ---
 
 ## [0.26.3] - 2026-11-27

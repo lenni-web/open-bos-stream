@@ -44,9 +44,8 @@ Changelog und Commits: **Deutsch**.
 
 - Interne Entwürfe (`docs/entwurf-*`) sind gitignored und werden nie
   veröffentlicht.
-- Widmung in der Oberfläche beibehalten: „Gemacht für die Freiwilligen
-  Feuerwehren – mit Dank an alle Ehrenamtlichen, besonders der FF
-  Agathenburg.“
+- Widmung in der Oberfläche beibehalten: „Danke an alle helfenden Hände im
+  Einsatz, besonders der FF Agathenburg.“
 - Zugangsdaten (DJI App Key/License, Tokens) nie ins Repository oder in den
   Chat – nur in Konfigurationsdateien auf dem Server.
 - Fokus: Server-Profil; die Kiosk-Anzeige (`display/`) ist eingefroren.
