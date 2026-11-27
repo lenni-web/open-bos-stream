@@ -18,6 +18,7 @@ from open_bos_stream.db.database import Database
 from open_bos_stream.db.schema import (
     MEMBERSHIP_ROLES,
     ORGANIZATION_KINDS,
+    ORGANIZATION_PARENT_KINDS,
     QUALIFICATION_KINDS,
     ROLE_ORGANIZATION_KINDS,
     ROLE_RIGHTS,
@@ -75,6 +76,25 @@ def check_role(role: str, organization: dict) -> None:
         raise OrgError(
             f"Die Rolle {MEMBERSHIP_ROLES[role]} gibt es nur in einer "
             f"{ORGANIZATION_KINDS[kind]}."
+        )
+
+
+def fits_under(kind: str, parent_kind: str) -> bool:
+    return parent_kind in ORGANIZATION_PARENT_KINDS.get(kind, ())
+
+
+def check_parent(kind: str, parent: dict) -> None:
+    """Passt die Art unter die übergeordnete Organisation?"""
+
+    if parent["archived"]:
+        raise OrgError("Die übergeordnete Organisation ist archiviert.")
+    if not fits_under(kind, parent["kind"]):
+        raise OrgError(
+            f"Eine Organisation der Art {ORGANIZATION_KINDS[kind]} kann nicht "
+            f"unter einer {ORGANIZATION_KINDS.get(parent['kind'], parent['kind'])} liegen."
+            if parent["kind"] != "landkreis" else
+            f"Eine Organisation der Art {ORGANIZATION_KINDS[kind]} kann nicht "
+            "unter einem Landkreis liegen."
         )
 
 
@@ -218,8 +238,11 @@ class OrgService:
             raise OrgError("Unbekannte Art der Organisation.")
         if parent_id is None and not allow_root:
             raise OrgError("Bitte eine übergeordnete Organisation wählen.")
-        if parent_id is not None and self.organization(parent_id) is None:
-            raise OrgError("Die übergeordnete Organisation gibt es nicht.")
+        if parent_id is not None:
+            parent = self.organization(parent_id)
+            if parent is None:
+                raise OrgError("Die übergeordnete Organisation gibt es nicht.")
+            check_parent(kind, parent)
         values = {
             "name": name,
             "short_name": short_name.strip()[:40],
@@ -259,6 +282,23 @@ class OrgService:
             for item in self.memberships():
                 if item["organization_id"] == organization_id:
                     check_role(item["role"], {**current, "kind": values["kind"]})
+        kind = values.get("kind", current["kind"])
+        parent_id = values.get("parent_id", current["parent_id"])
+        moved = parent_id != current["parent_id"]
+        if parent_id is not None and (moved or kind != current["kind"]):
+            check_parent(kind, self.organization(parent_id))
+        if kind != current["kind"]:
+            # Untereinheiten, die bisher passten, müssen auch weiter passen.
+            for child in self.organizations():
+                if (
+                    child["parent_id"] == organization_id
+                    and fits_under(child["kind"], current["kind"])
+                    and not fits_under(child["kind"], kind)
+                ):
+                    raise OrgError(
+                        f"„{child['name']}“ kann nicht unter der neuen Art liegen. "
+                        "Bitte zuerst die Untereinheiten verschieben."
+                    )
         if not values:
             return current
         with self.db.engine.begin() as connection:
@@ -267,7 +307,15 @@ class OrgService:
                 .where(organizations.c.id == organization_id)
                 .values(**values)
             )
-        self.audit(actor, "Organisation geändert", current["name"], organization_id)
+        if moved:
+            self.audit(
+                actor,
+                "Organisation verschoben",
+                f"{current['name']} → {self.organization(parent_id)['name']}",
+                organization_id,
+            )
+        else:
+            self.audit(actor, "Organisation geändert", current["name"], organization_id)
         return self.organization(organization_id)
 
     def delete_organization(self, organization_id: int, *, actor: str = "") -> None:

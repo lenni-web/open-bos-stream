@@ -51,6 +51,21 @@ function orgName(id) {
     return org ? (org.short_name || org.name) : "?";
 }
 
+function compareOrganizations(a, b) {
+    // Erst nach Art (Reihenfolge wie in den Stammdaten), dann nach Name.
+    const kinds = Object.keys(orgState.meta?.organization_kinds ?? {});
+    return kinds.indexOf(a.kind) - kinds.indexOf(b.kind) || a.name.localeCompare(b.name, "de");
+}
+
+function fitsUnder(kind, parent) {
+    return (orgState.meta?.parent_kinds?.[kind] ?? []).includes(parent?.kind);
+}
+
+// Arten, die unter dieser Organisation angelegt werden können.
+function childKinds(parent) {
+    return Object.keys(orgState.meta?.organization_kinds ?? {}).filter(kind => fitsUnder(kind, parent));
+}
+
 function orgTree() {
     // Baum in Anzeigereihenfolge mit Tiefe.
     const children = new Map();
@@ -63,7 +78,7 @@ function orgTree() {
     }
     const result = [];
     const walk = (parent, depth) => {
-        for (const org of (children.get(parent) ?? []).sort((a, b) => a.name.localeCompare(b.name, "de"))) {
+        for (const org of (children.get(parent) ?? []).sort(compareOrganizations)) {
             result.push({org, depth});
             walk(org.id, depth + 1);
         }
@@ -90,8 +105,10 @@ function roleOptions(selected = "viewer") {
     `).join("");
 }
 
-function kindOptions(selected = "ortsfeuerwehr") {
-    return Object.entries(orgState.meta?.organization_kinds ?? {}).map(([value, label]) => `
+function kindOptions(selected = "ortsfeuerwehr", allowed = null) {
+    return Object.entries(orgState.meta?.organization_kinds ?? {})
+        .filter(([value]) => !allowed || allowed.includes(value))
+        .map(([value, label]) => `
         <option value="${value}" ${value === selected ? "selected" : ""}>${escapeHTML(label)}</option>
     `).join("");
 }
@@ -114,42 +131,88 @@ function formatDate(value) {
 // Darstellung
 // ----------------------------------------------------------
 
-function renderOrganizations() {
-    const rows = orgTree().map(({org, depth}) => `
-        <li class="org-row${org.archived ? " is-archived" : ""}" style="--depth: ${depth}">
+function renderOrganizationRow(org) {
+    const parent = orgState.organizations.find(item => item.id === org.parent_id);
+    // Ältere Einordnungen, die nicht zur Art passen, sichtbar machen.
+    const misplaced = parent && !fitsUnder(org.kind, parent);
+    return `
+        <div class="org-row${org.archived ? " is-archived" : ""}">
             <div class="org-row-main">
                 <strong>${escapeHTML(org.name)}</strong>
                 <small>${escapeHTML(org.kind_label)}${org.short_name ? ` · ${escapeHTML(org.short_name)}` : ""}
                     · ${org.member_count} Konten · ${org.source_count} Quellen
-                    ${org.archived ? " · archiviert" : ""}</small>
+                    ${org.archived ? " · archiviert" : ""}
+                    ${misplaced ? " · Einordnung prüfen" : ""}</small>
             </div>
             <div class="org-row-actions">
-                ${org.can_manage_children && !org.archived ? `
+                ${org.can_manage_children && !org.archived && childKinds(org).length ? `
                     <button class="bos-button bos-button-small" type="button"
                         onclick="startOrganizationForm(null, ${org.id})">＋ Untereinheit</button>` : ""}
                 ${org.can_admin || org.can_edit ? `
                     <button class="bos-button bos-button-small" type="button"
                         onclick="startOrganizationForm(${org.id})">Bearbeiten</button>` : ""}
             </div>
-        </li>
-    `).join("");
+        </div>
+        <div data-org-slot="${org.id}"></div>
+    `;
+}
+
+function renderOrganizationBranch(parentId) {
+    return orgState.organizations
+        .filter(org => (org.parent_id ?? null) === parentId)
+        .sort(compareOrganizations)
+        .map(org => {
+            const children = renderOrganizationBranch(org.id);
+            return `<li>${renderOrganizationRow(org)}${
+                children ? `<ul class="org-tree">${children}</ul>` : ""}</li>`;
+        })
+        .join("");
+}
+
+function renderOrganizations() {
     return `
         <div class="org-block">
             <h3>Organisationen</h3>
-            <ul class="org-tree">${rows}</ul>
-            <div id="org-form-slot"></div>
+            <ul class="org-tree">${renderOrganizationBranch(null)}</ul>
         </div>
     `;
 }
 
-function renderOrganizationForm() {
-    const slot = document.getElementById("org-form-slot");
-    if (!slot) {
+// Mögliche übergeordnete Organisationen für die gewählte Art.
+function parentCandidates(org, kind) {
+    const own = new Set([org.id]);
+    for (const {org: item} of orgTree()) {
+        if (own.has(item.parent_id)) {
+            own.add(item.id);
+        }
+    }
+    return orgTree().filter(({org: item}) => !own.has(item.id) && (
+        item.id === org.parent_id
+        || (item.can_admin && !item.archived && fitsUnder(kind, item))
+    ));
+}
+
+function updateParentOptions(select) {
+    const form = select.form;
+    const org = orgState.organizations.find(item => item.id === orgState.editingOrg?.id);
+    if (!org || !form.elements.parent_id) {
         return;
     }
+    const selected = Number(form.elements.parent_id.value);
+    form.elements.parent_id.innerHTML = orgOptions(parentCandidates(org, select.value), selected);
+}
+
+function renderOrganizationForm() {
+    // Das Formular steht direkt unter der betroffenen Zeile.
+    document.querySelectorAll("[data-org-slot]").forEach(item => {
+        item.innerHTML = "";
+    });
     const editing = orgState.editingOrg;
     if (!editing) {
-        slot.innerHTML = "";
+        return;
+    }
+    const slot = document.querySelector(`[data-org-slot="${editing.id ?? editing.parentId}"]`);
+    if (!slot) {
         return;
     }
     const org = editing.id
@@ -157,6 +220,18 @@ function renderOrganizationForm() {
         : null;
     const parentId = org ? org.parent_id : editing.parentId;
     const structural = org ? org.can_edit : true;
+    const parent = orgState.organizations.find(item => item.id === parentId);
+    const movable = Boolean(org && org.can_edit && org.parent_id !== null);
+    // Neue Untereinheiten und verschiebbare Einheiten bekommen nur passende Arten.
+    let kinds = null;
+    if (!org) {
+        kinds = childKinds(parent);
+    } else if (org.parent_id !== null) {
+        kinds = Object.keys(orgState.meta?.parent_kinds ?? {})
+            .filter(kind => kind === org.kind || orgState.meta.parent_kinds[kind].length);
+    }
+    const kind = org?.kind
+        ?? (kinds.includes("ortsfeuerwehr") ? "ortsfeuerwehr" : kinds[0]);
     slot.innerHTML = `
         <form class="org-form" onsubmit="saveOrganization(event)">
             <h4>${org ? `„${escapeHTML(org.name)}“ bearbeiten` : `Neue Untereinheit von ${escapeHTML(orgName(parentId))}`}</h4>
@@ -173,10 +248,20 @@ function renderOrganizationForm() {
                 </label>
                 <label class="form-field">
                     <span>Art</span>
-                    <select class="bos-input" name="kind" ${structural ? "" : "disabled"}>
-                        ${kindOptions(org?.kind ?? "ortsfeuerwehr")}
+                    <select class="bos-input" name="kind" ${structural ? "" : "disabled"}
+                        onchange="updateParentOptions(this)">
+                        ${kindOptions(kind, kinds)}
                     </select>
                 </label>
+                ${movable ? `
+                <label class="form-field form-field-wide">
+                    <span>Übergeordnete Organisation</span>
+                    <select class="bos-input" name="parent_id">
+                        ${orgOptions(parentCandidates(org, kind), org.parent_id)}
+                    </select>
+                    <small>Verschiebt auch alle Untereinheiten. Rollen der übergeordneten
+                        Ebene gelten für alles darunter.</small>
+                </label>` : ""}
                 <label class="form-field">
                     <span>Breite (Wache)</span>
                     <input class="bos-input" name="latitude" inputmode="decimal"
@@ -492,6 +577,16 @@ function saveOrganization(event) {
     if (!org || org.can_edit) {
         payload.kind = form.elements.kind.value;
     }
+    const parentId = Number(form.elements.parent_id?.value) || null;
+    const moved = Boolean(org && parentId && parentId !== org.parent_id);
+    if (moved) {
+        const question = `„${org.name}“ unter „${orgName(parentId)}“ verschieben? `
+            + "Damit ändert sich, wer Zugriff hat.";
+        if (!window.confirm(question)) {
+            return;
+        }
+        payload.parent_id = parentId;
+    }
     orgAction(async () => {
         if (org) {
             await api.patch(`/api/org/organizations/${org.id}`, payload);
@@ -499,7 +594,7 @@ function saveOrganization(event) {
             await api.post("/api/org/organizations", {...payload, parent_id: editing.parentId});
         }
         orgState.editingOrg = null;
-    }, org ? "Organisation gespeichert." : "Organisation angelegt.");
+    }, moved ? "Organisation verschoben." : org ? "Organisation gespeichert." : "Organisation angelegt.");
 }
 
 function toggleOrganizationArchive(id, archived) {

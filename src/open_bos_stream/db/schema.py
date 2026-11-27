@@ -30,6 +30,22 @@ ORGANIZATION_KINDS = {
     "kreiseinheit": "Kreiseinheit",
 }
 
+# Unter welchen Arten eine Organisation liegen darf. Die oberste
+# Organisation hat keine übergeordnete und ist davon ausgenommen.
+ORGANIZATION_PARENT_KINDS = {
+    "landkreis": (),
+    "stadtfeuerwehr": ("landkreis",),
+    "gemeindefeuerwehr": ("landkreis",),
+    "samtgemeindefeuerwehr": ("landkreis",),
+    "ortsfeuerwehr": (
+        "landkreis",
+        "stadtfeuerwehr",
+        "gemeindefeuerwehr",
+        "samtgemeindefeuerwehr",
+    ),
+    "kreiseinheit": ("landkreis",),
+}
+
 # Rollen in einer Organisation (aufsteigend).
 MEMBERSHIP_ROLES = {
     "viewer": "Zuschauer",

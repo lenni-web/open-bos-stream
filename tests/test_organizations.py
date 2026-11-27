@@ -519,3 +519,23 @@ def test_ortsbrandmeister_only_in_ortsfeuerwehr(auth) -> None:
     org.set_membership(team["id"], ids["b"], "ortsbrandmeister")
     with pytest.raises(OrgError):
         org.update_organization(ids["b"], kind="kreiseinheit")
+
+
+def test_organisations_can_be_moved_within_kind_rules(auth: AuthService) -> None:
+    ids = build(auth)
+    org = auth.ready()
+    loose = org.create_organization(name="Ortsfeuerwehr D", kind="ortsfeuerwehr", parent_id=1)
+
+    moved = org.update_organization(loose["id"], parent_id=ids["sg"])
+    assert moved["parent_id"] == ids["sg"]
+    assert loose["id"] in org.descendants([ids["sg"]])
+    assert org.audit_entries()[0]["action"] == "Organisation verschoben"
+
+    with pytest.raises(OrgError):  # Ortswehr unter Ortswehr
+        org.update_organization(loose["id"], parent_id=ids["a"])
+    with pytest.raises(OrgError):  # Samtgemeinde nur unter dem Landkreis
+        org.create_organization(
+            name="SG X", kind="samtgemeindefeuerwehr", parent_id=ids["sg"]
+        )
+    with pytest.raises(OrgError):  # Untereinheiten passen nicht mehr
+        org.update_organization(ids["sg"], kind="kreiseinheit")

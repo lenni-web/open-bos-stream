@@ -1472,11 +1472,53 @@ body {
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 6px 12px;
-    margin-left: calc(var(--depth, 0) * 18px);
     padding: 8px 10px;
     border: 1px solid var(--bos-gray);
     border-left: 3px solid var(--bos-blue);
     border-radius: var(--shell-radius-small);
+}
+
+/* Baum: Untereinheiten eingerückt und mit Linien verbunden. */
+.org-tree li {
+    position: relative;
+    display: grid;
+    gap: 6px;
+}
+
+.org-tree .org-tree {
+    margin-left: 14px;
+    padding-left: 18px;
+}
+
+.org-tree .org-tree > li::before,
+.org-tree .org-tree > li::after {
+    content: "";
+    position: absolute;
+    left: -18px;
+    border-color: var(--bos-gray);
+    border-style: solid;
+    border-width: 0;
+}
+
+.org-tree .org-tree > li::before {
+    top: -6px;
+    bottom: 0;
+    border-left-width: 2px;
+}
+
+.org-tree .org-tree > li:last-child::before {
+    bottom: auto;
+    height: 30px;
+}
+
+.org-tree .org-tree > li::after {
+    top: 23px;
+    width: 18px;
+    border-top-width: 2px;
+}
+
+.org-tree [data-org-slot]:empty {
+    display: none;
 }
 
 .org-row.is-archived {

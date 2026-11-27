@@ -11,6 +11,26 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.25.6] - 2026-11-27
+
+Organisationen lassen sich in der Hierarchie verschieben.
+
+### Added
+
+- Organisation: Beim Bearbeiten lässt sich die übergeordnete Organisation
+  wählen, z. B. um eine Ortsfeuerwehr unter ihre Samtgemeindefeuerwehr zu
+  verschieben. Untereinheiten ziehen mit.
+
+### Changed
+
+- Organisationsbaum mit Verbindungslinien, sortiert nach Art und Name; das
+  Formular öffnet direkt unter der gewählten Organisation.
+- Es sind nur passende Einordnungen möglich: Ortsfeuerwehren unter
+  Landkreis, Stadt-, Gemeinde- oder Samtgemeindefeuerwehr, alle anderen
+  direkt unter dem Landkreis.
+
+---
+
 ## [0.25.5] - 2026-11-27
 
 Neue Rolle Ortsbrandmeister; das Einsatzwetter bleibt beim erneuten

@@ -29,6 +29,7 @@ from open_bos_stream.core.models import EMAIL_ADDRESS_PATTERN
 from open_bos_stream.db.schema import (
     MEMBERSHIP_ROLES,
     ORGANIZATION_KINDS,
+    ORGANIZATION_PARENT_KINDS,
     QUALIFICATION_KINDS,
 )
 from open_bos_stream.org.service import OrgError
@@ -190,6 +191,7 @@ def _public_user(request: Request, user: dict) -> dict:
 def meta() -> dict:
     return {
         "organization_kinds": ORGANIZATION_KINDS,
+        "parent_kinds": ORGANIZATION_PARENT_KINDS,
         "roles": MEMBERSHIP_ROLES,
         "qualification_kinds": QUALIFICATION_KINDS,
     }
