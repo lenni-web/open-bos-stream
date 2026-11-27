@@ -202,6 +202,14 @@
 
             {% if can.admin %}
             <div
+                id="page-drones"
+                class="page">
+
+                {% include "components/drones_page.html" %}
+
+            </div>
+
+            <div
                 id="page-organization"
                 class="page">
 
@@ -411,6 +419,7 @@ window.openBosMediaToken = {{ media_token | tojson }};
 
 <script src="/static/js/map-weather.js?v={{ version }}"></script>
 
+<script src="/static/js/map-drones.js?v={{ version }}"></script>
 <script src="/static/js/map-incident.js?v={{ version }}"></script>
 <script src="/static/js/map.js?v={{ version }}"></script>
 
@@ -419,7 +428,9 @@ window.openBosMediaToken = {{ media_token | tojson }};
 <script src="/static/js/weather-radar.js?v={{ version }}"></script>
 
 <script src="/static/js/pwa.js?v={{ version }}"></script>
+<script src="/static/js/incident-drones.js?v={{ version }}"></script>
 <script src="/static/js/incidents.js?v={{ version }}"></script>
+<script src="/static/js/dji.js?v={{ version }}"></script>
 <script src="/static/js/checklists.js?v={{ version }}"></script>
 {% if user.user_id %}
 <script src="/static/js/push.js?v={{ version }}"></script>

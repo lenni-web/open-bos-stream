@@ -1,0 +1,119 @@
+"use strict";
+
+// DJI-Geräte auf der Seite Drohnen: benennen, Wehr zuordnen, sperren.
+
+const djiDevices = {data: null, timer: null, message: ""};
+
+function renderDjiDevices() {
+    const root = document.getElementById("dji-devices");
+    const data = djiDevices.data;
+    if (!root || !data) {
+        return;
+    }
+    // Laufende Eingaben nicht durch das Nachladen überschreiben.
+    if (root.contains(document.activeElement) && ["INPUT", "SELECT"].includes(document.activeElement.tagName)) {
+        return;
+    }
+    const hint = !data.configured
+        ? "Die DJI-Anbindung ist auf dem Server noch nicht eingerichtet (docs/dji.md)."
+        : `Fernsteuerung verbinden: in DJI Pilot 2 unter „Cloud-Dienste“ ${window.location.origin}/dji öffnen. `
+            + (data.broker_connected ? "Der Nachrichtendienst läuft." : "Der Nachrichtendienst ist nicht erreichbar.");
+    const organizations = item => [
+        `<option value="">– keine Wehr –</option>`,
+        ...data.organizations.map(org => `<option value="${Number(org.id)}"
+            ${org.id === item.organization_id ? "selected" : ""}>${escapeHTML(org.name)}</option>`),
+        item.organization_id && !data.organizations.some(org => org.id === item.organization_id)
+            ? `<option value="${Number(item.organization_id)}" selected>
+                ${escapeHTML(data.organization_names[item.organization_id] ?? "?")}</option>` : "",
+    ].join("");
+    root.innerHTML = `
+        <p class="incident-hint">${escapeHTML(hint)}</p>
+        ${djiDevices.message ? `<p class="service-inline-status">${escapeHTML(djiDevices.message)}</p>` : ""}
+        ${data.devices.length ? `<ul class="dji-device-list">${data.devices.map(item => `
+            <li data-serial="${escapeHTML(item.serial)}">
+                <div class="dji-device-head">
+                    <strong>${escapeHTML(item.name || item.model)}</strong>
+                    <span class="org-chip ${item.state.online ? "is-valid" : "is-muted"}">
+                        ${item.state.online ? "sendet" : "offline"}</span>
+                </div>
+                <small class="is-muted">${item.kind === "aircraft" ? "Drohne" : "Fernsteuerung"} ·
+                    ${escapeHTML(item.model)} · ${escapeHTML(item.serial)}
+                    ${item.blocked ? " · gesperrt" : ""}</small>
+                ${item.can_manage ? `<form class="dji-device-form" onsubmit="saveDjiDevice(event)">
+                    <input class="bos-input" name="name" maxlength="80" value="${escapeHTML(item.name)}"
+                        placeholder="Rufname" aria-label="Rufname">
+                    <select class="bos-input" name="organization_id" aria-label="Wehr">${organizations(item)}</select>
+                    <button class="bos-button bos-button-small bos-button-green" type="submit">Speichern</button>
+                    <button class="bos-button bos-button-small" type="button"
+                        onclick="blockDjiDevice(this, ${item.blocked ? "false" : "true"})">
+                        ${item.blocked ? "Entsperren" : "Sperren"}</button>
+                    <button class="bos-button bos-button-small app-logout" type="button"
+                        onclick="deleteDjiDevice(this)">Entfernen</button>
+                </form>` : ""}
+            </li>`).join("")}</ul>`
+            : '<p class="incident-empty">Noch kein Gerät. Neue Geräte erscheinen nach dem ersten Verbinden.</p>'}`;
+}
+
+async function djiDeviceRequest(request, message = "") {
+    try {
+        djiDevices.data = await request();
+        djiDevices.message = message;
+    } catch (error) {
+        djiDevices.message = error.message;
+    }
+    document.activeElement?.blur();
+    renderDjiDevices();
+}
+
+function djiDeviceUrl(element) {
+    return `/api/dji/devices/${encodeURIComponent(element.closest("li").dataset.serial)}`;
+}
+
+function djiPatch(url, body) {
+    return api.request(url, {
+        method: "PATCH",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(body),
+    });
+}
+
+function saveDjiDevice(event) {
+    event.preventDefault();
+    const form = event.target;
+    const body = {name: form.elements.name.value};
+    const device = djiDevices.data.devices.find(item => item.serial === form.closest("li").dataset.serial);
+    const organization = Number(form.elements.organization_id.value) || null;
+    if (organization !== device.organization_id) {
+        body.organization_id = organization;
+    }
+    djiDeviceRequest(() => djiPatch(djiDeviceUrl(form), body), "Gespeichert.");
+}
+
+function blockDjiDevice(button, blocked) {
+    djiDeviceRequest(() => djiPatch(djiDeviceUrl(button), {blocked}), blocked ? "Gerät gesperrt." : "Gerät entsperrt.");
+}
+
+function deleteDjiDevice(button) {
+    if (!window.confirm("Gerät entfernen? Aufzeichnungen in Einsätzen bleiben erhalten.")) {
+        return;
+    }
+    const url = djiDeviceUrl(button);
+    djiDeviceRequest(() => api.request(url, {method: "DELETE"}), "Gerät entfernt.");
+}
+
+function setDjiDevicesActive(active) {
+    window.clearInterval(djiDevices.timer);
+    if (!active || !document.getElementById("dji-devices")) {
+        return;
+    }
+    const load = () => {
+        if (document.visibilityState === "visible") {
+            api.get("/api/dji/devices").then(data => {
+                djiDevices.data = data;
+                renderDjiDevices();
+            }).catch(error => console.debug("DJI-Geräte:", error));
+        }
+    };
+    load();
+    djiDevices.timer = window.setInterval(load, 5000);
+}

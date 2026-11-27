@@ -69,6 +69,11 @@ function showPage(page) {
         item.classList.toggle("active", item.dataset.page === page);
     });
 
+    placeConfigActionbar(page);
+
+    if (typeof setDjiDevicesActive === "function") {
+        setDjiDevicesActive(page === "drones");
+    }
     if (page === "map" && typeof initMapPage === "function") {
         initMapPage();
     }
@@ -94,6 +99,16 @@ function showPage(page) {
         setIncidentsPageActive(page === "incidents");
     }
 
+}
+
+// Eine Speichern-Leiste für „Drohnen“ und „Einstellungen“: Sie wandert zur
+// geöffneten Seite, damit ihre Schaltflächen und IDs nur einmal vorkommen.
+function placeConfigActionbar(page) {
+    const bar = document.querySelector(".settings-actionbar");
+    const slot = document.querySelector(`[data-config-actionbar-slot="${page}"]`);
+    if (bar && slot && bar.parentElement !== slot) {
+        slot.appendChild(bar);
+    }
 }
 
 function restorePage() {

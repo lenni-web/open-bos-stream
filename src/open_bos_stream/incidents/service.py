@@ -23,6 +23,7 @@ from open_bos_stream.db.schema import (
     incident_log,
     incident_organizations,
     incident_participants,
+    incident_drones,
     incident_sources,
     incidents,
     organizations,
@@ -493,6 +494,15 @@ class IncidentService:
                     .where(
                         incident_sources.c.incident_id == incident_id,
                         incident_sources.c.removed_at.is_(None),
+                    )
+                    .values(removed_at=values.get("ended_at") or incident["ended_at"] or iso(local_now()))
+                )
+            if status != "running":
+                connection.execute(
+                    update(incident_drones)
+                    .where(
+                        incident_drones.c.incident_id == incident_id,
+                        incident_drones.c.removed_at.is_(None),
                     )
                     .values(removed_at=values.get("ended_at") or incident["ended_at"] or iso(local_now()))
                 )

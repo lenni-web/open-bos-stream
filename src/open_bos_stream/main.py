@@ -72,6 +72,11 @@ from open_bos_stream.api.mediamtx_auth import (
 from open_bos_stream.api.notifications import (
     router as notifications_router,
 )
+from open_bos_stream.api.dji import (
+    router as dji_router,
+    start_broker,
+    stop_broker,
+)
 from open_bos_stream.api.guest import router as guest_router
 from open_bos_stream.api.weather import router as weather_router
 from open_bos_stream.api.organizations import router as organizations_router
@@ -217,6 +222,12 @@ async def lifespan(app: FastAPI):
                 "Der interne Streamer konnte nicht gestartet werden."
             )
 
+    # DJI-Anbindung (nur mit config/dji.yaml).
+    try:
+        start_broker()
+    except Exception:
+        logger.exception("DJI-Anbindung konnte nicht gestartet werden.")
+
     recording_task = asyncio.create_task(automatic_recording_loop())
     storage_task = asyncio.create_task(storage_protection_loop())
     notification_task = asyncio.create_task(notification_loop())
@@ -231,6 +242,7 @@ async def lifespan(app: FastAPI):
             with suppress(asyncio.CancelledError):
                 await task
 
+    stop_broker()
     server_event_log.record("info", "🚒 Open BOS Drohnen wird beendet")
 
     if recording_service.recording_active:
@@ -300,3 +312,4 @@ app.include_router(push_router)
 app.include_router(incidents_router)
 app.include_router(checklists_router)
 app.include_router(documents_router)
+app.include_router(dji_router)

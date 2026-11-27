@@ -12,6 +12,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
+from open_bos_stream.api.dji import drone_service
 from open_bos_stream.api.weather import default_location, weather_service
 from open_bos_stream.auth.guest_access import can_operate_source
 from open_bos_stream.auth.guest_links import MAX_HOURS, GuestLinkError
@@ -146,6 +147,7 @@ def _detail(user: dict, incident_id: int) -> dict:
             for item in _map().items(incident_id)
         ],
         "media": _incident_media(incident),
+        "telemetry": drone_service().summary(incident_id),
         "can": {
             "edit": can_edit,
             "administer": service.can_administer(user, incident),

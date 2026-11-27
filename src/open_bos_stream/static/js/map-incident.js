@@ -477,9 +477,11 @@ function renderIncidentMapPanel() {
             ${incidentMap.message ? `<p class="incident-map-message ${incidentMap.error ? "is-error" : ""}">${escapeHTML(incidentMap.message)}</p>` : ""}
             ${incidentMap.data ? incidentMapSummary() : (running.length || incidentMap.guest ? "" : '<p class="incident-map-hint">Kein laufender Einsatz.</p>')}
             ${incidentMap.data ? incidentMapItemHTML() || incidentMapToolsHTML() : ""}
+            <div id="map-drone-info"></div>
             ${incidentMap.data && !incidentMap.canEdit && !incidentMap.selectedItem
                 ? '<p class="incident-map-hint">Quadrant antippen für Details.</p>' : ""}
         </div>`;
+    droneMapRenderInfo();
 }
 
 function setIncidentMapMessage(message, error = false) {
@@ -878,6 +880,7 @@ function initIncidentMap(mapInstance) {
     });
     renderIncidentMapPanel();
     document.addEventListener("keydown", incidentMapKeydown);
+    initDroneMap(mapInstance);
     if (incidentMap.guest) {
         pollIncidentMap();
         return;

@@ -32,3 +32,4 @@ config/users.yaml.importiert
 # Interne Entwürfe (nicht veröffentlichen)
 docs/entwurf-*
 config/documents/
+config/dji.yaml

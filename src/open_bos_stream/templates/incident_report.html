@@ -202,6 +202,25 @@
     </table>
     {% else %}<p class="muted">Keine Drohnen zugeordnet.</p>{% endif %}
 
+    {% if detail.telemetry %}
+    <h2>Aufgezeichnete Drohnendaten</h2>
+    <table>
+        <tr><th>Gerät</th><th>von</th><th>bis</th><th>max. Höhe über Start</th><th>max. Abstand</th><th>min. Akku</th><th>Meldungen</th></tr>
+        {% for item in detail.telemetry %}
+        <tr>
+            <td>{{ item.name }}{% if not item.aircraft %} <span class="muted">(Fernsteuerung)</span>{% endif %}</td>
+            <td>{{ local(item.first) }}</td>
+            <td>{{ local(item.last) }}</td>
+            <td>{{ "%.0f m"|format(item.max_elevation) if item.aircraft and item.max_elevation is not none else "–" }}</td>
+            <td>{{ "%.0f m"|format(item.max_home_distance) if item.max_home_distance is not none else "–" }}</td>
+            <td>{{ "%d %%"|format(item.min_battery) if item.min_battery is not none else "–" }}</td>
+            <td>{{ item.records }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <p class="muted" style="font-size: 11px">Die vollständigen Daten lassen sich auf der Einsatzseite herunterladen.</p>
+    {% endif %}
+
     <h2>Wetter</h2>
     {% for weather in incident.weather_history %}
     {% if incident.weather_history | length > 1 %}

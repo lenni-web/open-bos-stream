@@ -117,6 +117,7 @@ async function loadIncidentDetail(id, {quiet = false} = {}) {
     try {
         incidentState.detail = await api.get(`/api/incidents/${id}`);
         incidentState.openId = id;
+        await loadIncidentDrones(id);
     } catch (error) {
         if (error.status === 404) {
             incidentState.openId = null;
@@ -828,6 +829,7 @@ function renderIncidentDetail() {
             ${renderIncidentMapSection(detail)}
             ${renderIncidentChecklists(detail)}
             ${renderIncidentSources(detail)}
+            ${renderIncidentTelemetry(detail)}
             ${renderIncidentOrganizations(detail)}
             ${renderIncidentWeather(detail)}
             ${renderIncidentPeople(detail)}
@@ -924,7 +926,7 @@ async function setIncidentStatus(status) {
 async function deleteIncident() {
     const incident = incidentState.detail?.incident;
     if (!incident || !window.confirm(
-        `Einsatz ${incident.code} endgültig löschen? Personen, Verlauf und Zuordnungen gehen verloren. ` +
+        `Einsatz ${incident.code} endgültig löschen? Personen, Verlauf, Zuordnungen und aufgezeichnete Drohnendaten gehen verloren. ` +
         "Aufnahmen bleiben erhalten."
     )) {
         return;

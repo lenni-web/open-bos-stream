@@ -194,7 +194,7 @@ def test_rtmp_input_views_use_available_html_escaping() -> None:
 
 def test_settings_use_one_equal_source_list() -> None:
     settings = (
-        ROOT / "templates" / "components" / "settings_card.html"
+        ROOT / "templates" / "components" / "drones_page.html"
     ).read_text(encoding="utf-8")
     source_js = (
         ROOT / "static" / "js" / "config_rtmp_inputs.js"
@@ -905,3 +905,25 @@ def test_dashboard_columns_never_grow_beyond_the_screen() -> None:
     assert "grid-template-columns: 1fr;" not in dashboard
     assert "grid-template-columns: 1fr;" not in responsive
     assert "overflow-wrap: anywhere;" in dashboard
+
+
+def test_drones_page_holds_sources_and_dji_devices() -> None:
+    components = ROOT / "templates" / "components"
+    drones = (components / "drones_page.html").read_text(encoding="utf-8")
+    settings = (components / "settings_card.html").read_text(encoding="utf-8")
+    organization = (components / "organization_page.html").read_text(encoding="utf-8")
+    config = (ROOT / "static" / "js" / "config.js").read_text(encoding="utf-8")
+    navigation = (ROOT / "static" / "js" / "navigation.js").read_text(encoding="utf-8")
+
+    assert 'id="dji-devices"' in drones and "dji-devices" not in organization
+    assert 'id="source-settings"' not in settings
+    # Genau eine Speichern-Leiste, die zur jeweiligen Seite wandert.
+    assert (drones + settings).count('id="config-save-button"') == 1
+    assert 'data-config-actionbar-slot="settings"' in settings
+    assert "placeConfigActionbar(page)" in navigation
+    assert "#settings-content, #drone-sources-content" in config
+    assert 'setDjiDevicesActive(page === "drones")' in navigation
+    assert 'id="nav-drones"' in render_sidebar("admin")
+    assert 'id="nav-drones"' not in render_sidebar("operator", server_admin=False)
+    order = render_sidebar("superadmin")
+    assert order.index('id="nav-media"') < order.index('id="nav-drones"') < order.index('id="nav-weather"')

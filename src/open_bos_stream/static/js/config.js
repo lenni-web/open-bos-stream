@@ -48,12 +48,15 @@ function setConfigSaveStatus(message, type = "") {
 }
 
 function bindConfigChangeTracking() {
-    const settings =
-        document.getElementById(
-            "settings-content"
-        );
+    // Konfigurationsfelder stehen unter „Einstellungen“ und „Drohnen“.
+    document
+        .querySelectorAll("#settings-content, #drone-sources-content")
+        .forEach(trackConfigChanges);
+}
 
-    if (!settings || settings.dataset.trackingBound) {
+function trackConfigChanges(settings) {
+
+    if (settings.dataset.trackingBound) {
         return;
     }
 

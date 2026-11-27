@@ -8,6 +8,7 @@ from sqlalchemy import (
     Date,
     Float,
     ForeignKey,
+    Index,
     Integer,
     MetaData,
     String,
@@ -463,4 +464,71 @@ documents = Table(
     Column("size", Integer, nullable=False),
     Column("uploaded_by", String(80), nullable=False, default=""),
     Column("uploaded_at", String(32), nullable=False),
+)
+
+
+# DJI-Geräte: Drohnen ("aircraft") und Fernsteuerungen ("controller").
+dji_devices = Table(
+    "dji_devices",
+    metadata,
+    Column("serial", String(64), primary_key=True),
+    Column("kind", String(16), nullable=False),
+    Column("model_type", Integer, nullable=True),
+    Column("model_sub_type", Integer, nullable=True),
+    Column("name", String(80), nullable=False, default=""),
+    Column(
+        "organization_id",
+        Integer,
+        ForeignKey("organizations.id", ondelete="SET NULL"),
+        nullable=True,
+    ),
+    # Fernsteuerung, über die eine Drohne zuletzt gemeldet wurde.
+    Column("gateway_serial", String(64), nullable=True),
+    Column("blocked", Boolean, nullable=False, default=False),
+    Column("first_seen", String(32), nullable=False),
+    Column("last_seen", String(32), nullable=False),
+)
+
+# Zeitraum, in dem eine Drohne einem Einsatz zugeordnet war.
+incident_drones = Table(
+    "incident_drones",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column(
+        "incident_id",
+        Integer,
+        ForeignKey("incidents.id", ondelete="CASCADE"),
+        nullable=False,
+    ),
+    Column("serial", String(64), nullable=False),
+    # Name zum Zeitpunkt der Zuordnung (Gerät kann später entfernt werden).
+    Column("name", String(80), nullable=False, default=""),
+    Column("added_at", String(32), nullable=False),
+    Column("removed_at", String(32), nullable=True),
+)
+
+# Jede empfangene Nachricht unverändert. Ohne Einsatz nur vorübergehend
+# (Nachtragen bei späterer Zuordnung), mit Einsatz dauerhaft.
+drone_records = Table(
+    "drone_records",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column(
+        "incident_id",
+        Integer,
+        ForeignKey("incidents.id", ondelete="CASCADE"),
+        nullable=True,
+    ),
+    Column("serial", String(64), nullable=False),
+    Column("received_at", String(32), nullable=False),
+    Column("topic", String(160), nullable=False),
+    # Für Flugspur und Auswertung aus der Nachricht gelesen.
+    Column("latitude", Float, nullable=True),
+    Column("longitude", Float, nullable=True),
+    Column("elevation", Float, nullable=True),
+    Column("battery", Integer, nullable=True),
+    Column("home_distance", Float, nullable=True),
+    Column("payload", Text, nullable=False),
+    Index("ix_drone_records_incident", "incident_id", "serial", "id"),
+    Index("ix_drone_records_unassigned", "serial", "received_at"),
 )

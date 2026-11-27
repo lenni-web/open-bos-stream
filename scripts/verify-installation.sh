@@ -236,6 +236,14 @@ else
     check_failure "MediaMTX-Konfiguration fehlt"
 fi
 
+if [ -f /etc/mosquitto/conf.d/open-bos.conf ]; then
+    if systemctl is-active mosquitto.service >/dev/null 2>&1; then
+        check_success "MQTT-Broker für die DJI-Anbindung läuft"
+    else
+        check_failure "MQTT-Broker für die DJI-Anbindung läuft nicht"
+    fi
+fi
+
 if [ "${PROFILE}" = "server" ]; then
     if [ -f "${SERVER_CONFIG_FILE}" ]; then
         check_success "Serverzugriff-Konfiguration vorhanden"

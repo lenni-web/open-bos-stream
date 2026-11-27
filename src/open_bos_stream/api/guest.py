@@ -319,3 +319,22 @@ async def guest_incident_map(request: Request, since: int | None = None) -> dict
     state = await run_in_threadpool(map_state, incident, since)
     state["can_edit"] = False
     return state
+
+
+@router.get("/guest/incident-positions", dependencies=[GUEST])
+async def guest_incident_positions(request: Request, after: int = 0) -> dict:
+    """Drohnen für Einsatz-Gastlinks; Standorte von Personen bleiben intern."""
+
+    from open_bos_stream.api.dji import drone_service
+
+    user = request.state.user
+    if not is_guest(user) or not user.get("incident_id"):
+        raise HTTPException(404, "Kein Einsatz zu diesem Gastzugang.")
+    incident = await run_in_threadpool(auth_service.incidents.get, user["incident_id"])
+    if incident is None:
+        raise HTTPException(404, "Einsatz nicht gefunden.")
+    state = await run_in_threadpool(lambda: drone_service().positions(incident, after=max(0, after)))
+    state["persons"] = []
+    for drone in state["drones"]:
+        drone["controller"] = None
+    return state

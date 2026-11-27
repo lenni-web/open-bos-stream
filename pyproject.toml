@@ -19,6 +19,7 @@ dependencies = [
     "sqlalchemy",
     "alembic",
     "cryptography",
+    "paho-mqtt",
 ]
 
 [project.optional-dependencies]

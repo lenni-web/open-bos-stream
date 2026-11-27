@@ -65,7 +65,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             )
             return response
 
-        if path.startswith(PUBLIC_PREFIXES):
+        # "/dji": Anmeldeseite für Pilot 2 (exakt, kein Präfix).
+        if path == "/dji" or path.startswith(PUBLIC_PREFIXES):
             return await call_next(request)
 
         if not self.service.configured:

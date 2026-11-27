@@ -312,7 +312,7 @@ Installer nicht verändern und muss dort entsprechend konfiguriert werden.
 
 In beiden Installationsprofilen erhält jede RTMP-Quelle automatisch einen
 eigenen, zufälligen Publisher-Token mit genau 12 Zeichen. Die vollständige
-Empfangsadresse ist in den Einstellungen zunächst verdeckt und kann bewusst
+Empfangsadresse ist auf der Seite „Drohnen“ zunächst verdeckt und kann bewusst
 eingeblendet werden:
 
 ```text
@@ -661,7 +661,7 @@ Anzeige daher ohne zusätzliche, privilegierte Inhibit-Sperre aktiv.
 
 ## Mehrere gleichwertige Quellen
 
-In den Einstellungen lassen sich beliebig viele Quellen anlegen; eine feste
+Auf der Seite „Drohnen“ lassen sich beliebig viele Quellen anlegen; eine feste
 Obergrenze gibt es nicht. Stattdessen bewertet die Anwendung laufend CPU,
 Arbeitsspeicher und Systemlast (Mittelwert über 30 Sekunden) und zeigt bei
 hoher Auslastung auf allen Seiten einen Hinweis; hält eine Überlastung länger
@@ -906,8 +906,8 @@ Transcoding-Profil oder der Kamera-Substream geprüft werden.
 
 ## Oberfläche
 
-- **Seitenleiste:** Übersicht, Livebilder, Karte, Wetter, Organisation,
-  Medien, Einstellungen und System mit einheitlichen Symbolen. Am Desktop sitzt sie fest am linken Rand
+- **Seitenleiste:** Übersicht, Einsätze, Livebilder, Karte, Aufnahmen, Drohnen,
+  Wetter, Checklisten, Organisation, Benutzer, Einstellungen und System mit einheitlichen Symbolen. Am Desktop sitzt sie fest am linken Rand
   und lässt sich unten über „Einklappen“ auf Symbole reduzieren; der Browser
   merkt sich die Wahl. Auf Tablets zeigt sie nur Symbole. Auf Smartphones
   stehen Übersicht, Livebilder, Karte und Wetter in der Leiste am unteren Rand, alle
@@ -934,8 +934,8 @@ Transcoding-Profil oder der Kamera-Substream geprüft werden.
   Geräteeinstellung.
 - **Ereignisprotokoll:** gemeinsames Protokoll des Servers für Admins und
   Superadmins (siehe „Betrieb“).
-- **Smartphones:** kompakte Darstellung; die Speichern-Leiste der
-  Einstellungen schwebt nur bei ungespeicherten Änderungen über dem Inhalt.
+- **Smartphones:** kompakte Darstellung; die Speichern-Leiste unter
+  „Drohnen“ und „Einstellungen“ schwebt nur bei ungespeicherten Änderungen über dem Inhalt.
 - **Als App installieren:** Die Oberfläche lässt sich auf iPhone, iPad und
   Android auf den Startbildschirm legen (Web-App, kein App-Store) und startet
   dann im Vollbild ohne Adressleiste. Auf Mobilgeräten erscheint oben auf der

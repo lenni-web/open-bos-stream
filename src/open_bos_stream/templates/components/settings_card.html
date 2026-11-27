@@ -5,47 +5,10 @@
             <span class="page-eyebrow">Konfiguration</span>
             <h1>Einstellungen</h1>
         </div>
-        <p>Quellen, Organisation, Gastlinks und Serverdienste verwalten.</p>
+        <p>Aufnahmen, Gastlinks und Serverdienste verwalten. Quellen stehen unter „Drohnen“.</p>
     </header>
 
     <div id="settings-content" class="settings-grid">
-        {% if can.admin %}
-        <section class="bos-card settings-section settings-section-rtmp-inputs">
-            <div class="settings-section-header">
-                <span class="settings-icon" aria-hidden="true">{{ icon("layers", 20) }}</span>
-                <div>
-                    <span class="section-kicker">Mehrquellenempfang</span>
-                    <h2>Quellen</h2>
-                    <p>Beliebig viele gleichwertige lokale oder Netzwerkquellen – die Serverlast wird überwacht.</p>
-                    <p class="settings-profile-recommendation">
-                        <strong>Profil-Empfehlung:</strong>
-                        „Ausgewogen“ bietet bis zu vier Quellen in klarerer
-                        480p-Vorschau. Ab fünf Quellen oder bei knappen
-                        CPU-Reserven empfiehlt sich „Sparsam“ mit 360p.
-                        Im Vollbild bleibt bei beiden das Original erhalten.
-                    </p>
-                </div>
-            </div>
-
-            <div id="source-settings"></div>
-
-            <p id="source-count-hint" class="info-note source-count-hint" hidden></p>
-
-            <button
-                id="source-add-button"
-                class="bos-button"
-                type="button"
-                onclick="addSource()">
-                + Quelle hinzufügen
-            </button>
-
-            <div class="info-note">
-                RTMP-Empfangspfade entstehen automatisch aus der ID.
-                Videos werden erst bei einem verfügbaren Signal geöffnet.
-            </div>
-        </section>
-        {% endif %}
-
         {% if user.role == "superadmin" %}
         <section class="bos-card settings-section">
             <div class="settings-section-header">
@@ -454,39 +417,7 @@
 
     </div>
 
-    {% if can.admin %}
-    <div class="settings-actionbar">
-        <div>
-            <span id="config-dirty-indicator" class="dirty-indicator">
-                Keine ungespeicherten Änderungen
-            </span>
-            <span id="config-save-status" class="save-status" aria-live="polite"></span>
-        </div>
-        {% if can.server_admin %}
-        <button
-            id="config-test-button"
-            class="bos-button"
-            type="button"
-            onclick="testConfig()">
-            <span class="label-long">Konfiguration testen</span><span class="label-short">Testen</span>
-        </button>
-        {% endif %}
-        {% if can.superadmin %}
-        <button
-            id="config-restore-button"
-            class="bos-button"
-            type="button"
-            onclick="restoreConfig()">
-            <span class="label-long">Letzte funktionierende laden</span><span class="label-short">Wiederherstellen</span>
-        </button>
-        {% endif %}
-        <button
-            id="config-save-button"
-            class="bos-button bos-button-green"
-            type="button"
-            onclick="saveConfig()">
-            <span class="label-long">Änderungen speichern</span><span class="label-short">Speichern</span>
-        </button>
-    </div>
+    {% if can.superadmin %}
+    <div data-config-actionbar-slot="settings"></div>
     {% endif %}
 </section>

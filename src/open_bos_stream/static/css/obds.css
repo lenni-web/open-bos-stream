@@ -184,3 +184,13 @@ body {
     border-bottom: none;
 
 }
+
+/* DJI-Geräte und Anmeldeseite für Pilot 2 */
+.dji-device-list { margin: 0; padding: 0; list-style: none; }
+.dji-device-list li { padding: 10px 0; border-top: 1px solid rgba(127, 127, 127, 0.25); overflow-wrap: anywhere; }
+.dji-device-head { display: flex; gap: 8px; align-items: center; }
+.dji-device-form { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.dji-device-form .bos-input { flex: 1 1 160px; }
+.dji-pilot-status { font-weight: 600; }
+.dji-pilot-status.is-error { color: #c92835; }
+.dji-pilot-log { font-size: 12px; }

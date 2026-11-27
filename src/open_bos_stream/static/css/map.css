@@ -576,3 +576,17 @@ html[data-color-scheme="dark"] .map-layer-legend small {
         max-height: 60%;
     }
 }
+
+/* Drohnen, Piloten und geteilte Standorte */
+.map-unit { display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.map-unit i { display: block; width: 14px; height: 14px; border: 2px solid #fff; border-radius: 50%;
+    background: #246bce; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45); }
+.map-unit.is-drone i { width: 26px; height: 26px; border: 0; border-radius: 0; background: #c92835;
+    box-shadow: none; clip-path: polygon(50% 0, 90% 100%, 50% 76%, 10% 100%); }
+.map-unit.is-controller i { background: #17202b; border-radius: 3px; }
+.map-unit span { position: absolute; top: 100%; margin-top: 2px; padding: 1px 6px; border-radius: 4px;
+    background: rgba(23, 32, 43, 0.85); color: #fff; font-size: 11px; white-space: nowrap; }
+.map-unit-list { margin: 0 0 8px; padding: 0; list-style: none; }
+.map-unit-link { display: flex; flex-direction: column; width: 100%; padding: 4px 0; border: 0;
+    background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.map-unit-link span { font-size: 12px; opacity: 0.75; }
