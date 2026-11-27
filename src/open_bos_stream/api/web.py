@@ -30,24 +30,34 @@ def permissions(user: dict) -> dict:
     }
 
 
-def role_summary(user: dict) -> str:
-    """z. B. „Wehr-Admin · OF Hagen“ für das Benutzermenü."""
+def role_entries(user: dict) -> list[dict]:
+    """Rollen für das Benutzermenü, je Eintrag eine Organisation."""
 
     if user.get("role") == "superadmin":
-        return "Superadmin"
+        return [{
+            "organization": "Ganzer Server",
+            "roles": [{"role": "superadmin", "label": "Superadmin"}],
+        }]
     if "user_id" not in user:
-        return {"viewer": "Zuschauer", "admin": "Admin"}.get(user.get("role"), "")
+        role = user.get("role", "")
+        label = {"viewer": "Zuschauer", "admin": "Admin"}.get(role)
+        return [{"organization": "", "roles": [{"role": role, "label": label}]}] if label else []
     org = auth_service.ready()
     names = {
         item["id"]: item["short_name"] or item["name"]
         for item in org.organizations()
     }
-    parts = [
-        f"{MEMBERSHIP_ROLES.get(item['role'], item['role'])} · "
-        f"{names.get(item['organization_id'], '?')}"
-        for item in org.memberships(user["user_id"])
-    ]
-    return ", ".join(parts) or "Ohne Organisation"
+    entries: dict[int, dict] = {}
+    for item in org.memberships(user["user_id"]):
+        entry = entries.setdefault(item["organization_id"], {
+            "organization": names.get(item["organization_id"], "?"),
+            "roles": [],
+        })
+        entry["roles"].append({
+            "role": item["role"],
+            "label": MEMBERSHIP_ROLES.get(item["role"], item["role"]),
+        })
+    return list(entries.values())
 
 
 @router.get("/", response_class=HTMLResponse, dependencies=[VIEWER])
@@ -62,7 +72,7 @@ async def dashboard(request: Request):
             "version": VERSION,
             "user": request.state.user,
             "can": permissions(request.state.user),
-            "role_summary": role_summary(request.state.user),
+            "role_entries": role_entries(request.state.user),
             "installation_profile": installation_profile(),
             # Für direkte MediaMTX-Abrufe ohne Caddy (WHEP/HLS).
             "media_token": auth_service.create_media_token(

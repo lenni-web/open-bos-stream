@@ -6,7 +6,6 @@ const orgState = {
     meta: null,
     organizations: [],
     users: [],
-    filter: "",
     editingOrg: null,
     openUser: null,
 };
@@ -20,11 +19,18 @@ function userElement() {
     return document.getElementById("user-management");
 }
 
+let orgStatusTimer = null;
+
 function orgStatus(text, kind = "") {
     document.querySelectorAll("[data-org-status]").forEach(status => {
         status.textContent = text;
         status.dataset.kind = kind;
     });
+    // Erfolgsmeldungen verschwinden wieder, Fehler bleiben stehen.
+    clearTimeout(orgStatusTimer);
+    if (kind === "success") {
+        orgStatusTimer = setTimeout(() => orgStatus(""), 5000);
+    }
 }
 
 function userNameFields(user = {}) {
@@ -110,12 +116,6 @@ function kindOptions(selected = "ortsfeuerwehr", allowed = null) {
         .filter(([value]) => !allowed || allowed.includes(value))
         .map(([value, label]) => `
         <option value="${value}" ${value === selected ? "selected" : ""}>${escapeHTML(label)}</option>
-    `).join("");
-}
-
-function qualificationOptions() {
-    return Object.entries(orgState.meta?.qualification_kinds ?? {}).map(([value, label]) => `
-        <option value="${value}">${escapeHTML(label)}</option>
     `).join("");
 }
 
@@ -446,197 +446,6 @@ function bindLocationBaseSelect(select, info, base) {
     };
 }
 
-function membershipChips(user) {
-    return user.memberships.map(item => `
-        <span class="org-chip">${escapeHTML(orgState.meta?.roles?.[item.role] ?? item.role)}
-            · ${escapeHTML(orgName(item.organization_id))}</span>
-    `).join("") || '<span class="org-chip is-muted">ohne Organisation</span>';
-}
-
-function qualificationChips(user) {
-    return user.qualifications.map(item => `
-        <span class="org-chip ${item.valid ? "is-valid" : "is-expired"}"
-            title="${escapeHTML(item.label)}${item.reference ? ` · ${escapeHTML(item.reference)}` : ""}">
-            ${escapeHTML(item.kind.toUpperCase().replace("A1A3", "A1/A3"))}
-            ${item.valid_until ? `bis ${formatDate(item.valid_until)}` : ""}
-            ${item.valid ? "" : "(abgelaufen)"}
-        </span>
-    `).join("");
-}
-
-function renderUserEditor(user) {
-    const platform = Boolean(window.currentPermissions?.superadmin);
-    const ownId = window.currentUser?.user_id;
-    const admins = adminOrganizations();
-    return `
-        <div class="org-user-editor" data-user-id="${user.id}">
-            ${user.manageable ? `
-            <div class="form-grid">
-                ${userNameFields(user)}
-                <label class="form-field">
-                    <span>E-Mail (optional)</span>
-                    <input class="bos-input" data-field="email" type="email" maxlength="254"
-                        value="${escapeHTML(user.email)}">
-                </label>
-                <label class="form-field">
-                    <span>Neues Passwort</span>
-                    <input class="bos-input" data-field="password" type="password"
-                        minlength="10" autocomplete="new-password" placeholder="leer lassen = unverändert">
-                </label>
-                <label class="switch-row">
-                    <input type="checkbox" data-field="active" ${user.active ? "checked" : ""}
-                        ${user.id === ownId ? "disabled" : ""}>
-                    <span><strong>Konto aktiv</strong><small>Gesperrte Konten können sich nicht anmelden.</small></span>
-                </label>
-                ${platform ? `
-                <label class="switch-row">
-                    <input type="checkbox" data-field="platform_admin" ${user.platform_admin ? "checked" : ""}>
-                    <span><strong>Superadmin</strong><small>Technische Verwaltung des ganzen Servers.</small></span>
-                </label>` : ""}
-            </div>
-            <div class="org-form-actions">
-                <button class="bos-button bos-button-small bos-button-green" type="button"
-                    onclick="saveUser(${user.id})">Konto speichern</button>
-                ${user.id === ownId ? "" : `
-                <button class="bos-button bos-button-small app-logout" type="button"
-                    onclick="deleteUser(${user.id}, '${escapeHTML(user.username)}')">Konto löschen</button>`}
-            </div>` : `
-            <p class="service-inline-status">Dieses Konto gehört auch zu Organisationen außerhalb
-                Ihres Bereichs. Kontodaten ändert die zuständige Ebene; Rollen in Ihrem Bereich
-                können Sie hier vergeben.</p>`}
-
-            <h4>Rollen</h4>
-            <ul class="org-memberships">
-                ${user.memberships.map(item => `
-                    <li>
-                        <span>${escapeHTML(orgName(item.organization_id))}</span>
-                        ${item.editable ? `
-                            <select class="bos-input" onchange="setMembership(${user.id}, ${item.organization_id}, this.value)">
-                                ${roleOptions(item.role)}
-                            </select>
-                            <button class="bos-button bos-button-small" type="button"
-                                onclick="removeMembership(${user.id}, ${item.organization_id})">Entfernen</button>
-                        ` : `<span>${escapeHTML(orgState.meta?.roles?.[item.role] ?? item.role)}</span>`}
-                    </li>
-                `).join("")}
-            </ul>
-            ${admins.length ? `
-            <div class="org-inline-add">
-                <select class="bos-input" data-role="new-membership-org">${orgOptions(admins)}</select>
-                <select class="bos-input" data-role="new-membership-role">${roleOptions("viewer")}</select>
-                <button class="bos-button bos-button-small" type="button"
-                    onclick="addMembership(${user.id}, this)">Rolle hinzufügen</button>
-            </div>` : ""}
-
-            <h4>Fernpilotennachweise</h4>
-            <ul class="org-memberships">
-                ${user.qualifications.map(item => `
-                    <li>
-                        <span>${escapeHTML(item.label)}${item.reference ? ` · ${escapeHTML(item.reference)}` : ""}</span>
-                        <span class="org-chip ${item.valid ? "is-valid" : "is-expired"}">
-                            ${item.valid_until ? `gültig bis ${formatDate(item.valid_until)}` : "unbefristet"}
-                            ${item.valid ? "" : "· abgelaufen"}</span>
-                        <button class="bos-button bos-button-small" type="button"
-                            onclick="deleteQualification(${item.id})">Entfernen</button>
-                    </li>
-                `).join("") || '<li class="is-muted">Noch kein Nachweis erfasst.</li>'}
-            </ul>
-            <div class="org-inline-add">
-                <select class="bos-input" data-role="new-qualification-kind">${qualificationOptions()}</select>
-                <input class="bos-input" data-role="new-qualification-reference" maxlength="80" placeholder="Nummer (optional)">
-                <input class="bos-input" data-role="new-qualification-until" type="date" title="Gültig bis">
-                <button class="bos-button bos-button-small" type="button"
-                    onclick="addQualification(${user.id}, this)">Nachweis hinzufügen</button>
-            </div>
-        </div>
-    `;
-}
-
-function renderUsers() {
-    const filter = Number(orgState.filter) || null;
-    const inFilter = user => !filter || user.memberships.some(item => item.organization_id === filter);
-    const users = orgState.users.filter(inFilter);
-    const filterOptions = orgTree().filter(({org}) => org.can_admin);
-    return `
-        <div class="org-block">
-            <div class="org-block-header">
-                <h3>Konten</h3>
-                <label class="org-filter">
-                    <span>Organisation</span>
-                    <select class="bos-input" onchange="orgState.filter = this.value; renderOrganizationManagement()">
-                        <option value="">Alle in meinem Bereich</option>
-                        ${orgOptions(filterOptions, filter)}
-                    </select>
-                </label>
-            </div>
-            <ul class="org-users">
-                ${users.map(user => `
-                    <li class="org-user${user.active ? "" : " is-inactive"}">
-                        <details ${orgState.openUser === user.id ? "open" : ""}
-                            ontoggle="if (this.open) orgState.openUser = ${user.id}">
-                            <summary>
-                                <span class="org-user-name">
-                                    <strong>${escapeHTML(user.display_name || user.username)}${user.nickname
-                                        ? ` <span class="is-muted">„${escapeHTML(user.nickname)}“</span>` : ""}</strong>
-                                    <small>${escapeHTML(user.username)}${user.platform_admin ? " · Superadmin" : ""}${user.active ? "" : " · gesperrt"}${user.first_name ? "" : " · Name fehlt"}</small>
-                                </span>
-                                <span class="org-user-chips">${membershipChips(user)}${qualificationChips(user)}</span>
-                            </summary>
-                            ${renderUserEditor(user)}
-                        </details>
-                    </li>
-                `).join("") || '<li class="is-muted">Keine Konten in diesem Bereich.</li>'}
-            </ul>
-        </div>
-    `;
-}
-
-function renderNewUserForm() {
-    const admins = adminOrganizations();
-    if (!admins.length) {
-        return "";
-    }
-    return `
-        <form class="org-block org-form" onsubmit="createOrgUser(event)">
-            <h3>Neues Konto</h3>
-            <div class="form-grid">
-                <label class="form-field">
-                    <span>Benutzername</span>
-                    <input class="bos-input" name="username" required minlength="3" maxlength="32"
-                        autocomplete="off" placeholder="z. B. m-mustermann">
-                </label>
-                ${userNameFields()}
-                <label class="form-field">
-                    <span>E-Mail (optional)</span>
-                    <input class="bos-input" name="email" type="email" maxlength="254">
-                </label>
-                <label class="form-field">
-                    <span>Startpasswort</span>
-                    <input class="bos-input" name="password" type="password" required minlength="10"
-                        autocomplete="new-password">
-                </label>
-                <label class="form-field">
-                    <span>Organisation</span>
-                    <select class="bos-input" name="organization_id">${orgOptions(admins)}</select>
-                </label>
-                <label class="form-field">
-                    <span>Rolle</span>
-                    <select class="bos-input" name="role">${roleOptions("viewer")}</select>
-                </label>
-            </div>
-            <div class="org-form-actions">
-                <button class="bos-button bos-button-green" type="submit">Konto anlegen</button>
-            </div>
-            <p class="service-inline-status">
-                Zuschauer sehen Livebilder, Karte und Wetter ihrer Organisation. Drohnenteams
-                erstellen zusätzlich Gastlinks. Wehr-Admins verwalten Quellen und Konten.
-                Der Ortsbrandmeister (nur in Ortsfeuerwehren) hat dieselben Rechte.
-                Rollen gelten auch für alle Untereinheiten.
-            </p>
-        </form>
-    `;
-}
-
 function renderOrganizationManagement() {
     destroyLocationPicker();
     const organizations = orgElement();
@@ -647,14 +456,7 @@ function renderOrganizationManagement() {
         `;
         renderOrganizationForm();
     }
-    const users = userElement();
-    if (users) {
-        users.innerHTML = `
-            <p class="service-inline-status" role="status" data-org-status></p>
-            ${renderUsers()}
-            ${renderNewUserForm()}
-        `;
-    }
+    renderUserManagement();
 }
 
 // ----------------------------------------------------------
@@ -696,7 +498,7 @@ async function orgAction(action, successText) {
         await action();
         await loadOrganizationManagement();
         if (successText) {
-            orgStatus(successText, "success");
+            orgStatus(typeof successText === "function" ? successText() : successText, "success");
         }
     } catch (error) {
         orgStatus(String(error.message || error).replace(/^Value error,\s*/i, ""), "error");
@@ -776,14 +578,15 @@ function createOrgUser(event) {
     event.preventDefault();
     const form = event.target;
     const data = Object.fromEntries(new FormData(form).entries());
+    let created = "";
     orgAction(async () => {
         const result = await api.post("/api/org/users", {
             ...data,
             organization_id: Number(data.organization_id),
         });
-        orgState.openUser = result.user.id;
-        form.reset();
-    }, "Konto angelegt.");
+        showCreatedUser(result.user.id);
+        created = result.user.username;
+    }, () => `Konto angelegt. Anmeldung mit dem Benutzernamen „${created}“.`);
 }
 
 function saveUser(id) {
@@ -820,11 +623,13 @@ function deleteUser(id, username) {
     orgAction(() => api.delete(`/api/org/users/${id}`), "Konto gelöscht.");
 }
 
-function setMembership(userId, organizationId, role) {
-    orgAction(
-        () => api.put(`/api/org/users/${userId}/memberships/${organizationId}`, {role}),
-        "Rolle gespeichert. Das Konto muss sich ggf. neu anmelden."
+async function setRoles(userId, organizationId, roles) {
+    await orgAction(
+        () => api.put(`/api/org/users/${userId}/memberships/${organizationId}`, {roles}),
+        "Rollen gespeichert. Das Konto muss sich ggf. neu anmelden."
     );
+    // Auch nach einem Fehler den gespeicherten Stand zeigen.
+    renderUserResults();
 }
 
 function removeMembership(userId, organizationId) {
@@ -834,15 +639,17 @@ function removeMembership(userId, organizationId) {
     );
 }
 
-function addMembership(userId, button) {
-    const box = button.closest(".org-inline-add");
+function addMembership(userId, box) {
     const organizationId = box.querySelector('[data-role="new-membership-org"]').value;
-    const role = box.querySelector('[data-role="new-membership-role"]').value;
-    setMembership(userId, Number(organizationId), role);
+    const roles = checkedRoles(box);
+    if (!roles.length) {
+        orgStatus("Bitte mindestens eine Rolle ankreuzen.", "error");
+        return;
+    }
+    setRoles(userId, Number(organizationId), roles);
 }
 
-function addQualification(userId, button) {
-    const box = button.closest(".org-inline-add");
+function addQualification(userId, box) {
     const payload = {
         kind: box.querySelector('[data-role="new-qualification-kind"]').value,
         reference: box.querySelector('[data-role="new-qualification-reference"]').value,

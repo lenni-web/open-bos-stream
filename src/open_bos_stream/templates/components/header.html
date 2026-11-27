@@ -80,10 +80,30 @@
 
             <div id="user-panel" class="app-popover app-user-panel" hidden>
                 <div class="app-user-info">
-                    <strong>{{ user.display_name or user.username }}</strong>
-                    <span>{{ role_summary or role_labels.get(user.role, user.role) }}</span>
+                    <span class="app-avatar" aria-hidden="true">{{ user.username[:1] | upper }}</span>
+                    <div>
+                        <strong>{{ user.display_name or user.username }}</strong>
+                        <span>{{ user.username }}</span>
+                    </div>
                 </div>
 
+                <div class="app-menu-section">
+                    <p class="app-popover-title">Meine Rollen</p>
+                    <ul class="app-role-list">
+                        {% for entry in role_entries %}
+                        <li>
+                            {% if entry.organization %}<strong>{{ entry.organization }}</strong>{% endif %}
+                            {% for item in entry.roles %}
+                            <span class="role-badge" data-role="{{ item.role }}">{{ item.label }}</span>
+                            {% endfor %}
+                        </li>
+                        {% else %}
+                        <li><span>{{ "Ohne Organisation" if user.user_id else role_labels.get(user.role, user.role) }}</span></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="app-menu-section">
                 <p class="app-popover-title">Darstellung</p>
                 <div class="app-theme-switch" role="radiogroup" aria-label="Darstellung">
                     <button type="button" role="radio" data-theme-choice="auto" aria-checked="true">
@@ -96,6 +116,9 @@
                         {{ icon("moon", 16) }} Dunkel
                     </button>
                 </div>
+                </div>
+
+                <div class="app-menu-section">
 
                 <button
                     id="pwa-menu-entry"
@@ -128,6 +151,7 @@
                     Benachrichtigungen
                 </button>
                 {% endif %}
+                </div>
 
                 <button class="app-popover-link app-logout" type="button" onclick="logoutUser()">
                     {{ icon("logout", 16) }}

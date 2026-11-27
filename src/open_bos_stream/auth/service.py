@@ -435,8 +435,28 @@ class AuthService:
             cls._dummy_hash = cls._password_hash(secrets.token_urlsafe(16))
         return cls._dummy_hash
 
+    def _login_account(self, identifier: str) -> dict | None:
+        """Konto zum Benutzernamen oder zur E-Mail-Adresse.
+
+        Benutzernamen enthalten kein "@". Gehört eine Adresse (aus älteren
+        Beständen) zu mehreren Konten, gilt sie für keines.
+        """
+
+        org = self.ready()
+        value = identifier.strip()
+        if "@" not in value:
+            return org.user_by_username(value.lower())
+        matches = org.users_by_email(value)
+        return matches[0] if len(matches) == 1 else None
+
+    def login_name(self, identifier: str) -> str:
+        """Schlüssel für die Anmeldesperre: je Konto, nicht je Schreibweise."""
+
+        stored = self._login_account(identifier)
+        return stored["username"] if stored else identifier.strip().lower()
+
     def authenticate(self, username: str, password: str) -> dict | None:
-        stored = self.ready().user_by_username(username.strip().lower())
+        stored = self._login_account(username)
         if not stored or not stored["active"]:
             self._verify_password(password, self._timing_dummy())
             return None

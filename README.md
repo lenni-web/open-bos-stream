@@ -277,6 +277,9 @@ lokales Display) sowie Browser mit einem kurzlebigen Medien-Token aus ihrer
 Anmeldung. Streams lassen sich deshalb weder über den RTMP-Port 1935 noch
 über RTSP, SRT oder die direkten HLS-/WHEP-Ports ohne Anmeldung abspielen.
 
+Angemeldet wird mit dem Benutzernamen oder der E-Mail-Adresse des Kontos.
+Eine Adresse gehört immer nur zu einem Konto.
+
 Nach fünf fehlgeschlagenen Anmeldungen derselben Benutzer-/IP-Kombination
 wird diese für 15 Minuten gesperrt. Zusätzlich greift eine IP-weite Grenze
 gegen das Durchprobieren vieler Konten; über den lokalen Port-80-Proxy, der
@@ -990,7 +993,9 @@ der Wache, archivieren oder löschen leere Einheiten.
 
 - Rollen **vererben sich nach unten**: Wer bei der Samtgemeindefeuerwehr
   Wehr-Admin ist, ist es auch in allen Ortsfeuerwehren darunter.
-- Eine Person kann in mehreren Organisationen unterschiedliche Rollen haben.
+- Eine Person kann in mehreren Organisationen unterschiedliche Rollen haben,
+  auch mehrere in derselben (z. B. Ortsbrandmeister und Drohnenteam); es gelten
+  die Rechte der höchsten Rolle.
 - **Quellen gehören einer Wehr.** Konten sehen nur die Quellen ihrer
   Organisationen (samt Unterbaum) und Quellen ohne Zuordnung. Das gilt auch
   für Vollbild, WebRTC/HLS-Abrufe über Caddy und MediaMTX-Medientoken, das

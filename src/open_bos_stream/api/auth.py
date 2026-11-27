@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 class Credentials(BaseModel):
-    username: str = Field(min_length=1, max_length=64)
+    # Benutzername oder E-Mail-Adresse.
+    username: str = Field(min_length=1, max_length=254)
     password: str = Field(min_length=1, max_length=1024)
 
 
@@ -59,15 +60,16 @@ async def setup(payload: SetupRequest, request: Request, response: Response):
 @router.post("/login", dependencies=[PUBLIC])
 async def login(payload: Credentials, request: Request, response: Response):
     client_ip = request.client.host if request.client else "unknown"
+    login_name = auth_service.login_name(payload.username)
     retry_after = login_rate_limiter.retry_after(
-        payload.username,
+        login_name,
         client_ip,
     )
     if retry_after:
         logger.warning(
             "Anmeldung vorübergehend gesperrt: Benutzer %r, IP %s, "
             "Restzeit %ss",
-            payload.username.strip().lower(),
+            login_name,
             client_ip,
             retry_after,
         )
@@ -82,12 +84,12 @@ async def login(payload: Credentials, request: Request, response: Response):
     user = auth_service.authenticate(payload.username, payload.password)
     if not user:
         retry_after = login_rate_limiter.record_failure(
-            payload.username,
+            login_name,
             client_ip,
         )
         logger.warning(
             "Fehlgeschlagene Anmeldung: Benutzer %r, IP %s%s",
-            payload.username.strip().lower(),
+            login_name,
             client_ip,
             (
                 f", für {retry_after}s gesperrt"
@@ -97,9 +99,9 @@ async def login(payload: Credentials, request: Request, response: Response):
         )
         raise HTTPException(
             status_code=401,
-            detail="Benutzername oder Passwort ist falsch.",
+            detail="Benutzername, E-Mail oder Passwort ist falsch.",
         )
-    login_rate_limiter.record_success(payload.username, client_ip)
+    login_rate_limiter.record_success(login_name, client_ip)
     _set_session(request, response, auth_service.create_token(user))
     return {"success": True, "user": user}
 

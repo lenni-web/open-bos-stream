@@ -81,7 +81,9 @@ class UserUpdate(BaseModel):
 
 
 class MembershipUpdate(BaseModel):
-    role: str
+    # "roles" legt alle Rollen in der Organisation fest; "role" genau eine.
+    role: str | None = None
+    roles: list[str] | None = Field(default=None, max_length=8)
 
 
 class QualificationCreate(BaseModel):
@@ -202,9 +204,10 @@ def list_organizations(request: Request) -> dict:
     org = _org()
     scope = _admin_scope(request)
     platform = _is_platform_admin(request)
-    members = {}
+    # Konten zählen, nicht Rollen.
+    members: dict[int, set[int]] = {}
     for item in org.memberships():
-        members[item["organization_id"]] = members.get(item["organization_id"], 0) + 1
+        members.setdefault(item["organization_id"], set()).add(item["user_id"])
     sources = {}
     for source in runtime_config.sources:
         if source.organization_id is not None:
@@ -219,7 +222,7 @@ def list_organizations(request: Request) -> dict:
                 "can_edit": platform or (
                     item["parent_id"] is not None and item["parent_id"] in scope
                 ),
-                "member_count": members.get(item["id"], 0),
+                "member_count": len(members.get(item["id"], ())),
                 "source_count": sources.get(item["id"], 0),
             }
             for item in org.organizations()
@@ -377,6 +380,8 @@ def update_user(user_id: int, payload: UserUpdate, request: Request) -> dict:
         raise HTTPException(status_code=409, detail="Das eigene Konto lässt sich nicht sperren.")
     password = changes.pop("password", None)
     try:
+        if changes.get("email") is not None:
+            _org().ensure_email_free(changes["email"], user_id)
         if password:
             auth_service.set_password(user_id, password, actor=_actor(request))
         if changes:
@@ -414,7 +419,8 @@ def set_membership(
     if target["platform_admin"] and not _is_platform_admin(request):
         raise HTTPException(status_code=403, detail="Superadmin-Konten verwaltet nur ein Superadmin.")
     try:
-        org.set_membership(user_id, organization_id, payload.role, actor=_actor(request))
+        roles = payload.roles if payload.roles is not None else [payload.role or ""]
+        org.set_roles(user_id, organization_id, roles, actor=_actor(request))
     except OrgError as exc:
         raise _org_error(exc) from exc
     return {"success": True, "user": _public_user(request, org.user_by_id(user_id))}
@@ -544,6 +550,10 @@ def update_me(payload: OwnAccountUpdate, request: Request, response: Response) -
         email = payload.email.strip()
         if email and not EMAIL_ADDRESS_PATTERN.match(email):
             raise HTTPException(status_code=422, detail="Ungültige E-Mail-Adresse.")
+        try:
+            org.ensure_email_free(email, stored["id"])
+        except OrgError as exc:
+            raise _org_error(exc) from exc
         changes["email"] = email
     password_changed = False
     if payload.new_password:

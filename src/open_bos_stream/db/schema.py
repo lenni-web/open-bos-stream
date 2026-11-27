@@ -123,7 +123,8 @@ memberships = Table(
         nullable=False,
     ),
     Column("role", String(16), nullable=False),
-    UniqueConstraint("user_id", "organization_id", name="uq_membership"),
+    # Seit 0.26.3 sind mehrere Rollen je Organisation möglich.
+    UniqueConstraint("user_id", "organization_id", "role", name="uq_membership_role"),
 )
 
 qualifications = Table(

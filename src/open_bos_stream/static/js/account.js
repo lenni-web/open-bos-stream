@@ -46,11 +46,19 @@ function renderAccount() {
         return;
     }
     const roles = user.platform_admin
-        ? '<li><strong>Superadmin</strong> <span>Technische Verwaltung des ganzen Servers</span></li>'
+        ? '<li><span class="role-badge" data-role="superadmin">Superadmin</span> <span>Technische Verwaltung des ganzen Servers</span></li>'
         : "";
-    const memberships = user.memberships.map(item => `
-        <li><strong>${escapeHTML(item.role_label)}</strong>
-            <span>${escapeHTML(item.organization_name)}</span></li>`).join("");
+    const byOrganization = new Map();
+    for (const item of user.memberships) {
+        const entry = byOrganization.get(item.organization_id)
+            ?? {name: item.organization_name, roles: []};
+        entry.roles.push(item);
+        byOrganization.set(item.organization_id, entry);
+    }
+    const memberships = [...byOrganization.values()].map(entry => `
+        <li><strong>${escapeHTML(entry.name)}</strong>
+            ${entry.roles.map(item => `<span class="role-badge" data-role="${escapeHTML(item.role)}">${
+                escapeHTML(item.role_label)}</span>`).join("")}</li>`).join("");
     const qualifications = user.qualifications.map(item => `
         <li class="${item.valid ? "" : "is-expired"}">
             <strong>${escapeHTML(item.label)}</strong>
@@ -85,7 +93,7 @@ function renderAccount() {
                         value="${escapeHTML(user.nickname || "")}" autocomplete="nickname">
                 </label>
                 <label class="form-field">
-                    <span>E-Mail (optional)</span>
+                    <span>E-Mail (optional, auch zur Anmeldung)</span>
                     <input class="bos-input" name="email" type="email" maxlength="254"
                         value="${escapeHTML(user.email)}" autocomplete="email">
                 </label>
@@ -99,7 +107,7 @@ function renderAccount() {
         <section class="account-section">
             <h3>Rollen</h3>
             ${roles || memberships
-                ? `<ul class="account-list">${roles}${memberships}</ul>`
+                ? `<ul class="account-list account-roles">${roles}${memberships}</ul>`
                 : '<p class="push-hint">Noch keiner Organisation zugeordnet.</p>'}
             <p class="push-hint">Rollen vergibt der Admin Ihrer Wehr bzw. des Landkreises.</p>
         </section>

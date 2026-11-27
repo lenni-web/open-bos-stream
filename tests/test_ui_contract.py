@@ -753,6 +753,10 @@ def test_transcoding_options_belong_to_each_source() -> None:
 
 def test_organisation_management_replaces_flat_user_list() -> None:
     script = (ROOT / "static" / "js" / "organizations.js").read_text(encoding="utf-8")
+    users = (ROOT / "static" / "js" / "users.js").read_text(encoding="utf-8")
+    assert "/static/js/users.js" in (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
+    # Das Datum eines Nachweises ist als Ablaufdatum beschriftet.
+    assert "Gültig bis (Ablaufdatum)" in users
     settings = (
         ROOT / "templates" / "components" / "settings_card.html"
     ).read_text(encoding="utf-8")
@@ -771,7 +775,7 @@ def test_organisation_management_replaces_flat_user_list() -> None:
     ):
         assert endpoint in script
     # Superadmin-Rolle nur für Superadmins sichtbar.
-    assert "window.currentPermissions?.superadmin" in script
+    assert "window.currentPermissions?.superadmin" in users
 
 
 def test_viewer_view_hides_technical_details() -> None:

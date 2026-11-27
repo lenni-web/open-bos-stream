@@ -539,3 +539,182 @@ def test_organisations_can_be_moved_within_kind_rules(auth: AuthService) -> None
         )
     with pytest.raises(OrgError):  # Untereinheiten passen nicht mehr
         org.update_organization(ids["sg"], kind="kreiseinheit")
+
+
+# ----------------------------------------------------------------------
+# Anmeldung mit E-Mail-Adresse
+# ----------------------------------------------------------------------
+
+
+def test_login_with_email_and_unique_addresses(auth: AuthService) -> None:
+    build(auth)
+    org = auth.ready()
+    first = auth.create_user(
+        "eva", PASSWORD, "viewer", email="Eva@Example.org"
+    )["user_id"]
+
+    assert auth.authenticate(" eva@example.ORG ", PASSWORD)["username"] == "eva"
+    assert auth.authenticate("eva@example.org", "falsches-passwort") is None
+    assert auth.authenticate("niemand@example.org", PASSWORD) is None
+    assert auth.login_name("EVA@example.org") == "eva"
+
+    with pytest.raises(AuthError):
+        auth.create_user("zweite", PASSWORD, "viewer", email="eva@example.org")
+    assert org.user_by_username("zweite") is None
+    other = auth.create_user("otto", PASSWORD, "viewer")["user_id"]
+    with pytest.raises(OrgError):
+        org.update_user(other, email="eva@example.org")
+    # Das eigene Konto darf die Adresse behalten.
+    org.update_user(first, email="eva@example.org")
+
+
+def test_duplicate_legacy_email_only_blocks_email_login(auth: AuthService) -> None:
+    from sqlalchemy import update
+
+    from open_bos_stream.db.schema import users
+
+    build(auth)
+    org = auth.ready()
+    with org.db.engine.begin() as connection:
+        connection.execute(
+            update(users)
+            .where(users.c.username.in_(["kreis", "sg-admin"]))
+            .values(email="wache@example.org")
+        )
+
+    assert auth.authenticate("wache@example.org", PASSWORD) is None
+    assert auth.authenticate("kreis", PASSWORD)
+    # Unverändert speichern bleibt möglich.
+    org.update_user(org.user_by_username("kreis")["id"], email="wache@example.org")
+
+
+def test_email_conflict_changes_nothing_and_lock_is_per_account(api) -> None:
+    from open_bos_stream.core.container import auth_service, login_rate_limiter
+
+    org = auth_service.ready()
+    org.update_user(org.user_by_username("kreis")["id"], email="kreis@example.org")
+    target = org.user_by_username("b-zuschauer")
+
+    api.login("kreis")
+    response = api.patch(f"/api/org/users/{target['id']}", json={
+        "email": "kreis@example.org", "password": "neues-passwort-123",
+    })
+    assert response.status_code == 409
+    assert auth_service.authenticate("b-zuschauer", PASSWORD)
+
+    api.login("b-zuschauer")
+    response = api.patch("/api/org/me", json={"email": "kreis@example.org"})
+    assert response.status_code == 409
+
+    # Name und Adresse zählen zusammen; sonst wären es doppelt so viele Versuche.
+    api.cookies.clear()
+    try:
+        for name in ["kreis", "kreis@example.org"] * 3:
+            response = api.post("/auth/login", json={"username": name, "password": "falsch"})
+        assert response.status_code == 429
+    finally:
+        login_rate_limiter.record_success("kreis", "testclient")
+
+
+# ----------------------------------------------------------------------
+# Mehrere Rollen je Organisation
+# ----------------------------------------------------------------------
+
+
+def roles_in(org: OrgService, user_id: int, organization_id: int) -> list[str]:
+    return [
+        item["role"] for item in org.memberships(user_id)
+        if item["organization_id"] == organization_id
+    ]
+
+
+def test_several_roles_in_one_organisation(auth: AuthService) -> None:
+    ids = build(auth)
+    org = auth.ready()
+    user = org.user_by_username("b-team")
+
+    org.set_roles(user["id"], ids["b"], ["operator", "ortsbrandmeister"])
+    assert roles_in(org, user["id"], ids["b"]) == ["ortsbrandmeister", "operator"]
+    assert org.effective_role(user) == "admin"
+    assert org.scope(user).admin == {ids["b"]}
+
+    # Ohne den Titel bleiben nur die Rechte des Drohnenteams.
+    org.set_roles(user["id"], ids["b"], ["operator"])
+    assert org.effective_role(user) == "operator"
+    assert not org.scope(user).admin
+
+    # Ungültige Auswahl ändert nichts.
+    for wrong in ([], ["operator", "chef"]):
+        with pytest.raises(OrgError):
+            org.set_roles(user["id"], ids["b"], wrong)
+    with pytest.raises(OrgError):
+        org.set_roles(user["id"], ids["sg"], ["viewer", "ortsbrandmeister"])
+    assert roles_in(org, user["id"], ids["b"]) == ["operator"]
+    assert roles_in(org, user["id"], ids["sg"]) == []
+
+    org.set_roles(user["id"], ids["b"], ["operator", "viewer"])
+    org.remove_membership(user["id"], ids["b"])
+    assert roles_in(org, user["id"], ids["b"]) == []
+
+
+def test_roles_api_and_member_count(api) -> None:
+    from open_bos_stream.core.container import auth_service
+
+    ids = api.ids
+    org = auth_service.ready()
+    user = org.user_by_username("b-team")
+    url = f"/api/org/users/{user['id']}/memberships/{ids['b']}"
+    api.login("kreis")
+
+    def count() -> int:
+        items = api.get("/api/org/organizations").json()["organizations"]
+        return next(item["member_count"] for item in items if item["id"] == ids["b"])
+
+    before = count()
+    response = api.put(url, json={"roles": ["operator", "ortsbrandmeister"]})
+    assert response.status_code == 200
+    assert [item["role"] for item in response.json()["user"]["memberships"]] == [
+        "ortsbrandmeister", "operator",
+    ]
+    assert count() == before
+    assert api.put(url, json={"roles": []}).status_code == 409
+
+
+def test_migration_keeps_roles_and_allows_a_second_one(tmp_path: Path) -> None:
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import text
+
+    from open_bos_stream.db.database import MIGRATIONS
+
+    database = Database(tmp_path / "alt.db")
+    config = Config()
+    config.set_main_option("script_location", str(MIGRATIONS))
+    with database.engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.upgrade(config, "0007_drones")
+        connection.execute(text(
+            "INSERT INTO organizations (id, name, short_name, kind, archived, created_at) "
+            "VALUES (1, 'OF', '', 'ortsfeuerwehr', 0, '2026-01-01')"
+        ))
+        connection.execute(text(
+            "INSERT INTO users (id, username, display_name, email, password_hash, "
+            "platform_admin, active, created_at) "
+            "VALUES (1, 'alt', '', '', 'x', 0, 1, '2026-01-01')"
+        ))
+        connection.execute(text(
+            "INSERT INTO memberships (user_id, organization_id, role) VALUES (1, 1, 'operator')"
+        ))
+
+    database.migrate()
+    org = OrgService(database)
+    assert roles_in(org, 1, 1) == ["operator"]
+    org.set_roles(1, 1, ["operator", "ortsbrandmeister"])
+
+    # Zurück: je Organisation bleibt die höchste Rolle.
+    with database.engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.downgrade(config, "0007_drones")
+        assert connection.execute(text("SELECT role FROM memberships")).scalars().all() == [
+            "ortsbrandmeister"
+        ]

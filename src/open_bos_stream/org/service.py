@@ -378,6 +378,26 @@ class OrgService:
             row = connection.execute(select(users).where(users.c.id == user_id)).first()
         return dict(row._mapping) if row else None
 
+    def users_by_email(self, email: str) -> list[dict]:
+        wanted = email.strip().casefold()
+        if not wanted:
+            return []
+        return [user for user in self.users() if user["email"].strip().casefold() == wanted]
+
+    def ensure_email_free(self, email: str, user_id: int | None = None) -> None:
+        """E-Mail-Adressen dienen zur Anmeldung und gelten nur für ein Konto.
+
+        Eine unveränderte Adresse bleibt erlaubt, damit sich Konten mit
+        früher doppelt vergebenen Adressen weiter speichern lassen.
+        """
+
+        email = email.strip()[:254]
+        current = self.user_by_id(user_id) if user_id is not None else None
+        if current and current["email"].strip().casefold() == email.casefold():
+            return
+        if any(user["id"] != user_id for user in self.users_by_email(email)):
+            raise OrgError("Diese E-Mail-Adresse wird bereits von einem anderen Konto verwendet.")
+
     def create_user(
         self,
         *,
@@ -393,6 +413,7 @@ class OrgService:
     ) -> dict:
         if self.user_by_username(username) is not None:
             raise OrgError("Dieser Benutzername ist bereits vergeben.")
+        self.ensure_email_free(email)
         first_name = clean_name(first_name, NAME_LIMITS["first_name"])
         last_name = clean_name(last_name, NAME_LIMITS["last_name"])
         values = {
@@ -431,6 +452,9 @@ class OrgService:
                 values.get("last_name", current.get("last_name", "")),
                 values.get("display_name", current.get("display_name", "")),
             )
+        if "email" in values:
+            self.ensure_email_free(values["email"], user_id)
+            values["email"] = values["email"].strip()[:254]
         if values.get("platform_admin") is False or values.get("active") is False:
             self._ensure_other_platform_admin(user_id)
         if values:
@@ -465,32 +489,48 @@ class OrgService:
     # -----------------------------------------------------
 
     def memberships(self, user_id: int | None = None) -> list[dict]:
+        """Ein Eintrag je Konto, Organisation und Rolle (höchste zuerst)."""
+
         query = select(memberships)
         if user_id is not None:
             query = query.where(memberships.c.user_id == user_id)
         with self.db.engine.connect() as connection:
-            return [dict(row._mapping) for row in connection.execute(query)]
+            rows = [dict(row._mapping) for row in connection.execute(query)]
+        rank = {role: index for index, role in enumerate(MEMBERSHIP_ROLES)}
+        return sorted(rows, key=lambda item: (
+            item["user_id"], item["organization_id"], -rank.get(item["role"], -1),
+        ))
 
     def set_membership(self, user_id: int, organization_id: int, role: str, *, actor: str = "") -> None:
-        if role not in MEMBERSHIP_ROLES:
+        """Genau eine Rolle in der Organisation (ersetzt vorhandene)."""
+
+        self.set_roles(user_id, organization_id, [role], actor=actor)
+
+    def set_roles(self, user_id: int, organization_id: int, roles, *, actor: str = "") -> None:
+        """Alle Rollen eines Kontos in einer Organisation festlegen."""
+
+        wanted = set(roles)
+        if not wanted:
+            raise OrgError("Mindestens eine Rolle wählen.")
+        if wanted - set(MEMBERSHIP_ROLES):
             raise OrgError("Unbekannte Rolle.")
         user = self.user_by_id(user_id)
         org = self.organization(organization_id)
         if user is None or org is None:
             raise OrgError("Konto oder Organisation nicht gefunden.")
-        check_role(role, org)
+        for role in wanted:
+            check_role(role, org)
+        here = (
+            (memberships.c.user_id == user_id)
+            & (memberships.c.organization_id == organization_id)
+        )
         with self.db.engine.begin() as connection:
-            existing = connection.execute(
-                select(memberships.c.id).where(
-                    memberships.c.user_id == user_id,
-                    memberships.c.organization_id == organization_id,
-                )
-            ).first()
-            if existing:
+            existing = set(connection.execute(select(memberships.c.role).where(here)).scalars())
+            if existing - wanted:
                 connection.execute(
-                    update(memberships).where(memberships.c.id == existing[0]).values(role=role)
+                    delete(memberships).where(here, memberships.c.role.in_(existing - wanted))
                 )
-            else:
+            for role in wanted - existing:
                 connection.execute(
                     insert(memberships).values(
                         user_id=user_id,
@@ -498,12 +538,15 @@ class OrgService:
                         role=role,
                     )
                 )
-        self.audit(
-            actor,
-            f"Rolle {MEMBERSHIP_ROLES[role]} vergeben",
-            f"{user['username']} · {org['name']}",
-            organization_id,
-        )
+        target = f"{user['username']} · {org['name']}"
+        for action, changed in (("vergeben", wanted - existing), ("entzogen", existing - wanted)):
+            for role in sorted(changed):
+                self.audit(
+                    actor,
+                    f"Rolle {MEMBERSHIP_ROLES.get(role, role)} {action}",
+                    target,
+                    organization_id,
+                )
 
     def remove_membership(self, user_id: int, organization_id: int, *, actor: str = "") -> None:
         user = self.user_by_id(user_id)

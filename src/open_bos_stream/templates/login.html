@@ -60,8 +60,9 @@
                 </small>
             </label>
             <label class="form-field">
-                <span>Benutzername</span>
-                <input id="auth-username" class="bos-input" autocomplete="username" required>
+                <span id="auth-username-label">Benutzername oder E-Mail</span>
+                <input id="auth-username" class="bos-input" autocomplete="username"
+                    autocapitalize="none" spellcheck="false" required>
             </label>
             <label class="form-field">
                 <span>Passwort</span>
@@ -100,6 +101,8 @@
         const params = new URLSearchParams(location.search);
         const setup = params.get("setup") === "1";
         if (setup) {
+            document.getElementById("auth-username-label").textContent =
+                "Benutzername";
             document.getElementById("auth-title").textContent =
                 "Ersten Superadmin anlegen";
             document.getElementById("auth-description").textContent =
