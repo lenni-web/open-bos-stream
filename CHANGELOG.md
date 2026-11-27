@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.24.2] - 2026-11-27
+
 ### Changed
 
 - Einsatzkarte: Eine gezeichnete Fläche lässt sich direkt auf der Karte

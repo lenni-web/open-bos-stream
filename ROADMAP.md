@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.24.2** (2026-11-27): Flächen auf der Einsatzkarte per Antippen des
+  ersten Punkts, Doppelklick oder Enter abschließen
 - **0.24.1** (2026-11-27): Logofarben als Akzente, neue Beschreibung auf
   der Anmeldeseite
 - **0.24.0** (2026-11-27): Einsatzkarte mit live abgeglichenen Quadranten,
