@@ -884,3 +884,9 @@ def test_every_onclick_handler_is_defined() -> None:
                 if name not in defined and name not in builtins:
                     missing.add(f"{template.name}: {name}")
     assert missing == set()
+
+
+def test_page_cannot_be_shifted_sideways_on_phones() -> None:
+    shell = (ROOT / "static" / "css" / "shell.css").read_text(encoding="utf-8")
+
+    assert "html,\nbody {\n    max-width: 100%;\n    overflow-x: clip;" in shell

@@ -1720,3 +1720,42 @@ body {
     display: flex;
     justify-content: flex-end;
 }
+
+/* ----------------------------------------------------------
+   Kein seitliches Verschieben der Seite (vor allem iOS Safari)
+   „clip“ schneidet ab, ohne einen Scrollbereich zu erzeugen; die
+   mitlaufende Kopfzeile (position: sticky) bleibt dadurch erhalten.
+   ---------------------------------------------------------- */
+
+html,
+body {
+    max-width: 100%;
+    overflow-x: clip;
+}
+
+@supports not (overflow-x: clip) {
+    body {
+        overflow-x: hidden;
+    }
+}
+
+.app-main,
+.app-content,
+.page {
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* Lange Namen kürzen statt die Seite zu verbreitern. */
+.overview-source-list > li,
+.overview-source,
+.weather-value,
+.weather-reasons li,
+.weather-level {
+    min-width: 0;
+}
+
+.weather-level span:last-child,
+.weather-heading small {
+    overflow-wrap: anywhere;
+}

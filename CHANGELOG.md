@@ -9,6 +9,13 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Fixed
+
+- Smartphone: Die Seite ließ sich seitlich verschieben, wenn einzelne
+  Inhalte (z. B. lange Drohnennamen) breiter als der Bildschirm wurden.
+  Die Seite ist jetzt auf die Bildschirmbreite begrenzt; lange Namen werden
+  gekürzt.
+
 ---
 
 ## [0.21.1] - 2026-11-27
