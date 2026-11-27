@@ -280,16 +280,27 @@ async def remove_item(checklist_id: int, item_id: int, request: Request) -> dict
 async def list_documents(request: Request) -> dict:
     user = _user(request)
     store = _documents()
-    items = await run_in_threadpool(store.list)
+    service = store.checklists
+    items = await run_in_threadpool(store.visible, user)
+    names = await run_in_threadpool(_org_names, service)
+    roots = await run_in_threadpool(service.org.root_ids)
+    owners = await run_in_threadpool(service.template_owners, user)
     return {
         "documents": [
             {key: item[key] for key in (
                 "id", "title", "description", "original_name", "content_type",
-                "size", "uploaded_by", "uploaded_at",
+                "size", "uploaded_by", "uploaded_at", "organization_id", "can_manage",
             )}
+            | {
+                "organization_name": names.get(item["organization_id"], "?"),
+                "shared": item["organization_id"] in roots,
+            }
             for item in items
         ],
-        "can_manage": store.checklists.can_manage_templates(user),
+        "owners": [
+            {"id": organization_id, "name": names.get(organization_id, "?"), "shared": organization_id in roots}
+            for organization_id in owners
+        ],
         "max_bytes": MAX_DOCUMENT_BYTES,
     }
 
@@ -300,6 +311,7 @@ async def upload_document(
     filename: str,
     title: str = "",
     description: str = "",
+    organization_id: int | None = None,
 ) -> dict:
     """Datei als Rohdaten im Body (ohne Formular-Bibliothek)."""
 
@@ -315,16 +327,17 @@ async def upload_document(
     document = await _call(
         _documents().upload, user,
         filename=filename, data=bytes(data), title=title, description=description,
+        organization_id=organization_id,
     )
     return {"success": True, "document": {k: v for k, v in document.items() if k != "stored_name"}}
 
 
 @documents_router.get("/{document_id}/file")
 async def document_file(document_id: int, request: Request, download: bool = False):
-    _user(request)
+    user = _user(request)
     store = _documents()
-    document = await run_in_threadpool(store.get, document_id)
-    if document is None or not store.path(document).exists():
+    document = await _call(store.require, user, document_id)
+    if not store.path(document).exists():
         raise HTTPException(status_code=404, detail="Dokument nicht gefunden.")
     disposition = "attachment" if download else "inline"
     return FileResponse(

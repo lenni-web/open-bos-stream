@@ -144,6 +144,32 @@ def test_documents_upload_and_access(setup, service, tmp_path: Path) -> None:  #
     assert not store.path(document).exists() and store.list() == []
 
 
+def test_organizations_keep_their_own_documents(setup, service, tmp_path: Path) -> None:  # noqa: F811
+    store = DocumentStore(service, tmp_path / "documents")
+    team = session(setup.auth, "b-team")
+    shared = store.upload(session(setup.auth, "kreis"), filename="kreis.pdf", data=b"%PDF")
+    own = store.upload(team, filename="wehr.pdf", data=b"%PDF", organization_id=setup.ids["b"])
+    with pytest.raises(ChecklistAccessError):
+        store.upload(team, filename="x.pdf", data=b"%PDF", organization_id=setup.ids["a"])
+    with pytest.raises(ChecklistAccessError):
+        store.upload(session(setup.auth, "b-zuschauer"), filename="x.pdf", data=b"%PDF",
+                     organization_id=setup.ids["b"])
+
+    viewer = session(setup.auth, "b-zuschauer")
+    assert {item["id"] for item in store.visible(viewer)} == {shared["id"], own["id"]}
+    assert store.require(viewer, own["id"])["title"] == "wehr"
+    other = session(setup.auth, "a-admin")
+    assert [item["id"] for item in store.visible(other)] == [shared["id"]]
+    for action in (store.require, store.delete):
+        with pytest.raises(LookupError):
+            action(other, own["id"])
+    with pytest.raises(ChecklistAccessError):
+        store.delete(team, shared["id"])
+    assert own["id"] in {item["id"] for item in store.visible(session(setup.auth, "kreis"))}
+    store.delete(team, own["id"])
+    assert not store.path(own).exists()
+
+
 def test_checklist_api_and_report(api, tmp_path: Path, monkeypatch) -> None:  # noqa: F811
     from open_bos_stream.api import checklists as checklists_api
 
@@ -177,6 +203,7 @@ def test_checklist_api_and_report(api, tmp_path: Path, monkeypatch) -> None:  # 
     document_id = uploaded.json()["document"]["id"]
     api.login("b-zuschauer")
     listed = api.get("/api/documents").json()
-    assert listed["can_manage"] is False and listed["documents"][0]["title"] == "Merkblatt"
+    assert listed["owners"] == [] and listed["documents"][0]["title"] == "Merkblatt"
+    assert listed["documents"][0]["can_manage"] is False and listed["documents"][0]["shared"]
     file = api.get(f"/api/documents/{document_id}/file?download=1")
     assert file.content == b"%PDF-1.4" and "attachment" in file.headers["content-disposition"]

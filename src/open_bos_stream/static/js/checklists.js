@@ -483,56 +483,92 @@ function renderTemplates() {
 // Darstellung: Dokumente
 // ----------------------------------------------------------
 
+function documentListHTML(items) {
+    return `<ul class="org-memberships document-list">
+        ${items.map(item => `
+            <li>
+                <span>
+                    <strong>${escapeHTML(item.title)}</strong>
+                    <small class="is-muted">${escapeHTML(item.original_name)} · ${escapeHTML(checklistSize(item.size))}
+                        · ${escapeHTML(item.uploaded_by)}, ${escapeHTML(checklistTime(item.uploaded_at))}</small>
+                    ${item.description ? `<small>${escapeHTML(item.description)}</small>` : ""}
+                </span>
+                <span class="org-row-actions">
+                    <a class="bos-button bos-button-small" href="/api/documents/${Number(item.id)}/file" target="_blank" rel="noopener">Öffnen</a>
+                    <a class="bos-button bos-button-small" href="/api/documents/${Number(item.id)}/file?download=1">Herunterladen</a>
+                    ${item.can_manage ? `<button class="bos-button bos-button-small app-logout" type="button"
+                        onclick="deleteDocument(${Number(item.id)})">Löschen</button>` : ""}
+                </span>
+            </li>`).join("")}
+    </ul>`;
+}
+
+function documentUploadHTML(owners) {
+    if (!owners.length) {
+        return "";
+    }
+    return `
+        <section class="bos-card incident-section">
+            <form class="org-form incident-form" onsubmit="uploadDocument(event)">
+                <h3>Dokument bereitstellen</h3>
+                <div class="form-grid">
+                    <label class="form-field form-field-wide">
+                        <span>Ablegen für</span>
+                        <select class="bos-input" name="organization_id" required>
+                            ${owners.length > 1 ? '<option value="">– bitte wählen –</option>' : ""}
+                            ${owners.map(org => `<option value="${Number(org.id)}">${escapeHTML(org.name)}${org.shared
+                                ? " (für alle sichtbar)" : " (nur diese Organisation)"}</option>`).join("")}
+                        </select>
+                    </label>
+                    <label class="form-field form-field-wide">
+                        <span>Datei (PDF, Office, OpenDocument, Text, Bild; max. 25 MB)</span>
+                        <input class="bos-input" type="file" name="file" required
+                            accept=".pdf,.docx,.xlsx,.pptx,.odt,.ods,.txt,.png,.jpg,.jpeg">
+                    </label>
+                    <label class="form-field">
+                        <span>Titel</span>
+                        <input class="bos-input" name="title" maxlength="120" placeholder="leer = Dateiname">
+                    </label>
+                    <label class="form-field">
+                        <span>Beschreibung</span>
+                        <input class="bos-input" name="description" maxlength="500">
+                    </label>
+                </div>
+                <div class="org-form-actions">
+                    <button class="bos-button bos-button-small bos-button-green" type="submit">Hochladen</button>
+                </div>
+            </form>
+        </section>`;
+}
+
 function renderDocuments() {
     const data = checklistState.documents;
     if (!data) {
         return '<p class="service-inline-status">Wird geladen …</p>';
     }
+    const shared = data.documents.filter(item => item.shared);
+    const own = new Map();
+    data.documents.filter(item => !item.shared).forEach(item => {
+        if (!own.has(item.organization_id)) {
+            own.set(item.organization_id, {name: item.organization_name, items: []});
+        }
+        own.get(item.organization_id).items.push(item);
+    });
     return `
         ${checklistMessageHTML()}
         <section class="bos-card incident-section">
             <h2>Dokumente des Landkreises</h2>
             <p class="incident-hint">Einheitliche Unterlagen für alle Wehren, z. B. Merkblätter, Formulare und Einsatzhilfen.</p>
-            ${data.documents.length ? `<ul class="org-memberships document-list">
-                ${data.documents.map(item => `
-                    <li>
-                        <span>
-                            <strong>${escapeHTML(item.title)}</strong>
-                            <small class="is-muted">${escapeHTML(item.original_name)} · ${escapeHTML(checklistSize(item.size))}
-                                · ${escapeHTML(item.uploaded_by)}, ${escapeHTML(checklistTime(item.uploaded_at))}</small>
-                            ${item.description ? `<small>${escapeHTML(item.description)}</small>` : ""}
-                        </span>
-                        <span class="org-row-actions">
-                            <a class="bos-button bos-button-small" href="/api/documents/${Number(item.id)}/file" target="_blank" rel="noopener">Öffnen</a>
-                            <a class="bos-button bos-button-small" href="/api/documents/${Number(item.id)}/file?download=1">Herunterladen</a>
-                            ${data.can_manage ? `<button class="bos-button bos-button-small app-logout" type="button"
-                                onclick="deleteDocument(${Number(item.id)})">Löschen</button>` : ""}
-                        </span>
-                    </li>`).join("")}
-            </ul>` : '<p class="incident-empty">Noch keine Dokumente bereitgestellt.</p>'}
-            ${data.can_manage ? `
-                <form class="org-form incident-form" onsubmit="uploadDocument(event)">
-                    <h3>Dokument bereitstellen</h3>
-                    <div class="form-grid">
-                        <label class="form-field form-field-wide">
-                            <span>Datei (PDF, Office, OpenDocument, Text, Bild; max. 25 MB)</span>
-                            <input class="bos-input" type="file" name="file" required
-                                accept=".pdf,.docx,.xlsx,.pptx,.odt,.ods,.txt,.png,.jpg,.jpeg">
-                        </label>
-                        <label class="form-field">
-                            <span>Titel</span>
-                            <input class="bos-input" name="title" maxlength="120" placeholder="leer = Dateiname">
-                        </label>
-                        <label class="form-field">
-                            <span>Beschreibung</span>
-                            <input class="bos-input" name="description" maxlength="500">
-                        </label>
-                    </div>
-                    <div class="org-form-actions">
-                        <button class="bos-button bos-button-small bos-button-green" type="submit">Hochladen</button>
-                    </div>
-                </form>` : ""}
-        </section>`;
+            ${shared.length ? documentListHTML(shared)
+                : '<p class="incident-empty">Noch keine Dokumente bereitgestellt.</p>'}
+        </section>
+        ${[...own.values()].sort((a, b) => a.name.localeCompare(b.name, "de")).map(group => `
+            <section class="bos-card incident-section">
+                <h2>Dokumente: ${escapeHTML(group.name)}</h2>
+                <p class="incident-hint">Eigene Unterlagen, für andere Wehren nicht sichtbar.</p>
+                ${documentListHTML(group.items)}
+            </section>`).join("")}
+        ${documentUploadHTML(data.owners)}`;
 }
 
 function renderChecklists() {
@@ -797,6 +833,7 @@ async function uploadDocument(event) {
         filename: file.name,
         title: form.title.value,
         description: form.description.value,
+        organization_id: form.organization_id.value,
     });
     form.querySelector('button[type="submit"]').disabled = true;
     try {
@@ -820,7 +857,8 @@ async function uploadDocument(event) {
 
 async function deleteDocument(id) {
     const item = checklistState.documents?.documents.find(entry => entry.id === id);
-    if (!window.confirm(`Dokument „${item?.title ?? ""}“ löschen? Es steht dann keiner Wehr mehr zur Verfügung.`)) {
+    if (!window.confirm(`Dokument „${item?.title ?? ""}“ löschen? ${item?.shared
+        ? "Es steht dann keiner Wehr mehr zur Verfügung." : "Die Datei wird endgültig entfernt."}`)) {
         return;
     }
     try {

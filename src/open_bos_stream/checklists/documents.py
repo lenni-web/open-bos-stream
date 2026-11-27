@@ -1,7 +1,9 @@
-"""Einheitliche Dokumente des Landkreises (z. B. Merkblätter, Formulare).
+"""Dokumente des Landkreises und der Wehren (z. B. Merkblätter, Formulare).
 
-Hochladen und Löschen dürfen Drohnenteams und Admins auf Landkreisebene,
-ansehen alle angemeldeten Konten. Die Dateien liegen unter zufälligem Namen
+Es gelten dieselben Regeln wie für Checklisten: Dokumente des Landkreises
+sehen alle angemeldeten Konten, eigene Dokumente nur die jeweilige
+Organisation (und übergeordnete Ebenen). Hochladen und Löschen dürfen
+Drohnenteam und Admins der Organisation. Die Dateien liegen unter zufälligem Namen
 in einem eigenen Verzeichnis; der Originalname steht nur in der Datenbank.
 """
 
@@ -52,6 +54,20 @@ class DocumentStore:
             rows = connection.execute(select(documents).order_by(documents.c.title)).all()
         return [dict(row._mapping) for row in rows]
 
+    def visible(self, user: dict) -> list[dict]:
+        return [
+            item | {"can_manage": self.checklists.can_manage_template(user, item["organization_id"])}
+            for item in self.list() if self.checklists.can_view_template(user, item)
+        ]
+
+    def require(self, user: dict, document_id: int) -> dict:
+        """Fremde Dokumente verhalten sich wie nicht vorhandene."""
+
+        document = self.get(document_id)
+        if document is None or not self.checklists.can_view_template(user, document):
+            raise LookupError("Dokument nicht gefunden.")
+        return document
+
     def get(self, document_id: int) -> dict | None:
         with self._engine.connect() as connection:
             row = connection.execute(select(documents).where(documents.c.id == document_id)).first()
@@ -68,10 +84,17 @@ class DocumentStore:
         data: bytes,
         title: str = "",
         description: str = "",
+        organization_id: int | None = None,
     ) -> dict:
-        if not self.checklists.can_manage_templates(user):
+        """Ohne organization_id: Dokument des Landkreises."""
+
+        if organization_id is None:
+            organization_id = self.checklists.template_owner(user)
+        known = {item["id"] for item in self.checklists.org.organizations(include_archived=False)}
+        if organization_id not in known or not self.checklists.can_manage_template(user, organization_id):
             raise ChecklistAccessError(
-                "Dokumente stellen Drohnenteams und Admins auf Landkreisebene bereit."
+                "Dokumente des Landkreises stellt der Landkreis bereit, eigene das "
+                "Drohnenteam der jeweiligen Organisation."
             )
         original = Path(str(filename or "")).name.strip()[:200]
         extension = Path(original).suffix.lower()
@@ -99,7 +122,7 @@ class DocumentStore:
         try:
             with self._engine.begin() as connection:
                 document_id = connection.execute(insert(documents).values(
-                    organization_id=self.checklists.template_owner(user),
+                    organization_id=organization_id,
                     title=title,
                     description=" ".join(str(description or "").split())[:500],
                     stored_name=stored,
@@ -112,16 +135,19 @@ class DocumentStore:
         except BaseException:
             (self.directory / stored).unlink(missing_ok=True)
             raise
-        self.checklists.org.audit(actor, "Dokument bereitgestellt", title)
+        self.checklists.org.audit(actor, "Dokument bereitgestellt", title, organization_id)
         return self.get(document_id)
 
     def delete(self, user: dict, document_id: int) -> None:
-        if not self.checklists.can_manage_templates(user):
-            raise ChecklistAccessError("Dokumente verwalten Drohnenteams und Admins auf Landkreisebene.")
-        document = self.get(document_id)
-        if document is None:
-            raise LookupError("Dokument nicht gefunden.")
+        document = self.require(user, document_id)
+        if not self.checklists.can_manage_template(user, document["organization_id"]):
+            raise ChecklistAccessError(
+                "Löschen darf nur, wer Dokumente dieser Organisation bereitstellen darf."
+            )
         with self._engine.begin() as connection:
             connection.execute(delete(documents).where(documents.c.id == document_id))
         self.path(document).unlink(missing_ok=True)
-        self.checklists.org.audit(user.get("display_name") or user["username"], "Dokument gelöscht", document["title"])
+        self.checklists.org.audit(
+            user.get("display_name") or user["username"], "Dokument gelöscht",
+            document["title"], document["organization_id"],
+        )
