@@ -9,6 +9,13 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.25.4] - 2026-11-27
+
+Eigener Bereich „Benutzer“ mit Namen, schnelleres Niederschlagsradar
+und aufgeräumte Übersicht.
+
 ### Added
 
 - Eigener Menüpunkt „Benutzer“: Konten und Rollen sind von den

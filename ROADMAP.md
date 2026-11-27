@@ -57,6 +57,9 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.25.4** (2026-11-27): Menüpunkt Benutzer mit Vor-, Nach- und Spitzname,
+  dipul-Geozonen als eine Ebene, schnelleres Niederschlagsradar,
+  Ereignisprotokoll nur für Superadmins
 - **0.25.3** (2026-11-27): Aufräum-Release nach Code-Review, Firewall-Port
   8883 (MQTT/TLS) für die DJI-Anbindung
 - **0.25.2** (2026-11-27): Weitere Domains als Weiterleitung auf die Hauptdomain
