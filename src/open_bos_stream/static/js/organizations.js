@@ -15,12 +15,35 @@ function orgElement() {
     return document.getElementById("org-management");
 }
 
+// Benutzerkonten haben seit 0.25.4 eine eigene Seite („Benutzer“).
+function userElement() {
+    return document.getElementById("user-management");
+}
+
 function orgStatus(text, kind = "") {
-    const status = document.getElementById("org-status");
-    if (status) {
+    document.querySelectorAll("[data-org-status]").forEach(status => {
         status.textContent = text;
         status.dataset.kind = kind;
-    }
+    });
+}
+
+function userNameFields(user = {}) {
+    return `
+        <label class="form-field">
+            <span>Vorname</span>
+            <input class="bos-input" data-field="first_name" name="first_name" maxlength="60"
+                value="${escapeHTML(user.first_name || "")}" autocomplete="off" required>
+        </label>
+        <label class="form-field">
+            <span>Nachname</span>
+            <input class="bos-input" data-field="last_name" name="last_name" maxlength="60"
+                value="${escapeHTML(user.last_name || "")}" autocomplete="off" required>
+        </label>
+        <label class="form-field">
+            <span>Spitzname (optional)</span>
+            <input class="bos-input" data-field="nickname" name="nickname" maxlength="40"
+                value="${escapeHTML(user.nickname || "")}" autocomplete="off">
+        </label>`;
 }
 
 function orgName(id) {
@@ -207,11 +230,7 @@ function renderUserEditor(user) {
         <div class="org-user-editor" data-user-id="${user.id}">
             ${user.manageable ? `
             <div class="form-grid">
-                <label class="form-field">
-                    <span>Anzeigename</span>
-                    <input class="bos-input" data-field="display_name" maxlength="80"
-                        value="${escapeHTML(user.display_name)}">
-                </label>
+                ${userNameFields(user)}
                 <label class="form-field">
                     <span>E-Mail (optional)</span>
                     <input class="bos-input" data-field="email" type="email" maxlength="254"
@@ -315,8 +334,9 @@ function renderUsers() {
                             ontoggle="if (this.open) orgState.openUser = ${user.id}">
                             <summary>
                                 <span class="org-user-name">
-                                    <strong>${escapeHTML(user.display_name || user.username)}</strong>
-                                    <small>${escapeHTML(user.username)}${user.platform_admin ? " · Superadmin" : ""}${user.active ? "" : " · gesperrt"}</small>
+                                    <strong>${escapeHTML(user.display_name || user.username)}${user.nickname
+                                        ? ` <span class="is-muted">„${escapeHTML(user.nickname)}“</span>` : ""}</strong>
+                                    <small>${escapeHTML(user.username)}${user.platform_admin ? " · Superadmin" : ""}${user.active ? "" : " · gesperrt"}${user.first_name ? "" : " · Name fehlt"}</small>
                                 </span>
                                 <span class="org-user-chips">${membershipChips(user)}${qualificationChips(user)}</span>
                             </summary>
@@ -341,12 +361,9 @@ function renderNewUserForm() {
                 <label class="form-field">
                     <span>Benutzername</span>
                     <input class="bos-input" name="username" required minlength="3" maxlength="32"
-                        autocomplete="off" placeholder="z. B. m.mustermann">
+                        autocomplete="off" placeholder="z. B. m-mustermann">
                 </label>
-                <label class="form-field">
-                    <span>Anzeigename</span>
-                    <input class="bos-input" name="display_name" maxlength="80" placeholder="Max Mustermann">
-                </label>
+                ${userNameFields()}
                 <label class="form-field">
                     <span>E-Mail (optional)</span>
                     <input class="bos-input" name="email" type="email" maxlength="254">
@@ -378,17 +395,22 @@ function renderNewUserForm() {
 }
 
 function renderOrganizationManagement() {
-    const element = orgElement();
-    if (!element) {
-        return;
+    const organizations = orgElement();
+    if (organizations) {
+        organizations.innerHTML = `
+            <p class="service-inline-status" role="status" data-org-status></p>
+            ${renderOrganizations()}
+        `;
+        renderOrganizationForm();
     }
-    element.innerHTML = `
-        <p id="org-status" class="service-inline-status" role="status"></p>
-        ${renderOrganizations()}
-        ${renderUsers()}
-        ${renderNewUserForm()}
-    `;
-    renderOrganizationForm();
+    const users = userElement();
+    if (users) {
+        users.innerHTML = `
+            <p class="service-inline-status" role="status" data-org-status></p>
+            ${renderUsers()}
+            ${renderNewUserForm()}
+        `;
+    }
 }
 
 // ----------------------------------------------------------
@@ -396,7 +418,7 @@ function renderOrganizationManagement() {
 // ----------------------------------------------------------
 
 async function loadOrganizationManagement() {
-    if (!orgElement()) {
+    if (!orgElement() && !userElement()) {
         return;
     }
     try {
@@ -416,8 +438,12 @@ async function loadOrganizationManagement() {
             renderSources();
         }
     } catch (error) {
-        orgElement().innerHTML =
-            `<p class="service-inline-status">Organisation konnte nicht geladen werden: ${escapeHTML(error.message)}</p>`;
+        for (const element of [orgElement(), userElement()]) {
+            if (element) {
+                element.innerHTML =
+                    `<p class="service-inline-status">Organisation konnte nicht geladen werden: ${escapeHTML(error.message)}</p>`;
+            }
+        }
     }
 }
 
@@ -510,9 +536,17 @@ function saveUser(id) {
     const editor = document.querySelector(`.org-user-editor[data-user-id="${id}"]`);
     const value = field => editor?.querySelector(`[data-field="${field}"]`);
     const payload = {
-        display_name: value("display_name")?.value ?? "",
         email: value("email")?.value ?? "",
+        nickname: value("nickname")?.value ?? "",
     };
+    // Vor- und Nachname nur senden, wenn ausgefüllt (ältere Konten haben
+    // noch keinen getrennten Namen).
+    for (const key of ["first_name", "last_name"]) {
+        const text = value(key)?.value.trim();
+        if (text) {
+            payload[key] = text;
+        }
+    }
     if (value("active") && !value("active").disabled) {
         payload.active = value("active").checked;
     }

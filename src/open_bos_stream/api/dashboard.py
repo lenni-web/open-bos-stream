@@ -37,18 +37,12 @@ async def status(request: Request, events_after: int | None = None):
         # Kopie: der Status wird zwischen Anfragen zwischengespeichert.
         data = filter_status_sources(data, visible)
     data = with_organization_names(data)
-    if ROLE_LEVEL.get(user.get("role"), -1) >= ROLE_LEVEL["admin"]:
-        # Der Browser fragt nur Einträge nach seinem letzten Stand ab.
-        # Wehr-Admins sehen die Einträge ihrer Organisationen, Kreis-Admins
-        # und Superadmins zusätzlich die Systemmeldungen.
-        organizations = (
-            None
-            if not is_restricted(user) or user.get("server_admin")
-            else set(user.get("org_view") or [])
-        )
+    if user.get("role") == "superadmin":
+        # Das Ereignisprotokoll ist nur für Superadmins. Der Browser fragt
+        # nur Einträge nach seinem letzten Stand ab.
         data = {
             **data,
-            "server_events": server_event_log.since(events_after, organizations),
+            "server_events": server_event_log.since(events_after, None),
         }
     return data
 

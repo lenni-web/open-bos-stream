@@ -36,6 +36,21 @@ class OrgError(ValueError):
     """Ungültige Änderung an Organisationen oder Konten."""
 
 
+NAME_LIMITS = {"first_name": 60, "last_name": 60, "nickname": 40}
+
+
+def clean_name(value, limit: int) -> str:
+    """Name ohne Steuerzeichen und überzählige Leerzeichen."""
+
+    text = " ".join("".join(ch for ch in str(value or "") if ch.isprintable()).split())
+    return text[:limit]
+
+
+def compose_display_name(first_name: str, last_name: str, fallback: str = "") -> str:
+    full = f"{first_name} {last_name}".strip()
+    return (full or fallback.strip())[:80]
+
+
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
@@ -301,12 +316,20 @@ class OrgService:
         email: str = "",
         platform_admin: bool = False,
         actor: str = "",
+        first_name: str = "",
+        last_name: str = "",
+        nickname: str = "",
     ) -> dict:
         if self.user_by_username(username) is not None:
             raise OrgError("Dieser Benutzername ist bereits vergeben.")
+        first_name = clean_name(first_name, NAME_LIMITS["first_name"])
+        last_name = clean_name(last_name, NAME_LIMITS["last_name"])
         values = {
             "username": username,
-            "display_name": display_name.strip()[:80],
+            "display_name": compose_display_name(first_name, last_name, display_name),
+            "first_name": first_name,
+            "last_name": last_name,
+            "nickname": clean_name(nickname, NAME_LIMITS["nickname"]),
             "email": email.strip()[:254],
             "password_hash": password_hash,
             "platform_admin": platform_admin,
@@ -322,8 +345,21 @@ class OrgService:
         current = self.user_by_id(user_id)
         if current is None:
             raise OrgError("Konto nicht gefunden.")
-        allowed = {"display_name", "email", "password_hash", "platform_admin", "active", "last_login_at"}
+        allowed = {
+            "display_name", "email", "password_hash", "platform_admin", "active",
+            "last_login_at", "first_name", "last_name", "nickname",
+        }
         values = {key: value for key, value in changes.items() if key in allowed}
+        for key, limit in NAME_LIMITS.items():
+            if key in values:
+                values[key] = clean_name(values[key], limit)
+        if "first_name" in values or "last_name" in values:
+            # Anzeigename folgt dem Namen (Einsätze, Berichte, Protokolle).
+            values["display_name"] = compose_display_name(
+                values.get("first_name", current.get("first_name", "")),
+                values.get("last_name", current.get("last_name", "")),
+                values.get("display_name", current.get("display_name", "")),
+            )
         if values.get("platform_admin") is False or values.get("active") is False:
             self._ensure_other_platform_admin(user_id)
         if values:

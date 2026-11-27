@@ -298,10 +298,12 @@ def test_wehr_admin_manages_only_own_branch(api) -> None:
 
     assert api.post("/api/org/users", json={
         "username": "neu-a", "password": PASSWORD,
+        "first_name": "Anna", "last_name": "Alpha",
         "organization_id": ids["a"], "role": "operator",
     }).status_code == 200
     assert api.post("/api/org/users", json={
         "username": "neu-b", "password": PASSWORD,
+        "first_name": "Bernd", "last_name": "Beta",
         "organization_id": ids["b"], "role": "viewer",
     }).status_code == 403
 
@@ -402,12 +404,17 @@ def test_dashboard_hides_other_organisations(api, monkeypatch) -> None:
     data = api.get("/dashboard/status").json()
     assert [item["id"] for item in data["sources"]] == ["a1"]
     assert [item["source_id"] for item in data["recordings"]] == ["a1"]
-    assert [item["message"] for item in data["server_events"]["events"]] == ["Signal A"]
+    # Ereignisprotokoll seit 0.25.4 nur für Superadmins.
+    assert "server_events" not in data
+    api.login("betreiber")
+    events = api.get("/dashboard/status").json()["server_events"]["events"]
+    assert [item["message"] for item in events] == ["System", "Signal A", "Signal B"]
+    api.login("a-admin")
     assert api.post("/dashboard/sources/b1/fullscreen").status_code == 403
 
+    # Auch Kreis-Admins sehen das Protokoll nicht mehr (nur Superadmins).
     api.login("kreis")
-    messages = [item["message"] for item in api.get("/dashboard/status").json()["server_events"]["events"]]
-    assert messages == ["System", "Signal A", "Signal B"]
+    assert "server_events" not in api.get("/dashboard/status").json()
 
 
 def test_hidden_foreign_id_is_reported_not_dropped(auth: AuthService) -> None:
@@ -461,3 +468,27 @@ def test_own_account_profile_and_password(api) -> None:
     api.cookies.clear()
     api.cookies.set("open_bos_session", old_cookie)
     assert api.get("/api/org/me").status_code == 401
+
+
+def test_accounts_have_first_last_and_nickname(api) -> None:
+    api.login("sg-admin")
+    missing = api.post("/api/org/users", json={
+        "username": "ohne-name", "password": PASSWORD,
+        "organization_id": api.ids["a"], "role": "viewer",
+    })
+    assert missing.status_code == 422
+    created = api.post("/api/org/users", json={
+        "username": "m-muster", "password": PASSWORD,
+        "first_name": "  Max ", "last_name": "Mustermann", "nickname": "Maxi",
+        "organization_id": api.ids["a"], "role": "operator",
+    }).json()["user"]
+    assert (created["first_name"], created["last_name"], created["nickname"]) == ("Max", "Mustermann", "Maxi")
+    assert created["display_name"] == "Max Mustermann"
+
+    renamed = api.patch(f"/api/org/users/{created['id']}", json={"last_name": "Muster-Meyer"}).json()["user"]
+    assert renamed["display_name"] == "Max Muster-Meyer"
+
+    api.login("b-team")
+    own = api.patch("/api/org/me", json={"first_name": "Bea", "last_name": "Team", "nickname": "B."}).json()["user"]
+    assert own["display_name"] == "Bea Team" and own["nickname"] == "B."
+    assert api.patch("/api/org/me", json={"first_name": "  "}).status_code == 422

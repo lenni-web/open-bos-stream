@@ -363,7 +363,7 @@ def test_guest_link_does_not_replace_existing_login(guest_env, monkeypatch) -> N
 # ----------------------------------------------------------------------
 
 
-def test_guest_link_events_reach_admins_only(guest_env, monkeypatch) -> None:
+def test_guest_link_events_reach_superadmins_only(guest_env, monkeypatch) -> None:
     client, store, link, token, source_id = guest_env
     from open_bos_stream.api import dashboard as dashboard_api
     from open_bos_stream.api import guest as guest_api
@@ -379,7 +379,7 @@ def test_guest_link_events_reach_admins_only(guest_env, monkeypatch) -> None:
     original = auth_service.verify_token
 
     def fake_verify(value, *, purpose="session"):
-        if value in {"viewer", "admin"}:
+        if value in {"viewer", "admin", "superadmin"}:
             return {"username": value, "role": value}
         return original(value, purpose=purpose)
 
@@ -393,6 +393,7 @@ def test_guest_link_events_reach_admins_only(guest_env, monkeypatch) -> None:
     ).json()
     client.delete(f"/guest-links/{created['link']['id']}")
 
+    client.cookies.set(auth_service.COOKIE_NAME, "superadmin")
     feed = client.get("/dashboard/status").json()["server_events"]
     messages = [event["message"] for event in feed["events"]]
     assert messages[0] == "🔗 Gastlink „Polizei“ geöffnet"
@@ -400,8 +401,9 @@ def test_guest_link_events_reach_admins_only(guest_env, monkeypatch) -> None:
     assert messages[2] == "🔗 Gastlink „Rettungsdienst“ von admin gesperrt"
     assert [event["id"] for event in feed["events"]] == [1, 2, 3]
 
-    client.cookies.set(auth_service.COOKIE_NAME, "viewer")
-    assert "server_events" not in client.get("/dashboard/status").json()
+    for role in ("viewer", "admin"):
+        client.cookies.set(auth_service.COOKIE_NAME, role)
+        assert "server_events" not in client.get("/dashboard/status").json()
 
 
 def test_expired_guest_links_are_reported_once(tmp_path, monkeypatch) -> None:

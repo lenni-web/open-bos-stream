@@ -74,7 +74,7 @@
                 aria-expanded="false"
                 aria-controls="user-panel">
                 <span class="app-avatar" aria-hidden="true">{{ user.username[:1] | upper }}</span>
-                <span class="app-user-name">{{ user.display_name or user.username }}</span>
+                <span class="app-user-name">{{ user.nickname or user.display_name or user.username }}</span>
                 {{ icon("chevron-down", 16) }}
             </button>
 

@@ -9,6 +9,28 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Eigener Menüpunkt „Benutzer“: Konten und Rollen sind von den
+  Organisationseinstellungen getrennt.
+- Konten haben Vorname und Nachname (Pflicht bei neuen Konten) sowie einen
+  optionalen Spitznamen. Der Spitzname erscheint oben in der Kopfzeile;
+  in „Mein Konto“ lassen sich alle drei Felder pflegen. Bestehende Konten
+  zeigen „Name fehlt“, bis die Namen ergänzt sind (Migration 0006).
+
+### Changed
+
+- Karte: Die dipul-Drohnen-Geozonen sind eine gemeinsame Ebene und
+  standardmäßig ausgeschaltet.
+- Niederschlagsradar deutlich schneller: Der Server lädt beim DWD je ein
+  großes Bild für vier Kacheln, gleichzeitige Anfragen derselben Kachel
+  lösen nur einen DWD-Abruf aus, und die Zeitleiste rund um den
+  Standort wird im Hintergrund vorgeladen (zuerst „jetzt“). Vergangene,
+  feststehende Radarbilder bleiben eine Stunde im Browser-Cache.
+- Das Ereignisprotokoll sehen nur noch Superadmins.
+- Die Streaming-Ausgänge sind aus der Übersicht in die Einstellungen
+  gewandert (nur Superadmins).
+
 ---
 
 ## [0.25.3] - 2026-11-27

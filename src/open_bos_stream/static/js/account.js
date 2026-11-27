@@ -70,9 +70,19 @@ function renderAccount() {
                     <input class="bos-input" value="${escapeHTML(user.username)}" disabled>
                 </label>
                 <label class="form-field">
-                    <span>Anzeigename</span>
-                    <input class="bos-input" name="display_name" maxlength="80"
-                        value="${escapeHTML(user.display_name)}" placeholder="z. B. Max Muster">
+                    <span>Vorname</span>
+                    <input class="bos-input" name="first_name" maxlength="60" required
+                        value="${escapeHTML(user.first_name || "")}" autocomplete="given-name">
+                </label>
+                <label class="form-field">
+                    <span>Nachname</span>
+                    <input class="bos-input" name="last_name" maxlength="60" required
+                        value="${escapeHTML(user.last_name || "")}" autocomplete="family-name">
+                </label>
+                <label class="form-field">
+                    <span>Spitzname (optional, oben rechts angezeigt)</span>
+                    <input class="bos-input" name="nickname" maxlength="40"
+                        value="${escapeHTML(user.nickname || "")}" autocomplete="nickname">
                 </label>
                 <label class="form-field">
                     <span>E-Mail (optional)</span>
@@ -173,9 +183,12 @@ function openPushFromAccount() {
 }
 
 function updateVisibleUserName(user) {
-    const name = user.display_name || user.username;
-    document.querySelectorAll(".app-user-info strong, .app-user-name").forEach(element => {
-        element.textContent = name;
+    const full = user.display_name || user.username;
+    document.querySelectorAll(".app-user-info strong").forEach(element => {
+        element.textContent = full;
+    });
+    document.querySelectorAll(".app-user-name").forEach(element => {
+        element.textContent = user.nickname || full;
     });
 }
 
@@ -184,7 +197,9 @@ async function saveAccountProfile(event) {
     const data = Object.fromEntries(new FormData(event.target));
     try {
         const result = await api.patch("/api/org/me", {
-            display_name: data.display_name,
+            first_name: data.first_name,
+            last_name: data.last_name,
+            nickname: data.nickname,
             email: data.email,
         });
         accountState.user = result.user;

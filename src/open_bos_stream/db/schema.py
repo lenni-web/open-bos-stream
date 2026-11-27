@@ -70,6 +70,10 @@ users = Table(
     Column("id", Integer, primary_key=True),
     Column("username", String(32), nullable=False, unique=True),
     Column("display_name", String(80), nullable=False, default=""),
+    # Seit 0.25.4: Name getrennt; display_name = „Vorname Nachname“.
+    Column("first_name", String(60), nullable=False, default=""),
+    Column("last_name", String(60), nullable=False, default=""),
+    Column("nickname", String(40), nullable=False, default=""),
     Column("email", String(254), nullable=False, default=""),
     Column("password_hash", Text, nullable=False),
     Column("platform_admin", Boolean, nullable=False, default=False),

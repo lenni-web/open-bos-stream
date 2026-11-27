@@ -122,7 +122,7 @@ def test_recording_events_name_source_and_user(tmp_path: Path) -> None:
     assert messages[1] == f"⏹ Aufnahme beendet · {source.name} · einsatzleiter"
 
 
-def test_dashboard_delivers_only_new_events_to_admins(monkeypatch) -> None:
+def test_dashboard_delivers_only_new_events_to_superadmins(monkeypatch) -> None:
     from fastapi.testclient import TestClient
 
     from open_bos_stream.api import dashboard as dashboard_api
@@ -139,18 +139,20 @@ def test_dashboard_delivers_only_new_events_to_admins(monkeypatch) -> None:
         "verify_token",
         lambda token, *, purpose="session": (
             {"username": token, "role": token}
-            if token in {"viewer", "admin"}
+            if token in {"viewer", "admin", "superadmin"}
             else None
         ),
     )
     monkeypatch.setattr(type(auth_service), "configured", property(lambda self: True))
     client = TestClient(app)
 
-    client.cookies.set(auth_service.COOKIE_NAME, "admin")
+    client.cookies.set(auth_service.COOKIE_NAME, "superadmin")
     first = client.get("/dashboard/status").json()["server_events"]
     assert [event["id"] for event in first["events"]] == [1, 2, 3]
     later = client.get("/dashboard/status?events_after=2").json()["server_events"]
     assert [event["id"] for event in later["events"]] == [3]
 
-    client.cookies.set(auth_service.COOKIE_NAME, "viewer")
-    assert "server_events" not in client.get("/dashboard/status").json()
+    # Seit 0.25.4 nur noch für Superadmins.
+    for role in ("viewer", "admin"):
+        client.cookies.set(auth_service.COOKIE_NAME, role)
+        assert "server_events" not in client.get("/dashboard/status").json()

@@ -219,6 +219,7 @@
         </section>
         {% endif %}
 
+        {% if user.role == "superadmin" %}
         <section class="bos-card settings-section">
             <div class="settings-section-header">
                 <span class="settings-icon" aria-hidden="true">⇥</span>
@@ -226,6 +227,14 @@
                     <span class="section-kicker">Weiterleitung</span>
                     <h2>Streaming-Ausgänge</h2>
                     <p>Zusätzliche RTMP-, RTSP- oder SRT-Ziele.</p>
+                </div>
+            </div>
+
+            <!-- Status und Start/Stopp (früher als Karte auf der Übersicht). -->
+            <div id="stream-outputs" class="stream-outputs-status">
+                <div class="info-row">
+                    <span>Keine Streaming-Ausgänge</span>
+                    <span>—</span>
                 </div>
             </div>
 
@@ -238,6 +247,7 @@
                 + Ausgang hinzufügen
             </button>
         </section>
+        {% endif %}
 
         {% if installation_profile == "local" %}
         <section class="bos-card settings-section settings-section-display">

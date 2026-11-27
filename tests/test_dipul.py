@@ -58,7 +58,17 @@ def test_all_wms_layers_except_inactive_restrictions_are_grouped() -> None:
     assert len(layers) == 33
     assert len(set(layers)) == 33
     assert "inaktive_temporaere_betriebseinschraenkungen" not in layers
-    assert all(group.visible for group in LAYER_GROUPS)
+
+
+
+def test_geozones_are_one_combined_layer_off_by_default() -> None:
+    from open_bos_stream.map.dipul import COMBINED_GROUP, DipulService
+
+    groups = DipulService.groups()
+    assert [group["id"] for group in groups] == ["geozonen"]
+    assert groups[0]["visible"] is False
+    assert len(groups[0]["layers"]) == 33
+    assert COMBINED_GROUP.layers == tuple(layer for group in LAYER_GROUPS for layer in group.layers)
 
 
 def test_tile_bbox_covers_web_mercator_world() -> None:
@@ -178,7 +188,5 @@ def test_dipul_layers_endpoint_includes_attribution() -> None:
 
     assert "CC BY-ND 4.0" in result["attribution"]
     assert result["map_tool_url"].startswith("https://")
-    assert [group["id"] for group in result["groups"]][:2] == [
-        "luftraum",
-        "temporaer",
-    ]
+    # Eine gemeinsame Ebene; die Einzelgruppen bleiben für Abfragen gültig.
+    assert [group["id"] for group in result["groups"]] == ["geozonen"]

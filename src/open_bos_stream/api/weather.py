@@ -137,10 +137,15 @@ async def radar_tile(offset: int, z: int, x: int, y: int) -> Response:
 @router.get("/radar/frames", dependencies=[GUEST])
 def radar_frames() -> dict:
     settings = _require_enabled()
+    frames = timeline_frames(datetime.now(timezone.utc))
+    location = default_location(settings)
+    # Zeitleiste rund um den Standort im Hintergrund vorladen: Der DWD
+    # braucht mehrere Sekunden je Bild; danach kommen sie aus dem Speicher.
+    radar_service.warm(location["latitude"], location["longitude"], frames)
     return {
-        "frames": timeline_frames(datetime.now(timezone.utc)),
+        "frames": frames,
         "step_minutes": TIMELINE_STEP_MINUTES,
-        "location": default_location(settings),
+        "location": location,
         **radar_service.layers(),
         "max_zoom": TIMELINE_MAX_ZOOM,
     }
@@ -154,6 +159,7 @@ async def radar_tile_at(stamp: str, z: int, x: int, y: int) -> Response:
     _require_enabled()
     try:
         data = await run_in_threadpool(radar_service.tile_at, stamp, z, x, y)
+        settled = radar_service.is_settled(stamp)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RadarUnavailableError as exc:
@@ -162,7 +168,8 @@ async def radar_tile_at(stamp: str, z: int, x: int, y: int) -> Response:
     return Response(
         content=data,
         media_type="image/png",
-        headers={"Cache-Control": "private, max-age=240"},
+        # Abgeschlossene vergangene Bilder ändern sich nicht mehr.
+        headers={"Cache-Control": f"private, max-age={3600 if settled else 240}"},
     )
 
 

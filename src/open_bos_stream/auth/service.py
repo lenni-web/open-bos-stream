@@ -152,6 +152,7 @@ class AuthService:
             org.revision,
             stored["username"],
             stored.get("display_name"),
+            stored.get("nickname"),
             bool(stored.get("platform_admin")),
         )
         now = time.monotonic()
@@ -176,6 +177,7 @@ class AuthService:
             "role": org.effective_role(stored),
             "user_id": stored["id"],
             "display_name": stored.get("display_name") or stored["username"],
+            "nickname": stored.get("nickname") or "",
             **scope,
             # Drohnen laufender Einsätze der eigenen bzw. beteiligten Wehren.
             "incident_source_ids": incident_sources,
@@ -367,6 +369,9 @@ class AuthService:
         display_name: str = "",
         email: str = "",
         actor: str = "",
+        first_name: str = "",
+        last_name: str = "",
+        nickname: str = "",
     ) -> dict:
         """Konto anlegen; Rolle gilt in der angegebenen Organisation.
 
@@ -388,6 +393,9 @@ class AuthService:
                 email=email,
                 platform_admin=role == "superadmin",
                 actor=actor,
+                first_name=first_name,
+                last_name=last_name,
+                nickname=nickname,
             )
             if role == "superadmin":
                 org.set_membership(created["id"], min(org.root_ids()), "admin", actor=actor)

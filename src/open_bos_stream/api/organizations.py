@@ -59,6 +59,9 @@ class OrganizationUpdate(BaseModel):
 class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=32)
     password: str = Field(min_length=10, max_length=1024)
+    first_name: str = Field(min_length=1, max_length=60)
+    last_name: str = Field(min_length=1, max_length=60)
+    nickname: str = Field(default="", max_length=40)
     display_name: str = Field(default="", max_length=80)
     email: str = Field(default="", max_length=254)
     organization_id: int
@@ -66,6 +69,9 @@ class UserCreate(BaseModel):
 
 
 class UserUpdate(BaseModel):
+    first_name: str | None = Field(default=None, min_length=1, max_length=60)
+    last_name: str | None = Field(default=None, min_length=1, max_length=60)
+    nickname: str | None = Field(default=None, max_length=40)
     display_name: str | None = Field(default=None, max_length=80)
     email: str | None = Field(default=None, max_length=254)
     password: str | None = Field(default=None, min_length=10, max_length=1024)
@@ -156,6 +162,9 @@ def _public_user(request: Request, user: dict) -> dict:
         "id": user["id"],
         "username": user["username"],
         "display_name": user["display_name"],
+        "first_name": user.get("first_name", ""),
+        "last_name": user.get("last_name", ""),
+        "nickname": user.get("nickname", ""),
         "email": user["email"],
         "active": bool(user["active"]),
         "platform_admin": bool(user["platform_admin"]),
@@ -335,6 +344,9 @@ def create_user(payload: UserCreate, request: Request) -> dict:
             display_name=payload.display_name,
             email=payload.email,
             actor=_actor(request),
+            first_name=payload.first_name,
+            last_name=payload.last_name,
+            nickname=payload.nickname,
         )
     except AuthError as exc:
         raise _org_error(exc) from exc
@@ -466,6 +478,9 @@ def delete_qualification(qualification_id: int, request: Request) -> dict:
 # ---------------------------------------------------------
 
 class OwnAccountUpdate(BaseModel):
+    first_name: str | None = Field(default=None, min_length=1, max_length=60)
+    last_name: str | None = Field(default=None, min_length=1, max_length=60)
+    nickname: str | None = Field(default=None, max_length=40)
     display_name: str | None = Field(default=None, max_length=80)
     email: str | None = Field(default=None, max_length=254)
     current_password: str | None = Field(default=None, max_length=1024)
@@ -481,6 +496,9 @@ def _own_account(org, stored: dict) -> dict:
         "id": stored["id"],
         "username": stored["username"],
         "display_name": stored["display_name"],
+        "first_name": stored.get("first_name", ""),
+        "last_name": stored.get("last_name", ""),
+        "nickname": stored.get("nickname", ""),
         "email": stored["email"],
         "platform_admin": bool(stored.get("platform_admin")),
         "created_at": stored.get("created_at"),
@@ -514,6 +532,12 @@ def update_me(payload: OwnAccountUpdate, request: Request, response: Response) -
     changes = {}
     if payload.display_name is not None:
         changes["display_name"] = " ".join(payload.display_name.split())
+    for key in ("first_name", "last_name", "nickname"):
+        value = getattr(payload, key)
+        if value is not None:
+            if key != "nickname" and not value.strip():
+                raise HTTPException(status_code=422, detail="Vor- und Nachname dürfen nicht leer sein.")
+            changes[key] = value
     if payload.email is not None:
         email = payload.email.strip()
         if email and not EMAIL_ADDRESS_PATTERN.match(email):

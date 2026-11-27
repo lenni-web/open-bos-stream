@@ -124,16 +124,12 @@
 
                 <div class="dashboard-bottom">
 
+    {% if user.role == "superadmin" %}
+    <!-- Ereignisprotokoll nur für Superadmins; Streaming-Ausgänge stehen
+         unter Einstellungen → Streaming-Ausgänge. -->
     <div class="dashboard-left">
 
         {% include "components/event_log.html" %}
-
-    </div>
-
-    {% if user.role == "superadmin" %}
-    <div class="dashboard-right">
-
-        {% include "components/stream_outputs_card.html" %}
 
     </div>
     {% endif %}
@@ -210,6 +206,14 @@
                 class="page">
 
                 {% include "components/organization_page.html" %}
+
+            </div>
+
+            <div
+                id="page-users"
+                class="page">
+
+                {% include "components/users_page.html" %}
 
             </div>
             {% endif %}

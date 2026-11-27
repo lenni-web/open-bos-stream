@@ -127,7 +127,19 @@ LAYER_GROUPS: tuple[LayerGroup, ...] = (
     ),
 )
 
-GROUPS_BY_ID = {group.id: group for group in LAYER_GROUPS}
+# In der Karte als eine Ebene: Eine Kachel-Anfrage enthält alle Zonenarten
+# (statt sieben einzelner Ebenen mit eigenen Abrufen). Standardmäßig aus;
+# solange die Ebene ausgeblendet ist, lädt die Karte keine Kacheln.
+COMBINED_GROUP = LayerGroup(
+    "geozonen",
+    "Drohnen-Geozonen",
+    tuple(layer for group in LAYER_GROUPS for layer in group.layers),
+    False,
+)
+
+GROUPS_BY_ID = {
+    group.id: group for group in (COMBINED_GROUP, *LAYER_GROUPS)
+}
 
 # Lesbare Art einer Zone je dipul-Ebene. Die Typkürzel der Daten selbst
 # (z. B. "U_NFZ") sind nicht einheitlich und eignen sich nicht zur Anzeige.
@@ -261,7 +273,7 @@ class DipulService:
                 "visible": group.visible,
                 "layers": list(group.layers),
             }
-            for group in LAYER_GROUPS
+            for group in (COMBINED_GROUP,)
         ]
 
     def tile(self, group_id: str, z: int, x: int, y: int) -> bytes:

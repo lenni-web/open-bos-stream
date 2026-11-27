@@ -272,20 +272,38 @@ def test_radar_time_rounds_to_five_minutes() -> None:
     assert radar_time(90, now) == "2026-11-26T22:50:00.000Z"
 
 
+def png_for(params) -> bytes:
+    """Echtes PNG in der angefragten Größe (der Server zerschneidet Blöcke)."""
+
+    import io
+
+    from PIL import Image
+
+    size = int(params["WIDTH"])
+    buffer = io.BytesIO()
+    Image.new("RGBA", (size, size), (0, 0, 255, 128)).save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
 def test_radar_tiles_are_cached_and_validated() -> None:
     calls: list[dict] = []
 
     def fetch(params):
         calls.append(params)
-        return b"\x89PNG"
+        return png_for(params)
 
     service = RadarService(
         fetch=fetch,
         now=lambda: datetime(2026, 11, 26, 21, 22, tzinfo=timezone.utc),
     )
 
-    assert service.tile(0, 8, 134, 81) == b"\x89PNG"
-    assert service.tile(0, 8, 134, 81) == b"\x89PNG"
+    first = service.tile(0, 8, 134, 81)
+    assert first.startswith(b"\x89PNG")
+    assert service.tile(0, 8, 134, 81) == first
+    # Ein Abruf für den ganzen 2×2-Block (Zoom 7, 512 Pixel).
+    assert len(calls) == 1
+    assert calls[0]["WIDTH"] == "512"
+    service.tile(0, 8, 135, 81)
     assert len(calls) == 1
     assert "TIME" not in calls[0]
     assert calls[0]["LAYERS"] == "dwd:Niederschlagsradar"
@@ -348,6 +366,14 @@ def client(monkeypatch, tmp_path):
     )
     monkeypatch.setattr(type(auth_service), "configured", property(lambda self: True))
     monkeypatch.setattr(weather_api, "server_event_log", ServerEventLog(None))
+    # Kein echtes Vorladen beim DWD in Tests; Aufrufe werden mitgeschrieben.
+    warm_calls: list = []
+    monkeypatch.setattr(
+        weather_api.radar_service,
+        "warm",
+        lambda *args, **kwargs: warm_calls.append(args) or True,
+    )
+    weather_api.radar_service.warm_calls = warm_calls
     monkeypatch.setattr(
         weather_api,
         "weather_service",
@@ -487,7 +513,7 @@ def test_timeline_tiles_accept_only_stamps_on_the_timeline() -> None:
 
     def fetch(params):
         calls.append(params)
-        return b"\x89PNG"
+        return png_for(params)
 
     service = RadarService(
         fetch=fetch,
@@ -661,3 +687,96 @@ def test_weather_values_are_explained() -> None:
     # Erklärliste nur auf der Wetterseite.
     assert "{% if weather_page %}" in card
     assert "Was bedeuten die Werte?" in card
+
+
+def test_radar_block_is_split_into_the_right_tiles() -> None:
+    import io
+
+    from PIL import Image
+
+    def fetch(params):
+        # Viertel unterschiedlich einfärben: oben links rot, oben rechts grün,
+        # unten links blau, unten rechts weiß.
+        image = Image.new("RGBA", (512, 512))
+        for (dx, dy), color in {(0, 0): "red", (1, 0): "lime", (0, 1): "blue", (1, 1): "white"}.items():
+            image.paste(color, (dx * 256, dy * 256, dx * 256 + 256, dy * 256 + 256))
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        return buffer.getvalue()
+
+    service = RadarService(fetch=fetch, now=lambda: datetime(2026, 11, 26, 21, 22, tzinfo=timezone.utc))
+    colors = {}
+    for x, y in ((134, 80), (135, 80), (134, 81), (135, 81)):
+        with Image.open(io.BytesIO(service.tile(0, 8, x, y))) as tile:
+            assert tile.size == (256, 256)
+            colors[(x, y)] = tile.convert("RGB").getpixel((10, 10))
+    assert colors == {
+        (134, 80): (255, 0, 0), (135, 80): (0, 255, 0),
+        (134, 81): (0, 0, 255), (135, 81): (255, 255, 255),
+    }
+
+
+def test_parallel_requests_for_one_block_ask_the_dwd_once() -> None:
+    import threading
+    import time as real_time
+
+    calls: list[dict] = []
+
+    def fetch(params):
+        calls.append(params)
+        real_time.sleep(0.2)
+        return png_for(params)
+
+    service = RadarService(fetch=fetch, now=lambda: datetime(2026, 11, 26, 21, 22, tzinfo=timezone.utc))
+    threads = [
+        threading.Thread(target=service.tile, args=(0, 8, x, y))
+        for x, y in ((134, 80), (135, 80), (134, 81), (135, 81))
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert len(calls) == 1
+
+
+def test_timeline_is_warmed_around_the_location_starting_with_now() -> None:
+    calls: list[dict] = []
+
+    def fetch(params):
+        calls.append(params)
+        return png_for(params)
+
+    from open_bos_stream.weather.radar import timeline_frames
+
+    now = datetime(2026, 11, 26, 21, 22, tzinfo=timezone.utc)
+    service = RadarService(fetch=fetch, now=lambda: now)
+    frames = timeline_frames(now)
+    tiles = service.warm_tiles(53.6, 9.47)  # Stade
+    assert 1 <= len(tiles) <= 4
+
+    assert service.warm(53.6, 9.47, frames, background=False) is True
+    # Je Zeitpunkt und Block ein Abruf (512 Pixel), nicht je Kachel.
+    assert len(calls) == len(frames) * len(tiles)
+    assert {call["WIDTH"] for call in calls} == {"512"}
+    # Danach kommen die Bilder aus dem Speicher.
+    z, x, y = tiles[0]
+    service.tile_at(frames[0]["stamp"], z, x, y)
+    assert len(calls) == len(frames) * len(tiles)
+    # Kein erneutes Vorladen innerhalb weniger Minuten.
+    assert service.warm(53.6, 9.47, frames, background=False) is False
+
+
+def test_frames_endpoint_warms_and_settled_tiles_are_cached_longer(client, monkeypatch) -> None:
+    from open_bos_stream.api import weather as weather_api
+
+    test_client, _ = client
+    login(test_client, "viewer")
+    test_client.get("/api/weather/radar/frames")
+    assert weather_api.radar_service.warm_calls
+
+    monkeypatch.setattr(weather_api.radar_service, "tile_at", lambda *args: b"\x89PNG")
+    monkeypatch.setattr(weather_api.radar_service, "is_settled", lambda stamp: stamp == "alt")
+    old = test_client.get("/api/weather/radar/time/alt/7/67/40.png")
+    new = test_client.get("/api/weather/radar/time/neu/7/67/40.png")
+    assert old.headers["cache-control"] == "private, max-age=3600"
+    assert new.headers["cache-control"] == "private, max-age=240"

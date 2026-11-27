@@ -59,6 +59,24 @@ function renderDipulControls(mapInstance, config) {
         return;
     }
 
+    if (config.groups.length === 1) {
+        // Eine gemeinsame Ebene für alle Zonenarten.
+        const group = config.groups[0];
+        container.innerHTML = `
+            <div class="map-dipul-heading">
+                <label>
+                    <input id="dipul-toggle-${escapeHTML(group.id)}" type="checkbox"
+                        ${group.visible ? "checked" : ""}>
+                    <strong>Drohnen-Geozonen (dipul)</strong>
+                </label>
+            </div>
+        `;
+        container.querySelector("input").addEventListener("change", event => {
+            setDipulGroupVisible(mapInstance, group, event.target.checked);
+        });
+        return;
+    }
+
     container.innerHTML = `
         <div class="map-dipul-heading">
             <label>

@@ -901,7 +901,7 @@ def test_dashboard_columns_never_grow_beyond_the_screen() -> None:
     responsive = (ROOT / "static" / "css" / "responsive.css").read_text(encoding="utf-8")
 
     # 1fr allein wächst mit dem längsten Eintrag (Ereignisprotokoll) mit.
-    assert "grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);" in dashboard
+    assert "grid-template-columns: minmax(0, 1fr);" in dashboard
     assert "grid-template-columns: 1fr;" not in dashboard
     assert "grid-template-columns: 1fr;" not in responsive
     assert "overflow-wrap: anywhere;" in dashboard
