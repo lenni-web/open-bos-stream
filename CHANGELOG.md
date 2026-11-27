@@ -17,6 +17,12 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   nach mehreren Fehlern pausieren die Abrufe kurz und unter der Karte steht
   ein Hinweis.
 
+### Changed
+
+- Die Profilauswahl einer Drohne steht in einer eigenen Zeile, darunter
+  sind alle verfügbaren Profile kurz erklärt.
+- Die Profil-Empfehlung auf der Seite „Drohnen“ entfällt.
+
 ### Fixed
 
 - Push-Benachrichtigungen zeigen in der Android-Statusleiste das Logo

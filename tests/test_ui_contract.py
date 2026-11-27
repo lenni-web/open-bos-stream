@@ -200,18 +200,11 @@ def test_settings_use_one_equal_source_list() -> None:
     source_js = (
         ROOT / "static" / "js" / "config_rtmp_inputs.js"
     ).read_text(encoding="utf-8")
-    modern_css = (
-        ROOT / "static" / "css" / "modern.css"
-    ).read_text(encoding="utf-8")
 
     assert 'id="source-settings"' in settings
     assert 'id="source-add-button"' in settings
     assert "+ Drohne hinzufügen" in settings
-    assert "Profil-Empfehlung:" in settings
-    assert "bis zu vier Drohnen" in settings
-    assert "Ab fünf Drohnen" in settings
-    assert "Im Vollbild bleibt bei beiden das Original erhalten" in settings
-    assert ".settings-profile-recommendation" in modern_css
+    assert "Profil-Empfehlung" not in settings
     assert "RTMP-Eingang hinzufügen" not in settings
     assert "function renderSources()" in source_js
     assert "data-role=\"publish-url\"" in source_js
@@ -313,8 +306,9 @@ def test_rtmp_multi_source_preview_profile_is_selectable() -> None:
     assert '"preview_transcode_economy"' in source_js
     assert "Übersichts-Vorschau · ausgewogen (max. 480p)" in source_js
     assert "Übersichts-Vorschau · sparsam (max. 360p)" in source_js
-    assert '"640×360, 12 fps und etwa 800 kbit/s"' in source_js
-    assert '"854×480, 12 fps und etwa 1,1 Mbit/s"' in source_js
+    assert "640×360, 12 fps und etwa 800 kbit/s" in source_js
+    assert "854×480, 12 fps und etwa 1,1 Mbit/s" in source_js
+    assert "function sourceProfileHelp(" in source_js
     assert "Vollbild zeigt den Originalstream" in source_js
 
 

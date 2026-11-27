@@ -12,42 +12,59 @@ function sourceTypeOptions(selected) {
     `).join("");
 }
 
+// Profile mit Kurzerklärung; die Vorschau-Profile gibt es nur beim Empfang.
+const SOURCE_PROFILES = [
+    ["direct", "Direkt / Stream Copy",
+        "Das Bild wird unverändert übernommen. Geringste Serverlast, " +
+        "Standard für ein stabiles Signal."],
+    ["copy_repair", "Copy mit Zeitstempel-Korrektur",
+        "Ohne Neukodieren, repariert aber fehlerhafte Zeitstempel. " +
+        "Bei Rucklern oder Aussetzern."],
+    ["copy_repair_low_latency", "Copy-Reparatur · geringe Latenz",
+        "Wie die Korrektur, mit kleinerem Puffer und weniger Verzögerung. " +
+        "Für weitgehend stabile Signale."],
+    ["preview_transcode", "Übersichts-Vorschau · ausgewogen (max. 480p)",
+        "Übersicht mit 854×480, 12 fps und etwa 1,1 Mbit/s ohne Ton; " +
+        "Vollbild zeigt den Originalstream. Für bis zu vier Drohnen."],
+    ["preview_transcode_economy", "Übersichts-Vorschau · sparsam (max. 360p)",
+        "Übersicht mit 640×360, 12 fps und etwa 800 kbit/s ohne Ton; " +
+        "Vollbild zeigt den Originalstream. Für viele Drohnen oder " +
+        "knappe Serverleistung."],
+    ["transcode", "Transcodieren",
+        "Der Server kodiert das Bild neu, mit eigenen Encoder-Werten. " +
+        "Hohe Serverlast."],
+    ["transcode_low_latency", "Transcodieren · geringe Latenz (Mobilfunk)",
+        "Neukodieren mit einem Schlüsselbild pro Sekunde: schnell wieder " +
+        "ein Bild nach Paketverlust. Hohe Serverlast."],
+];
+
+function sourceProfiles(sourceType) {
+    return SOURCE_PROFILES.filter(([value]) => (
+        !value.startsWith("preview_") || sourceType === "rtmp"
+    ));
+}
+
 function sourceProfileOptions(selected, sourceType) {
-    const profiles = [
-        ["direct", "Direkt / Stream Copy"],
-        ["copy_repair", "Copy mit Zeitstempel-Korrektur"],
-        [
-            "copy_repair_low_latency",
-            "Copy-Reparatur · geringe Latenz",
-        ],
-        [
-            "preview_transcode",
-            "Übersichts-Vorschau · ausgewogen (max. 480p)",
-        ],
-        [
-            "preview_transcode_economy",
-            "Übersichts-Vorschau · sparsam (max. 360p)",
-        ],
-        ["transcode", "Transcodieren"],
-        [
-            "transcode_low_latency",
-            "Transcodieren · geringe Latenz (Mobilfunk)",
-        ],
-    ];
-    return profiles
-        .filter(([value]) => (
-            ![
-                "preview_transcode",
-                "preview_transcode_economy",
-            ].includes(value) || sourceType === "rtmp"
-        ))
-        .map(([value, label]) => `
+    return sourceProfiles(sourceType).map(([value, label]) => `
         <option
             value="${value}"
             ${value === selected ? "selected" : ""}>
             ${label}
         </option>
     `).join("");
+}
+
+function sourceProfileHelp(selected, sourceType) {
+    return `
+        <dl class="source-profile-help">
+            ${sourceProfiles(sourceType).map(([value, label, text]) => `
+                <div class="${value === selected ? "is-selected" : ""}">
+                    <dt>${label}</dt>
+                    <dd>${text}</dd>
+                </div>
+            `).join("")}
+        </dl>
+    `;
 }
 
 function generatePublisherToken() {
@@ -144,28 +161,6 @@ function sourceTranscodingFields(source) {
                 </div>
             </div>
         </fieldset>
-    `;
-}
-
-function sourcePreviewProfileHint(source) {
-    if (![
-        "preview_transcode",
-        "preview_transcode_economy",
-    ].includes(source.profile)) {
-        return "";
-    }
-    const economy = source.profile === "preview_transcode_economy";
-    const quality = economy
-        ? "640×360, 12 fps und etwa 800 kbit/s"
-        : "854×480, 12 fps und etwa 1,1 Mbit/s";
-    return `
-        <div class="form-field form-field-wide source-profile-hint">
-            <small>
-                Die Übersicht nutzt eine H.264-Vorschau mit maximal
-                ${quality} und ohne Audio. Kleinere Drohnen werden
-                nicht hochskaliert; Vollbild zeigt den Originalstream.
-            </small>
-        </div>
     `;
 }
 
@@ -606,12 +601,6 @@ function renderSources() {
                     </select>
                 </div>
                 <div class="form-field">
-                    <label>Profil</label>
-                    <select class="bos-input" data-field="profile">
-                        ${sourceProfileOptions(source.profile, source.type)}
-                    </select>
-                </div>
-                <div class="form-field">
                     <label>Audio</label>
                     <select class="bos-input" data-field="audio_mode">
                         <option value="none" ${source.audio_mode === "none" || !source.audio_mode ? "selected" : ""}>Deaktiviert</option>
@@ -619,8 +608,14 @@ function renderSources() {
                         <option value="aac" ${source.audio_mode === "aac" ? "selected" : ""}>AAC umkodieren</option>
                     </select>
                 </div>
+                <div class="form-field form-field-wide">
+                    <label>Profil</label>
+                    <select class="bos-input" data-field="profile">
+                        ${sourceProfileOptions(source.profile, source.type)}
+                    </select>
+                    ${sourceProfileHelp(source.profile, source.type)}
+                </div>
                 ${sourceTranscodingFields(source)}
-                ${sourcePreviewProfileHint(source)}
                 <div class="source-specific-fields form-grid form-field-wide">
                     ${sourceSpecificFields(source)}
                 </div>
