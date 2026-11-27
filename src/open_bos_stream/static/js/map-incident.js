@@ -268,9 +268,9 @@ function incidentMapRenderDraft(cursor = null) {
             const [south, north] = [Math.min(first[1], second[1]), Math.max(first[1], second[1])];
             const rows = Number(document.getElementById("incident-grid-rows")?.value) || 1;
             const columns = Number(document.getElementById("incident-grid-columns")?.value) || 1;
-            features.push({type: "Feature", geometry: {type: "Polygon", coordinates: [[
-                [west, north], [east, north], [east, south], [west, south], [west, north],
-            ]]}});
+            const outline = [[west, north], [east, north], [east, south], [west, south]];
+            features.push({type: "Feature", geometry: {type: "Polygon", coordinates: [[...outline, outline[0]]]}});
+            incidentMapGridEstimate(searchAreaM2(outline), rows * columns);
             for (let index = 1; index < columns && incidentMap.gridCorners; index += 1) {
                 const lon = west + (east - west) * index / columns;
                 features.push({type: "Feature", geometry: {type: "LineString", coordinates: [[lon, north], [lon, south]]}});
@@ -282,6 +282,14 @@ function incidentMapRenderDraft(cursor = null) {
         }
     }
     source.setData({type: "FeatureCollection", features});
+}
+
+function incidentMapGridEstimate(area, cells) {
+    const target = document.getElementById("incident-grid-estimate");
+    if (target) {
+        target.innerHTML = `${searchEstimateHTML(area, "Raster gesamt: ")}<br>
+            ${searchEstimateHTML(area / cells, `Je Quadrant (${cells}): `)}`;
+    }
 }
 
 function incidentMapFit() {
@@ -349,7 +357,23 @@ function incidentMapSummary() {
         ${Object.entries(counts).map(([status, count]) => `
             <span><i style="background:${INCIDENT_MAP_COLORS[status] ?? INCIDENT_MAP_COLORS.open}"></i>
                 ${count} ${escapeHTML(statuses[status] ?? status)}</span>`).join("")}
-    </div>`;
+    </div>${incidentMapTotalsHTML(items)}`;
+}
+
+function incidentMapItemArea(item) {
+    // GeoJSON-Ringe wiederholen den ersten Punkt am Ende; das ändert nichts
+    // an der Fläche, würde aber die mittlere Breite leicht verschieben.
+    return searchAreaM2(item.geometry.coordinates[0].slice(0, -1));
+}
+
+function incidentMapTotalsHTML(items) {
+    const sum = list => list.reduce((total, item) => total + incidentMapItemArea(item), 0);
+    const open = items.filter(item => item.status !== "done" && item.status !== "finding");
+    return `<p class="incident-map-hint">
+        ${searchEstimateHTML(sum(items), "Alle Quadranten: ")}
+        ${open.length && open.length < items.length
+            ? `<br>${searchEstimateHTML(sum(open), "Noch abzusuchen: ")}` : ""}
+    </p>`;
 }
 
 function incidentMapToolsHTML() {
@@ -360,6 +384,7 @@ function incidentMapToolsHTML() {
         return incidentMap.gridCorners
             ? `<form class="incident-map-form" onsubmit="incidentMapCreateGrid(event)">
                 <p>Raster über das Rechteck legen:</p>
+                <p id="incident-grid-estimate" class="incident-map-hint"></p>
                 <div class="incident-map-row">
                     <label>Zeilen <input id="incident-grid-rows" class="bos-input" type="number" min="1" max="12" value="3"
                         oninput="incidentMapRenderDraft()"></label>
@@ -383,6 +408,8 @@ function incidentMapToolsHTML() {
                 ? "Fläche geschlossen – Namen eintragen und „Fertig“ tippen."
                 : `Eckpunkte antippen (${incidentMap.draft.length} gesetzt). Abschließen: ersten Punkt erneut
                    antippen, doppelklicken, Enter oder „Fertig“.`}</p>
+            ${incidentMap.draft.length >= 3
+                ? `<p class="incident-map-hint">${searchEstimateHTML(searchAreaM2(incidentMap.draft), "Neue Fläche: ")}</p>` : ""}
             <div class="incident-map-row">
                 <input id="incident-polygon-name" class="bos-input" maxlength="40" placeholder="Name, z. B. Waldstück Nord" required>
             </div>
@@ -475,10 +502,12 @@ function incidentMapItemHTML() {
             <strong>${escapeHTML(item.name)}</strong>
             <span>${escapeHTML(item.status_label)}${item.assignee ? ` · ${escapeHTML(item.assignee)}` : ""}</span>
             ${item.note ? `<p>${escapeHTML(item.note)}</p>` : ""}
+            <p class="incident-map-hint">${searchEstimateHTML(incidentMapItemArea(item), "Dieser Quadrant: ")}</p>
             <button class="bos-button bos-button-small" type="button" onclick="incidentMapSelectItem(null)">Schließen</button>
         </div>`;
     }
     return `<form class="incident-map-form incident-map-item" onsubmit="incidentMapSaveItem(event, ${Number(item.id)})">
+        <p class="incident-map-hint">${searchEstimateHTML(incidentMapItemArea(item), "Dieser Quadrant: ")}</p>
         <div class="incident-map-row">
             <label>Name <input class="bos-input" name="name" maxlength="40" value="${escapeHTML(item.name)}" required></label>
             <label>Status <select class="bos-input" name="status">${incidentMapStatusOptions(item.status)}</select></label>
@@ -530,7 +559,9 @@ function renderIncidentMapPanel() {
         </select>`;
     const focused = panel.contains(document.activeElement) &&
         ["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName);
-    if (focused && incidentMap.selectedItem && !incidentMap.forceRender) {
+    const editing = focused && (incidentMap.selectedItem ||
+        document.activeElement.closest(".incident-estimate-settings"));
+    if (editing && !incidentMap.forceRender) {
         // Laufende Eingabe nicht durch den Abgleich überschreiben.
         return;
     }
@@ -542,11 +573,16 @@ function renderIncidentMapPanel() {
             ${incidentMap.message ? `<p class="incident-map-message ${incidentMap.error ? "is-error" : ""}">${escapeHTML(incidentMap.message)}</p>` : ""}
             ${incidentMap.data ? incidentMapSummary() : (running.length || incidentMap.guest ? "" : '<p class="incident-map-hint">Kein laufender Einsatz.</p>')}
             ${incidentMap.data ? incidentMapItemHTML() || incidentMapToolsHTML() : ""}
+            ${incidentMap.data && (incidentMap.data.items.length || incidentMap.mode === "grid" || incidentMap.mode === "polygon")
+                ? searchSettingsHTML() : ""}
             <div id="map-drone-info"></div>
             ${incidentMap.data && !incidentMap.canEdit && !incidentMap.selectedItem
                 ? '<p class="incident-map-hint">Quadrant antippen für Details.</p>' : ""}
         </div>`;
     droneMapRenderInfo();
+    if (incidentMap.mode === "grid" && incidentMap.gridCorners) {
+        incidentMapRenderDraft();
+    }
 }
 
 function setIncidentMapMessage(message, error = false) {

@@ -101,6 +101,13 @@ def test_map_api_sync_and_guest_view(api, tmp_path: Path) -> None:  # noqa: F811
     assert api.post(f"/api/incidents/{incident_id}/map/items", json={"name": "X", "geometry": {}}).status_code == 403
 
 
+def test_search_estimate_is_loaded_before_the_incident_map() -> None:
+    package = Path(__file__).resolve().parents[1] / "src" / "open_bos_stream"
+    for page in ("index.html", "guest.html"):
+        template = (package / "templates" / page).read_text(encoding="utf-8")
+        assert template.index("search-estimate.js") < template.index("map-incident.js")
+
+
 def test_assignee_can_be_picked_from_drones_or_typed() -> None:
     script = (
         Path(__file__).resolve().parents[1]
