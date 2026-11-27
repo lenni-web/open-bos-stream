@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.24.3** (2026-11-27): Keine feste Grenze mehr für Quellen und
+  Aufnahmen; Überwachung der Serverlast mit Hinweis und Benachrichtigung
 - **0.24.2** (2026-11-27): Flächen auf der Einsatzkarte per Antippen des
   ersten Punkts, Doppelklick oder Enter abschließen
 - **0.24.1** (2026-11-27): Logofarben als Akzente, neue Beschreibung auf

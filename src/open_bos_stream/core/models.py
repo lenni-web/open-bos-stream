@@ -371,15 +371,13 @@ class StreamOutputConfig(BaseModel):
     )
 
 
-MAX_AUTOMATIC_RECORDINGS = 4
-
-
 class MediaCaptureConfig(BaseModel):
     """Superadmin-Auswahl für Snapshots und Aufzeichnungen.
 
     ``source_id`` ist die Medienquelle für Snapshot und manuelle Aufnahme.
     ``automatic_source_ids`` sind die Quellen, die bei Eingangssignal
-    selbstständig aufnehmen (höchstens vier gleichzeitig).
+    selbstständig aufnehmen (ohne feste Obergrenze; die Serverlast wird
+    überwacht).
     ``recording_mode`` stammt aus Versionen bis 0.18 und wird nur noch zur
     Übernahme älterer Konfigurationen ausgewertet.
     """
@@ -402,12 +400,6 @@ class MediaCaptureConfig(BaseModel):
         ):
             # Bis 0.18: Automatik galt für die gewählte Medienquelle.
             ids = [self.source_id]
-        if len(ids) > MAX_AUTOMATIC_RECORDINGS:
-            raise ValueError(
-                "Höchstens "
-                f"{MAX_AUTOMATIC_RECORDINGS} Quellen können automatisch "
-                "aufnehmen."
-            )
         legacy_without_source = (
             not ids
             and self.recording_mode == "automatic"

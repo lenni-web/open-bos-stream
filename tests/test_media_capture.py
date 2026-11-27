@@ -499,21 +499,18 @@ def test_manual_recording_of_other_source_runs_alongside(tmp_path: Path) -> None
     assert [s.recording for s in service.statuses()] == [True, True]
 
 
-def test_at_most_four_parallel_recordings(tmp_path: Path) -> None:
-    config = sources_config(5)
-    config.media_capture.source_id = "drohne-5"
+def test_more_than_four_parallel_recordings(tmp_path: Path) -> None:
+    config = sources_config(6)
+    config.media_capture.source_id = "drohne-6"
     config.media_capture.automatic_source_ids = [
-        "drohne-1", "drohne-2", "drohne-3", "drohne-4",
+        "drohne-1", "drohne-2", "drohne-3", "drohne-4", "drohne-5",
     ]
     service, _ = multi_service(tmp_path, config, SwitchableReadyMediaMTX())
     service.reconcile_automatic()
+    # Keine feste Obergrenze mehr: auch die sechste Aufnahme startet.
+    service.start()
 
-    try:
-        service.start()
-    except RuntimeError as exc:
-        assert "4 Aufnahmen" in str(exc)
-    else:
-        raise AssertionError("Fünfte Aufnahme hätte gesperrt sein müssen.")
+    assert sum(item.recording for item in service.statuses()) == 6
 
 
 def test_removing_source_from_automatic_stops_its_recording(tmp_path: Path) -> None:
@@ -562,9 +559,5 @@ def test_legacy_automatic_mode_is_migrated() -> None:
     migrated = AppConfig.model_validate(config).media_capture
     assert migrated.automatic_source_ids == ["drohne-1"]
 
-    try:
-        MediaCaptureConfig(automatic_source_ids=["a", "b", "c", "d", "e"])
-    except ValueError as exc:
-        assert "Höchstens 4" in str(exc)
-    else:
-        raise AssertionError("Mehr als vier Quellen hätten abgelehnt werden müssen.")
+    many = MediaCaptureConfig(automatic_source_ids=["a", "b", "c", "d", "e", "f"])
+    assert len(many.automatic_source_ids) == 6

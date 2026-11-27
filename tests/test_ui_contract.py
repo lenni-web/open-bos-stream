@@ -553,7 +553,7 @@ def test_superadmin_media_source_controls_are_present() -> None:
 
     assert 'id="cfg-media-source"' in settings
     assert 'id="cfg-recording-automatic-list"' in settings
-    assert "Höchstens vier Quellen" in settings
+    assert "Beliebig viele Quellen" in settings
     assert 'id="cfg-recording-mode-status"' in settings
     assert "Snapshot- und Aufnahmequelle" in settings
     assert '{% if user.role == "superadmin" %}' in panel
@@ -566,7 +566,8 @@ def test_superadmin_media_source_controls_are_present() -> None:
     assert "function saveRecordingModeImmediately()" in config
     assert "api.saveMediaCapture(payload)" in config
     assert "automatic_source_ids: automaticRecordingSelection()" in config
-    assert "const MAX_AUTOMATIC_RECORDINGS = 4;" in config
+    # Keine feste Obergrenze für automatische Aufnahmen mehr.
+    assert "MAX_AUTOMATIC_RECORDINGS" not in config
     # Busy-Text darf die Kurzbeschriftungen der Buttons nicht zerstören.
     assert 'button.textContent = "Konfiguration testen"' not in config
     multi = (ROOT / "static" / "js" / "multi_source.js").read_text(

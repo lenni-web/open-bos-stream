@@ -9,11 +9,18 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.24.3] - 2026-11-27
+
 ### Changed
 
 - Keine feste Obergrenze mehr für gleichzeitig aktive Quellen (bisher 8);
   ebenso für Gastlinks und Einsätze. Ab neun Quellen weist die
   Quellenverwaltung auf die Serverlast hin.
+- Keine feste Obergrenze mehr für gleichzeitige Aufnahmen (bisher 4):
+  Automatische und manuelle Aufnahmen lassen sich für beliebig viele Quellen
+  parallel nutzen; Speicherschutz und Lastüberwachung bleiben aktiv.
 
 ### Added
 

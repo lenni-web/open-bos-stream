@@ -13,7 +13,7 @@ import time
 from dataclasses import dataclass, field
 from threading import RLock
 
-from open_bos_stream.core.models import AppConfig, MAX_AUTOMATIC_RECORDINGS
+from open_bos_stream.core.models import AppConfig
 from open_bos_stream.media.capture import CaptureInput, CaptureInputProvider
 from open_bos_stream.media.storage import MediaStorageService
 from open_bos_stream.mediamtx.client import MediaMTXClient
@@ -21,7 +21,6 @@ from open_bos_stream.recording.manager import RecordingManager
 from open_bos_stream.recording.models import RecordingStatus
 from open_bos_stream.recording.recorder import Recorder
 
-MAX_PARALLEL_RECORDINGS = MAX_AUTOMATIC_RECORDINGS
 AUTOMATIC_RETRY_SECONDS = 5
 AUTOMATIC_OFFLINE_SAMPLES = 2
 CAPTURE_RENEW_SECONDS = 10
@@ -250,12 +249,6 @@ class RecordingService:
         channel = self._channel(source.id)
         if channel.manager.running:
             return
-
-        if self._running_count() >= MAX_PARALLEL_RECORDINGS:
-            raise RuntimeError(
-                f"Es laufen bereits {MAX_PARALLEL_RECORDINGS} Aufnahmen "
-                "gleichzeitig."
-            )
 
         path = self._mediamtx.path(source.viewer_path)
         if path is None:

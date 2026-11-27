@@ -237,8 +237,6 @@ function renderMediaCaptureConfig() {
     renderAutomaticRecordingSources(sources);
 }
 
-const MAX_AUTOMATIC_RECORDINGS = 4;
-
 function renderAutomaticRecordingSources(sources) {
     const list = document.getElementById("cfg-recording-automatic-list");
     if (!list) {
@@ -256,11 +254,9 @@ function renderAutomaticRecordingSources(sources) {
             </label>
         `).join("")
         : "<small>Keine aktive Quelle.</small>";
-    updateAutomaticRecordingLimit();
     if (!list.dataset.immediateSaveBound) {
         list.dataset.immediateSaveBound = "true";
         list.addEventListener("change", () => {
-            updateAutomaticRecordingLimit();
             saveRecordingModeImmediately();
         });
     }
@@ -272,15 +268,6 @@ function automaticRecordingSelection() {
             "#cfg-recording-automatic-list input:checked"
         )
     ).map(input => input.value);
-}
-
-function updateAutomaticRecordingLimit() {
-    const full = automaticRecordingSelection().length >= MAX_AUTOMATIC_RECORDINGS;
-    document
-        .querySelectorAll("#cfg-recording-automatic-list input")
-        .forEach(input => {
-            input.disabled = full && !input.checked;
-        });
 }
 
 function renderStorageSettings() {

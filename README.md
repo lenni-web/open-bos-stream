@@ -16,8 +16,9 @@ eigenständige Web-App mit Open-BOS-Stream-Icon abgelegt werden.
 
 ## Features
 
-- Bis zu acht gleichwertige Live-Quellen mit RTMP, RTSP, SRT, UDP, HTTP,
-  HLS oder lokaler Capture Card
+- Beliebig viele gleichwertige Live-Quellen mit RTMP, RTSP, SRT, UDP, HTTP,
+  HLS oder lokaler Capture Card; die Serverlast wird überwacht und bei hoher
+  Auslastung ein Hinweis angezeigt
 - WebRTC-Wiedergabe mit optionalem Stream Copy, Zeitstempel-Reparatur oder
   Transcoding je Quelle; Vollbild im Originalstream
 - Individuelle RTMP-Empfangspfade mit Publisher-Token
@@ -645,7 +646,12 @@ Anzeige daher ohne zusätzliche, privilegierte Inhibit-Sperre aktiv.
 
 ## Mehrere gleichwertige Quellen
 
-In den Einstellungen können bis zu acht Quellen angelegt werden. Unterstützt
+In den Einstellungen lassen sich beliebig viele Quellen anlegen; eine feste
+Obergrenze gibt es nicht. Stattdessen bewertet die Anwendung laufend CPU,
+Arbeitsspeicher und Systemlast (Mittelwert über 30 Sekunden) und zeigt bei
+hoher Auslastung auf allen Seiten einen Hinweis; hält eine Überlastung länger
+als zwei Minuten an, gibt es eine Benachrichtigung per E-Mail bzw. Push.
+Unterstützt
 werden alle vorhandenen Eingangsadapter: Capture Card, RTMP, RTSP, SRT, UDP,
 HTTP und HLS. Jede Quelle besitzt einen eigenen Namen, eine strikt validierte
 ID sowie ein Verarbeitungsprofil:
@@ -779,7 +785,7 @@ Reconnect-Zustand gelten seit dem letzten Start des Streamer-Dienstes.
 
 Fallen mehrere verwaltete Quellen gleichzeitig aus, bleiben ihre
 exponentiellen Backoffs unabhängig. Der konkrete Wiederanlauf wird je
-Quellen-ID leicht versetzt, damit nicht bis zu acht FFmpeg-Prozesse und
+Quellen-ID leicht versetzt, damit nicht viele FFmpeg-Prozesse und
 Netzwerkverbindungen im selben Moment neu aufgebaut werden.
 
 Bei verwalteten RTMP-Quellen startet FFmpeg erst, nachdem MediaMTX den
@@ -1073,7 +1079,8 @@ Aufnahmen lassen sich manuell und automatisch steuern:
 
 Mehrere Aufnahmen laufen parallel, z. B. zwei Drohnen gleichzeitig oder eine
 automatische Quelle und die manuelle Aufnahme einer anderen Medienquelle.
-Insgesamt laufen höchstens vier Aufnahmen gleichzeitig. Jede Videokachel
+Eine feste Obergrenze für gleichzeitige Aufnahmen gibt es nicht; bei hoher
+Serverlast erscheint ein Hinweis. Jede Videokachel
 zeigt eine laufende Aufnahme mit Dauer an („● Auto-Aufnahme 12:34“). Da
 H.264 und H.265 unverändert kopiert werden, kostet jede weitere Aufnahme kaum
 Rechenleistung, aber entsprechend Speicherplatz. Bei Speichermangel werden
