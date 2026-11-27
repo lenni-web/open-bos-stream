@@ -378,7 +378,10 @@ window.openBosMediaToken = {{ media_token | tojson }};
 
 <script src="/static/js/multi_source.js?v={{ version }}"></script>
 
+{% if can.server_admin %}
+<!-- Browser-Testprotokoll der Systemseite (nur Kreis-Admins/Superadmins). -->
 <script src="/static/js/test_logging.js?v={{ version }}"></script>
+{% endif %}
 
 <script src="/static/js/dashboard_events.js?v={{ version }}"></script>
 

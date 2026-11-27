@@ -356,3 +356,11 @@ def test_ingest_protocol_only_applies_to_sender_sources() -> None:
     assert pushed.ingest_protocol == "srt"
     # Intern liest der Server auch SRT-Sender über den lokalen Pfad.
     assert pushed.url == "rtmp://127.0.0.1:1935/pi"
+
+
+@pytest.mark.parametrize("action", ["api", "metrics", "pprof", "playback", "unbekannt"])
+def test_other_actions_are_rejected_instead_of_allowed(action: str) -> None:
+    payload = MediaMTXAuthRequest(action=action, path="quelle-1", protocol="", ip="127.0.0.1")
+    with pytest.raises(HTTPException) as error:
+        authorize(payload)
+    assert error.value.status_code == 403

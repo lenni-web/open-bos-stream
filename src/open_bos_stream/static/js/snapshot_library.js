@@ -1,39 +1,9 @@
-async function refreshSnapshotLibrary() {
-
-    try {
-
-        const files = await api.snapshotFiles();
-
-        renderMediaLibrary(
-            "snapshot-library",
-            files,
-            file => `
-                ${createMediaButton(
-                    "🖼",
-                    "Anzeigen",
-                    `showSnapshot('${file.name}')`
-                )}
-
-                ${createMediaButton(
-                    "⬇",
-                    "Download",
-                    `downloadSnapshot('${file.name}')`
-                )}
-
-                ${createMediaButton(
-                    "🗑",
-                    "Löschen",
-                    `deleteSnapshot('${file.name}')`
-                )}
-            `
-        );
-
-    } catch (err) {
-
-        console.error("Snapshot Library:", err);
-
+// Früher eigene Liste; heute zeigt die Seite „Aufnahmen“ alles gemeinsam.
+function refreshSnapshotLibrary() {
+    if (typeof refreshMediaLibrary === "function") {
+        return refreshMediaLibrary();
     }
-
+    return undefined;
 }
 
 function showSnapshot(filename) {
@@ -42,7 +12,7 @@ function showSnapshot(filename) {
 
         "📸 " + filename,
 
-        "/snapshot/view/" + filename
+        "/snapshot/view/" + encodeURIComponent(filename)
 
     );
 
@@ -56,7 +26,7 @@ function showSnapshot(filename) {
 function downloadSnapshot(filename) {
 
     window.location =
-        "/snapshot/download/" + filename;
+        "/snapshot/download/" + encodeURIComponent(filename);
 
 }
 
@@ -73,7 +43,6 @@ async function deleteSnapshot(filename) {
 
     if (result.success) {
 
-        refreshSnapshotLibrary();
         refreshMediaLibrary();
 
         if (activeMediaName === filename) {

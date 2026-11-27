@@ -1,45 +1,15 @@
-async function refreshRecordingLibrary() {
-
-    try {
-
-        const files = await api.recordingFiles();
-
-        renderMediaLibrary(
-            "recording-library",
-            files,
-            file => `
-                ${createMediaButton(
-                    "▶",
-                    "Abspielen",
-                    `playRecording('${file.name}')`
-                )}
-
-                ${createMediaButton(
-                    "⬇",
-                    "Download",
-                    `downloadRecording('${file.name}')`
-                )}
-
-                ${createMediaButton(
-                    "🗑",
-                    "Löschen",
-                    `deleteRecording('${file.name}')`
-                )}
-            `
-        );
-
-    } catch (err) {
-
-        console.error("Library:", err);
-
+// Früher eigene Liste; heute zeigt die Seite „Aufnahmen“ alles gemeinsam.
+function refreshRecordingLibrary() {
+    if (typeof refreshMediaLibrary === "function") {
+        return refreshMediaLibrary();
     }
-
+    return undefined;
 }
 
 function downloadRecording(filename) {
 
     window.location =
-        "/recording/download/" + filename;
+        "/recording/download/" + encodeURIComponent(filename);
 
 }
 
@@ -49,7 +19,7 @@ function playRecording(filename) {
 
         "🎬 " + filename,
 
-        "/recording/play-compatible/" + filename
+        "/recording/play-compatible/" + encodeURIComponent(filename)
 
     );
 
@@ -74,7 +44,6 @@ async function deleteRecording(filename) {
 
     if (result.success) {
 
-        refreshRecordingLibrary();
         refreshMediaLibrary();
 
         if (activeMediaName === filename) {

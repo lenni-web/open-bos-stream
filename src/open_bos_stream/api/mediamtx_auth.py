@@ -68,14 +68,18 @@ async def authorize_mediamtx(
 ) -> dict[str, bool]:
     """Schützt Publisher und Leser von MediaMTX in allen Profilen."""
 
-    if payload.action not in {"publish", "read"}:
-        return {"authorized": True}
-
     client_host = request.client.host if request.client else ""
     if client_host not in LOOPBACK_ADDRESSES:
         logger.warning(
             "MediaMTX-Authentifizierung von nicht-lokaler Adresse abgelehnt"
         )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+
+    # playback, api, metrics und pprof nimmt MediaMTX per authHTTPExclude
+    # von der Prüfung aus (nur lokal erreichbar). Kommt dennoch eine andere
+    # Aktion an, wird sie abgelehnt statt pauschal erlaubt.
+    if payload.action not in {"publish", "read"}:
+        logger.warning("MediaMTX-Aktion %r abgelehnt", payload.action)
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
     if payload.action == "read":

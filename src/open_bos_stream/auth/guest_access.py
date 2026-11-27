@@ -67,12 +67,11 @@ def can_see_source(user: dict | None, source: SourceConfig) -> bool:
 def can_operate_source(user: dict | None, source: SourceConfig) -> bool:
     if is_guest(user) or not user:
         return False
-    if not is_restricted(user):
+    if not is_restricted(user) or user.get("server_admin"):
         return True
-    return (
-        source.organization_id is None
-        or source.organization_id in set(user.get("org_operate") or [])
-    )
+    # Quellen ohne Wehr sind für alle sichtbar, bedienen (Aufnahmen,
+    # Gastlinks, Einsätze) dürfen sie aber nur Kreis-Admins und Superadmins.
+    return source.organization_id in set(user.get("org_operate") or [])
 
 
 def can_admin_source(user: dict | None, source: SourceConfig) -> bool:

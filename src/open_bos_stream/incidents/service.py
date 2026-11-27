@@ -15,7 +15,7 @@ import re
 import threading
 from datetime import datetime, timedelta
 
-from sqlalchemy import delete, func, insert, select, update
+from sqlalchemy import delete, insert, select, update
 
 from open_bos_stream.db.schema import (
     INCIDENT_ROLES,
@@ -26,7 +26,6 @@ from open_bos_stream.db.schema import (
     incident_sources,
     incidents,
     organizations,
-    users,
 )
 from open_bos_stream.org.service import OrgService
 
@@ -793,20 +792,6 @@ class IncidentService:
                 })
         return sorted(result, key=lambda item: item["taken_at"])
 
-    def organizations_in_use(self, organization_id: int) -> bool:
-        with self._engine.connect() as connection:
-            lead = connection.execute(
-                select(func.count()).select_from(incidents).where(
-                    incidents.c.lead_organization_id == organization_id
-                )
-            ).scalar_one()
-            involved = connection.execute(
-                select(func.count()).select_from(incident_organizations).where(
-                    incident_organizations.c.organization_id == organization_id
-                )
-            ).scalar_one()
-        return bool(lead or involved)
-
     def all_organizations(self) -> list[dict]:
         """Alle aktiven Wehren (Namen sind im Landkreis nicht geheim)."""
 
@@ -821,10 +806,3 @@ class IncidentService:
                 ).where(organizations.c.archived.is_(False)).order_by(organizations.c.name)
             ).all()
         return [dict(row._mapping) for row in rows]
-
-    def user_display(self, user_id: int) -> str:
-        with self._engine.connect() as connection:
-            row = connection.execute(
-                select(users.c.display_name, users.c.username).where(users.c.id == user_id)
-            ).first()
-        return (row.display_name or row.username) if row else ""

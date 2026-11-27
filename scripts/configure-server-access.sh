@@ -135,7 +135,8 @@ if [ "${INTERACTIVE}" = true ]; then
     fi
 
     echo
-    echo "Die optionale Firewall lässt SSH, HTTP, HTTPS, RTMP, SRT und WebRTC zu."
+    echo "Die optionale Firewall lässt SSH, HTTP, HTTPS, RTMP, SRT, WebRTC und"
+    echo "MQTT über TLS (TCP 8883, DJI-Fernsteuerungen) zu."
     echo "RTMP (TCP 1935) und SRT (UDP 8890) sind unverschlüsselt, Sender benötigen aber einen Token."
     read -r -p "UFW-Regeln jetzt konfigurieren? [j/N]: " answer
     case "${answer:-n}" in
@@ -290,7 +291,8 @@ if [ "${FIREWALL_MODE}" = "configure" ]; then
         1935/tcp \
         8890/udp \
         8189/tcp \
-        8189/udp
+        8189/udp \
+        8883/tcp
     do
         sudo ufw --force delete allow "${rule}" >/dev/null 2>&1 || true
     done
@@ -298,6 +300,11 @@ if [ "${FIREWALL_MODE}" = "configure" ]; then
     if [ "${HTTPS_MODE}" = "yes" ]; then
         sudo ufw allow 80/tcp comment "HTTP / ACME"
         sudo ufw allow 443/tcp comment "HTTPS"
+        # DJI Cloud API (ab 0.26): Fernsteuerungen verbinden sich per LTE-Stick
+        # oder Handy-Hotspot über das Internet mit dem MQTT-Broker. MQTT läuft
+        # nur verschlüsselt (TLS mit dem Zertifikat der Domain), daher nur mit
+        # HTTPS. Solange kein Broker läuft, ist der Port geschlossen.
+        sudo ufw allow 8883/tcp comment "MQTT TLS (DJI Cloud API)"
     else
         sudo ufw allow 8000/tcp comment "Open BOS HTTP"
         sudo ufw allow 8888/tcp comment "MediaMTX HLS"

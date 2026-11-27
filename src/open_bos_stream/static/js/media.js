@@ -68,19 +68,57 @@ function setActiveMediaEntry(entry) {
 
 }
 
-function createMediaButton(icon, title, onclick) {
+// Knöpfe tragen Aktion und Dateinamen als data-Attribute; ein gemeinsamer
+// Klick-Handler (bindMediaActions) führt sie aus. Dateinamen landen damit
+// nie in onclick-Code und werden in HTML immer maskiert.
+function createMediaButton(icon, title, action, file) {
 
     return `
         <button
             class="library-button"
-            title="${title}"
-            onclick="${onclick}">
+            type="button"
+            title="${escapeHTML(title)}"
+            data-media-action="${escapeHTML(action)}"
+            data-media-name="${escapeHTML(file.name)}"
+            data-media-type="${escapeHTML(file.type)}">
 
             ${icon}
 
         </button>
     `;
 
+}
+
+const MEDIA_ACTIONS = {
+    play: (name, type, button) => {
+        setActiveMediaEntry(button.closest(".library-entry"));
+        playRecording(name);
+    },
+    show: (name, type, button) => {
+        setActiveMediaEntry(button.closest(".library-entry"));
+        showSnapshot(name);
+    },
+    download: (name, type) => (type === "recording" ? downloadRecording(name) : downloadSnapshot(name)),
+    delete: (name, type) => (type === "recording" ? deleteRecording(name) : deleteSnapshot(name)),
+    protect: (name, type, button) => toggleMediaProtection(type, name, button.dataset.mediaProtect === "true"),
+};
+
+function bindMediaActions(container) {
+    if (!container || container.dataset.mediaActionsBound) {
+        return;
+    }
+    container.dataset.mediaActionsBound = "true";
+    container.addEventListener("click", event => {
+        const button = event.target.closest("[data-media-action]");
+        if (!button || !container.contains(button)) {
+            return;
+        }
+        event.stopPropagation();
+        const action = MEDIA_ACTIONS[button.dataset.mediaAction];
+        if (action) {
+            action(button.dataset.mediaName, button.dataset.mediaType, button);
+        }
+    });
 }
 
 function mediaGroup(timestamp) {
@@ -161,6 +199,7 @@ function renderMediaLibrary(containerId, files, actions) {
     }
 
     container.innerHTML = "";
+    bindMediaActions(container);
 
     let currentGroup = "";
 
@@ -213,7 +252,7 @@ function renderMediaLibrary(containerId, files, actions) {
 
                     <div
                         class="library-title"
-                        title="${file.name}">
+                        title="${escapeHTML(file.name)}">
 
                         ${mediaTitle(file)}
 
@@ -221,8 +260,8 @@ function renderMediaLibrary(containerId, files, actions) {
 
                     <div
                         class="library-filename"
-                        title="${file.name}">
-                        ${file.name}
+                        title="${escapeHTML(file.name)}">
+                        ${escapeHTML(file.name)}
                     </div>
 
                     <div class="library-info">

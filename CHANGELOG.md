@@ -11,6 +11,41 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.25.3] - 2026-11-27
+
+Aufräum-Release (Rest aus dem Code-Review) und Vorbereitung der
+DJI-Anbindung.
+
+### Security
+
+- MediaMTX-Prüfung: Unbekannte Aktionen werden abgelehnt statt pauschal
+  erlaubt; die Prüfung auf lokale Aufrufe greift zuerst.
+- Aufnahmen-Liste: Dateinamen werden immer maskiert und nur noch als
+  Daten an die Knöpfe gebunden, nicht mehr in `onclick`-Code eingesetzt;
+  Download- und Abspieladressen sind korrekt kodiert.
+- Quellen ohne Wehr bleiben für alle sichtbar, bedienen (Aufnahmen,
+  Gastlinks, Einsätze) dürfen sie aber nur Kreis-Admins und Superadmins.
+- Alle Python-Abhängigkeiten gegen bekannte Sicherheitslücken geprüft
+  (`pip-audit`): keine Funde.
+
+### Changed
+
+- Firewall (`--firewall configure`): Mit HTTPS wird zusätzlich TCP 8883
+  für MQTT über TLS freigegeben – Vorbereitung für die DJI Cloud API, bei
+  der sich die Fernsteuerungen per LTE-Stick oder Handy-Hotspot über das
+  Internet verbinden. Solange kein MQTT-Broker läuft, bleibt der Port
+  geschlossen.
+- Das Browser-Testprotokoll wird nur noch für Kreis-Admins und
+  Superadmins geladen (nur sie sehen die Systemseite).
+
+### Removed
+
+- Ungenutzter Endpunkt für den Einsatzort (die Einsatzkarte nutzt
+  `/map/position`), zwei ungenutzte Hilfsfunktionen und die nicht mehr
+  angezeigten Einzellisten für Aufnahmen und Snapshots.
+
+---
+
 ## [0.25.2] - 2026-11-27
 
 ### Added

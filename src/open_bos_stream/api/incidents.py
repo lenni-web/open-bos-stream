@@ -322,16 +322,6 @@ async def update_incident(incident_id: int, payload: IncidentUpdate, request: Re
     return await _call(_detail, user, incident_id)
 
 
-@router.put("/{incident_id}/position")
-async def set_position(incident_id: int, payload: PositionUpdate, request: Request) -> dict:
-    user = _user(request)
-    await _call(
-        _service().update, user, incident_id,
-        latitude=payload.latitude, longitude=payload.longitude,
-    )
-    return await _call(_detail, user, incident_id)
-
-
 class StatusUpdate(BaseModel):
     status: str = Field(max_length=16)
     ended_at: str | None = Field(default=None, max_length=40)

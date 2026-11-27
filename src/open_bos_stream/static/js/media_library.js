@@ -45,44 +45,14 @@ function renderFilteredMediaLibrary() {
         files,
         file => {
             const protect = createProtectionButton(file);
-            if (file.type === "recording") {
-                return `
-                    ${createMediaButton(
-                        "▶",
-                        "Abspielen",
-                        `setActiveMediaEntry(this.closest('.library-entry')); playRecording('${file.name}')`
-                    )}
-                    ${createMediaButton(
-                        "⬇",
-                        "Download",
-                        `downloadRecording('${file.name}')`
-                    )}
-                    ${protect}
-                    ${file.can_delete === false ? "" : createMediaButton(
-                        "🗑",
-                        "Löschen",
-                        `deleteRecording('${file.name}')`
-                    )}
-                `;
-            }
-
+            const open = file.type === "recording"
+                ? createMediaButton("▶", "Abspielen", "play", file)
+                : createMediaButton("🖼", "Anzeigen", "show", file);
             return `
-                ${createMediaButton(
-                    "🖼",
-                    "Anzeigen",
-                    `setActiveMediaEntry(this.closest('.library-entry')); showSnapshot('${file.name}')`
-                )}
-                ${createMediaButton(
-                    "⬇",
-                    "Download",
-                    `downloadSnapshot('${file.name}')`
-                )}
+                ${open}
+                ${createMediaButton("⬇", "Download", "download", file)}
                 ${protect}
-                ${file.can_delete === false ? "" : createMediaButton(
-                    "🗑",
-                    "Löschen",
-                    `deleteSnapshot('${file.name}')`
-                )}
+                ${file.can_delete === false ? "" : createMediaButton("🗑", "Löschen", "delete", file)}
             `;
         }
     );
@@ -95,9 +65,13 @@ function createProtectionButton(file) {
     return `
         <button
             class="library-button${file.protected ? " is-protected" : ""}"
-            title="${title}"
+            type="button"
+            title="${escapeHTML(title)}"
             aria-pressed="${file.protected ? "true" : "false"}"
-            onclick="event.stopPropagation(); toggleMediaProtection('${file.type}', '${file.name}', ${!file.protected})">
+            data-media-action="protect"
+            data-media-name="${escapeHTML(file.name)}"
+            data-media-type="${escapeHTML(file.type)}"
+            data-media-protect="${file.protected ? "false" : "true"}">
             ${file.protected ? "🔒" : "🔓"}
         </button>
     `;

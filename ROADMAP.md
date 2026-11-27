@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.25.3** (2026-11-27): Aufräum-Release nach Code-Review, Firewall-Port
+  8883 (MQTT/TLS) für die DJI-Anbindung
 - **0.25.2** (2026-11-27): Weitere Domains als Weiterleitung auf die Hauptdomain
 - **0.25.1** (2026-11-27): Sicherheits-Update nach Code-Review (Sende-Schlüssel,
   Einsatzführung, Protokolle, Quell-Adressen, Passwort-Hashing), Aufräumen

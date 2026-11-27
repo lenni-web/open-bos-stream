@@ -301,6 +301,7 @@ lässt ihn geöffnet. Anschließend verwaltet er folgende Open-BOS-Regeln:
 | 443 | TCP | HTTPS, WHEP und HLS |
 | 1935 | TCP | RTMP-Sender (Drohnen-Apps) |
 | 8890 | UDP | SRT-Sender (geringe Latenz, z. B. Raspberry Pi) |
+| 8883 | TCP | MQTT über TLS für DJI-Fernsteuerungen (DJI Cloud API, ab 0.26; nur mit HTTPS) |
 | 8189 | UDP und TCP | WebRTC-Medien mit TCP-Rückfallweg |
 
 Ohne HTTPS werden statt 80/443 die direkten Ports 8000, 8888 und 8889

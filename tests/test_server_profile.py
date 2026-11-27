@@ -16,7 +16,7 @@ def read(path: str) -> str:
 
 
 def test_release_version_is_0_12_1() -> None:
-    assert VERSION == "0.25.2"
+    assert VERSION == "0.25.3"
 
 
 def test_server_profile_can_be_selected_from_environment(
@@ -285,3 +285,11 @@ def test_alias_domains_redirect_permanently_to_the_main_domain() -> None:
     script = read("scripts/configure-server-access.sh")
     assert "--alias-domain" in script and "ALIAS_DOMAINS=%s" in script
     assert 'access_caddy_redirect_block "${DOMAIN}" "${ALIAS_DOMAINS}" >> "${caddy_tmp}"' in script
+
+
+def test_firewall_opens_mqtt_tls_for_dji_only_with_https() -> None:
+    script = read("scripts/configure-server-access.sh")
+    https_branch = script.split('if [ "${HTTPS_MODE}" = "yes" ]; then\n        sudo ufw allow 80/tcp', 1)[1].split("    else", 1)[0]
+    assert 'sudo ufw allow 8883/tcp comment "MQTT TLS (DJI Cloud API)"' in https_branch
+    # Alte Regel wird vor dem Neuaufbau entfernt (z. B. nach Wechsel auf HTTP).
+    assert "8883/tcp\n    do" in script

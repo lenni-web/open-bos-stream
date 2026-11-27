@@ -155,7 +155,9 @@ function updateDashboard(data) {
 
         updateSourceDiagnostics(data.sources ?? []);
         updateViewerDiagnostics();
-        updateTestLogging(data);
+        if (typeof updateTestLogging === "function") {
+            updateTestLogging(data);
+        }
     }
 
     checkServiceEvents(

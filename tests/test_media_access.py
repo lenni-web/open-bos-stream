@@ -61,3 +61,25 @@ def test_require_media_access_levels(setup) -> None:
     with pytest.raises(HTTPException) as hidden:
         require_media_access(team_b, "recording_drohne-a_20261127_101500.mp4", setup.config)
     assert hidden.value.status_code == 404
+
+
+def test_unassigned_sources_are_visible_but_only_server_admins_operate(setup) -> None:  # noqa: F811
+    from open_bos_stream.auth.guest_access import can_operate_source, can_see_source
+
+    unassigned = source("ohne-wehr", None)
+    team = session(setup.auth, "b-team")
+    assert can_see_source(team, unassigned)
+    assert not can_operate_source(team, unassigned)
+    assert media_access(team, "recording_ohne-wehr_20261127_101500.mp4", setup.config) is None
+    assert can_operate_source(session(setup.auth, "kreis"), unassigned)
+
+
+def test_media_buttons_carry_names_as_data_not_code() -> None:
+    from pathlib import Path
+
+    root = Path(__file__).parents[1] / "src" / "open_bos_stream" / "static" / "js"
+    for name in ("media.js", "media_library.js", "library.js", "snapshot_library.js"):
+        script = (root / name).read_text(encoding="utf-8")
+        assert "('${file.name}')" not in script, name
+        assert "onclick=\"${" not in script, name
+    assert 'data-media-name="${escapeHTML(file.name)}"' in (root / "media.js").read_text(encoding="utf-8")
