@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.25.5** (2026-11-27): Rolle Ortsbrandmeister, erneut erfasstes
+  Einsatzwetter wird ergänzt statt überschrieben
 - **0.25.4** (2026-11-27): Menüpunkt Benutzer mit Vor-, Nach- und Spitzname,
   dipul-Geozonen als eine Ebene, schnelleres Niederschlagsradar,
   Ereignisprotokoll nur für Superadmins

@@ -11,6 +11,24 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.25.5] - 2026-11-27
+
+Neue Rolle Ortsbrandmeister; das Einsatzwetter bleibt beim erneuten
+Erfassen erhalten.
+
+### Added
+
+- Neue Rolle „Ortsbrandmeister“ für Ortsfeuerwehren, mit den Rechten eines
+  Wehr-Admins der eigenen Ortswehr.
+
+### Fixed
+
+- Einsatzwetter: „Neu erfassen“ überschreibt den Stand vom Einsatzbeginn
+  nicht mehr. Jede Erfassung bleibt mit Uhrzeit in Einsatzansicht und
+  Bericht erhalten und steht mit ihren Messwerten im Verlauf.
+
+---
+
 ## [0.25.4] - 2026-11-27
 
 Eigener Bereich „Benutzer“ mit Namen, schnelleres Niederschlagsradar
