@@ -630,6 +630,7 @@ function renderSources() {
                     ${source.enabled ? "checked" : ""}>
                 <span><strong>Quelle aktivieren</strong></span>
             </label>
+            <div data-source-history="${escapeHTML(source.id)}"></div>
         `;
         container.appendChild(card);
 
@@ -772,6 +773,9 @@ function renderSources() {
     });
 
     updateSourceCountHint(sources.length);
+    if (typeof fillDroneHistory === "function") {
+        fillDroneHistory();
+    }
     if (typeof renderMediaCaptureConfig === "function") {
         renderMediaCaptureConfig();
     }

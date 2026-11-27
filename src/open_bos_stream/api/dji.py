@@ -14,6 +14,7 @@ from open_bos_stream.core.container import auth_service, config, server_event_lo
 from open_bos_stream.dji.config import load_config
 from open_bos_stream.dji.mqtt import BrokerClient
 from open_bos_stream.dji.service import DroneService
+from open_bos_stream.incidents.drone_history import drone_history
 from open_bos_stream.incidents.service import IncidentAccessError, IncidentError
 from open_bos_stream.version import VERSION
 
@@ -119,16 +120,24 @@ async def pilot_config(request: Request):
 # ----------------------------------------------------------------------
 
 
+def _visible_sources(user: dict) -> list:
+    own = set(user.get("org_view") or [])
+    return [
+        source for source in config.sources
+        if not is_restricted(user) or source.organization_id in own
+    ]
+
+
 @router.get("/api/drones/sources", dependencies=[VIEWER])
 async def own_sources(request: Request) -> dict:
     """Name, Typ und Wehr – bewusst ohne Adressen und Sende-Schlüssel."""
 
     user = _user(request)
-    own = set(user.get("org_view") or [])
     service = drone_service().incidents
     return {
         "sources": [
             {
+                "id": source.id,
                 "name": source.name,
                 "drone_type": source.drone_type,
                 "enabled": source.enabled,
@@ -137,10 +146,24 @@ async def own_sources(request: Request) -> dict:
                     if source.organization_id else ""
                 ),
             }
-            for source in config.sources
-            if not is_restricted(user) or source.organization_id in own
+            for source in _visible_sources(user)
         ]
     }
+
+
+@router.get("/api/drones/history", dependencies=[VIEWER])
+async def history(request: Request) -> dict:
+    """Einsätze je Drohne mit Datum und beteiligten Personen."""
+
+    user = _user(request)
+    sources = [source.id for source in _visible_sources(user)]
+
+    def load() -> dict:
+        service = drone_service()
+        serials = [item["serial"] for item in service.devices(user) if item["kind"] == "aircraft"]
+        return drone_history(service.incidents, user, source_ids=sources, serials=serials)
+
+    return await run_in_threadpool(load)
 
 
 # ----------------------------------------------------------------------

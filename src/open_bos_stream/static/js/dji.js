@@ -4,6 +4,74 @@
 
 const djiDevices = {data: null, timer: null, message: ""};
 
+// Einsätze je Drohne (Quellen und DJI-Drohnen) mit beteiligten Personen.
+const droneHistory = {data: null, open: new Set()};
+
+function droneHistoryCount(count) {
+    return count === 1 ? "1 Einsatz" : `${count} Einsätze`;
+}
+
+function droneHistoryEntry(entry) {
+    const date = new Date(entry.alarm_at).toLocaleDateString("de-DE",
+        {day: "2-digit", month: "2-digit", year: "numeric"});
+    return `
+        <li class="drone-history-entry">
+            <div class="dji-device-head">
+                <strong>${escapeHTML(date)} · ${escapeHTML(entry.title)}</strong>
+                ${entry.exercise ? '<span class="org-chip">Übung</span>' : ""}
+                ${entry.running ? '<span class="org-chip is-valid">läuft</span>' : ""}
+            </div>
+            ${entry.persons.length ? `<ul class="drone-history-persons">${entry.persons.map(person => `
+                <li>${escapeHTML(person.name)}
+                    <small class="is-muted">${escapeHTML(
+                        [person.roles.join(", "), person.organization_name].filter(Boolean).join(" · "))}</small>
+                </li>`).join("")}</ul>`
+                : '<small class="is-muted">Keine Personen eingetragen.</small>'}
+        </li>`;
+}
+
+function droneHistoryHTML(kind, key) {
+    if (!droneHistory.data) {
+        return "";
+    }
+    const item = droneHistory.data[kind]?.[key] || {count: 0, hidden: 0, incidents: []};
+    if (!item.count) {
+        return '<p class="drone-history is-muted">Noch in keinem Einsatz.</p>';
+    }
+    const id = `${kind}:${key}`;
+    return `
+        <details class="drone-history" data-history-id="${escapeHTML(id)}"
+            ${droneHistory.open.has(id) ? "open" : ""} ontoggle="rememberDroneHistory(this)">
+            <summary>${droneHistoryCount(item.count)}</summary>
+            ${item.incidents.length
+                ? `<ul class="drone-history-list">${item.incidents.map(droneHistoryEntry).join("")}</ul>` : ""}
+            ${item.hidden ? `<p class="is-muted">${item.incidents.length ? "Weitere " : ""}${droneHistoryCount(item.hidden)}
+                ohne Einsichtsrecht.</p>` : ""}
+        </details>`;
+}
+
+function rememberDroneHistory(element) {
+    droneHistory.open[element.open ? "add" : "delete"](element.dataset.historyId);
+}
+
+// Platzhalter in den Quellenlisten füllen (auch nach deren Neuaufbau).
+function fillDroneHistory() {
+    document.querySelectorAll("[data-source-history]").forEach(element => {
+        element.innerHTML = droneHistoryHTML("sources", element.dataset.sourceHistory);
+    });
+}
+
+async function loadDroneHistory() {
+    try {
+        droneHistory.data = await api.get("/api/drones/history");
+    } catch (error) {
+        console.debug("Einsätze der Drohnen:", error);
+        return;
+    }
+    fillDroneHistory();
+    renderDjiDevices();
+}
+
 function renderDjiDevices() {
     const root = document.getElementById("dji-devices");
     const data = djiDevices.data;
@@ -38,6 +106,7 @@ function renderDjiDevices() {
                 <small class="is-muted">${item.kind === "aircraft" ? "Drohne" : "Fernsteuerung"} ·
                     ${escapeHTML(item.model)} · ${escapeHTML(item.serial)}
                     ${item.blocked ? " · gesperrt" : ""}</small>
+                ${item.kind === "aircraft" ? droneHistoryHTML("devices", item.serial) : ""}
                 ${item.can_manage ? `<form class="dji-device-form" onsubmit="saveDjiDevice(event)">
                     <input class="bos-input" name="name" maxlength="80" value="${escapeHTML(item.name)}"
                         placeholder="Rufname" aria-label="Rufname">
@@ -115,8 +184,10 @@ function renderDroneSourceList(sources) {
                 </div>
                 <small class="is-muted">${escapeHTML(
                     [item.drone_type, item.organization_name].filter(Boolean).join(" · ") || "–")}</small>
+                <div data-source-history="${escapeHTML(item.id)}"></div>
             </li>`).join("")}</ul>`
         : '<p class="incident-empty">Für die eigene Wehr ist noch keine Drohne eingetragen.</p>';
+    fillDroneHistory();
 }
 
 function setDjiDevicesActive(active) {
@@ -142,5 +213,6 @@ function setDjiDevicesActive(active) {
         }
     };
     load();
+    loadDroneHistory();
     djiDevices.timer = window.setInterval(load, 5000);
 }

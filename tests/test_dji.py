@@ -276,7 +276,7 @@ def test_viewers_see_only_their_own_drones_without_secrets(api, monkeypatch) -> 
     api.login("b-zuschauer")
     response = api.get("/api/drones/sources")
     sources = response.json()["sources"]
-    assert len(sources) == 1 and set(sources[0]) == {"name", "drone_type", "enabled", "organization_name"}
+    assert len(sources) == 1 and set(sources[0]) == {"id", "name", "drone_type", "enabled", "organization_name"}
     assert "token" not in response.text and "rtmp://" not in response.text
 
     service = dji_api.drone_service()

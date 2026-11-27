@@ -191,6 +191,14 @@ body {
 .dji-device-head { display: flex; gap: 8px; align-items: center; }
 .dji-device-form { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .dji-device-form .bos-input { flex: 1 1 160px; }
+.drone-history { margin: 6px 0 0; }
+.drone-history summary { cursor: pointer; font-weight: 600; }
+.drone-history-list, .drone-history-persons { margin: 4px 0 0; padding: 0; list-style: none; }
+.dji-device-list .drone-history-list li { padding: 6px 0; }
+.dji-device-list .drone-history-persons li { padding: 0 0 0 12px; border-top: 0; }
+.drone-history-entry { padding: 6px 0; border-top: 1px solid rgba(127, 127, 127, 0.25); overflow-wrap: anywhere; }
+.drone-history-entry .dji-device-head { flex-wrap: wrap; }
+.drone-history-persons li { padding-left: 12px; }
 .dji-pilot-status { font-weight: 600; }
 .dji-pilot-status.is-error { color: #c92835; }
 .dji-pilot-log { font-size: 12px; }
