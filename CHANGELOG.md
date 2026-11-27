@@ -11,6 +11,9 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ### Changed
 
+- Das Wetter der Kartenmitte liegt nicht mehr über der Karte, sondern in
+  einem eigenen Feld darunter – vor allem auf dem Smartphone bleibt so
+  mehr Karte sichtbar.
 - Widmung schließt jetzt mehr Menschen ein: „Danke an alle helfenden Hände
   im Einsatz, besonders der FF Agathenburg.“
 

@@ -2,7 +2,7 @@
  * Open BOS Stream
  *
  * Wetter auf der Karte: DWD-Niederschlagsradar als Ebene (mit Vorhersage
- * bis 90 Minuten) und eine kleine Wetteranzeige für die Kartenmitte.
+ * bis 90 Minuten) und das Wetter der Kartenmitte in einem Feld unter der Karte.
  */
 
 "use strict";
@@ -147,23 +147,16 @@ async function addWeatherLayers(mapInstance, beforeLayerId = undefined) {
 // Wetteranzeige für die Kartenmitte
 // ----------------------------------------------------------
 
-function mapWeatherChip() {
-    let chip = document.getElementById("map-weather-chip");
-    if (chip) {
-        return chip;
-    }
-    const container = document.getElementById("map-container");
-    if (!container) {
-        return null;
-    }
-    chip = document.createElement("div");
-    chip.id = "map-weather-chip";
-    chip.className = "map-weather-chip";
+// Das Feld bleibt nach dem Start sichtbar, damit die Karte darüber nicht
+// bei jedem Zoomen ihre Höhe ändert.
+function showMapWeatherNote(chip, text) {
     chip.dataset.level = "unknown";
-    chip.setAttribute("role", "status");
-    chip.hidden = true;
-    container.appendChild(chip);
-    return chip;
+    chip.title = "";
+    chip.innerHTML = `
+        <span class="map-weather-dot" aria-hidden="true"></span>
+        <span><small>${escapeHTML(text)}</small></span>
+    `;
+    chip.hidden = false;
 }
 
 function formatMapWeather(report) {
@@ -189,12 +182,14 @@ function formatMapWeather(report) {
 }
 
 async function updateMapWeather(mapInstance) {
-    const chip = mapWeatherChip();
+    const chip = document.getElementById("map-weather-chip");
     if (!chip) {
         return;
     }
     if (mapInstance.getZoom() < MAP_WEATHER_MIN_ZOOM) {
-        chip.hidden = true;
+        // Auch eine noch laufende Abfrage verwerfen.
+        mapWeatherRequest += 1;
+        showMapWeatherNote(chip, "Für das Wetter näher heranzoomen.");
         return;
     }
     const center = mapInstance.getCenter();
@@ -220,7 +215,9 @@ async function updateMapWeather(mapInstance) {
         chip.hidden = false;
     } catch (error) {
         console.warn("Wetter für die Kartenmitte nicht verfügbar:", error);
-        chip.hidden = true;
+        if (request === mapWeatherRequest) {
+            showMapWeatherNote(chip, "Wetter derzeit nicht verfügbar.");
+        }
     }
 }
 

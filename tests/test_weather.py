@@ -481,6 +481,13 @@ def test_weather_ui_is_wired_into_dashboard_map_and_settings() -> None:
     assert index.index("map-weather.js") < index.index("/static/js/map.js")
     assert "weather.js" in index
     assert guest.index("map-weather.js") < guest.index("/static/js/map.js")
+    # Das Wetterfeld steht unter der Karte, nicht als Overlay darin.
+    map_page = (templates / "components" / "map.html").read_text(
+        encoding="utf-8"
+    )
+    assert map_page.index('id="map-layer-control"') < map_page.index(
+        'id="map-weather-chip"'
+    ) < map_page.index('id="map-dipul-attribution"')
     assert 'id="cfg-weather-enabled"' in settings
     # Wetter wird separat gespeichert und markiert die Konfiguration nicht.
     assert '".settings-section-weather"' in config_js

@@ -239,7 +239,7 @@
 }
 
 /* ----------------------------------------------------------
-   Karte: Radarsteuerung und Wetter der Kartenmitte
+   Karte: Radarsteuerung und Wetterfeld unter der Karte
    ---------------------------------------------------------- */
 
 .map-weather-controls {
@@ -279,19 +279,15 @@
 }
 
 .map-weather-chip {
-    position: absolute;
-    left: 1rem;
-    bottom: 4.6rem;
-    z-index: 900;
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    max-width: min(360px, calc(100% - 2rem));
+    margin-top: 8px;
+    min-height: 3.4rem;
     padding: 0.5rem 0.8rem;
     border: 1px solid #d0d7de;
     border-radius: 0.6rem;
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    background: #fff;
     font-size: 0.85rem;
     line-height: 1.25;
 }
@@ -309,10 +305,20 @@
     border-color: var(--bos-red);
 }
 
+/* Am großen Bildschirm gibt die Karte dem Feld Platz ab, damit beides ohne
+   Scrollen sichtbar bleibt. Mobil gilt die feste Kartenhöhe (70dvh). */
+.app-content .map-wrapper:has(+ .map-weather-chip:not([hidden])) {
+    --map-offset: 232px;
+}
+
 html[data-color-scheme="dark"] .map-weather-chip {
     border-color: var(--bos-gray);
     background: rgba(22, 29, 38, 0.94);
     color: var(--bos-dark);
+}
+
+html[data-color-scheme="dark"] .map-weather-chip[data-level="red"] {
+    border-color: var(--bos-red);
 }
 
 html[data-color-scheme="dark"] .map-weather-chip small,
