@@ -3,11 +3,13 @@
 Der Link enthält einen zufälligen Code; gespeichert wird nur dessen
 SHA-256-Hash. Ein Gastlink gilt höchstens 48 Stunden, nur für die beim
 Erstellen gewählten Drohnen und lässt sich jederzeit sperren. Abgelaufene
-und gesperrte Links bleiben sieben Tage zur Nachvollziehbarkeit sichtbar.
+und gesperrte Links bleiben 30 Tage zur Nachvollziehbarkeit sichtbar und
+werden danach gelöscht.
 """
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
@@ -20,7 +22,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 MAX_HOURS = 48
-RETENTION_SECONDS = 7 * 24 * 60 * 60
+RETENTION_SECONDS = 30 * 24 * 60 * 60
 TOUCH_INTERVAL_SECONDS = 60
 
 
@@ -168,10 +170,17 @@ class GuestLinkStore:
         return link, token
 
     def list(self) -> list[GuestLink]:
+        """Alle aufzubewahrenden Links; ältere werden dabei gelöscht."""
+
         with self._lock:
-            now = time.time()
+            links = self._read()
+            kept = self._purge(links, time.time())
+            if len(kept) < len(links):
+                # Schlägt das Schreiben fehl, klappt es beim nächsten Aufruf.
+                with contextlib.suppress(OSError):
+                    self._write(kept)
             return sorted(
-                self._purge(list(self._read()), now),
+                kept,
                 key=lambda link: link.created_at,
                 reverse=True,
             )

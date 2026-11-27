@@ -87,6 +87,8 @@ def test_revoked_and_expired_links_stop_working(tmp_path, monkeypatch) -> None:
     # Nach der Aufbewahrungsfrist verschwinden alte Links aus der Liste.
     monkeypatch.setattr(time, "time", lambda: now + 3600 * 2 + RETENTION_SECONDS + 1)
     assert store.list() == []
+    # Sie werden auch aus der Datei gelöscht, nicht nur ausgeblendet.
+    assert (tmp_path / "guest_links.json").read_text() == "[]"
 
 
 def test_media_uri_check_accepts_only_released_streams() -> None:

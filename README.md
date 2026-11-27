@@ -1059,8 +1059,9 @@ MediaMTX-Leserprüfung lassen Gäste nur die Streams der gewählten Quellen
 abrufen. Nach Ablauf oder Sperrung endet die Gastansicht innerhalb weniger
 Sekunden.
 
-Unter Einstellungen → „Gastlinks“ stehen alle Links der letzten sieben Tage
-mit Ersteller, Ablauf und letztem Zugriff; jeder Admin kann aktive Links
+Unter Einstellungen → „Gastlinks“ stehen alle aktiven Links sowie die in den
+letzten 30 Tagen abgelaufenen oder gesperrten, mit Ersteller, Ablauf und
+letztem Zugriff; ältere werden gelöscht. Jeder Admin kann aktive Links
 sperren. Erstellen, Öffnen, Sperren und Ablauf eines Gastlinks
 erscheinen zusätzlich im Ereignisprotokoll der Übersicht (für Admins und
 Superadmins, Ereignisse der letzten 24 Stunden). Gespeichert wird nur ein Hash des Links in `config/guest_links.json`

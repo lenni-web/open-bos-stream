@@ -23,6 +23,8 @@ Dieses Projekt orientiert sich an den Empfehlungen von
   „Erstellen & Bearbeiten“ getrennt. Positionen einer laufenden Durchführung
   ändert man nur über „Positionen anpassen“.
 - Das Drohnen-Symbol im Menü ähnelt jetzt der Drohne im Logo.
+- Abgelaufene und gesperrte Gastlinks bleiben 30 statt 7 Tage in der Liste und
+  werden danach endgültig gelöscht.
 
 ---
 
