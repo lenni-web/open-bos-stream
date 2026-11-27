@@ -9,6 +9,14 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Changed
+
+- Einsatzkarte: Eine gezeichnete Fläche lässt sich direkt auf der Karte
+  abschließen – ersten Punkt erneut antippen, doppelklicken oder Enter.
+  Danach setzen Klicks keine weiteren Punkte mehr; das Namensfeld wird
+  geöffnet (ist schon ein Name eingetragen, wird sofort gespeichert).
+  „Weiterzeichnen“ öffnet die Fläche wieder, Escape bricht das Zeichnen ab.
+
 ---
 
 ## [0.24.1] - 2026-11-27

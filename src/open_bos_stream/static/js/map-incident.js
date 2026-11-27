@@ -29,6 +29,8 @@ const incidentMap = {
     canEdit: false,
     mode: null,          // "grid" | "polygon" | "position"
     draft: [],
+    // Fläche geschlossen, es fehlt nur noch der Name.
+    polygonClosed: false,
     gridCorners: null,
     selectedItem: null,
     labels: [],
@@ -156,7 +158,8 @@ function incidentMapAddLayers() {
             source: "incident-draft",
             filter: ["==", ["geometry-type"], "Point"],
             paint: {
-                "circle-radius": 5,
+                // Erster Punkt größer: erneut antippen schließt die Fläche.
+                "circle-radius": ["case", ["boolean", ["get", "first"], false], 8, 5],
                 "circle-color": "#ffffff",
                 "circle-stroke-color": "#246bce",
                 "circle-stroke-width": 2,
@@ -240,8 +243,12 @@ function incidentMapRenderDraft(cursor = null) {
     }
     const features = [];
     if (incidentMap.mode === "polygon") {
-        const points = cursor ? [...incidentMap.draft, cursor] : incidentMap.draft;
-        points.forEach(point => features.push({type: "Feature", geometry: {type: "Point", coordinates: point}}));
+        const points = cursor && !incidentMap.polygonClosed ? [...incidentMap.draft, cursor] : incidentMap.draft;
+        incidentMap.draft.forEach((point, index) => features.push({
+            type: "Feature",
+            properties: {first: index === 0 && incidentMap.draft.length >= 3 && !incidentMap.polygonClosed},
+            geometry: {type: "Point", coordinates: point},
+        }));
         if (points.length >= 3) {
             features.push({type: "Feature", geometry: {type: "Polygon", coordinates: [[...points, points[0]]]}});
         } else if (points.length === 2) {
@@ -368,7 +375,10 @@ function incidentMapToolsHTML() {
     }
     if (incidentMap.mode === "polygon") {
         return `<form class="incident-map-form" onsubmit="incidentMapFinishPolygon(event)">
-            <p class="incident-map-hint">Eckpunkte antippen (${incidentMap.draft.length} gesetzt).</p>
+            <p class="incident-map-hint">${incidentMap.polygonClosed
+                ? "Fläche geschlossen – Namen eintragen und „Fertig“ tippen."
+                : `Eckpunkte antippen (${incidentMap.draft.length} gesetzt). Abschließen: ersten Punkt erneut
+                   antippen, doppelklicken, Enter oder „Fertig“.`}</p>
             <div class="incident-map-row">
                 <input id="incident-polygon-name" class="bos-input" maxlength="40" placeholder="Name, z. B. Waldstück Nord" required>
             </div>
@@ -376,7 +386,7 @@ function incidentMapToolsHTML() {
                 <button class="bos-button bos-button-small bos-button-green" type="submit"
                     ${incidentMap.draft.length < 3 ? "disabled" : ""}>Fertig</button>
                 <button class="bos-button bos-button-small" type="button" onclick="incidentMapUndo()"
-                    ${incidentMap.draft.length ? "" : "disabled"}>Zurück</button>
+                    ${incidentMap.draft.length ? "" : "disabled"}>${incidentMap.polygonClosed ? "Weiterzeichnen" : "Zurück"}</button>
                 <button class="bos-button bos-button-small" type="button" onclick="incidentMapCancel()">Abbrechen</button>
             </div>
         </form>`;
@@ -592,6 +602,7 @@ function openIncidentMap(id) {
 function incidentMapStart(mode) {
     incidentMap.mode = mode;
     incidentMap.draft = [];
+    incidentMap.polygonClosed = false;
     incidentMap.gridCorners = null;
     incidentMap.selectedItem = null;
     incidentMap.map.getCanvas().style.cursor = "crosshair";
@@ -605,6 +616,7 @@ function incidentMapStart(mode) {
 function incidentMapCancel(render = true) {
     incidentMap.mode = null;
     incidentMap.draft = [];
+    incidentMap.polygonClosed = false;
     incidentMap.gridCorners = null;
     if (incidentMap.map) {
         incidentMap.map.getCanvas().style.cursor = "";
@@ -618,10 +630,49 @@ function incidentMapCancel(render = true) {
 }
 
 function incidentMapUndo() {
-    incidentMap.draft.pop();
+    if (incidentMap.polygonClosed) {
+        // Wieder öffnen, um weitere Punkte zu setzen.
+        incidentMap.polygonClosed = false;
+    } else {
+        incidentMap.draft.pop();
+    }
     incidentMapRenderDraft();
+    incidentMapRerenderKeepingName();
+}
+
+function incidentMapRerenderKeepingName(focus = false) {
+    const name = document.getElementById("incident-polygon-name")?.value ?? "";
     incidentMap.forceRender = true;
     renderIncidentMapPanel();
+    const input = document.getElementById("incident-polygon-name");
+    if (input) {
+        input.value = name;
+        if (focus) {
+            incidentMapPanel().open = true;
+            input.focus();
+        }
+    }
+}
+
+// Fläche schließen: weitere Klicks setzen keine Punkte mehr.
+function incidentMapClosePolygon() {
+    if (incidentMap.mode !== "polygon" || incidentMap.draft.length < 3) {
+        return;
+    }
+    incidentMap.polygonClosed = true;
+    incidentMapRenderDraft();
+    const name = document.getElementById("incident-polygon-name")?.value.trim();
+    if (name) {
+        incidentMapFinishPolygon();
+        return;
+    }
+    incidentMapRerenderKeepingName(true);
+}
+
+function incidentMapPixelDistance(a, b) {
+    const first = incidentMap.map.project(a);
+    const second = incidentMap.map.project(b);
+    return Math.hypot(first.x - second.x, first.y - second.y);
 }
 
 async function incidentMapSend(path, method, body, message) {
@@ -645,15 +696,22 @@ async function incidentMapClick(event) {
         return;
     }
     if (incidentMap.mode === "polygon") {
-        incidentMap.draft.push(point);
-        incidentMapRenderDraft();
-        const name = document.getElementById("incident-polygon-name")?.value ?? "";
-        incidentMap.forceRender = true;
-        renderIncidentMapPanel();
-        const input = document.getElementById("incident-polygon-name");
-        if (input) {
-            input.value = name;
+        if (incidentMap.polygonClosed) {
+            return;
         }
+        const draft = incidentMap.draft;
+        // Ersten Punkt erneut angetippt: Fläche schließen.
+        if (draft.length >= 3 && incidentMapPixelDistance(point, draft[0]) <= 14) {
+            incidentMapClosePolygon();
+            return;
+        }
+        // Zweiter Klick eines Doppelklicks: keinen doppelten Punkt setzen.
+        if (draft.length && incidentMapPixelDistance(point, draft[draft.length - 1]) <= 4) {
+            return;
+        }
+        draft.push(point);
+        incidentMapRenderDraft();
+        incidentMapRerenderKeepingName();
         return;
     }
     if (incidentMap.mode === "grid") {
@@ -730,11 +788,17 @@ async function incidentMapCreateGrid(event) {
 }
 
 async function incidentMapFinishPolygon(event) {
-    event.preventDefault();
+    event?.preventDefault();
     if (incidentMap.draft.length < 3) {
         return;
     }
-    const name = document.getElementById("incident-polygon-name").value;
+    const name = document.getElementById("incident-polygon-name").value.trim();
+    if (!name) {
+        incidentMap.polygonClosed = true;
+        incidentMapRenderDraft();
+        incidentMapRerenderKeepingName(true);
+        return;
+    }
     const ring = [...incidentMap.draft, incidentMap.draft[0]];
     if (await incidentMapSend("/items", "POST",
         {name, geometry: {type: "Polygon", coordinates: [ring]}}, `Quadrant ${name} angelegt.`)) {
@@ -757,6 +821,23 @@ async function incidentMapDeleteItem(id) {
     await incidentMapSend(`/items/${id}`, "DELETE", undefined, "Quadrant gelöscht.");
 }
 
+// Enter schließt die Fläche, Escape bricht das Zeichnen ab.
+function incidentMapKeydown(event) {
+    if (!incidentMap.mode || !incidentMapVisible()) {
+        return;
+    }
+    if (event.key === "Escape") {
+        event.preventDefault();
+        incidentMapCancel();
+        return;
+    }
+    const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName);
+    if (event.key === "Enter" && !typing && incidentMap.mode === "polygon") {
+        event.preventDefault();
+        incidentMapClosePolygon();
+    }
+}
+
 // ----------------------------------------------------------
 // Start (wird von map.js nach dem Laden der Karte aufgerufen)
 // ----------------------------------------------------------
@@ -773,6 +854,13 @@ function initIncidentMap(mapInstance) {
         }
     });
     mapInstance.on("click", incidentMapClick);
+    // Doppelklick schließt die Fläche (Zoomen ist beim Zeichnen aus).
+    mapInstance.on("dblclick", event => {
+        if (incidentMap.mode === "polygon") {
+            event.preventDefault();
+            incidentMapClosePolygon();
+        }
+    });
     mapInstance.on("mousemove", event => {
         if (incidentMap.mode === "polygon" || (incidentMap.mode === "grid" && !incidentMap.gridCorners)) {
             incidentMapRenderDraft([event.lngLat.lng, event.lngLat.lat]);
@@ -789,6 +877,7 @@ function initIncidentMap(mapInstance) {
         }
     });
     renderIncidentMapPanel();
+    document.addEventListener("keydown", incidentMapKeydown);
     if (incidentMap.guest) {
         pollIncidentMap();
         return;
