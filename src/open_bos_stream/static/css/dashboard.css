@@ -10,7 +10,9 @@
 
     display: grid;
 
-    grid-template-columns: 1.4fr 1fr;
+    /* minmax(0, …): Spalten nie breiter als der Bildschirm, auch wenn ein
+       Eintrag (z. B. im Ereignisprotokoll) sehr lang ist. */
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
 
     gap: 20px;
 
@@ -22,6 +24,8 @@
 
     display: flex;
 
+    min-width: 0;
+
 }
 
 .dashboard-right {
@@ -32,12 +36,16 @@
 
     gap: 20px;
 
+    min-width: 0;
+
 }
 
 .dashboard-left .bos-card,
 .dashboard-right .bos-card {
 
     width: 100%;
+
+    min-width: 0;
 
 }
 
@@ -117,7 +125,12 @@
 
     flex: 1;
 
+    min-width: 0;
+
     color: var(--bos-dark);
+
+    /* Lange Dateinamen oder Adressen umbrechen statt die Karte zu weiten. */
+    overflow-wrap: anywhere;
 
 }
 
@@ -181,7 +194,7 @@
 
     .dashboard-bottom {
 
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
 
     }
 

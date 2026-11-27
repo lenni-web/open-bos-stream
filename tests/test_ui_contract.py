@@ -894,3 +894,14 @@ def test_page_cannot_be_shifted_sideways_on_phones() -> None:
     shell = (ROOT / "static" / "css" / "shell.css").read_text(encoding="utf-8")
 
     assert "html,\nbody {\n    max-width: 100%;\n    overflow-x: clip;" in shell
+
+
+def test_dashboard_columns_never_grow_beyond_the_screen() -> None:
+    dashboard = (ROOT / "static" / "css" / "dashboard.css").read_text(encoding="utf-8")
+    responsive = (ROOT / "static" / "css" / "responsive.css").read_text(encoding="utf-8")
+
+    # 1fr allein wächst mit dem längsten Eintrag (Ereignisprotokoll) mit.
+    assert "grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);" in dashboard
+    assert "grid-template-columns: 1fr;" not in dashboard
+    assert "grid-template-columns: 1fr;" not in responsive
+    assert "overflow-wrap: anywhere;" in dashboard

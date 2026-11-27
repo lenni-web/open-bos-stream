@@ -55,6 +55,13 @@ Sicherheits- und Aufräum-Update nach einem Code-Review.
 - Versehentlich eingecheckte Build-Dateien (`build/`) aus dem Repository
   entfernt und künftig ignoriert.
 
+### Fixed
+
+- Smartphone: Ereignisprotokoll und Streaming-Ausgänge auf der Übersicht
+  ragten bei vielen bzw. langen Einträgen über den rechten Rand hinaus. Die
+  Spalten bleiben jetzt in der Bildschirmbreite, lange Dateinamen und
+  Adressen werden umgebrochen.
+
 ---
 
 ## [0.25.0] - 2026-11-27
