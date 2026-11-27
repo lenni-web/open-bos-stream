@@ -534,7 +534,7 @@ function renderIncidentOrganizations(detail) {
                     </select>
                     <button class="bos-button bos-button-small" type="button" onclick="addIncidentOrganization()">Beteiligen</button>
                 </div>
-                <p class="incident-hint">Beteiligte Wehren sehen den Einsatz, seine Drohnen und die Einsatzkarte.</p>` : ""}
+                <p class="incident-hint">Beteiligte Wehren sehen den Einsatz und die Livebilder seiner Drohnen.</p>` : ""}
         </section>`;
 }
 

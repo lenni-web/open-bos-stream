@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.23.0** (2026-11-27): Einsätze mit Alarmierung, beteiligten Wehren,
+  Personen, Drohnen, Wetter, Aufnahmen, Verlauf, Bericht und Einsatz-Gastlinks
 - **0.22.0** (2026-11-27): Push-Benachrichtigungen pro Gerät, Menüpunkt
   „Aufnahmen“ statt „Medien“, Seite auf Smartphones nicht mehr seitlich
   verschiebbar
@@ -205,7 +207,7 @@ Schwerpunkt bleiben Drohnen und Drohneneinsätze. Geplante Reihenfolge:
 4. **0.22** Push-Benachrichtigungen pro Gerät ✔
 5. **0.23** Einsätze: Alarmierung, Beteiligte mit Einsatzrollen, Zuordnung
    von Aufnahmen, Snapshots und Ereignissen, Einsatzbericht als PDF;
-   Zusammenarbeit mehrerer Wehren, Einsatz-Gastlinks
+   Zusammenarbeit mehrerer Wehren, Einsatz-Gastlinks ✔
 6. **0.24** Einsatzkarte mit Quadranten: zeichnen, benennen, Status; für
    alle Beteiligten sofort sichtbar
 7. **0.25+** DJI Cloud API (Pilot 2, Enterprise-Drohnen wie Matrice 30/350/4T

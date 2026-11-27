@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.23.0] - 2026-11-27
+
 ### Added
 
 - **Einsätze** als eigener Menüpunkt (auf dem Smartphone in der unteren
