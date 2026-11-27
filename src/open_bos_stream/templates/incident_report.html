@@ -70,6 +70,7 @@
             font-size: 15px;
             break-after: avoid;
         }
+        h3 { margin: 10px 0 4px; font-size: 13px; break-after: avoid; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 4px 6px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
         th { color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; }
@@ -202,15 +203,17 @@
     {% else %}<p class="muted">Keine Drohnen zugeordnet.</p>{% endif %}
 
     <h2>Wetter</h2>
-    {% set weather = incident.weather %}
-    {% if weather %}
+    {% for weather in incident.weather_history %}
+    {% if incident.weather_history | length > 1 %}
+    <h3>{{ "Erste Erfassung" if loop.first else "Erneute Erfassung" }} · {{ local(weather.captured_at) }}</h3>
+    {% endif %}
     {% set current = weather.current or {} %}
     <table class="facts">
         <tr><th>Bewertung Flugbetrieb</th><td>{{ (weather.assessment or {}).summary or "–" }}</td></tr>
         <tr><th>Wind / Böen</th><td>{{ current.wind_speed_ms if current.wind_speed_ms is not none else "–" }} m/s / {{ current.wind_gust_ms if current.wind_gust_ms is not none else "–" }} m/s</td></tr>
         <tr><th>Temperatur</th><td>{{ current.temperature_c if current.temperature_c is not none else "–" }} °C</td></tr>
         <tr><th>Niederschlag</th><td>{{ current.precipitation_mm_h if current.precipitation_mm_h is not none else "–" }} mm/h</td></tr>
-        <tr><th>Sicht</th><td>{% if current.visibility_m is not none %}{{ "%.1f"|format(current.visibility_m / 1000) }} km{% else %}–{% endif %}</td></tr>
+        <tr><th>Sicht</th><td>{% if current.get("visibility_m") is not none %}{{ "%.1f"|format(current.visibility_m / 1000) }} km{% else %}–{% endif %}</td></tr>
         {% if weather.kp and weather.kp.kp is not none %}<tr><th>Kp-Index</th><td>{{ weather.kp.kp }}</td></tr>{% endif %}
         {% if weather.alerts %}<tr><th>DWD-Warnungen</th><td>{% for alert in weather.alerts %}{{ alert.headline or alert.event }}{% if not loop.last %}; {% endif %}{% endfor %}</td></tr>{% endif %}
         <tr><th>Erfasst</th><td>{{ local(weather.captured_at) }} · {{ (weather.location or {}).name }}</td></tr>
@@ -219,7 +222,7 @@
     <p class="muted">{% for reason in weather.assessment.reasons %}{{ reason.text or reason.message or "" }}{% if not loop.last %} · {% endif %}{% endfor %}</p>
     {% endif %}
     {% if weather.attribution %}<p class="muted" style="font-size: 11px">Quelle: {{ weather.attribution if weather.attribution is string else weather.attribution | join(", ") }}</p>{% endif %}
-    {% else %}<p class="muted">Kein Wetter erfasst.</p>{% endif %}
+    {% else %}<p class="muted">Kein Wetter erfasst.</p>{% endfor %}
 
     <h2>Aufnahmen</h2>
     {% if detail.media %}

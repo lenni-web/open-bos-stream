@@ -368,3 +368,40 @@ def test_cached_permissions_follow_changes_immediately(setup) -> None:
     assert session(setup.auth, "a-admin")["incident_source_ids"] == ["b1"]
     setup.incidents.set_status(team, incident["id"], "ended")
     assert session(setup.auth, "a-admin")["incident_source_ids"] == []
+
+
+def test_weather_capture_keeps_earlier_values(api) -> None:
+    from open_bos_stream.api import incidents as incidents_api
+
+    api.login("b-team")
+    incident_id = api.post("/api/incidents", json={
+        "lead_organization_id": api.ids["b"],
+        "keyword": "F Wald",
+    }).json()["incident"]["id"]
+    service = incidents_api._service()
+
+    for wind, time in ((3.5, "2026-11-26T14:35"), (9.0, "2026-11-26T16:10")):
+        service.set_weather(incident_id, {
+            "captured_at": time,
+            "current": {"wind_speed_ms": wind},
+            "assessment": {"summary": "Flugbetrieb möglich"},
+        }, "System")
+
+    detail = api.get(f"/api/incidents/{incident_id}").json()
+    assert detail["incident"]["weather"]["current"]["wind_speed_ms"] == 3.5
+    assert [entry["current"]["wind_speed_ms"] for entry in detail["incident"]["weather_history"]] == [3.5, 9.0]
+    texts = [entry["text"] for entry in detail["log"] if entry["kind"] == "weather"]
+    assert any("Wind 3,5 m/s" in text for text in texts)
+    assert any("Wind 9,0 m/s" in text for text in texts)
+
+    report = api.get(f"/api/incidents/{incident_id}/report").text
+    assert "Erste Erfassung" in report and "Erneute Erfassung" in report
+    assert "3.5 m/s" in report and "9.0 m/s" in report
+
+
+def test_weather_stored_before_history_is_kept() -> None:
+    from open_bos_stream.incidents.service import _weather_history
+
+    assert _weather_history('{"captured_at": "x"}') == [{"captured_at": "x"}]
+    assert _weather_history(None) == []
+    assert _weather_history("kaputt") == []

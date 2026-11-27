@@ -88,6 +88,44 @@ def _unrestricted(user: dict) -> bool:
     return bool(user.get("platform_admin")) or "org_view" not in user
 
 
+def _weather_history(stored: str | None) -> list[dict]:
+    """Gespeicherte Erfassungen; bis 0.25.4 stand dort nur eine einzelne."""
+
+    try:
+        value = json.loads(stored) if stored else []
+    except ValueError:
+        return []
+    if isinstance(value, dict):
+        value = [value]
+    return [entry for entry in value if isinstance(entry, dict)]
+
+
+def _weather_log_text(snapshot: dict) -> str:
+    """Verlaufseintrag mit den Messwerten zum Zeitpunkt der Erfassung."""
+
+    current = snapshot.get("current") or {}
+    values = [
+        f"{label} {str(current[key]).replace('.', ',')} {unit}"
+        for label, key, unit in (
+            ("Wind", "wind_speed_ms", "m/s"),
+            ("Böen", "wind_gust_ms", "m/s"),
+            ("Temperatur", "temperature_c", "°C"),
+            ("Niederschlag", "precipitation_mm_h", "mm/h"),
+        )
+        if current.get(key) is not None
+    ]
+    if current.get("visibility_m") is not None:
+        values.append(f"Sicht {current['visibility_m'] / 1000:.1f} km".replace(".", ","))
+    kp = (snapshot.get("kp") or {}).get("kp")
+    if kp is not None:
+        values.append(f"Kp-Index {str(kp).replace('.', ',')}")
+    level = (snapshot.get("assessment") or {}).get("summary")
+    text = "Wetter erfasst" + (f": {level}" if level else "")
+    if values:
+        text += " · " + ", ".join(values)
+    return text
+
+
 class IncidentService:
     def __init__(self, org: OrgService) -> None:
         self.org = org
@@ -122,10 +160,11 @@ class IncidentService:
         ]
         item["involved"] = involved
         item["status_label"] = INCIDENT_STATUS.get(item["status"], item["status"])
-        try:
-            item["weather"] = json.loads(item["weather"]) if item.get("weather") else None
-        except ValueError:
-            item["weather"] = None
+        # "weather" bleibt der Stand vom Einsatzbeginn, "weather_history"
+        # enthält alle Erfassungen in zeitlicher Reihenfolge.
+        history = _weather_history(item.get("weather"))
+        item["weather"] = history[0] if history else None
+        item["weather_history"] = history
         return item
 
     def get(self, incident_id: int) -> dict | None:
@@ -475,19 +514,24 @@ class IncidentService:
         return incident
 
     def set_weather(self, incident_id: int, snapshot: dict, actor: str = "") -> None:
-        with self._engine.begin() as connection:
+        """Wetter anhängen; frühere Erfassungen bleiben erhalten."""
+
+        with self._lock, self._engine.begin() as connection:
+            stored = connection.execute(
+                select(incidents.c.weather).where(incidents.c.id == incident_id)
+            ).scalar_one_or_none()
+            history = _weather_history(stored) + [snapshot]
             connection.execute(
                 update(incidents)
                 .where(incidents.c.id == incident_id)
-                .values(weather=json.dumps(snapshot, ensure_ascii=False))
+                .values(weather=json.dumps(history, ensure_ascii=False))
             )
-            level = (snapshot.get("assessment") or {}).get("summary") or ""
             self._log(
                 connection,
                 incident_id,
                 actor or "System",
                 "weather",
-                "Wetter erfasst" + (f": {level}" if level else ""),
+                _weather_log_text(snapshot),
             )
 
     # -----------------------------------------------------

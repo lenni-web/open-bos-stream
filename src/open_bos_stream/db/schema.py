@@ -35,7 +35,14 @@ MEMBERSHIP_ROLES = {
     "viewer": "Zuschauer",
     "operator": "Drohnenteam",
     "admin": "Wehr-Admin",
+    "ortsbrandmeister": "Ortsbrandmeister",
 }
+
+# Rollen mit eigenem Titel, die die Rechte einer anderen Rolle haben.
+ROLE_RIGHTS = {"ortsbrandmeister": "admin"}
+
+# Rollen, die es nur in bestimmten Arten von Organisationen gibt.
+ROLE_ORGANIZATION_KINDS = {"ortsbrandmeister": "ortsfeuerwehr"}
 
 # Fernpilotennachweise nach EU-Drohnenverordnung.
 QUALIFICATION_KINDS = {

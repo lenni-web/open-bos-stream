@@ -19,6 +19,8 @@ from open_bos_stream.db.schema import (
     MEMBERSHIP_ROLES,
     ORGANIZATION_KINDS,
     QUALIFICATION_KINDS,
+    ROLE_ORGANIZATION_KINDS,
+    ROLE_RIGHTS,
     audit_log,
     memberships,
     organizations,
@@ -55,8 +57,25 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def rights_of(role: str) -> str:
+    """Rechtestufe einer Mitgliedsrolle (z. B. Ortsbrandmeister → admin)."""
+
+    return ROLE_RIGHTS.get(role, role)
+
+
 def role_at_least(role: str, minimum: str) -> bool:
-    return ROLE_ORDER.index(role) >= ROLE_ORDER.index(minimum)
+    return ROLE_ORDER.index(rights_of(role)) >= ROLE_ORDER.index(minimum)
+
+
+def check_role(role: str, organization: dict) -> None:
+    """Passt die Rolle zur Art der Organisation?"""
+
+    kind = ROLE_ORGANIZATION_KINDS.get(role)
+    if kind and organization["kind"] != kind:
+        raise OrgError(
+            f"Die Rolle {MEMBERSHIP_ROLES[role]} gibt es nur in einer "
+            f"{ORGANIZATION_KINDS[kind]}."
+        )
 
 
 @dataclass
@@ -236,6 +255,10 @@ class OrgService:
                 raise OrgError("Die übergeordnete Organisation gibt es nicht.")
             if parent in self.descendants([organization_id]):
                 raise OrgError("Eine Organisation kann nicht unter sich selbst liegen.")
+        if "kind" in values and values["kind"] != current["kind"]:
+            for item in self.memberships():
+                if item["organization_id"] == organization_id:
+                    check_role(item["role"], {**current, "kind": values["kind"]})
         if not values:
             return current
         with self.db.engine.begin() as connection:
@@ -407,6 +430,7 @@ class OrgService:
         org = self.organization(organization_id)
         if user is None or org is None:
             raise OrgError("Konto oder Organisation nicht gefunden.")
+        check_role(role, org)
         with self.db.engine.begin() as connection:
             existing = connection.execute(
                 select(memberships.c.id).where(
@@ -547,7 +571,7 @@ class OrgService:
 
         if user.get("platform_admin"):
             return "superadmin"
-        roles = [item["role"] for item in self.memberships(user["id"])]
+        roles = [rights_of(item["role"]) for item in self.memberships(user["id"])]
         if not roles:
             return "viewer"
         return max(roles, key=ROLE_ORDER.index)

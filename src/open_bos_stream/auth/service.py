@@ -21,8 +21,9 @@ from pathlib import Path
 import yaml
 
 from open_bos_stream.db.database import Database
+from open_bos_stream.db.schema import MEMBERSHIP_ROLES
 from open_bos_stream.incidents.service import IncidentService
-from open_bos_stream.org.service import OrgError, OrgService
+from open_bos_stream.org.service import OrgError, OrgService, check_role
 
 
 # Grobe Rollen für Seiten und Schnittstellen. Sie ergeben sich aus der
@@ -380,9 +381,18 @@ class AuthService:
         """
 
         username = self._normalize_username(username)
-        if role not in ROLES:
+        if role not in ROLES and role not in MEMBERSHIP_ROLES:
             raise AuthError("Unbekannte Rolle.")
         org = self.ready()
+        if role in MEMBERSHIP_ROLES:
+            # Vor dem Anlegen prüfen, damit kein Konto ohne Rolle zurückbleibt.
+            target = org.organization(organization_id or org.default_organization_id())
+            if target is None:
+                raise AuthError("Organisation nicht gefunden.")
+            try:
+                check_role(role, target)
+            except OrgError as exc:
+                raise AuthError(str(exc)) from exc
         if initial and (org.user_count() or role != "superadmin"):
             raise AuthError("Die Ersteinrichtung ist bereits abgeschlossen.")
         try:

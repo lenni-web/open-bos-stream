@@ -672,28 +672,37 @@ function renderIncidentPeople(detail) {
         </section>`;
 }
 
+function renderWeatherSnapshot(weather) {
+    const current = weather.current || {};
+    const values = [
+        ["Wind", current.wind_speed_ms != null ? `${current.wind_speed_ms} m/s` : null],
+        ["Böen", current.wind_gust_ms != null ? `${current.wind_gust_ms} m/s` : null],
+        ["Temperatur", current.temperature_c != null ? `${current.temperature_c} °C` : null],
+        ["Niederschlag", current.precipitation_mm_h != null ? `${current.precipitation_mm_h} mm/h` : null],
+        ["Sicht", current.visibility_m != null ? `${(current.visibility_m / 1000).toFixed(1)} km` : null],
+        ["Kp-Index", weather.kp?.kp != null ? String(weather.kp.kp) : null],
+    ].filter(([, value]) => value);
+    return `
+        <p class="incident-weather-level is-${escapeHTML(weather.assessment?.level || "unknown")}">
+            ${escapeHTML(weather.assessment?.summary || "Keine Bewertung")}</p>
+        <dl class="incident-facts is-compact">
+            ${values.map(([label, value]) => `<dt>${escapeHTML(label)}</dt><dd>${escapeHTML(value)}</dd>`).join("")}
+        </dl>
+        ${(weather.alerts || []).length ? `<p class="incident-warning">⚠ ${weather.alerts.map(item => escapeHTML(item.headline || item.event)).join(" · ")}</p>` : ""}
+        <p class="incident-hint">Erfasst ${escapeHTML(incidentTime(weather.captured_at))} · ${escapeHTML(weather.location?.name || "")}</p>`;
+}
+
 function renderIncidentWeather(detail) {
-    const weather = detail.incident.weather;
+    const history = detail.incident.weather_history || [];
     const can = detail.can;
     let body = '<p class="incident-empty">Noch kein Wetter erfasst.</p>';
-    if (weather) {
-        const current = weather.current || {};
-        const values = [
-            ["Wind", current.wind_speed_ms != null ? `${current.wind_speed_ms} m/s` : null],
-            ["Böen", current.wind_gust_ms != null ? `${current.wind_gust_ms} m/s` : null],
-            ["Temperatur", current.temperature_c != null ? `${current.temperature_c} °C` : null],
-            ["Niederschlag", current.precipitation_mm_h != null ? `${current.precipitation_mm_h} mm/h` : null],
-            ["Sicht", current.visibility_m != null ? `${(current.visibility_m / 1000).toFixed(1)} km` : null],
-            ["Kp-Index", weather.kp?.kp != null ? String(weather.kp.kp) : null],
-        ].filter(([, value]) => value);
-        body = `
-            <p class="incident-weather-level is-${escapeHTML(weather.assessment?.level || "unknown")}">
-                ${escapeHTML(weather.assessment?.summary || "Keine Bewertung")}</p>
-            <dl class="incident-facts is-compact">
-                ${values.map(([label, value]) => `<dt>${escapeHTML(label)}</dt><dd>${escapeHTML(value)}</dd>`).join("")}
-            </dl>
-            ${(weather.alerts || []).length ? `<p class="incident-warning">⚠ ${weather.alerts.map(item => escapeHTML(item.headline || item.event)).join(" · ")}</p>` : ""}
-            <p class="incident-hint">Erfasst ${escapeHTML(incidentTime(weather.captured_at))} · ${escapeHTML(weather.location?.name || "")}</p>`;
+    if (history.length === 1) {
+        body = renderWeatherSnapshot(history[0]);
+    } else if (history.length > 1) {
+        // Neueste Erfassung zuerst, der Anfangswert bleibt darunter stehen.
+        body = history.map((weather, index) => `
+            <h4>${index === 0 ? "Erste Erfassung" : "Erneute Erfassung"}</h4>
+            ${renderWeatherSnapshot(weather)}`).reverse().join("");
     }
     return `
         <section class="bos-card incident-section">

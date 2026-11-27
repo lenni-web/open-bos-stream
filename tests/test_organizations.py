@@ -13,7 +13,7 @@ from open_bos_stream.auth.guest_access import (
     can_operate_source,
     can_see_source,
 )
-from open_bos_stream.auth.service import AuthService
+from open_bos_stream.auth.service import AuthError, AuthService
 from open_bos_stream.core.models import SourceConfig
 from open_bos_stream.db.database import Database
 from open_bos_stream.org.service import OrgError, OrgService
@@ -492,3 +492,30 @@ def test_accounts_have_first_last_and_nickname(api) -> None:
     own = api.patch("/api/org/me", json={"first_name": "Bea", "last_name": "Team", "nickname": "B."}).json()["user"]
     assert own["display_name"] == "Bea Team" and own["nickname"] == "B."
     assert api.patch("/api/org/me", json={"first_name": "  "}).status_code == 422
+
+
+def test_ortsbrandmeister_has_admin_rights_in_own_ortswehr(auth) -> None:
+    ids = build(auth)
+    org = auth.ready()
+    auth.create_user("a-obm", PASSWORD, "ortsbrandmeister", organization_id=ids["a"])
+    user = org.user_by_username("a-obm")
+
+    scope = org.scope(user)
+    assert scope.admin == {ids["a"]}
+    assert not scope.server_admin
+    assert org.effective_role(user) == "admin"
+
+
+def test_ortsbrandmeister_only_in_ortsfeuerwehr(auth) -> None:
+    ids = build(auth)
+    org = auth.ready()
+    with pytest.raises(AuthError):
+        auth.create_user("sg-obm", PASSWORD, "ortsbrandmeister", organization_id=ids["sg"])
+    assert org.user_by_username("sg-obm") is None
+
+    team = org.user_by_username("b-team")
+    with pytest.raises(OrgError):
+        org.set_membership(team["id"], ids["sg"], "ortsbrandmeister")
+    org.set_membership(team["id"], ids["b"], "ortsbrandmeister")
+    with pytest.raises(OrgError):
+        org.update_organization(ids["b"], kind="kreiseinheit")

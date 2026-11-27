@@ -984,6 +984,7 @@ der Wache, archivieren oder löschen leere Einheiten.
 | **Zuschauer** | Livebilder, Karte und Wetter der eigenen Organisation |
 | **Drohnenteam** | zusätzlich Gastlinks für Quellen der eigenen Organisation |
 | **Wehr-Admin** | zusätzlich Quellen der Organisation einrichten, Konten und Rollen im eigenen Bereich verwalten, Untereinheiten anlegen |
+| **Ortsbrandmeister** | wie Wehr-Admin; nur in Ortsfeuerwehren vergebbar |
 | **Kreis-Admin** (Wehr-Admin auf Landkreisebene) | alles im Landkreis, dazu serverweite Einstellungen wie Wetter, Systemseite |
 | **Superadmin** | technische Verwaltung: Streaming-Ausgänge, Medien, E-Mail, Speicher, Display, Webzugriff; vergibt die Superadmin-Rolle |
 
