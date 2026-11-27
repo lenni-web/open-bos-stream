@@ -11,6 +11,31 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.26.5] - 2026-11-27
+
+Drohnen im Einsatz nehmen automatisch auf, Snapshot und Aufnahme direkt an
+der Drohnenkachel.
+
+### Added
+
+- Drohnen, die einem laufenden Einsatz zugeordnet sind, werden bei
+  Eingangssignal automatisch aufgenommen. Die Aufnahme endet, wenn die
+  Drohne aus dem Einsatz genommen oder der Einsatz beendet wird. Die Haken
+  in den Einstellungen gelten für Aufnahmen auch ohne Einsatz.
+
+### Changed
+
+- Livebilder: Snapshot und manuelle Aufnahme sitzen jetzt an jeder
+  Drohnenkachel (nur Superadmin, bei Eingangssignal). Der graue Kasten
+  „Aufnahme“ entfällt, Speicherwarnungen werden weiterhin angezeigt.
+- Einstellungen: Die Auswahl einer einzelnen Drohne für Snapshot und
+  Aufnahme entfällt.
+- Schnittstellen für Snapshot und Aufnahme gelten je Drohne
+  (`/snapshot/sources/{id}`, `/recording/sources/{id}/start` und `/stop`)
+  und ersetzen die bisherigen Aufrufe ohne Drohne.
+
+---
+
 ## [0.26.4] - 2026-11-27
 
 Mediathek nach Drohne filterbar und kompakter, „Quellen“ heißen jetzt

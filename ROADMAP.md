@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.26.5** (2026-11-27): Drohnen im Einsatz nehmen automatisch auf,
+  Snapshot und Aufnahme an jeder Drohnenkachel
 - **0.26.4** (2026-11-27): Mediathek nach Drohne filterbar und kompakter,
   „Quellen“ heißen jetzt „Drohnen“, Wetter unter der Karte
 - **0.26.3** (2026-11-27): Einsätze je Drohne mit Zähler und Beteiligten,
