@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.25.2] - 2026-11-27
+
 ### Added
 
 - Weitere Domains für denselben Server: `configure-server-access.sh

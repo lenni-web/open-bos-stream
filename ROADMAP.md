@@ -57,6 +57,7 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.25.2** (2026-11-27): Weitere Domains als Weiterleitung auf die Hauptdomain
 - **0.25.1** (2026-11-27): Sicherheits-Update nach Code-Review (Sende-Schlüssel,
   Einsatzführung, Protokolle, Quell-Adressen, Passwort-Hashing), Aufräumen
 - **0.25.0** (2026-11-27): Checklisten-Modul (Vorlagen des Landkreises,
