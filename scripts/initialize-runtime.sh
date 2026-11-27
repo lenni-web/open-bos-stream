@@ -13,6 +13,7 @@ RUNTIME_DIRS=(
     mapdata
     recordings
     snapshots
+    cache
 )
 
 for dir in "${RUNTIME_DIRS[@]}"; do
@@ -84,5 +85,9 @@ sudo chown -R "${SERVICE_USER}:${SERVICE_GROUP}" \
 
 sudo chown -R "${SERVICE_USER}:${SERVICE_GROUP}" \
     "${TARGET_DIR}/snapshots"
+
+# Zwischenspeicher (Luftbildkacheln); darf jederzeit geleert werden.
+sudo chown -R "${SERVICE_USER}:${SERVICE_GROUP}" \
+    "${TARGET_DIR}/cache"
 echo
 echo "Laufzeitumgebung bereit."

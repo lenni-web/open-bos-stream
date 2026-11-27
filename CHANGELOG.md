@@ -9,6 +9,18 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Luftbildkacheln werden dauerhaft auf dem Server gespeichert (Standard
+  2 GB, `map.aerial_cache_gb`) und 30 Tage ohne neue Anfrage ausgeliefert.
+  Antwortet der Landesdienst nicht, erscheinen ältere gespeicherte Kacheln;
+  nach mehreren Fehlern pausieren die Abrufe kurz und unter der Karte steht
+  ein Hinweis.
+
+### Fixed
+
+- Ein träges Luftbild bremst die normale Karte nicht mehr aus.
+
 ---
 
 ## [0.26.7] - 2026-11-27

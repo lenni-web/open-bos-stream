@@ -35,6 +35,7 @@ sudo rsync \
     --exclude "recordings/" \
     --exclude "snapshots/" \
     --exclude "mapdata/" \
+    --exclude "/cache/" \
     \
     "${PROJECT_DIR}/" \
     "${TARGET_DIR}/"

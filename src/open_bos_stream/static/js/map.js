@@ -13,6 +13,33 @@ function setBaseMapStatus(text) {
     }
 }
 
+const AERIAL_STATUS_MS = 20000;
+
+// Hinweis unter der Karte, solange das Luftbild gewählt ist und der
+// Landesdienst nicht antwortet.
+async function updateAerialNotice() {
+    const notice = document.getElementById("map-aerial-notice");
+    if (!notice) {
+        return;
+    }
+    if (mapBase?.id !== "aerial") {
+        notice.hidden = true;
+        return;
+    }
+    if (document.hidden) {
+        return;
+    }
+    try {
+        const response = await fetch("/api/map/aerial/status", {cache: "no-store"});
+        if (response.ok) {
+            const status = await response.json();
+            notice.hidden = status.available || mapBase?.id !== "aerial";
+        }
+    } catch (error) {
+        console.warn("Status des Luftbilds nicht abrufbar:", error);
+    }
+}
+
 function renderBaseMapControls(info, base) {
     const box = document.getElementById("map-basemap-list");
     if (!box) {
@@ -57,6 +84,7 @@ async function switchBaseMap(id) {
         mapBase.id = base.id;
         applyBaseZoomRange(map, info, base.id);
         storeBaseMapChoice(id);
+        updateAerialNotice();
         setBaseMapStatus(
             base.fallback
                 ? "Online-Karte nicht erreichbar – die Offline-Karte wird angezeigt."
@@ -226,6 +254,14 @@ async function createMap() {
     applyBaseZoomRange(map, info, base.id);
     mapBase = {id: base.id, ids: baseStyleIds(base.style)};
     renderBaseMapControls(info, base);
+    window.setInterval(updateAerialNotice, AERIAL_STATUS_MS);
+    // Auch kurz nach dem Nachladen von Kacheln prüfen.
+    let aerialNoticeTimer = null;
+    map.on("moveend", () => {
+        window.clearTimeout(aerialNoticeTimer);
+        aerialNoticeTimer = window.setTimeout(updateAerialNotice, 3000);
+    });
+    map.once("load", () => window.setTimeout(updateAerialNotice, 3000));
 
     bindFullscreenButton();
 

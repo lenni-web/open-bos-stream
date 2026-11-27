@@ -349,6 +349,20 @@ html[data-color-scheme="dark"] .map-basemap-status {
     color: var(--bos-yellow);
 }
 
+.map-aerial-notice {
+    margin: 8px 2px 0;
+    color: #b36b00;
+    font-size: 0.8rem;
+}
+
+.map-aerial-notice[hidden] {
+    display: none;
+}
+
+html[data-color-scheme="dark"] .map-aerial-notice {
+    color: var(--bos-yellow);
+}
+
 /* Gruppen der Wasserentnahmestellen mit Farblegende */
 .map-layer-group label {
     align-items: flex-start;

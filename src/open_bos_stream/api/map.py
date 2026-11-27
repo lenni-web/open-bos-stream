@@ -1,5 +1,6 @@
 import logging
 from dataclasses import asdict
+from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Query, Request, Response
 from starlette.concurrency import run_in_threadpool
@@ -25,6 +26,7 @@ from open_bos_stream.map.basemaps import (
     aerial_attribution,
 )
 from open_bos_stream.auth.roles import GUEST
+from open_bos_stream.map.tile_cache import TileDiskCache
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +37,16 @@ router = APIRouter(
 )
 
 dipul_service = DipulService()
-basemap_service = BasemapService()
+basemap_service = BasemapService(
+    aerial_cache=(
+        TileDiskCache(
+            Path(runtime_config.map.aerial_cache_path),
+            int(runtime_config.map.aerial_cache_gb * 1024 ** 3),
+        )
+        if runtime_config.map.aerial_cache_gb > 0
+        else None
+    )
+)
 
 ONLINE_CACHE_HEADERS = {"Cache-Control": "public, max-age=86400"}
 
@@ -510,6 +521,14 @@ async def basemap_sprite(filename: str) -> Response:
         media_type=media_type,
         headers=ONLINE_CACHE_HEADERS,
     )
+
+
+@online_router.get("/aerial/status")
+def aerial_status() -> dict:
+    """Ob der Luftbilddienst zuletzt erreichbar war (für den Kartenhinweis)."""
+
+    _require_online()
+    return {"available": basemap_service.aerial_available()}
 
 
 @online_router.get("/aerial/tiles/{z}/{x}/{y}.webp")

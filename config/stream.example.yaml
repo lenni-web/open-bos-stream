@@ -81,6 +81,9 @@ map:
   online: true
   # Voreinstellung: online, aerial oder offline.
   base_map: online
+  # Luftbilder dauerhaft auf der Festplatte merken (GB, 0 = aus).
+  aerial_cache_gb: 2
+  aerial_cache_path: cache/aerial
 stream_outputs: []
 # Jeder Streaming-Ausgang kann mit `source_id` eine der oben definierten
 # Quellen auswählen. Bei älteren Konfigurationen ohne Angabe wird einmalig

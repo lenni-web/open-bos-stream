@@ -326,6 +326,10 @@ class MapConfig(BaseModel):
     # Grundkarte beim ersten Öffnen; jeder Browser merkt sich seine Wahl.
     base_map: Literal["online", "aerial", "offline"] = "online"
 
+    # Dauerhafter Zwischenspeicher für Luftbilder; 0 schaltet ihn ab.
+    aerial_cache_gb: float = Field(default=2.0, ge=0, le=500)
+    aerial_cache_path: str = "cache/aerial"
+
 class EncoderConfig(BaseModel):
     codec: str
     bitrate: str

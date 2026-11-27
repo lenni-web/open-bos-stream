@@ -307,8 +307,13 @@
 
 /* Am großen Bildschirm gibt die Karte dem Feld Platz ab, damit beides ohne
    Scrollen sichtbar bleibt. Mobil gilt die feste Kartenhöhe (70dvh). */
-.app-content .map-wrapper:has(+ .map-weather-chip:not([hidden])) {
+.app-content .map-wrapper:has(~ .map-weather-chip:not([hidden])) {
     --map-offset: 232px;
+}
+
+/* Zusätzlich Platz für den Hinweis, wenn das Luftbild ausfällt. */
+.app-content .map-wrapper:has(~ .map-aerial-notice:not([hidden])):has(~ .map-weather-chip:not([hidden])) {
+    --map-offset: 262px;
 }
 
 html[data-color-scheme="dark"] .map-weather-chip {

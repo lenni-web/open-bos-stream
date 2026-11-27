@@ -2,7 +2,8 @@
 
 Alle Abrufe laufen über den eigenen Server. Browser verbinden sich dadurch
 nur mit Open BOS Stream, und wiederholte Abrufe kommen aus dem
-Zwischenspeicher.
+Zwischenspeicher. Luftbilder liegen zusätzlich dauerhaft auf der Festplatte,
+damit sie Neustarts und Ausfälle des Landesdienstes überstehen.
 
 * basemap.de Web Vektor – amtliche Vektorkarte für Deutschland,
   © basemap.de / BKG, Datenquellen © GeoBasis-DE.
@@ -27,6 +28,7 @@ from datetime import date
 from typing import Callable
 
 from open_bos_stream.map.dipul import tile_bbox
+from open_bos_stream.map.tile_cache import TileDiskCache
 
 
 BASEMAP_ROOT = "https://sgx.geodatenzentrum.de/gdz_basemapde_vektor"
@@ -50,6 +52,14 @@ AERIAL_MAX_ZOOM = 19
 # Grobe Ausdehnung Niedersachsens; außerhalb liefert der Dienst nichts.
 AERIAL_BOUNDS = [6.6, 51.29, 11.6, 53.9]
 AERIAL_QUALITY = 78
+# Luftbilder werden nur alle paar Jahre neu beflogen.
+AERIAL_FRESH_SECONDS = 30 * 24 * 60 * 60
+# Nach so vielen Fehlern in Folge gilt der Dienst als ausgefallen. Ein
+# einzelner Aussetzer soll nicht alle anderen Kacheln sperren.
+AERIAL_FAILURE_LIMIT = 5
+AERIAL_PAUSE_SECONDS = 60
+# Ohne neue Anfragen verschwindet der Hinweis nach dieser Zeit wieder.
+AERIAL_NOTICE_SECONDS = 10 * 60
 
 SPRITE_PATTERN = re.compile(r"^bm_web_(col|gry|drk|top)_sprite(@2x)?\.(json|png)$")
 FONTSTACK_PATTERN = re.compile(r"^[A-Za-z0-9 ,_-]{1,120}$")
@@ -112,12 +122,18 @@ class BasemapService:
         *,
         fetch: Callable[[str], tuple[bytes, str]] | None = None,
         clock: Callable[[], float] = time.monotonic,
+        aerial_cache: TileDiskCache | None = None,
     ) -> None:
         self._fetch = fetch or self._http_get
         self._clock = clock
         self._cache: OrderedDict[str, tuple[float, bytes, str]] = OrderedDict()
         self._lock = threading.Lock()
         self._slots = threading.BoundedSemaphore(MAX_PARALLEL_REQUESTS)
+        # Eigene Plätze, damit ein träges Luftbild die Karte nicht bremst.
+        self._aerial_slots = threading.BoundedSemaphore(MAX_PARALLEL_REQUESTS)
+        self._aerial_cache = aerial_cache
+        self._aerial_failures = 0
+        self._aerial_failed_at = 0.0
 
     # ---------------------------------------------------------
     # basemap.de
@@ -205,13 +221,62 @@ class BasemapService:
             "TRANSPARENT": "TRUE",
         }
         url = f"{AERIAL_WMS_URL}?{urllib.parse.urlencode(params)}"
-        data, _ = self._cached(
-            f"aerial:{z}:{x}:{y}",
-            url,
-            TILE_CACHE_SECONDS,
-            transform=self._webp,
-            expect_image=True,
+        stored = (
+            self._aerial_cache.get(z, x, y) if self._aerial_cache else None
         )
+        if stored is not None and stored[1] < AERIAL_FRESH_SECONDS:
+            return stored[0]
+        try:
+            data = self._fetch_aerial(url)
+        except BasemapUnavailableError:
+            # Eine alte Kachel ist besser als eine Lücke.
+            if stored is not None:
+                return stored[0]
+            raise
+        if self._aerial_cache:
+            self._aerial_cache.put(z, x, y, data)
+        return data
+
+    def aerial_available(self) -> bool:
+        with self._lock:
+            return (
+                self._aerial_failures < AERIAL_FAILURE_LIMIT
+                or self._clock() - self._aerial_failed_at >= AERIAL_NOTICE_SECONDS
+            )
+
+    def _aerial_paused(self) -> bool:
+        with self._lock:
+            return (
+                self._aerial_failures >= AERIAL_FAILURE_LIMIT
+                and self._clock() - self._aerial_failed_at < AERIAL_PAUSE_SECONDS
+            )
+
+    def _fetch_aerial(self, url: str) -> bytes:
+        with self._aerial_slots:
+            # Erst hier prüfen: Wartende Abrufe sehen den Ausfall mit.
+            if self._aerial_paused():
+                raise BasemapUnavailableError("Der Luftbilddienst ist nicht erreichbar.")
+            try:
+                data, content_type = self._fetch(url)
+                if not content_type.startswith("image/"):
+                    raise BasemapUnavailableError(
+                        "Der Luftbilddienst lieferte kein Bild: "
+                        + data[:200].decode("utf-8", errors="replace")
+                    )
+                data = self._webp(data)
+            except BasemapNotFoundError:
+                raise
+            except (BasemapUnavailableError, OSError, ValueError) as exc:
+                with self._lock:
+                    self._aerial_failures += 1
+                    self._aerial_failed_at = self._clock()
+                if isinstance(exc, BasemapUnavailableError):
+                    raise
+                raise BasemapUnavailableError(
+                    f"Kartendaten konnten nicht verarbeitet werden: {exc}"
+                ) from exc
+        with self._lock:
+            self._aerial_failures = 0
         return data
 
     # ---------------------------------------------------------
@@ -246,7 +311,6 @@ class BasemapService:
         ttl: float,
         *,
         transform: Callable[[bytes], bytes] | None = None,
-        expect_image: bool = False,
     ) -> tuple[bytes, str]:
         now = self._clock()
         with self._lock:
@@ -257,11 +321,6 @@ class BasemapService:
 
         with self._slots:
             data, content_type = self._fetch(url)
-        if expect_image and not content_type.startswith("image/"):
-            raise BasemapUnavailableError(
-                "Der Luftbilddienst lieferte kein Bild: "
-                + data[:200].decode("utf-8", errors="replace")
-            )
         if transform is not None:
             try:
                 data = transform(data)
