@@ -228,12 +228,26 @@ Verfügbare Optionen:
 | Option | Wirkung |
 |---|---|
 | `--domain NAME` | öffentliche DNS-Domain; Hostname oder `https://`-Adresse |
+| `--alias-domain NAME` | weitere Domain, die dauerhaft auf die Hauptdomain weiterleitet (mehrfach möglich) |
+| `--remove-alias-domain NAME` | eine Weiterleitungs-Domain entfernen |
+| `--clear-alias-domains` | alle Weiterleitungs-Domains entfernen |
 | `--https` | Caddy installieren und HTTPS aktivieren |
 | `--no-https` | verwalteten Caddy-Zugriff deaktivieren |
 | `--webrtc public` | Domain als öffentlichen WebRTC-/ICE-Host eintragen |
 | `--webrtc local` | keine öffentliche WebRTC-Domain konfigurieren |
 | `--firewall configure` | UFW-Regeln verwalten und aktivieren |
 | `--firewall off` | vorhandene Firewall nicht verändern |
+
+Weitere Domains (z. B. ein kürzerer Name) leiten per HTTP 308 dauerhaft auf
+die Hauptdomain um; Pfad und Parameter bleiben erhalten. So gibt es weiterhin
+nur eine Anmeldung, eine installierbare App und ein Push-Ziel. Caddy bezieht
+auch für diese Domains automatisch ein Zertifikat; ihr DNS-Eintrag muss
+ebenfalls auf den Server zeigen. Die Liste steht als `ALIAS_DOMAINS` in
+`server.env` und bleibt bei Updates erhalten:
+
+```bash
+sudo ./scripts/configure-server-access.sh --alias-domain drohnen.beispiel.de
+```
 
 Vor der HTTPS-Aktivierung muss der A- beziehungsweise AAAA-Eintrag der Domain
 auf den Server zeigen. Caddy fordert das Zertifikat direkt bei Let's Encrypt

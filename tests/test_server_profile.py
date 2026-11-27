@@ -1,3 +1,4 @@
+import subprocess
 from pathlib import Path
 
 import yaml
@@ -33,6 +34,7 @@ def test_server_access_settings_are_read(
     settings_file = tmp_path / "server.env"
     settings_file.write_text(
         "PUBLIC_DOMAIN=stream.example.de\n"
+        "ALIAS_DOMAINS=alt.example.de,kurz.example.de\n"
         "HTTPS_ENABLED=yes\n"
         "WEBRTC_MODE=public\n"
         "FIREWALL_MODE=configure\n",
@@ -46,6 +48,7 @@ def test_server_access_settings_are_read(
 
     assert installation.server_access_settings() == {
         "public_domain": "stream.example.de",
+        "alias_domains": "alt.example.de,kurz.example.de",
         "https_enabled": "yes",
         "webrtc_mode": "public",
         "firewall_mode": "configure",
@@ -243,3 +246,42 @@ def test_firewall_preserves_ssh_and_warns_about_rtmp() -> None:
     assert "        8890/udp \\\n" in script
     mediamtx = read("config/mediamtx.server.yml")
     assert "srtAddress: :8890" in mediamtx
+
+
+def _access_lib(command: str) -> subprocess.CompletedProcess:
+    lib = Path(__file__).parents[1] / "scripts" / "server-access-lib.sh"
+    return subprocess.run(
+        ["bash", "-c", f'source "{lib}"; {command}'],
+        capture_output=True, text=True, check=False,
+    )
+
+
+def test_alias_domains_are_normalized_and_deduplicated() -> None:
+    result = _access_lib(
+        'access_alias_domains drohnen.ffw-stream.de "alt.ffw-stream.de" '
+        '"https://Kurz.FFW-Stream.de/, alt.ffw-stream.de drohnen.ffw-stream.de" "" ""'
+    )
+    assert result.returncode == 0
+    assert result.stdout.strip() == "alt.ffw-stream.de,kurz.ffw-stream.de"
+
+    removed = _access_lib('access_alias_domains a.de "b.de,c.de" "" "c.de" ""')
+    assert removed.stdout.strip() == "b.de"
+    cleared = _access_lib('access_alias_domains a.de "b.de,c.de" "d.de" "" clear')
+    assert cleared.stdout.strip() == "d.de"
+
+    invalid = _access_lib('access_alias_domains a.de "" "b.de/pfad" "" ""')
+    assert invalid.returncode != 0
+
+
+def test_alias_domains_redirect_permanently_to_the_main_domain() -> None:
+    block = _access_lib('access_caddy_redirect_block drohnen.ffw-stream.de "alt.ffw-stream.de,kurz.ffw-stream.de"')
+    assert block.stdout == (
+        "\nalt.ffw-stream.de, kurz.ffw-stream.de {\n"
+        "\tredir https://drohnen.ffw-stream.de{uri} permanent\n"
+        "}\n"
+    )
+    assert _access_lib('access_caddy_redirect_block a.de ""').stdout == ""
+
+    script = read("scripts/configure-server-access.sh")
+    assert "--alias-domain" in script and "ALIAS_DOMAINS=%s" in script
+    assert 'access_caddy_redirect_block "${DOMAIN}" "${ALIAS_DOMAINS}" >> "${caddy_tmp}"' in script

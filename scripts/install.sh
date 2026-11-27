@@ -17,11 +17,11 @@ while [ "$#" -gt 0 ]; do
             PROFILE="${2:-}"
             shift 2
             ;;
-        --domain|--webrtc|--firewall)
+        --domain|--webrtc|--firewall|--alias-domain|--remove-alias-domain)
             SERVER_ARGS+=("$1" "${2:-}")
             shift 2
             ;;
-        --https|--no-https)
+        --https|--no-https|--clear-alias-domains)
             SERVER_ARGS+=("$1")
             shift
             ;;

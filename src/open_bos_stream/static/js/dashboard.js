@@ -782,6 +782,12 @@ function updateDashboardSystemInfo(info) {
     const serverAccess = info.server_access ?? {};
     document.getElementById("system-public-domain").textContent =
         serverAccess.public_domain || "Nicht konfiguriert";
+    const aliases = document.getElementById("system-alias-domains");
+    if (aliases) {
+        aliases.textContent = serverAccess.alias_domains
+            ? serverAccess.alias_domains.split(",").join(", ")
+            : "Keine";
+    }
     document.getElementById("system-https-mode").textContent =
         serverAccess.https_enabled === "yes" ? "Caddy aktiv" : "Deaktiviert";
     document.getElementById("system-webrtc-mode").textContent =

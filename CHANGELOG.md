@@ -9,6 +9,16 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Weitere Domains für denselben Server: `configure-server-access.sh
+  --alias-domain NAME` (auch über `update.sh`/`install.sh`, mehrfach
+  möglich) richtet in Caddy eine dauerhafte Weiterleitung auf die
+  Hauptdomain ein, inklusive eigenem Zertifikat. Die Liste bleibt bei
+  Updates erhalten und lässt sich mit `--remove-alias-domain` bzw.
+  `--clear-alias-domains` ändern; im interaktiven Modus wird sie abgefragt.
+  Die Systemseite zeigt die Weiterleitungs-Domains an.
+
 ---
 
 ## [0.25.1] - 2026-11-27

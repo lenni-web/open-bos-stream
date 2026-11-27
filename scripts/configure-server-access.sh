@@ -3,6 +3,7 @@
 set -euo pipefail
 
 source "$(cd "$(dirname "$0")" && pwd)/common.sh"
+source "$(cd "$(dirname "$0")" && pwd)/server-access-lib.sh"
 
 if [ "$(installation_profile)" != "server" ]; then
     fail "Öffentlicher Serverzugriff ist nur im Server-Profil verfügbar."
@@ -14,6 +15,10 @@ WEBRTC_MODE=""
 WEBRTC_EXPLICIT=false
 FIREWALL_MODE=""
 INTERACTIVE=false
+# Weitere Domains, die per Weiterleitung auf die Hauptdomain zeigen.
+ALIAS_ADD=""
+ALIAS_REMOVE=""
+ALIAS_CLEAR=""
 
 normalize_domain() {
     local value="$1"
@@ -62,6 +67,18 @@ while [ "$#" -gt 0 ]; do
             FIREWALL_MODE="${2:-}"
             shift 2
             ;;
+        --alias-domain)
+            ALIAS_ADD="${ALIAS_ADD} ${2:-}"
+            shift 2
+            ;;
+        --remove-alias-domain)
+            ALIAS_REMOVE="${ALIAS_REMOVE} ${2:-}"
+            shift 2
+            ;;
+        --clear-alias-domains)
+            ALIAS_CLEAR="clear"
+            shift
+            ;;
         --interactive)
             INTERACTIVE=true
             shift
@@ -71,7 +88,7 @@ while [ "$#" -gt 0 ]; do
             shift
             ;;
         *)
-            echo "Verwendung: $0 [--domain NAME] [--https|--no-https] [--webrtc public|local] [--firewall configure|off]" >&2
+            echo "Verwendung: $0 [--domain NAME] [--alias-domain NAME ...] [--remove-alias-domain NAME] [--clear-alias-domains] [--https|--no-https] [--webrtc public|local] [--firewall configure|off]" >&2
             exit 2
             ;;
     esac
@@ -82,6 +99,7 @@ HTTPS_MODE="${HTTPS_MODE:-$(read_setting HTTPS_ENABLED "no")}"
 WEBRTC_MODE="${WEBRTC_MODE:-$(read_setting WEBRTC_MODE "local")}"
 FIREWALL_MODE="${FIREWALL_MODE:-$(read_setting FIREWALL_MODE "off")}"
 PREVIOUS_HTTPS="$(read_setting HTTPS_ENABLED "no")"
+ALIAS_CURRENT="$(read_setting ALIAS_DOMAINS "")"
 
 if [ ! -f "${SERVER_CONFIG_FILE}" ] && [ -t 0 ]; then
     INTERACTIVE=true
@@ -99,6 +117,13 @@ if [ "${INTERACTIVE}" = true ]; then
         esac
 
         if [ "${HTTPS_MODE}" = "yes" ]; then
+            read -r -p "Weitere Domains, die auf ${DOMAIN} weiterleiten (kommagetrennt, - = keine) [${ALIAS_CURRENT}]: " answer
+            case "${answer}" in
+                "") ;;
+                -) ALIAS_CLEAR="clear" ;;
+                *) ALIAS_CLEAR="clear"; ALIAS_ADD="${answer}" ;;
+            esac
+
             read -r -p "WebRTC öffentlich über diese Domain bereitstellen? [J/n]: " answer
             case "${answer:-j}" in
                 j|J|ja|JA|yes|YES) WEBRTC_MODE="public" ;;
@@ -122,6 +147,13 @@ fi
 # Bedienfreundlich sowohl einen Hostnamen als auch eine kopierte Webadresse
 # akzeptieren. Pfade, Ports und Zugangsdaten bleiben bewusst unzulässig.
 DOMAIN="$(normalize_domain "${DOMAIN}")"
+ALIAS_DOMAINS="$(
+    access_alias_domains "${DOMAIN}" "${ALIAS_CURRENT}" \
+        "${ALIAS_ADD}" "${ALIAS_REMOVE}" "${ALIAS_CLEAR}"
+)" || fail "Weiterleitungs-Domains müssen gültige Domains ohne Pfad oder Port sein (z. B. drohnen.beispiel.de)."
+if [ -n "${ALIAS_DOMAINS}" ] && [ "${HTTPS_MODE}" != "yes" ]; then
+    echo "HINWEIS: Weiterleitungs-Domains (${ALIAS_DOMAINS}) wirken erst mit HTTPS über Caddy."
+fi
 
 case "${HTTPS_MODE}" in yes|no) ;; *) fail "HTTPS muss yes oder no sein." ;; esac
 case "${WEBRTC_MODE}" in public|local) ;; *) fail "WebRTC muss public oder local sein." ;; esac
@@ -148,6 +180,7 @@ settings_tmp="$(mktemp)"
 trap 'rm -f "${settings_tmp}" "${caddy_tmp:-}" "${mediamtx_tmp:-}" "${service_override_tmp:-}"' EXIT
 {
     printf 'PUBLIC_DOMAIN=%s\n' "${DOMAIN}"
+    printf 'ALIAS_DOMAINS=%s\n' "${ALIAS_DOMAINS}"
     printf 'HTTPS_ENABLED=%s\n' "${HTTPS_MODE}"
     printf 'WEBRTC_MODE=%s\n' "${WEBRTC_MODE}"
     printf 'FIREWALL_MODE=%s\n' "${FIREWALL_MODE}"
@@ -169,12 +202,23 @@ if [ "${HTTPS_MODE}" = "yes" ]; then
     caddy_tmp="$(mktemp)"
     sed "s/__DOMAIN__/${DOMAIN}/g" \
         "${SCRIPT_DIR}/Caddyfile.server" > "${caddy_tmp}"
+    # Weitere Domains erhalten ein eigenes Zertifikat und leiten dauerhaft
+    # auf die Hauptdomain um (eine Anmeldung, eine App, ein Push-Ziel).
+    access_caddy_redirect_block "${DOMAIN}" "${ALIAS_DOMAINS}" >> "${caddy_tmp}"
+    for alias_domain in ${ALIAS_DOMAINS//,/ }; do
+        if ! getent ahosts "${alias_domain}" >/dev/null 2>&1; then
+            echo "WARNUNG: ${alias_domain} kann derzeit nicht per DNS aufgelöst werden."
+        fi
+    done
     sudo install -d -m 0755 /etc/caddy
     sudo install -m 0644 "${caddy_tmp}" /etc/caddy/Caddyfile
     sudo caddy validate --config /etc/caddy/Caddyfile
     sudo systemctl enable caddy.service
     sudo systemctl restart caddy.service
     echo "HTTPS-Proxy eingerichtet: https://${DOMAIN}"
+    if [ -n "${ALIAS_DOMAINS}" ]; then
+        echo "Weiterleitung auf https://${DOMAIN}: ${ALIAS_DOMAINS//,/, }"
+    fi
 
     service_override_tmp="$(mktemp)"
     {

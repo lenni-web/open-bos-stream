@@ -29,6 +29,7 @@ def server_access_settings() -> dict[str, str]:
 
     settings = {
         "public_domain": "",
+        "alias_domains": "",
         "https_enabled": "no",
         "webrtc_mode": "local",
         "firewall_mode": "off",
@@ -42,6 +43,7 @@ def server_access_settings() -> dict[str, str]:
 
     keys = {
         "PUBLIC_DOMAIN": "public_domain",
+        "ALIAS_DOMAINS": "alias_domains",
         "HTTPS_ENABLED": "https_enabled",
         "WEBRTC_MODE": "webrtc_mode",
         "FIREWALL_MODE": "firewall_mode",
