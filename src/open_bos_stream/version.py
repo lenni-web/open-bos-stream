@@ -2,6 +2,6 @@
 Open BOS Drohnen Version
 """
 APP_NAME = "Open BOS Drohnen"
-VERSION = "0.26.7"
+VERSION = "0.26.8"
 
 __version__ = VERSION

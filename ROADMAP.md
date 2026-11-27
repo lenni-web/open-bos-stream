@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.26.8** (2026-11-27): Luftbildkacheln werden gespeichert, Drohnenprofile
+  erklärt, deutlichere Raster und Flächen, Logo bei Push-Meldungen
 - **0.26.7** (2026-11-27): Einsatzkarte schätzt Flächengröße, Flugzeit und
   Akkus für Raster, Flächen und Quadranten
 - **0.26.6** (2026-11-27): Wehren pflegen eigene Checklisten, Zuständigkeit

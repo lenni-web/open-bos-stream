@@ -9,6 +9,13 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.26.8] - 2026-11-27
+
+Gespeicherte Luftbildkacheln, erklärte Drohnenprofile sowie deutlichere
+Raster und Flächen auf der Karte.
+
 ### Added
 
 - Luftbildkacheln werden dauerhaft auf dem Server gespeichert (Standard

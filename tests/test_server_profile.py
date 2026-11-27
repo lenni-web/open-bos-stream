@@ -16,7 +16,7 @@ def read(path: str) -> str:
 
 
 def test_release_version_is_0_12_1() -> None:
-    assert VERSION == "0.26.7"
+    assert VERSION == "0.26.8"
 
 
 def test_server_profile_can_be_selected_from_environment(
