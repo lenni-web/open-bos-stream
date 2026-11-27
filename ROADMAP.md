@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.24.0** (2026-11-27): Einsatzkarte mit live abgeglichenen Quadranten,
+  Kennzeichnung von Übungen
 - **0.23.0** (2026-11-27): Einsätze mit Alarmierung, beteiligten Wehren,
   Personen, Drohnen, Wetter, Aufnahmen, Verlauf, Bericht und Einsatz-Gastlinks
 - **0.22.0** (2026-11-27): Push-Benachrichtigungen pro Gerät, Menüpunkt
@@ -209,7 +211,7 @@ Schwerpunkt bleiben Drohnen und Drohneneinsätze. Geplante Reihenfolge:
    von Aufnahmen, Snapshots und Ereignissen, Einsatzbericht als PDF;
    Zusammenarbeit mehrerer Wehren, Einsatz-Gastlinks ✔
 6. **0.24** Einsatzkarte mit Quadranten: zeichnen, benennen, Status; für
-   alle Beteiligten sofort sichtbar
+   alle Beteiligten sofort sichtbar; Übungen kennzeichnen ✔
 7. **0.25+** DJI Cloud API (Pilot 2, Enterprise-Drohnen wie Matrice 30/350/4T
    und Mavic 3T): Live-Telemetrie auf der Karte, Kartenelemente und
    Quadranten in beide Richtungen
