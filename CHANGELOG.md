@@ -9,6 +9,10 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.21.1] - 2026-11-27
+
 ### Fixed
 
 - Abmelden im Benutzermenü funktionierte seit 0.21.0 nicht mehr.

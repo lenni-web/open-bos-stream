@@ -57,6 +57,7 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.21.1** (2026-11-27): Abmelden repariert, eigener Menüpunkt Organisation
 - **0.21.0** (2026-11-27): Organisationen (Landkreis, Samtgemeinden, Ortswehren),
   Rollen, Fernpilotennachweise, Quellen je Wehr; eigene Seite Livebilder
 - **0.20.5** (2026-11-26): Name in der Oberfläche „Open BOS Drohnen“
