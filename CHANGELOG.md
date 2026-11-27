@@ -9,6 +9,13 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.26.4] - 2026-11-27
+
+Mediathek nach Drohne filterbar und kompakter, „Quellen“ heißen jetzt
+„Drohnen“, Wetter unter der Karte.
+
 ### Added
 
 - Seite „Aufnahmen“: Die Mediathek lässt sich nach Drohne filtern,
