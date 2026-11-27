@@ -10,6 +10,8 @@
 const INCIDENT_MAP_POLL_MS = 2000;
 const INCIDENT_MAP_LIST_MS = 30000;
 const INCIDENT_MAP_STORAGE = "openBosIncidentMap";
+// Auswahlwert für den Freitext; kann kein Drohnenname sein.
+const INCIDENT_MAP_MANUAL = "__manual__";
 
 const INCIDENT_MAP_COLORS = {
     open: "#5b6b82",
@@ -33,6 +35,8 @@ const incidentMap = {
     polygonClosed: false,
     gridCorners: null,
     selectedItem: null,
+    // Vorhandene Drohnen für „Zuständig“.
+    drones: {dji: [], sources: []},
     labels: [],
     positionMarker: null,
     fitted: null,
@@ -405,6 +409,62 @@ function incidentMapToolsHTML() {
     </div>`;
 }
 
+// Namen der Drohnen, die als Zuständige wählbar sind.
+async function incidentMapLoadDrones() {
+    const [dji, sources] = await Promise.allSettled([
+        incidentMapFetch("/api/dji/devices"),
+        incidentMapFetch("/api/drones/sources"),
+    ]);
+    const names = values => [...new Set(values.map(value => String(value || "").trim().slice(0, 80)))]
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b, "de"));
+    if (dji.status === "fulfilled") {
+        incidentMap.drones.dji = names((dji.value.devices ?? [])
+            .filter(item => item.kind === "aircraft" && !item.blocked)
+            .map(item => item.name || item.model));
+    }
+    if (sources.status === "fulfilled") {
+        incidentMap.drones.sources = names((sources.value.sources ?? [])
+            .filter(item => item.enabled)
+            .map(item => item.name));
+    }
+    // Nur die Auswahlliste auffrischen, laufende Eingaben bleiben erhalten.
+    const select = document.getElementById("incident-assignee-choice");
+    if (select) {
+        const manual = select.value === INCIDENT_MAP_MANUAL;
+        const input = document.getElementById("incident-assignee");
+        select.innerHTML = incidentMapAssigneeOptions(input.value, manual && select.dataset.chosen === "1");
+        input.hidden = select.value !== INCIDENT_MAP_MANUAL;
+    }
+}
+
+function incidentMapAssigneeOptions(current, manual = false) {
+    const {dji, sources} = incidentMap.drones;
+    const known = new Set([...dji, ...sources]);
+    const selected = manual || (current && !known.has(current)) ? INCIDENT_MAP_MANUAL : current;
+    const option = (value, label) =>
+        `<option value="${escapeHTML(value)}" ${value === selected ? "selected" : ""}>${escapeHTML(label)}</option>`;
+    const group = (label, names) => names.length
+        ? `<optgroup label="${label}">${names.map(name => option(name, name)).join("")}</optgroup>`
+        : "";
+    return option("", "– niemand –") +
+        group("DJI-Drohnen", dji) +
+        group("Drohnen mit Livebild", sources.filter(name => !dji.includes(name))) +
+        option(INCIDENT_MAP_MANUAL, "Drohne / Trupp manuell eingeben …");
+}
+
+// Das Textfeld trägt immer den Wert, der gespeichert wird.
+function incidentMapChooseAssignee(select) {
+    const input = document.getElementById("incident-assignee");
+    const manual = select.value === INCIDENT_MAP_MANUAL;
+    select.dataset.chosen = "1";
+    input.hidden = !manual;
+    input.value = manual ? "" : select.value;
+    if (manual) {
+        input.focus();
+    }
+}
+
 function incidentMapItemHTML() {
     const item = (incidentMap.data?.items ?? []).find(entry => entry.id === incidentMap.selectedItem);
     if (!item) {
@@ -423,9 +483,14 @@ function incidentMapItemHTML() {
             <label>Name <input class="bos-input" name="name" maxlength="40" value="${escapeHTML(item.name)}" required></label>
             <label>Status <select class="bos-input" name="status">${incidentMapStatusOptions(item.status)}</select></label>
         </div>
-        <label>Zuständig (Drohne / Trupp)
-            <input class="bos-input" name="assignee" maxlength="80" value="${escapeHTML(item.assignee)}" placeholder="z. B. Drohne 1">
+        <label>Zuständig
+            <select id="incident-assignee-choice" class="bos-input" onchange="incidentMapChooseAssignee(this)">
+                ${incidentMapAssigneeOptions(item.assignee)}
+            </select>
         </label>
+        <input id="incident-assignee" class="bos-input" name="assignee" maxlength="80"
+            value="${escapeHTML(item.assignee)}" placeholder="z. B. Trupp 1" aria-label="Drohne / Trupp"
+            ${[...incidentMap.drones.dji, ...incidentMap.drones.sources].includes(item.assignee) || !item.assignee ? "hidden" : ""}>
         <label>Notiz
             <input class="bos-input" name="note" maxlength="300" value="${escapeHTML(item.note)}">
         </label>
@@ -768,6 +833,9 @@ function incidentMapSelectItem(id) {
         const panel = incidentMapPanel();
         if (panel) {
             panel.open = true;
+        }
+        if (incidentMap.canEdit) {
+            incidentMapLoadDrones();
         }
     }
 }

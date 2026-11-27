@@ -99,3 +99,17 @@ def test_map_api_sync_and_guest_view(api, tmp_path: Path) -> None:  # noqa: F811
     guest_map = api.get("/guest/incident-map").json()
     assert len(guest_map["items"]) == 4 and guest_map["can_edit"] is False
     assert api.post(f"/api/incidents/{incident_id}/map/items", json={"name": "X", "geometry": {}}).status_code == 403
+
+
+def test_assignee_can_be_picked_from_drones_or_typed() -> None:
+    script = (
+        Path(__file__).resolve().parents[1]
+        / "src" / "open_bos_stream" / "static" / "js" / "map-incident.js"
+    ).read_text(encoding="utf-8")
+
+    assert "/api/dji/devices" in script
+    assert "/api/drones/sources" in script
+    assert 'id="incident-assignee-choice"' in script
+    assert "Drohne / Trupp manuell eingeben" in script
+    # Das Formular speichert weiterhin das Feld „assignee“.
+    assert 'name="assignee"' in script

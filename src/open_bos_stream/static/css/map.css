@@ -461,6 +461,10 @@ html[data-color-scheme="dark"] .map-layer-legend small {
     min-width: 0;
 }
 
+.incident-map-item input[hidden] {
+    display: none;
+}
+
 .incident-map-form,
 .incident-map-item {
     display: grid;

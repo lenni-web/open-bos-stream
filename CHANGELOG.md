@@ -9,6 +9,12 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Einsatzkarte: „Zuständig“ eines Quadranten wird aus den vorhandenen
+  Drohnen (DJI-Drohnen und Drohnen mit Livebild) ausgewählt; „Drohne / Trupp
+  manuell eingeben“ bleibt als Option für alles andere.
+
 ---
 
 ## [0.26.5] - 2026-11-27
