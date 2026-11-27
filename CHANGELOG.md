@@ -11,6 +11,18 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.26.9] - 2026-11-27
+
+Eigene Dokumente je Organisation.
+
+### Added
+
+- Dokumente: Jede Organisation legt eigene Unterlagen ab, die nur sie selbst
+  (und übergeordnete Ebenen) sieht; Dokumente des Landkreises gelten weiter
+  für alle.
+
+---
+
 ## [0.26.8] - 2026-11-27
 
 Gespeicherte Luftbildkacheln, erklärte Drohnenprofile sowie deutlichere

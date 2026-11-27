@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.26.9** (2026-11-27): Jede Organisation legt eigene Dokumente ab,
+  Roadmap für 0.27 und 0.28
 - **0.26.8** (2026-11-27): Luftbildkacheln werden gespeichert, Drohnenprofile
   erklärt, deutlichere Raster und Flächen, Logo bei Push-Meldungen
 - **0.26.7** (2026-11-27): Einsatzkarte schätzt Flächengröße, Flugzeit und
@@ -257,11 +259,17 @@ Schwerpunkt bleiben Drohnen und Drohneneinsätze. Geplante Reihenfolge:
    alle Beteiligten sofort sichtbar; Übungen kennzeichnen ✔
 7. **0.25** Checklisten-Modul: Vorlagen des Landkreises, eigene Listen der
    Wehren, Checklisten im Einsatz mit Pflichtpositionen, Dokumente ✔
-8. **0.26+** (0.26.0: Anbindung, Telemetrie, Aufzeichnung ✔; offen: Test mit
-   Mavic 3T, Livebild-Zuordnung, Kartenelemente) DJI Cloud API (Pilot 2, Enterprise-Drohnen wie Matrice 30/350/4T
-   und Mavic 3T): Live-Telemetrie auf der Karte, Kartenelemente und
-   Quadranten in beide Richtungen
-9. **1.0** Umbenennung in „Open BOS“ mit Migrationsskript, Dokumenten-Modul
+8. **0.26** DJI Cloud API (Pilot 2, Enterprise-Drohnen): Anbindung,
+   Live-Telemetrie auf der Karte, Aufzeichnung je Einsatz ✔; offen:
+   Verbindungstest mit echter Hardware (Mavic 3T)
+9. **0.27** Lagebild auf der Fernsteuerung:
+   - 0.27.0: Quadranten mit Status auf der Karte in Pilot 2
+   - 0.27.1: andere Drohnen und freiwillig geteilte Standorte in Pilot 2
+10. **0.28** Quadranten abfliegen: Quadrant als Flugroute in Pilot 2 wählen,
+    Start immer durch den Fernpiloten; danach in Pilot 2 gezeichnete
+    Elemente übernehmen und Livebild der DJI-Drohne zuordnen
+11. **1.0** Umbenennung in „Open BOS“ mit Migrationsskript, Dokumenten-Modul
+    (Ablage je Organisation seit 0.26.9 vorhanden; weiterer Ausbau offen)
 
 ---
 
