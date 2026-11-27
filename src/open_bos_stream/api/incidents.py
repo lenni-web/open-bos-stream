@@ -163,7 +163,8 @@ def _detail(user: dict, incident_id: int) -> dict:
         ]
         detail["checklist_templates"] = [
             {"id": item["id"], "title": item["title"], "item_count": item["item_count"]}
-            for item in ChecklistService(service).templates()
+            for item in ChecklistService(service).visible_templates(user)
+            if not item["archived"]
         ]
         detail["guest_links"] = [
             link.public() for link in guest_link_store.list()

@@ -571,7 +571,7 @@ function renderIncidentChecklists(detail) {
             </ul>` : '<p class="incident-empty">Noch keine Checkliste in diesem Einsatz.</p>'}
             ${canAdd ? `
                 <div class="org-inline-add">
-                    <select id="incident-add-checklist" class="bos-input" aria-label="Vorlage">
+                    <select id="incident-add-checklist" class="bos-input" aria-label="Checkliste">
                         ${templates.map(item => `<option value="${Number(item.id)}">${escapeHTML(item.title)} (${item.item_count})</option>`).join("")}
                         <option value="">Leere Liste</option>
                     </select>

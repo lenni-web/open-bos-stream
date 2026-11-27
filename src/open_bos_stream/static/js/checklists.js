@@ -1,5 +1,5 @@
 // ==========================================================
-// Checklisten-Modul: Listen, Vorlagen, Dokumente
+// Checklisten-Modul: Durchführen, Erstellen & Bearbeiten, Dokumente
 // ==========================================================
 
 const CHECKLIST_POLL_MS = 5000;
@@ -9,9 +9,9 @@ const checklistState = {
     overview: null,
     openId: null,
     detail: null,
-    editingTemplate: null,   // {id|null, title, description, items:[...]}
+    editingTemplate: null,   // {id|null, organizationId, title, description, items:[...]}
     viewTemplateDetail: null,
-    creating: false,
+    adjusting: false,        // Positionen einer Durchführung anpassen
     documents: null,
     message: "",
     error: false,
@@ -62,7 +62,7 @@ function checklistBusy() {
     const focused = document.activeElement;
     return Boolean(root && focused && root.contains(focused) &&
         ["INPUT", "TEXTAREA", "SELECT"].includes(focused.tagName)) ||
-        Boolean(checklistState.editingTemplate) || checklistState.creating;
+        Boolean(checklistState.editingTemplate);
 }
 
 // ----------------------------------------------------------
@@ -146,7 +146,7 @@ function showChecklistTab(tab) {
     checklistState.detail = null;
     checklistState.editingTemplate = null;
     checklistState.viewTemplateDetail = null;
-    checklistState.creating = false;
+    checklistState.adjusting = false;
     setChecklistMessage("");
     document.querySelectorAll("[data-checklist-tab]").forEach(button => {
         button.setAttribute("aria-selected", String(button.dataset.checklistTab === tab));
@@ -162,6 +162,7 @@ function openChecklist(id) {
     });
     checklistState.openId = Number(id);
     checklistState.detail = null;
+    checklistState.adjusting = false;
     setChecklistMessage("");
     if (typeof showPage === "function" && !document.getElementById("page-checklists")?.classList.contains("active")) {
         showPage("checklists");
@@ -173,6 +174,7 @@ function openChecklist(id) {
 function closeChecklist() {
     checklistState.openId = null;
     checklistState.detail = null;
+    checklistState.adjusting = false;
     setChecklistMessage("");
     refreshChecklists();
 }
@@ -200,40 +202,43 @@ function checklistCard(item) {
         </li>`;
 }
 
-function renderChecklistCreateForm() {
+function templateMeta(item) {
+    return `${item.shared ? "Landkreis" : escapeHTML(item.organization_name)} · ${item.item_count} ${item.item_count === 1 ? "Position" : "Positionen"}${
+        item.required_count ? `, ${item.required_count} Pflicht` : ""}`;
+}
+
+function renderChecklistStart() {
     const overview = checklistState.overview;
-    if (!checklistState.creating || !overview) {
+    const templates = overview.templates.filter(item => !item.archived);
+    const organizations = overview.organizations;
+    if (!organizations.length) {
         return "";
     }
-    const templates = overview.templates.filter(item => !item.archived);
     return `
-        <form class="org-form incident-form" onsubmit="createChecklist(event)">
-            <h3>Neue Checkliste</h3>
-            <div class="form-grid">
+        <section class="bos-card incident-section">
+            <h2>Checkliste durchführen</h2>
+            ${organizations.length > 1 && templates.some(item => item.shared) ? `
                 <label class="form-field">
-                    <span>Wehr</span>
-                    <select class="bos-input" name="organization_id" required>
-                        ${overview.organizations.map(org => `<option value="${Number(org.id)}">${escapeHTML(org.name)}</option>`).join("")}
+                    <span>Für welche Wehr? (eigene Checklisten laufen immer für ihre Wehr)</span>
+                    <select class="bos-input" id="checklist-run-organization">
+                        ${organizations.map(org => `<option value="${Number(org.id)}">${escapeHTML(org.name)}</option>`).join("")}
                     </select>
-                </label>
-                <label class="form-field">
-                    <span>Grundlage</span>
-                    <select class="bos-input" name="template_id">
-                        ${templates.map(item => `<option value="${Number(item.id)}">Vorlage: ${escapeHTML(item.title)}</option>`).join("")}
-                        <option value="">Eigene Liste (ohne Vorlage)</option>
-                    </select>
-                </label>
-                <label class="form-field form-field-wide">
-                    <span>Titel (leer = Titel der Vorlage)</span>
-                    <input class="bos-input" name="title" maxlength="120" placeholder="z. B. Gerätecheck Drohne 1">
-                </label>
-            </div>
+                </label>` : ""}
+            ${templates.length ? `<ul class="org-memberships template-list">
+                ${templates.map(item => `
+                    <li>
+                        <span>
+                            <strong>${escapeHTML(item.title)}</strong>
+                            <small class="is-muted">${templateMeta(item)}</small>
+                        </span>
+                        <span class="org-row-actions">
+                            <button class="bos-button bos-button-small bos-button-green" type="button"
+                                onclick="startChecklist(${Number(item.id)})">Starten</button>
+                        </span>
+                    </li>`).join("")}
+            </ul>` : '<p class="incident-empty">Noch keine Checkliste vorhanden – unter „Erstellen &amp; Bearbeiten“ anlegen.</p>'}
             <p class="incident-hint">Checklisten für einen Einsatz werden direkt auf der Einsatzseite hinzugefügt.</p>
-            <div class="org-form-actions">
-                <button class="bos-button bos-button-small bos-button-green" type="submit">Anlegen</button>
-                <button class="bos-button bos-button-small" type="button" onclick="toggleChecklistCreate(false)">Abbrechen</button>
-            </div>
-        </form>`;
+        </section>`;
 }
 
 function renderChecklistList() {
@@ -245,16 +250,12 @@ function renderChecklistList() {
     const done = overview.checklists.filter(item => item.status === "completed" || item.incident?.status === "closed");
     return `
         ${checklistMessageHTML()}
-        <section class="bos-card incident-section">
-            <div class="org-block-header">
-                <h2>Offene Checklisten</h2>
-                ${overview.organizations.length && !checklistState.creating ? `
-                    <button class="bos-button" type="button" onclick="toggleChecklistCreate(true)">＋ Neue Checkliste</button>` : ""}
-            </div>
-            ${renderChecklistCreateForm()}
-            ${open.length ? `<ul class="incident-cards">${open.map(checklistCard).join("")}</ul>`
-                : '<p class="incident-empty">Keine offene Checkliste.</p>'}
-        </section>
+        ${open.length ? `
+            <section class="bos-card incident-section">
+                <h2>Läuft gerade</h2>
+                <ul class="incident-cards">${open.map(checklistCard).join("")}</ul>
+            </section>` : ""}
+        ${renderChecklistStart()}
         <section class="bos-card incident-section">
             <h2>Abgeschlossen</h2>
             ${done.length ? `<ul class="incident-cards is-compact">${done.map(checklistCard).join("")}</ul>`
@@ -275,7 +276,7 @@ function groupChecklistItems(items) {
     return groups;
 }
 
-function renderChecklistItem(item, editable) {
+function renderChecklistItem(item, editable, adjusting) {
     return `
         <li class="checklist-item ${item.checked ? "is-checked" : ""} ${item.required && !item.checked ? "is-required-open" : ""}">
             <label class="checklist-check">
@@ -296,7 +297,7 @@ function renderChecklistItem(item, editable) {
                     : item.note ? `<p>${escapeHTML(item.note)}</p>` : ""}
                 ${item.note && item.note_by ? `<small class="checklist-meta">${escapeHTML(item.note_by)} · ${escapeHTML(checklistTime(item.note_at))}</small>` : ""}
             </div>
-            ${editable ? `<button class="checklist-remove" type="button" title="Position entfernen"
+            ${adjusting ? `<button class="checklist-remove" type="button" title="Position entfernen"
                 onclick="removeChecklistItem(${Number(item.id)})">✕</button>` : ""}
         </li>`;
 }
@@ -309,6 +310,8 @@ function renderChecklistDetail() {
     const can = list.can || {};
     const editable = Boolean(can.edit);
     const incident = list.incident;
+    // Leere Listen (z. B. frei im Einsatz angelegt) direkt zum Füllen öffnen.
+    const adjusting = editable && (checklistState.adjusting || !list.items.length);
     const locked = !editable && (list.status === "completed" || incident?.status === "closed");
     const actions = [];
     if (!list.incident_id && list.status === "open" && editable) {
@@ -320,12 +323,16 @@ function renderChecklistDetail() {
     if (incident) {
         actions.push(`<button class="bos-button bos-button-small" type="button" onclick="openIncident(${Number(incident.id)})">Zum Einsatz</button>`);
     }
+    if (editable && list.items.length) {
+        actions.push(`<button class="bos-button bos-button-small" type="button" aria-pressed="${adjusting}"
+            onclick="toggleChecklistAdjust()">${adjusting ? "Anpassen beenden" : "Positionen anpassen"}</button>`);
+    }
     if (editable) {
         actions.push(`<button class="bos-button bos-button-small app-logout" type="button" onclick="deleteChecklist()">Löschen</button>`);
     }
     return `
         <div class="incident-topline">
-            <button class="incident-back" type="button" onclick="closeChecklist()">← Alle Checklisten</button>
+            <button class="incident-back" type="button" onclick="closeChecklist()">← Zur Übersicht</button>
         </div>
         ${checklistMessageHTML()}
         <section class="bos-card incident-head">
@@ -350,9 +357,9 @@ function renderChecklistDetail() {
         <section class="bos-card incident-section">
             ${list.items.length ? groupChecklistItems(list.items).map(group => `
                 ${group.section ? `<h3 class="checklist-section">${escapeHTML(group.section)}</h3>` : ""}
-                <ul class="checklist-items">${group.items.map(item => renderChecklistItem(item, editable)).join("")}</ul>
+                <ul class="checklist-items">${group.items.map(item => renderChecklistItem(item, editable, adjusting)).join("")}</ul>
             `).join("") : '<p class="incident-empty">Noch keine Positionen.</p>'}
-            ${editable ? `
+            ${adjusting ? `
                 <form class="org-inline-add checklist-add" onsubmit="addChecklistItem(event)">
                     <input class="bos-input" name="section" maxlength="80" placeholder="Abschnitt (optional)">
                     <input class="bos-input" name="text" maxlength="300" required placeholder="Neue Position">
@@ -387,7 +394,16 @@ function renderTemplateEditor() {
         ${checklistMessageHTML()}
         <section class="bos-card incident-section">
             <form class="incident-form" onsubmit="saveTemplate(event)">
-                <h2>${template.id ? "Vorlage bearbeiten" : "Neue Vorlage"}</h2>
+                <h2>${template.id ? "Checkliste bearbeiten" : "Neue Checkliste"}</h2>
+                ${template.id ? "" : `
+                    <label class="form-field">
+                        <span>Gilt für</span>
+                        <select class="bos-input" id="template-organization" required>
+                            ${checklistState.overview.template_owners.map(org => `
+                                <option value="${Number(org.id)}" ${org.id === template.organizationId ? "selected" : ""}>
+                                    ${org.shared ? `Alle Wehren (${escapeHTML(org.name)})` : `Nur ${escapeHTML(org.name)}`}</option>`).join("")}
+                        </select>
+                    </label>`}
                 <label class="form-field">
                     <span>Titel</span>
                     <input class="bos-input" id="template-title" maxlength="120" required value="${escapeHTML(template.title)}"
@@ -405,8 +421,8 @@ function renderTemplateEditor() {
                     <button class="bos-button bos-button-small" type="button" onclick="addTemplateItem()">＋ Position</button>
                 </div>
                 <p class="incident-hint">Gleicher Abschnitt hintereinander = eine Gruppe. „Pflicht“-Positionen
-                    werden beim Beenden eines Einsatzes angemahnt, wenn sie offen sind. Bereits angelegte
-                    Checklisten behalten ihren Stand.</p>
+                    werden beim Beenden eines Einsatzes angemahnt, wenn sie offen sind. Bereits gestartete
+                    Durchführungen behalten ihren Stand.</p>
                 <div class="org-form-actions">
                     <button class="bos-button bos-button-small bos-button-green" type="submit">Speichern</button>
                     <button class="bos-button bos-button-small" type="button" onclick="cancelTemplateEdit()">Abbrechen</button>
@@ -423,29 +439,28 @@ function renderTemplates() {
     if (checklistState.editingTemplate) {
         return renderTemplateEditor();
     }
-    const manage = overview.can_manage_templates;
+    const create = overview.template_owners.length > 0;
     const viewing = checklistState.viewTemplateDetail;
     return `
         ${checklistMessageHTML()}
         <section class="bos-card incident-section">
             <div class="org-block-header">
-                <h2>Vorlagen des Landkreises</h2>
-                ${manage ? '<button class="bos-button" type="button" onclick="startTemplateEdit(null)">＋ Neue Vorlage</button>' : ""}
+                <h2>Checklisten</h2>
+                ${create ? '<button class="bos-button" type="button" onclick="startTemplateEdit(null)">＋ Neue Checkliste</button>' : ""}
             </div>
-            <p class="incident-hint">${manage
-                ? "Vorlagen stehen allen Wehren zur Verfügung – im Einsatz und für eigene Listen."
-                : "Vorlagen pflegt der Landkreis. Eigene Listen legen Sie unter „Checklisten“ an."}</p>
+            <p class="incident-hint">Checklisten des Landkreises gelten für alle Wehren, eigene sieht nur die jeweilige Wehr.
+                Abgehakt wird unter „Durchführen“.</p>
             ${overview.templates.length ? `<ul class="org-memberships template-list">
                 ${overview.templates.map(item => `
                     <li class="${item.archived ? "is-muted" : ""}">
                         <span>
                             <strong>${escapeHTML(item.title)}</strong>
-                            <small class="is-muted">${item.item_count} Positionen${item.required_count ? `, ${item.required_count} Pflicht` : ""}
+                            <small class="is-muted">${templateMeta(item)}
                                 · Stand ${escapeHTML(checklistTime(item.updated_at))}${item.archived ? " · archiviert" : ""}</small>
                         </span>
                         <span class="org-row-actions">
                             <button class="bos-button bos-button-small" type="button" onclick="viewTemplate(${Number(item.id)})">Ansehen</button>
-                            ${manage ? `
+                            ${item.can_manage ? `
                                 <button class="bos-button bos-button-small" type="button" onclick="startTemplateEdit(${Number(item.id)})">Bearbeiten</button>
                                 <button class="bos-button bos-button-small" type="button" onclick="archiveTemplate(${Number(item.id)}, ${!item.archived})">
                                     ${item.archived ? "Reaktivieren" : "Archivieren"}</button>` : ""}
@@ -460,7 +475,7 @@ function renderTemplates() {
                                     ${entry.hint ? `<small>${escapeHTML(entry.hint)}</small>` : ""}</li>`).join("")}</ul>
                         `).join("")}
                     </li>` : ""}`).join("")}
-            </ul>` : '<p class="incident-empty">Noch keine Vorlagen.</p>'}
+            </ul>` : '<p class="incident-empty">Noch keine Checklisten.</p>'}
         </section>`;
 }
 
@@ -538,27 +553,27 @@ function renderChecklists() {
 // Aktionen: Listen
 // ----------------------------------------------------------
 
-function toggleChecklistCreate(open) {
-    checklistState.creating = open;
-    setChecklistMessage("");
-    renderChecklists();
-}
-
-async function createChecklist(event) {
-    event.preventDefault();
-    const data = new FormData(event.target);
+async function startChecklist(templateId) {
+    const overview = checklistState.overview;
+    const template = overview.templates.find(item => item.id === templateId);
+    const selected = document.getElementById("checklist-run-organization")?.value;
+    const own = template && !template.shared
+        && overview.organizations.some(org => org.id === template.organization_id);
     try {
         const result = await api.post("/api/checklists", {
-            organization_id: Number(data.get("organization_id")),
-            template_id: data.get("template_id") ? Number(data.get("template_id")) : null,
-            title: data.get("title"),
+            organization_id: own ? template.organization_id : Number(selected || overview.organizations[0].id),
+            template_id: templateId,
         });
-        checklistState.creating = false;
         openChecklist(result.checklist.id);
     } catch (error) {
         setChecklistMessage(error.message, true);
         renderChecklists();
     }
+}
+
+function toggleChecklistAdjust() {
+    checklistState.adjusting = !checklistState.adjusting;
+    renderChecklists();
 }
 
 async function checklistAction(request, message = "") {
@@ -646,6 +661,10 @@ function syncTemplateEditor() {
     if (!template || !document.getElementById("template-title")) {
         return;
     }
+    const organization = document.getElementById("template-organization");
+    if (organization) {
+        template.organizationId = Number(organization.value);
+    }
     template.title = document.getElementById("template-title").value;
     template.description = document.getElementById("template-description").value;
     template.items = readTemplateItems();
@@ -668,6 +687,7 @@ async function startTemplateEdit(id) {
     } else {
         checklistState.editingTemplate = {
             id: null,
+            organizationId: checklistState.overview.template_owners[0]?.id,
             title: "",
             description: "",
             items: [{section: "Vor dem Start", text: "", hint: "", required: false}],
@@ -720,10 +740,10 @@ async function saveTemplate(event) {
         if (template.id) {
             await api.put(`/api/checklists/templates/${template.id}`, payload);
         } else {
-            await api.post("/api/checklists/templates", payload);
+            await api.post("/api/checklists/templates", {...payload, organization_id: template.organizationId});
         }
         checklistState.editingTemplate = null;
-        setChecklistMessage("Vorlage gespeichert.");
+        setChecklistMessage("Checkliste gespeichert.");
         await loadChecklistOverview();
     } catch (error) {
         setChecklistMessage(error.message, true);
@@ -749,7 +769,7 @@ async function viewTemplate(id) {
 async function archiveTemplate(id, archived) {
     try {
         await api.put(`/api/checklists/templates/${id}`, {archived});
-        setChecklistMessage(archived ? "Vorlage archiviert." : "Vorlage reaktiviert.");
+        setChecklistMessage(archived ? "Checkliste archiviert." : "Checkliste reaktiviert.");
         await loadChecklistOverview();
     } catch (error) {
         setChecklistMessage(error.message, true);

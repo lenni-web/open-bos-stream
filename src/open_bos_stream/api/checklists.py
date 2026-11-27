@@ -90,8 +90,9 @@ async def overview(request: Request) -> dict:
     user = _user(request)
     service = _service()
     manager = service.can_manage_templates(user)
+    roots = await run_in_threadpool(service.org.root_ids)
     lists = await run_in_threadpool(service.visible, user)
-    templates = await run_in_threadpool(service.templates, include_archived=manager)
+    templates = await run_in_threadpool(service.visible_templates, user, include_archived=True)
     names = await run_in_threadpool(_org_names, service)
     return {
         "checklists": [item | {"organization_name": names.get(item["organization_id"], "?")} for item in lists],
@@ -99,8 +100,17 @@ async def overview(request: Request) -> dict:
             {key: item[key] for key in (
                 "id", "title", "description", "item_count", "required_count",
                 "version", "archived", "updated_at", "updated_by",
+                "organization_id", "can_manage",
             )}
+            | {
+                "organization_name": names.get(item["organization_id"], "?"),
+                "shared": item["organization_id"] in roots,
+            }
             for item in templates
+        ],
+        "template_owners": [
+            {"id": organization_id, "name": names.get(organization_id, "?"), "shared": organization_id in roots}
+            for organization_id in service.template_owners(user)
         ],
         "can_manage_templates": manager,
         "organizations": [
@@ -119,6 +129,7 @@ class TemplateIn(BaseModel):
     title: str = Field(max_length=120)
     description: str = Field(default="", max_length=2000)
     items: list[ItemIn] = Field(default_factory=list, max_length=200)
+    organization_id: int | None = None
 
 
 class TemplateUpdate(BaseModel):
@@ -130,10 +141,8 @@ class TemplateUpdate(BaseModel):
 
 @router.get("/templates/{template_id}")
 async def get_template(template_id: int, request: Request) -> dict:
-    _user(request)
-    template = await run_in_threadpool(_service().template, template_id)
-    if template is None:
-        raise HTTPException(status_code=404, detail="Vorlage nicht gefunden.")
+    user = _user(request)
+    template = await _call(_service().require_template, user, template_id)
     return {"template": template}
 
 

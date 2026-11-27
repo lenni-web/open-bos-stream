@@ -1,9 +1,11 @@
-"""Checklisten: Vorlagen des Landkreises, eigene Listen der Wehren, Einsatzlisten.
+"""Checklisten: wiederverwendbare Checklisten und ihre Durchführungen.
 
-* Vorlagen legen nur Konten mit Rolle Drohnenteam oder Admin auf
-  Landkreisebene (oberste Organisation) an.
-* Jede Wehr kann eigene Listen mit eigenen Positionen anlegen – aus einer
-  Vorlage oder komplett frei –, aber keine Vorlagen.
+Eine wiederverwendbare Checkliste heißt intern „Vorlage“ (Tabelle
+checklist_templates), eine Durchführung ist ein Eintrag in checklists.
+
+* Vorlagen der obersten Organisation (Landkreis) gelten für alle; sie pflegen
+  nur Drohnenteams und Admins auf Landkreisebene.
+* Jede Wehr pflegt zusätzlich eigene Vorlagen, die nur sie selbst sieht.
 * Listen in einem Einsatz folgen den Rechten des Einsatzes: Nach dem
   Abschluss des Einsatzes ändern sie nur noch Admins der führenden Wehr.
 * Eigene Listen ohne Einsatz lassen sich abschließen; danach ändern sie nur
@@ -110,6 +112,35 @@ class ChecklistService:
             return True
         return bool(set(user.get("org_operate") or []) & self.org.root_ids())
 
+    def can_view_template(self, user: dict | None, template: dict) -> bool:
+        if not user or user.get("role") == "guest":
+            return False
+        owner = template["organization_id"]
+        return (
+            _unrestricted(user)
+            or owner in self.org.root_ids()
+            or owner in set(user.get("org_view") or [])
+            or self.can_manage_template(user, owner)
+        )
+
+    def can_manage_template(self, user: dict | None, organization_id: int) -> bool:
+        """Landkreis-Vorlagen: Landkreisebene; Wehr-Vorlagen: Team/Admin der Wehr."""
+
+        if not user or user.get("role") == "guest":
+            return False
+        if organization_id in self.org.root_ids():
+            return self.can_manage_templates(user)
+        if _unrestricted(user):
+            return True
+        return organization_id in set(user.get("org_operate") or []) | set(user.get("org_admin") or [])
+
+    def template_owners(self, user: dict) -> list[int]:
+        """Organisationen, für die dieses Konto Vorlagen anlegen darf (Landkreis zuerst)."""
+
+        roots = self.org.root_ids()
+        result = [self.template_owner(user)] if self.can_manage_templates(user) else []
+        return result + [item for item in self.lead_options(user) if item not in roots]
+
     def template_owner(self, user: dict) -> int:
         roots = sorted(self.org.root_ids())
         own = [item for item in roots if item in set(user.get("org_operate") or [])]
@@ -181,14 +212,42 @@ class ChecklistService:
             ).first()
         return self._template_row(row) if row else None
 
-    def _require_manager(self, user: dict) -> None:
-        if not self.can_manage_templates(user):
-            raise ChecklistAccessError(
-                "Vorlagen pflegen Drohnenteams und Admins auf Landkreisebene."
-            )
+    def visible_templates(self, user: dict, *, include_archived: bool = False) -> list[dict]:
+        """Vorlagen, die dieses Konto sieht; archivierte nur, wenn es sie pflegt."""
 
-    def create_template(self, user: dict, *, title: str, description: str = "", items=None) -> dict:
-        self._require_manager(user)
+        result = []
+        for item in self.templates(include_archived=include_archived):
+            if not self.can_view_template(user, item):
+                continue
+            manage = self.can_manage_template(user, item["organization_id"])
+            if item["archived"] and not manage:
+                continue
+            result.append(item | {"can_manage": manage})
+        return result
+
+    def require_template(self, user: dict, template_id: int, *, manage: bool = False) -> dict:
+        template = self.template(template_id)
+        if template is None or not self.can_view_template(user, template):
+            raise LookupError("Checkliste nicht gefunden.")
+        if manage and not self.can_manage_template(user, template["organization_id"]):
+            raise ChecklistAccessError(
+                "Landkreis-Checklisten pflegt der Landkreis, eigene das Drohnenteam der Wehr."
+            )
+        return template
+
+    def create_template(
+        self, user: dict, *, title: str, description: str = "", items=None,
+        organization_id: int | None = None,
+    ) -> dict:
+        """Ohne organization_id: Checkliste des Landkreises."""
+
+        if organization_id is None:
+            organization_id = self.template_owner(user)
+        known = {item["id"] for item in self.org.organizations(include_archived=False)}
+        if organization_id not in known or not self.can_manage_template(user, organization_id):
+            raise ChecklistAccessError(
+                "Landkreis-Checklisten pflegt der Landkreis, eigene das Drohnenteam der Wehr."
+            )
         values = {
             "title": _text(title, 120, "Titel", required=True),
             "description": str(description or "").strip()[:2000],
@@ -198,7 +257,7 @@ class ChecklistService:
         with self._engine.begin() as connection:
             template_id = connection.execute(
                 insert(checklist_templates).values(
-                    organization_id=self.template_owner(user),
+                    organization_id=organization_id,
                     version=1,
                     archived=False,
                     created_by=_actor(user),
@@ -212,10 +271,7 @@ class ChecklistService:
         return self.template(template_id)
 
     def update_template(self, user: dict, template_id: int, **changes) -> dict:
-        self._require_manager(user)
-        current = self.template(template_id)
-        if current is None:
-            raise LookupError("Vorlage nicht gefunden.")
+        current = self.require_template(user, template_id, manage=True)
         values = {}
         if changes.get("title") is not None:
             values["title"] = _text(changes["title"], 120, "Titel", required=True)
@@ -241,10 +297,7 @@ class ChecklistService:
         return self.template(template_id)
 
     def delete_template(self, user: dict, template_id: int) -> None:
-        self._require_manager(user)
-        current = self.template(template_id)
-        if current is None:
-            raise LookupError("Vorlage nicht gefunden.")
+        current = self.require_template(user, template_id, manage=True)
         with self._engine.begin() as connection:
             connection.execute(delete(checklist_templates).where(checklist_templates.c.id == template_id))
         self.org.audit(_actor(user), "Checklisten-Vorlage gelöscht", current["title"])
@@ -335,7 +388,7 @@ class ChecklistService:
         template = None
         if template_id is not None:
             template = self.template(template_id)
-            if template is None or template["archived"]:
+            if template is None or template["archived"] or not self.can_view_template(user, template):
                 raise ChecklistError("Vorlage nicht gefunden.")
         if incident_id is not None:
             incident = self.incidents.require(user, incident_id, edit=True)

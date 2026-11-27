@@ -40,6 +40,36 @@ def test_only_landkreis_roles_manage_templates(setup, service) -> None:  # noqa:
     assert changed["version"] == 2
 
 
+def test_wehr_templates_are_private_and_reusable(setup, service) -> None:  # noqa: F811
+    team = session(setup.auth, "b-team")
+    b = setup.ids["b"]
+    shared = service.create_template(session(setup.auth, "kreis"), title="Landkreis", items=ITEMS)
+    own = service.create_template(team, organization_id=b, title="Gerätewagen", items=ITEMS)
+    assert service.template_owners(team) == [b]
+    assert {item["title"]: item["can_manage"] for item in service.visible_templates(team)} == {
+        "Gerätewagen": True, "Landkreis": False,
+    }
+    assert [item["title"] for item in service.visible_templates(session(setup.auth, "a-admin"))] == ["Landkreis"]
+    viewer = session(setup.auth, "b-zuschauer")
+    assert service.template_owners(viewer) == []
+    with pytest.raises(ChecklistAccessError):
+        service.update_template(viewer, own["id"], title="x")
+    with pytest.raises(ChecklistAccessError):
+        service.update_template(team, shared["id"], title="x")
+    with pytest.raises(ChecklistAccessError):
+        service.create_template(team, organization_id=setup.ids["a"], title="Fremd")
+    # Fremde Wehren können die Liste weder lesen, ändern noch durchführen.
+    other = session(setup.auth, "a-admin")
+    with pytest.raises(LookupError):
+        service.require_template(other, own["id"])
+    with pytest.raises(LookupError):
+        service.delete_template(other, own["id"])
+    with pytest.raises(ChecklistError):
+        service.create(other, organization_id=setup.ids["a"], template_id=own["id"])
+    for _ in range(2):
+        assert service.create(team, organization_id=b, template_id=own["id"])["done"] == 0
+
+
 def test_wehr_creates_own_list_without_template(setup, service) -> None:  # noqa: F811
     team = session(setup.auth, "b-team")
     own = service.create(team, organization_id=setup.ids["b"], title="Gerätecheck Drohne 1",

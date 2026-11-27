@@ -11,12 +11,17 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ### Added
 
+- Checklisten: Wehren erstellen eigene wiederverwendbare Checklisten, die nur
+  sie selbst sehen; Landkreis-Checklisten gelten weiter für alle.
 - Einsatzkarte: „Zuständig“ eines Quadranten wird aus den vorhandenen
   Drohnen (DJI-Drohnen und Drohnen mit Livebild) ausgewählt; „Drohne / Trupp
   manuell eingeben“ bleibt als Option für alles andere.
 
 ### Changed
 
+- Checklisten sind in „Durchführen“ (Checkliste starten und abhaken) und
+  „Erstellen & Bearbeiten“ getrennt. Positionen einer laufenden Durchführung
+  ändert man nur über „Positionen anpassen“.
 - Das Drohnen-Symbol im Menü ähnelt jetzt der Drohne im Logo.
 
 ---

@@ -348,8 +348,8 @@ class OrgService:
         except IntegrityError as exc:
             # z. B. Einsätze, die diese Wehr geführt hat oder an denen sie beteiligt war.
             raise OrgError(
-                "Diese Organisation kommt in Einsätzen vor und bleibt für die "
-                "Dokumentation erhalten. Bitte archivieren."
+                "Diese Organisation kommt in Einsätzen oder Checklisten vor und "
+                "bleibt für die Dokumentation erhalten. Bitte archivieren."
             ) from exc
         self.audit(actor, "Organisation gelöscht", current["name"], current["parent_id"])
 
