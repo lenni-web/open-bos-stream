@@ -57,6 +57,9 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.26.14** (2026-11-28): Drohnenteams lösen Aufnahme und Snapshot selbst
+  aus, beteiligte Wehren entfernt nur die führende Wehr, Beteiligung mit
+  von–bis auch im Einsatzbericht
 - **0.26.13** (2026-11-28): Wetter am passenden Ort (Einsatz, eigene Wache
   oder Gerätestandort), Radar folgt dem Ort
 - **0.26.12** (2026-11-28): Organisationsseite listet je Organisation die

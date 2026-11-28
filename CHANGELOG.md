@@ -11,6 +11,28 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.26.14] - 2026-11-28
+
+Neue Regeln im Einsatz und für Aufnahmen; Beteiligung von Wehren mit Zeitraum.
+Das Update bringt die Datenbank-Migration 0009 mit.
+
+### Added
+
+- Beteiligte Wehren werden mit Zeitraum (von–bis) dokumentiert: Entfernte
+  Wehren stehen auf der Einsatzseite unter „Vorher beteiligt“, der
+  Einsatzbericht listet alle Zeiträume. Bereits früher entfernte Wehren
+  erscheinen nur im Verlauf.
+
+### Changed
+
+- Drohnenteams lösen für die Drohnen ihrer Wehr selbst Snapshots aus und
+  starten und stoppen Aufnahmen (bisher nur Superadmins).
+- Beteiligte Wehren entfernt nur die führende Wehr aus einem Einsatz; eine
+  Wehr kann sich nicht selbst entfernen (Dokumentation). Drohnen nimmt die
+  führende Wehr oder das Drohnenteam der jeweiligen Wehr heraus.
+
+---
+
 ## [0.26.13] - 2026-11-28
 
 Das Wetter richtet sich nach Einsatz, Wache oder Gerätestandort.
