@@ -343,6 +343,34 @@ def test_server_wide_settings_need_kreis_admin(api) -> None:
     assert api.get("/api/weather/settings").status_code == 200
 
 
+def test_hidden_source_profiles_cannot_be_chosen_anew(auth: AuthService) -> None:
+    from open_bos_stream.api.config import merge_sources
+
+    ids = build(auth)
+    kept = source("a1", ids["a"]).model_copy(update={"profile": "transcode"})
+    sg = session(auth, "sg-admin")
+    hidden = ["transcode"]
+
+    # Bestehende Drohnen behalten ihr verstecktes Profil.
+    renamed = kept.model_copy(update={"name": "Neu"})
+    assert merge_sources(sg, [kept], [renamed], hidden_profiles=hidden)[0].name == "Neu"
+
+    new = source("a2", ids["a"]).model_copy(update={"profile": "transcode"})
+    switched = source("a1", ids["a"]).model_copy(update={"profile": "transcode"})
+    for stored, incoming in (([], [new]), ([source("a1", ids["a"])], [switched])):
+        with pytest.raises(HTTPException) as error:
+            merge_sources(sg, stored, incoming, hidden_profiles=hidden)
+        assert error.value.status_code == 422
+
+
+def test_at_least_one_source_profile_stays_released() -> None:
+    from open_bos_stream.core.models import SOURCE_PROFILE_IDS, check_hidden_profiles
+
+    assert check_hidden_profiles(["transcode", "unbekannt"]) == ["transcode"]
+    with pytest.raises(ValueError):
+        check_hidden_profiles(list(SOURCE_PROFILE_IDS))
+
+
 def test_operator_may_create_guest_links_only_for_own_sources(api, monkeypatch, tmp_path) -> None:
     from open_bos_stream.core import container
 

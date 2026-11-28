@@ -690,6 +690,12 @@ ID sowie ein Verarbeitungsprofil:
   empfohlen für viele gleichzeitige Quellen oder knappere CPU-Reserven
 - `Transcodieren`: den pro Quelle gewählten Encoder verwenden
 
+Unter Einstellungen → „Empfangsprofile“ legen ausschließlich Superadmins per
+Haken fest, welche Profile beim RTMP-/SRT-Empfang allen Admins angeboten
+werden. Versteckte Profile sehen Wehr-Admins nicht und können sie auch nicht
+neu wählen; Drohnen, die ein solches Profil bereits nutzen, behalten es.
+Mindestens ein Profil bleibt freigegeben.
+
 Bei `Transcodieren` erscheinen Encoder, Bitrate, Pixelformat, GOP, Preset und
 Tune direkt innerhalb der betroffenen Quelle. Es gibt keine missverständliche
 globale Transcoding-Karte mehr; Quellen können unterschiedliche Einstellungen

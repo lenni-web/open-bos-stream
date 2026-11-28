@@ -38,14 +38,36 @@ const SOURCE_PROFILES = [
         "ein Bild nach Paketverlust. Hohe Serverlast."],
 ];
 
-function sourceProfiles(sourceType) {
+// Versteckte Empfangsprofile gelten nur für den RTMP-/SRT-Empfang.
+function isHiddenProfile(value, sourceType) {
+    return sourceType === "rtmp" &&
+        (currentConfig?.hidden_source_profiles ?? []).includes(value);
+}
+
+// Kreis-Admins und Superadmins sehen auch versteckte Profile (markiert),
+// alle anderen nur freigegebene und das bereits gewählte.
+function sourceProfiles(sourceType, selected) {
+    const all = Boolean(window.currentPermissions?.server_admin);
     return SOURCE_PROFILES.filter(([value]) => (
-        !value.startsWith("preview_") || sourceType === "rtmp"
-    ));
+        (!value.startsWith("preview_") || sourceType === "rtmp") &&
+        (all || value === selected || !isHiddenProfile(value, sourceType))
+    )).map(([value, label, text]) => [
+        value,
+        isHiddenProfile(value, sourceType) ? `${label} (versteckt)` : label,
+        text,
+    ]);
+}
+
+// Vorbelegung für neue Drohnen: das erste freigegebene Profil.
+function defaultSourceProfile(sourceType) {
+    const released = SOURCE_PROFILES.find(
+        ([value]) => !isHiddenProfile(value, sourceType)
+    );
+    return released?.[0] ?? "direct";
 }
 
 function sourceProfileOptions(selected, sourceType) {
-    return sourceProfiles(sourceType).map(([value, label]) => `
+    return sourceProfiles(sourceType, selected).map(([value, label]) => `
         <option
             value="${value}"
             ${value === selected ? "selected" : ""}>
@@ -57,7 +79,7 @@ function sourceProfileOptions(selected, sourceType) {
 function sourceProfileHelp(selected, sourceType) {
     return `
         <dl class="source-profile-help">
-            ${sourceProfiles(sourceType).map(([value, label, text]) => `
+            ${sourceProfiles(sourceType, selected).map(([value, label, text]) => `
                 <div class="${value === selected ? "is-selected" : ""}">
                     <dt>${label}</dt>
                     <dd>${text}</dd>
@@ -65,6 +87,52 @@ function sourceProfileHelp(selected, sourceType) {
             `).join("")}
         </dl>
     `;
+}
+
+// Einstellungen → „Empfangsprofile“: Haken = freigegeben.
+function renderSourceProfileRelease() {
+    const list = document.getElementById("source-profile-release");
+    if (!list || !currentConfig) {
+        return;
+    }
+    const hidden = currentConfig.hidden_source_profiles ?? [];
+    list.innerHTML = SOURCE_PROFILES.map(([value, label, text]) => `
+        <label class="switch-row">
+            <input type="checkbox" value="${value}"
+                ${hidden.includes(value) ? "" : "checked"}>
+            <span>
+                <strong>${label}</strong>
+                <small>${text}</small>
+            </span>
+        </label>
+    `).join("");
+}
+
+async function saveSourceProfileRelease() {
+    const button = document.getElementById("source-profile-release-save");
+    const status = document.getElementById("source-profile-release-status");
+    const hidden = Array.from(document.querySelectorAll(
+        "#source-profile-release input:not(:checked)"
+    )).map(input => input.value);
+    if (hidden.length === SOURCE_PROFILES.length) {
+        status.textContent = "Mindestens ein Profil muss freigegeben bleiben.";
+        return;
+    }
+    button.disabled = true;
+    status.textContent = "Wird gespeichert …";
+    try {
+        const result = await api.put("/config/source-profiles", {hidden});
+        // Ungespeicherte Eingaben auf der Drohnenseite behalten.
+        saveSources();
+        currentConfig.hidden_source_profiles = result.hidden;
+        renderSources();
+        renderSourceProfileRelease();
+        status.textContent = "Gespeichert.";
+    } catch (error) {
+        status.textContent = "Speichern fehlgeschlagen: " + error.message;
+    } finally {
+        button.disabled = false;
+    }
 }
 
 function generatePublisherToken() {
@@ -645,6 +713,17 @@ function renderSources() {
                 ) {
                     currentConfig.sources[index].profile = "direct";
                 }
+                // Beim Wechsel zum Empfang kein verstecktes Profil mitnehmen.
+                if (
+                    !window.currentPermissions?.server_admin &&
+                    isHiddenProfile(
+                        currentConfig.sources[index].profile,
+                        event.target.value
+                    )
+                ) {
+                    currentConfig.sources[index].profile =
+                        defaultSourceProfile(event.target.value);
+                }
                 await loadSourceEncoders();
                 renderSources();
                 setConfigDirty(true);
@@ -839,7 +918,7 @@ function addSource() {
         name: `Drohne ${number}`,
         drone_type: "",
         type: "rtmp",
-        profile: "direct",
+        profile: defaultSourceProfile("rtmp"),
         enabled: true,
         url: null,
         preview_url: null,

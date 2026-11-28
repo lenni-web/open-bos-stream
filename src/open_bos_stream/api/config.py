@@ -3,6 +3,7 @@ import socket
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel, field_validator
 from starlette.concurrency import run_in_threadpool
 
 from open_bos_stream.core.config import ConfigLoader
@@ -13,6 +14,7 @@ from open_bos_stream.core.models import (
     NotificationConfig,
     StorageConfig,
     SourceConfig,
+    check_hidden_profiles,
 )
 
 from open_bos_stream.core.container import (
@@ -152,6 +154,7 @@ async def save_config(config: AppConfig, request: Request):
     config.notifications = stored.notifications
     # Wetter ebenfalls nur über den eigenen Endpunkt.
     config.weather = stored.weather
+    config.hidden_source_profiles = stored.hidden_source_profiles
     result = await apply_config(config)
     _log_change("Konfiguration gespeichert und aktiviert", request)
     return result
@@ -165,7 +168,12 @@ async def save_sources(sources: list[SourceConfig], request: Request):
     current = stored.model_dump()
     current["sources"] = [
         source.model_dump()
-        for source in merge_sources(request.state.user, stored.sources, sources)
+        for source in merge_sources(
+            request.state.user,
+            stored.sources,
+            sources,
+            hidden_profiles=stored.hidden_source_profiles,
+        )
     ]
     try:
         candidate = AppConfig.model_validate(current)
@@ -222,6 +230,7 @@ def merge_sources(
     user: dict,
     stored: list[SourceConfig],
     incoming: list[SourceConfig],
+    hidden_profiles: list[str] | None = None,
 ) -> list[SourceConfig]:
     """Quellen aus dem Browser mit dem Serverstand zusammenführen.
 
@@ -254,6 +263,23 @@ def merge_sources(
                     "in der Sie Wehr-Admin sind."
                 ),
             )
+        # Versteckte Profile lassen sich nicht neu wählen; bestehende
+        # Drohnen behalten ihr Profil.
+        if (
+            source.type == "rtmp"
+            and source.profile in (hidden_profiles or [])
+            and (
+                existing is None
+                or (existing.type, existing.profile) != (source.type, source.profile)
+            )
+        ):
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"Drohne „{source.name}“: Dieses Empfangsprofil ist nicht "
+                    "freigegeben. Bitte ein anderes wählen."
+                ),
+            )
         changed = existing is None or (existing.url, existing.preview_url) != (source.url, source.preview_url)
         if changed and fetches_internal_address(source):
             raise HTTPException(
@@ -273,6 +299,29 @@ def merge_sources(
             merged.append(incoming_by_id.pop(source.id))
     merged.extend(incoming_by_id.values())
     return merged
+
+
+class SourceProfileRelease(BaseModel):
+    hidden: list[str]
+
+    @field_validator("hidden")
+    @classmethod
+    def validate_hidden(cls, value: list[str]) -> list[str]:
+        return check_hidden_profiles(value)
+
+
+@router.put("/source-profiles", dependencies=[SUPERADMIN])
+async def save_source_profiles(release: SourceProfileRelease, request: Request):
+    hidden = await run_in_threadpool(
+        config_apply_service.update_hidden_source_profiles,
+        release.hidden,
+    )
+    _log_change("Freigabe der Empfangsprofile gespeichert", request)
+    return {
+        "success": True,
+        "message": "Empfangsprofile wurden gespeichert.",
+        "hidden": hidden,
+    }
 
 
 @router.put("/media-capture", dependencies=[SUPERADMIN])

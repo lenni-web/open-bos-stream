@@ -305,6 +305,42 @@
 
         {% endif %}
 
+        {% if can.superadmin %}
+        <section class="bos-card settings-section settings-section-source-profiles">
+            <div class="settings-section-header">
+                <span class="settings-icon" aria-hidden="true">{{ icon("drone", 20) }}</span>
+                <div>
+                    <span class="section-kicker">Livebild-Übertragung</span>
+                    <h2>Empfangsprofile</h2>
+                    <p>Angehakte Profile stehen beim RTMP-/SRT-Empfang allen Admins zur Wahl.</p>
+                </div>
+            </div>
+
+            <div id="source-profile-release">
+                <p class="service-inline-status">Wird geladen …</p>
+            </div>
+
+            <p class="info-note">
+                Ohne Haken ist ein Profil für Wehr-Admins versteckt. Kreis-Admins
+                und Superadmins sehen es weiterhin, als „versteckt“ markiert.
+                Drohnen, die es bereits nutzen, behalten es.
+            </p>
+
+            <div class="settings-inline-actions">
+                <button
+                    id="source-profile-release-save"
+                    class="bos-button bos-button-small"
+                    type="button"
+                    onclick="saveSourceProfileRelease()">
+                    Profile speichern
+                </button>
+                <small id="source-profile-release-status" role="status">
+                    Wird separat und ohne Neustart gespeichert.
+                </small>
+            </div>
+        </section>
+        {% endif %}
+
         {% if can.server_admin %}
         <section class="bos-card settings-section settings-section-weather">
             <div class="settings-section-header">

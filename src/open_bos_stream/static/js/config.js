@@ -74,6 +74,7 @@ function trackConfigChanges(settings) {
                 || event.target.closest?.(
                     "#cfg-recording-automatic-list, " +
                     ".settings-section-notifications, " +
+                    ".settings-section-source-profiles, " +
                     ".settings-section-weather"
                 )
             ) {
@@ -124,6 +125,8 @@ async function refreshConfig() {
         renderStreamOutputs();
 
         renderSources();
+
+        renderSourceProfileRelease();
 
         renderMediaCaptureConfig();
 

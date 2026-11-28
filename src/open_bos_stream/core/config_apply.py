@@ -228,6 +228,17 @@ class ConfigApplyService:
             self._runtime.notifications = candidate.notifications
             return candidate.notifications.model_copy(deep=True)
 
+    def update_hidden_source_profiles(self, hidden: list[str]) -> list[str]:
+        """Freigabe der Empfangsprofile ohne Neustart des Streamers speichern."""
+
+        with self._lock:
+            candidate = self._runtime.model_copy(deep=True)
+            candidate.hidden_source_profiles = list(hidden)
+            self._loader.save(candidate)
+            self._loader.save_last_known_good(candidate)
+            self._runtime.hidden_source_profiles = candidate.hidden_source_profiles
+            return list(candidate.hidden_source_profiles)
+
     def update_weather(
         self,
         weather: WeatherConfig,

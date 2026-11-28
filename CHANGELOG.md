@@ -9,6 +9,12 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Einstellungen „Empfangsprofile“ (nur Superadmin): je Profil per
+  Haken festlegen, ob es beim RTMP-/SRT-Empfang allen angeboten wird oder für
+  Wehr-Admins versteckt ist. Drohnen mit einem versteckten Profil behalten es.
+
 ### Fixed
 
 - Wird ein Einsatz beendet, verschwinden seine Flächen und Daten von

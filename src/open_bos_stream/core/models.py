@@ -52,6 +52,27 @@ SOURCE_URL_SCHEMES = {
     "hls": ("http://", "https://"),
 }
 
+# Empfangsprofile einer Drohne, in der Reihenfolge der Auswahl.
+SOURCE_PROFILE_IDS = (
+    "direct",
+    "copy_repair",
+    "copy_repair_low_latency",
+    "preview_transcode",
+    "preview_transcode_economy",
+    "transcode",
+    "transcode_low_latency",
+)
+
+
+def check_hidden_profiles(value: list[str]) -> list[str]:
+    """Unbekannte Einträge verwerfen; mindestens ein Profil bleibt wählbar."""
+
+    hidden = [item for item in SOURCE_PROFILE_IDS if item in set(value)]
+    if len(hidden) == len(SOURCE_PROFILE_IDS):
+        raise ValueError("Mindestens ein Empfangsprofil muss freigegeben bleiben.")
+    return hidden
+
+
 class SourceConfig(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -587,6 +608,15 @@ class AppConfig(BaseModel):
     weather: WeatherConfig = Field(
         default_factory=WeatherConfig,
     )
+
+    # Empfangsprofile, die Wehr-Admins beim RTMP-/SRT-Empfang nicht
+    # angeboten werden (Einstellungen → „Empfangsprofile“).
+    hidden_source_profiles: list[str] = Field(default_factory=list)
+
+    @field_validator("hidden_source_profiles")
+    @classmethod
+    def validate_hidden_source_profiles(cls, value: list[str]) -> list[str]:
+        return check_hidden_profiles(value)
 
     capture: CaptureConfig
 

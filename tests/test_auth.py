@@ -304,6 +304,7 @@ def test_route_roles_are_enforced_over_http(monkeypatch) -> None:
         ("GET", "/config/", "admin"),
         ("PUT", "/config/", "superadmin"),
         ("PUT", "/config/sources", "admin"),
+        ("PUT", "/config/source-profiles", "superadmin"),
         ("PUT", "/config/storage", "superadmin"),
         ("PUT", "/config/media-capture", "superadmin"),
         ("POST", "/config/restore", "superadmin"),
