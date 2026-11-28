@@ -138,6 +138,16 @@ class IncidentMap:
             select(incident_map_items.c.id).where(incident_map_items.c.incident_id == incident_id)
         ).all())
 
+    def require_editable(self, user: dict, incident_id: int) -> dict:
+        """Nach dem Einsatzende ist die Karte nur noch zur Ansicht da."""
+
+        incident = self.incidents.require(user, incident_id, edit=True)
+        if incident["status"] != "running":
+            raise IncidentError(
+                "Der Einsatz ist beendet, die Einsatzkarte lässt sich nicht mehr ändern."
+            )
+        return incident
+
     @staticmethod
     def _clean_text(value, limit: int) -> str:
         return " ".join(str(value or "").split())[:limit]
@@ -153,7 +163,7 @@ class IncidentMap:
         assignee: str = "",
         note: str = "",
     ) -> dict:
-        self.incidents.require(user, incident_id, edit=True)
+        self.require_editable(user, incident_id)
         name = self._clean_text(name, 40)
         if not name:
             raise IncidentError("Bitte einen Namen für den Quadranten angeben.")
@@ -200,7 +210,7 @@ class IncidentMap:
     ) -> list[dict]:
         """Rechteck in gleich große Quadranten teilen (A1 oben links)."""
 
-        self.incidents.require(user, incident_id, edit=True)
+        self.require_editable(user, incident_id)
         west, south = _point((min(west, east), min(south, north)))
         east, north = _point((max(west, east), max(south, north)))
         if not (1 <= rows <= MAX_GRID and 1 <= columns <= MAX_GRID):
@@ -257,8 +267,49 @@ class IncidentMap:
             )
         return self.items(incident_id)
 
+    def _follow_up(self, user: dict, incident_id: int, item_id: int, changes: dict) -> dict:
+        """Nachbearbeitung: Status und Notiz nachtragen, mit Eintrag im Bericht."""
+
+        current = next((item for item in self.items(incident_id) if item["id"] == item_id), None)
+        if current is None:
+            raise LookupError("Quadrant nicht gefunden.")
+        given = {key: value for key, value in changes.items() if value is not None}
+        if set(given) - {"status", "note"}:
+            raise IncidentError(
+                "Nach dem Einsatzende lassen sich nur Status und Notiz nachtragen."
+            )
+        values, notes = {}, []
+        status = given.get("status")
+        if status is not None and status != current["status"]:
+            if status not in MAP_ITEM_STATUS:
+                raise IncidentError("Unbekannter Status.")
+            values["status"] = status
+            notes.append(f"Status {MAP_ITEM_STATUS[current['status']]} → {MAP_ITEM_STATUS[status]}")
+        if "note" in given:
+            note = str(given["note"]).strip()[:300]
+            if note != current["note"]:
+                values["note"] = note
+                notes.append(f"Notiz: „{note}“" if note else f"Notiz entfernt (vorher „{current['note']}“)")
+        if not values:
+            return current
+        actor = user.get("display_name") or user["username"]
+        values.update(updated_by=actor, updated_at=iso(local_now()))
+        with self.incidents._lock, self._engine.begin() as connection:
+            connection.execute(
+                update(incident_map_items).where(incident_map_items.c.id == item_id).values(**values)
+            )
+            self.bump(connection, incident_id)
+            self.incidents._log(
+                connection, incident_id, actor, "followup",
+                f"Nachtrag Quadrant {current['name']}: " + ", ".join(notes),
+            )
+        return next(item for item in self.items(incident_id) if item["id"] == item_id)
+
     def update_item(self, user: dict, incident_id: int, item_id: int, **changes) -> dict:
-        self.incidents.require(user, incident_id, edit=True)
+        incident = self.incidents.require(user, incident_id, edit=True)
+        if incident["status"] == "ended":
+            return self._follow_up(user, incident_id, item_id, changes)
+        self.require_editable(user, incident_id)
         current = next((item for item in self.items(incident_id) if item["id"] == item_id), None)
         if current is None:
             raise LookupError("Quadrant nicht gefunden.")
@@ -303,7 +354,7 @@ class IncidentMap:
         return next(item for item in self.items(incident_id) if item["id"] == item_id)
 
     def delete_item(self, user: dict, incident_id: int, item_id: int) -> None:
-        self.incidents.require(user, incident_id, edit=True)
+        self.require_editable(user, incident_id)
         current = next((item for item in self.items(incident_id) if item["id"] == item_id), None)
         if current is None:
             raise LookupError("Quadrant nicht gefunden.")

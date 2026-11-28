@@ -530,12 +530,22 @@ def map_state(incident: dict, since: int | None = None) -> dict:
     return state
 
 
+def _map_rights(user: dict, incident: dict) -> dict:
+    """Zeichnen nur im laufenden Einsatz, Nachträge nur, solange er „beendet“ ist."""
+
+    can_edit = _service().can_edit(user, incident)
+    return {
+        "can_edit": can_edit and incident["status"] == "running",
+        "can_follow_up": can_edit and incident["status"] == "ended",
+    }
+
+
 @router.get("/{incident_id}/map")
 async def get_map(incident_id: int, request: Request, since: int | None = None) -> dict:
     user = _user(request)
     incident = await _call(_service().require, user, incident_id)
     state = await run_in_threadpool(map_state, incident, since)
-    state["can_edit"] = _service().can_edit(user, incident)
+    state.update(_map_rights(user, incident))
     return state
 
 
@@ -568,7 +578,7 @@ class GridIn(BaseModel):
 async def _map_response(user: dict, incident_id: int) -> dict:
     incident = await _call(_service().require, user, incident_id)
     state = await run_in_threadpool(map_state, incident, None)
-    state["can_edit"] = _service().can_edit(user, incident)
+    state.update(_map_rights(user, incident))
     return state
 
 
@@ -603,6 +613,7 @@ async def delete_map_item(incident_id: int, item_id: int, request: Request) -> d
 @router.put("/{incident_id}/map/position")
 async def set_map_position(incident_id: int, payload: PositionUpdate, request: Request) -> dict:
     user = _user(request)
+    await _call(_map().require_editable, user, incident_id)
     await _call(
         _service().update, user, incident_id,
         latitude=payload.latitude, longitude=payload.longitude,

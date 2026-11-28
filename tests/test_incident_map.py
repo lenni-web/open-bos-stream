@@ -144,3 +144,60 @@ def test_unchanged_map_state_still_reports_the_status(monkeypatch) -> None:
 
     assert state["changed"] is False
     assert state["status"] == "ended"
+
+
+@pytest.mark.parametrize("status", ["ended", "closed"])
+def test_map_is_read_only_after_the_incident(setup, status) -> None:  # noqa: F811
+    incident = create(setup)
+    incident_map = IncidentMap(setup.incidents)
+    team = session(setup.auth, "b-team")
+    item = incident_map.add_item(team, incident["id"], name="A1", geometry=SQUARE)
+    setup.incidents.set_status({"username": "root", "platform_admin": True}, incident["id"], status)
+    root = {"username": "root", "platform_admin": True}
+
+    for user in (team, root):
+        with pytest.raises((IncidentError, IncidentAccessError)):
+            incident_map.add_item(user, incident["id"], name="A2", geometry=SQUARE)
+        with pytest.raises((IncidentError, IncidentAccessError)):
+            incident_map.add_grid(
+                user, incident["id"], west=9.5, south=53.5, east=9.51, north=53.51, rows=1, columns=1,
+            )
+        with pytest.raises((IncidentError, IncidentAccessError)):
+            incident_map.update_item(user, incident["id"], item["id"], name="B9")
+        with pytest.raises((IncidentError, IncidentAccessError)):
+            incident_map.delete_item(user, incident["id"], item["id"])
+    assert [entry["name"] for entry in incident_map.items(incident["id"])] == ["A1"]
+
+
+def test_follow_ups_after_the_end_are_logged_for_the_report(setup) -> None:  # noqa: F811
+    incident = create(setup)
+    incident_map = IncidentMap(setup.incidents)
+    team = session(setup.auth, "b-team")
+    item = incident_map.add_item(team, incident["id"], name="A1", geometry=SQUARE)
+    root = {"username": "root", "platform_admin": True}
+    setup.incidents.set_status(root, incident["id"], "ended")
+
+    changed = incident_map.update_item(
+        team, incident["id"], item["id"], status="done", note="Nichts gefunden",
+    )
+    # Unverändert speichern erzeugt keinen zweiten Nachtrag.
+    incident_map.update_item(team, incident["id"], item["id"], status="done", note="Nichts gefunden")
+
+    assert changed["status"] == "done" and changed["note"] == "Nichts gefunden"
+    entries = [e for e in setup.incidents.log(incident["id"]) if e["kind"] == "followup"]
+    assert [e["text"] for e in entries] == [
+        "Nachtrag Quadrant A1: Status offen → abgesucht, Notiz: „Nichts gefunden“"
+    ]
+
+    setup.incidents.set_status(root, incident["id"], "closed")
+    with pytest.raises(IncidentError):
+        incident_map.update_item(root, incident["id"], item["id"], status="open")
+
+
+def test_report_lists_follow_ups() -> None:
+    report = (
+        Path(__file__).resolve().parents[1]
+        / "src" / "open_bos_stream" / "templates" / "incident_report.html"
+    ).read_text(encoding="utf-8")
+    assert 'selectattr("kind", "equalto", "followup")' in report
+    assert "Nachträge nach Einsatzende" in report

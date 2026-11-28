@@ -31,6 +31,8 @@ const incidentMap = {
     data: null,
     revision: null,
     canEdit: false,
+    // Beendeter Einsatz: Status und Notiz dürfen nachgetragen werden.
+    canFollowUp: false,
     mode: null,          // "grid" | "polygon" | "position"
     draft: [],
     // Fläche geschlossen, es fehlt nur noch der Name.
@@ -520,6 +522,21 @@ function incidentMapItemHTML() {
     if (!item) {
         return "";
     }
+    if (incidentMap.canFollowUp) {
+        return `<form class="incident-map-form incident-map-item" onsubmit="incidentMapSaveItem(event, ${Number(item.id)})">
+            <strong>${escapeHTML(item.name)}${item.assignee ? ` · ${escapeHTML(item.assignee)}` : ""}</strong>
+            <p class="incident-map-hint">${searchEstimateHTML(incidentMapItemArea(item), "Dieser Quadrant: ")}</p>
+            <label>Status <select class="bos-input" name="status">${incidentMapStatusOptions(item.status)}</select></label>
+            <label>Notiz
+                <input class="bos-input" name="note" maxlength="300" value="${escapeHTML(item.note)}">
+            </label>
+            <div class="incident-map-row">
+                <button class="bos-button bos-button-small bos-button-green" type="submit">Nachtragen</button>
+                <button class="bos-button bos-button-small" type="button" onclick="incidentMapSelectItem(null)">Schließen</button>
+            </div>
+            <small class="incident-map-hint">Nachträge erscheinen im Einsatzbericht.</small>
+        </form>`;
+    }
     if (!incidentMap.canEdit) {
         return `<div class="incident-map-item">
             <strong>${escapeHTML(item.name)}</strong>
@@ -598,8 +615,12 @@ function renderIncidentMapPanel() {
             ${incidentMap.data ? incidentMapItemHTML() || incidentMapToolsHTML() : ""}
             ${incidentMap.data && (incidentMap.data.items.length || incidentMap.mode === "grid" || incidentMap.mode === "polygon")
                 ? searchSettingsHTML() : ""}
+            ${incidentMap.data && incidentMap.data.status !== "running"
+                ? `<p class="incident-map-hint">${incidentMap.canFollowUp
+                    ? "Einsatz beendet – Quadrant antippen, um Status und Notiz nachzutragen."
+                    : "Einsatz beendet – nur zur Ansicht."}</p>` : ""}
             <div id="map-drone-info"></div>
-            ${incidentMap.data && !incidentMap.canEdit && !incidentMap.selectedItem
+            ${incidentMap.data && !incidentMap.canEdit && !incidentMap.canFollowUp && !incidentMap.selectedItem
                 ? '<p class="incident-map-hint">Quadrant antippen für Details.</p>' : ""}
         </div>`;
     droneMapRenderInfo();
@@ -652,10 +673,18 @@ async function loadIncidentMapList() {
 function applyIncidentMapState(state) {
     incidentMap.revision = state.revision;
     if (state.changed === false) {
+        // Nur der Status hat sich geändert: vollständig neu laden.
+        if (incidentMap.data && state.status && state.status !== incidentMap.data.status) {
+            incidentMap.revision = null;
+        }
         return;
     }
     incidentMap.data = state;
-    incidentMap.canEdit = Boolean(state.can_edit) && state.status !== "closed";
+    incidentMap.canEdit = Boolean(state.can_edit) && state.status === "running";
+    incidentMap.canFollowUp = Boolean(state.can_follow_up) && state.status === "ended";
+    if (!incidentMap.canEdit && incidentMap.mode) {
+        incidentMapCancel(false);
+    }
     if (incidentMap.selectedItem && !state.items.some(item => item.id === incidentMap.selectedItem)) {
         incidentMap.selectedItem = null;
     }

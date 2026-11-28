@@ -169,6 +169,21 @@
     </table>
     {% endif %}
 
+    {% set follow_ups = detail.log | selectattr("kind", "equalto", "followup") | list %}
+    {% if follow_ups %}
+    <h2>Nachträge nach Einsatzende</h2>
+    <table>
+        <tr><th style="width: 18%">Zeit</th><th>Nachtrag</th><th style="width: 22%">von</th></tr>
+        {% for entry in follow_ups %}
+        <tr>
+            <td>{{ local(entry.at) }}</td>
+            <td class="text">{{ entry.text }}</td>
+            <td class="muted">{{ entry.actor }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+
     {% if detail.checklists %}
     <h2>Checklisten</h2>
     {% for list in detail.checklists %}

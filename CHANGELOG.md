@@ -14,6 +14,16 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 - Wird ein Einsatz beendet, verschwinden seine Flächen und Daten von
   selbst von der Einsatzkarte. Über „Karte öffnen“ auf der Einsatzseite
   lässt er sich weiterhin ansehen.
+- Nach dem Einsatzende ist die Einsatzkarte nur noch zur Ansicht: Flächen,
+  Raster und Einsatzort lassen sich nicht mehr ändern oder löschen. Dafür
+  den Einsatz wieder aufnehmen.
+
+### Added
+
+- Solange ein Einsatz „beendet“ (noch nicht abgeschlossen) ist, lassen sich
+  Status und Notiz eines Quadranten nachtragen. Jeder Nachtrag steht mit
+  Zeit und Person im Verlauf und im Einsatzbericht unter „Nachträge nach
+  Einsatzende“.
 
 ---
 
