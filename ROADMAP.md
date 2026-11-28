@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.26.11** (2026-11-28): Organisationsseite neu gestaltet, Mitglieder je
+  Organisation aufklappbar, Suche nach Organisation oder Person
 - **0.26.10** (2026-11-28): Empfangsprofile je Haken freigeben oder
   verstecken (Superadmin), Einsatzkarte nach Einsatzende gesperrt, Nachträge
   im Einsatzbericht

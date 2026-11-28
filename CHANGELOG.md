@@ -9,6 +9,12 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.26.11] - 2026-11-28
+
+Die Seite „Organisation“ ist neu gestaltet und zeigt die zugeordneten Konten.
+
 ### Added
 
 - Seite „Organisation“: Je Organisation sind die zugeordneten Konten mit
