@@ -9,11 +9,22 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+---
+
+## [0.26.10] - 2026-11-28
+
+Empfangsprofile lassen sich verstecken, die Einsatzkarte ist nach dem
+Einsatzende gesperrt.
+
 ### Added
 
 - Einstellungen „Empfangsprofile“ (nur Superadmin): je Profil per
   Haken festlegen, ob es beim RTMP-/SRT-Empfang allen angeboten wird oder für
   Wehr-Admins versteckt ist. Drohnen mit einem versteckten Profil behalten es.
+- Solange ein Einsatz „beendet“ (noch nicht abgeschlossen) ist, lassen sich
+  Status und Notiz eines Quadranten nachtragen. Jeder Nachtrag steht mit
+  Zeit und Person im Verlauf und im Einsatzbericht unter „Nachträge nach
+  Einsatzende“.
 
 ### Fixed
 
@@ -23,13 +34,6 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 - Nach dem Einsatzende ist die Einsatzkarte nur noch zur Ansicht: Flächen,
   Raster und Einsatzort lassen sich nicht mehr ändern oder löschen. Dafür
   den Einsatz wieder aufnehmen.
-
-### Added
-
-- Solange ein Einsatz „beendet“ (noch nicht abgeschlossen) ist, lassen sich
-  Status und Notiz eines Quadranten nachtragen. Jeder Nachtrag steht mit
-  Zeit und Person im Verlauf und im Einsatzbericht unter „Nachträge nach
-  Einsatzende“.
 
 ---
 

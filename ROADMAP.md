@@ -57,6 +57,9 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.26.10** (2026-11-28): Empfangsprofile je Haken freigeben oder
+  verstecken (Superadmin), Einsatzkarte nach Einsatzende gesperrt, Nachträge
+  im Einsatzbericht
 - **0.26.9** (2026-11-27): Jede Organisation legt eigene Dokumente ab,
   Roadmap für 0.27 und 0.28
 - **0.26.8** (2026-11-27): Luftbildkacheln werden gespeichert, Drohnenprofile
