@@ -130,3 +130,17 @@ def test_assignee_can_be_picked_from_drones_or_typed() -> None:
     assert "Drohne / Trupp manuell eingeben" in script
     # Das Formular speichert weiterhin das Feld „assignee“.
     assert 'name="assignee"' in script
+
+
+def test_unchanged_map_state_still_reports_the_status(monkeypatch) -> None:
+    from open_bos_stream.api import incidents as api_incidents
+
+    class Map:
+        def revision(self, incident_id):
+            return 3
+
+    monkeypatch.setattr(api_incidents, "_map", lambda: Map())
+    state = api_incidents.map_state({"id": 7, "status": "ended"}, since=3)
+
+    assert state["changed"] is False
+    assert state["status"] == "ended"

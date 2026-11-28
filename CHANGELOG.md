@@ -9,6 +9,12 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Fixed
+
+- Wird ein Einsatz beendet, verschwinden seine Flächen und Daten von
+  selbst von der Einsatzkarte. Über „Karte öffnen“ auf der Einsatzseite
+  lässt er sich weiterhin ansehen.
+
 ---
 
 ## [0.26.9] - 2026-11-27

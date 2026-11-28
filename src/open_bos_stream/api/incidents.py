@@ -512,7 +512,13 @@ def map_state(incident: dict, since: int | None = None) -> dict:
     revision = incident_map.revision(incident["id"]) or 0
     if since is not None and since == revision:
         # Nichts geändert: kleine Antwort für den Abgleich alle paar Sekunden.
-        return {"incident_id": incident["id"], "revision": revision, "changed": False}
+        # Der Status gehört dazu: Das Einsatzende zählt die Revision nicht hoch.
+        return {
+            "incident_id": incident["id"],
+            "revision": revision,
+            "changed": False,
+            "status": incident["status"],
+        }
     state = incident_map.state(incident)
     state.update(
         changed=True,

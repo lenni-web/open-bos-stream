@@ -26,6 +26,8 @@ const incidentMap = {
     guest: false,
     incidents: [],
     selectedId: null,
+    // Bereits beendeter Einsatz, der bewusst zum Ansehen geöffnet wurde.
+    viewEnded: null,
     data: null,
     revision: null,
     canEdit: false,
@@ -662,6 +664,20 @@ function applyIncidentMapState(state) {
     renderIncidentMapPanel();
 }
 
+// Ein beendeter Einsatz verschwindet von selbst von der Karte.
+function incidentMapHasEnded(state) {
+    if (incidentMap.guest || !state.status) {
+        return false;
+    }
+    if (state.status === "running") {
+        if (incidentMap.viewEnded === incidentMap.selectedId) {
+            incidentMap.viewEnded = null;
+        }
+        return false;
+    }
+    return incidentMap.viewEnded !== incidentMap.selectedId;
+}
+
 async function pollIncidentMap() {
     window.clearTimeout(incidentMap.pollTimer);
     // Nur die jüngste Abfragekette läuft weiter (z. B. nach Einsatzwechsel).
@@ -671,6 +687,12 @@ async function pollIncidentMap() {
             const since = incidentMap.revision === null ? "" : `?since=${incidentMap.revision}`;
             const state = await incidentMapFetch(incidentMapUrl() + since);
             if (generation !== incidentMap.pollGeneration) {
+                return;
+            }
+            if (incidentMapHasEnded(state)) {
+                await selectIncidentMap("");
+                setIncidentMapMessage("Der Einsatz ist beendet und wurde von der Karte genommen.");
+                await loadIncidentMapList();
                 return;
             }
             applyIncidentMapState(state);
@@ -694,6 +716,9 @@ async function pollIncidentMap() {
 async function selectIncidentMap(value) {
     const id = Number(value) || null;
     incidentMapCancel(false);
+    if (incidentMap.viewEnded !== id) {
+        incidentMap.viewEnded = null;
+    }
     incidentMap.selectedId = id;
     incidentMap.selectedItem = null;
     incidentMap.revision = null;
@@ -710,6 +735,8 @@ async function selectIncidentMap(value) {
 
 // Aus der Einsatzseite: Karte mit diesem Einsatz öffnen.
 function openIncidentMap(id) {
+    // Von der Einsatzseite aus darf auch ein beendeter Einsatz gezeigt werden.
+    incidentMap.viewEnded = Number(id) || null;
     incidentMapStorage(id);
     if (incidentMap.map) {
         selectIncidentMap(id);
