@@ -685,6 +685,31 @@ def test_several_roles_in_one_organisation(auth: AuthService) -> None:
     assert roles_in(org, user["id"], ids["b"]) == []
 
 
+def test_organisation_list_names_drones_only_within_view(api, monkeypatch) -> None:
+    from types import SimpleNamespace
+
+    from open_bos_stream.api import organizations as organizations_api
+
+    ids = api.ids
+    monkeypatch.setattr(organizations_api, "runtime_config", SimpleNamespace(sources=[
+        source("a1", ids["a"]).model_copy(update={"drone_type": "DJI Mavic 3T"}),
+        source("b1", ids["b"]),
+    ]))
+
+    def listed(organization_id: int) -> dict:
+        items = api.get("/api/org/organizations").json()["organizations"]
+        return next(item for item in items if item["id"] == organization_id)
+
+    api.login("sg-admin")
+    own = listed(ids["a"])
+    assert own["source_count"] == 1
+    assert [item["drone_type"] for item in own["drones"]] == ["DJI Mavic 3T"]
+    assert set(own["drones"][0]) == {"name", "drone_type", "enabled"}
+    # Fremde Wehr: nur die Anzahl.
+    foreign = listed(ids["b"])
+    assert foreign["source_count"] == 1 and foreign["drones"] == []
+
+
 def test_roles_api_and_member_count(api) -> None:
     from open_bos_stream.core.container import auth_service
 

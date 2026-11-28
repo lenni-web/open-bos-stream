@@ -208,10 +208,15 @@ def list_organizations(request: Request) -> dict:
     members: dict[int, set[int]] = {}
     for item in org.memberships():
         members.setdefault(item["organization_id"], set()).add(item["user_id"])
-    sources = {}
+    sources: dict[int, list[dict]] = {}
     for source in runtime_config.sources:
         if source.organization_id is not None:
-            sources[source.organization_id] = sources.get(source.organization_id, 0) + 1
+            sources.setdefault(source.organization_id, []).append({
+                "name": source.name,
+                "drone_type": source.drone_type,
+                "enabled": source.enabled,
+            })
+    view = set(_user(request).get("org_view") or [])
     return {
         "organizations": [
             {
@@ -223,7 +228,12 @@ def list_organizations(request: Request) -> dict:
                     item["parent_id"] is not None and item["parent_id"] in scope
                 ),
                 "member_count": len(members.get(item["id"], ())),
-                "source_count": sources.get(item["id"], 0),
+                "source_count": len(sources.get(item["id"], ())),
+                # Namen und Typen nur, wo das Konto die Drohnen auch sieht.
+                "drones": (
+                    sources.get(item["id"], [])
+                    if platform or item["id"] in view else []
+                ),
             }
             for item in org.organizations()
         ],

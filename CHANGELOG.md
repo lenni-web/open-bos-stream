@@ -9,6 +9,11 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Seite „Organisation“: neben der Anzahl der Drohnen eine Liste mit Name und
+  Typ je Drohne.
+
 ---
 
 ## [0.26.11] - 2026-11-28

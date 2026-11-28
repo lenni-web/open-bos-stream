@@ -2064,6 +2064,37 @@ body {
     gap: 8px;
 }
 
+.org-drones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.org-tree .org-drones li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 6px;
+    min-width: 0;
+    padding: 4px 10px;
+    border: 1px solid var(--bos-gray);
+    border-radius: var(--shell-radius-small);
+    font-size: 0.78rem;
+    overflow-wrap: anywhere;
+}
+
+.org-drone small {
+    color: var(--bos-muted);
+}
+
+.org-drone.is-inactive {
+    opacity: 0.6;
+}
+
 .org-members-count {
     color: var(--bos-muted);
     font-size: 0.8rem;

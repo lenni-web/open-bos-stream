@@ -230,6 +230,15 @@ function plural(count, one, many) {
     return `${count} ${count === 1 ? one : many}`;
 }
 
+function renderDrone(drone) {
+    return `
+        <li class="org-drone${drone.enabled ? "" : " is-inactive"}">
+            <strong>${escapeHTML(drone.name)}</strong>
+            <small>${escapeHTML(drone.drone_type || "Typ nicht angegeben")}${
+                drone.enabled ? "" : " · deaktiviert"}</small>
+        </li>`;
+}
+
 function renderOrganizationRow(org) {
     const parent = orgState.organizations.find(item => item.id === org.parent_id);
     // Ältere Einordnungen, die nicht zur Art passen, sichtbar machen.
@@ -256,6 +265,10 @@ function renderOrganizationRow(org) {
             <div class="org-card-foot">
                 ${renderMemberToggle(org, members)}
                 ${org.source_count ? `<span class="org-chip">${plural(org.source_count, "Drohne", "Drohnen")}</span>` : ""}
+                ${org.drones.length ? `
+                    <ul class="org-drones" aria-label="Drohnen von ${escapeHTML(org.name)}">
+                        ${org.drones.map(renderDrone).join("")}
+                    </ul>` : ""}
                 ${org.archived ? '<span class="org-chip is-muted">archiviert</span>' : ""}
                 ${misplaced ? '<span class="org-chip is-soon">Einordnung prüfen</span>' : ""}
             </div>
