@@ -416,3 +416,24 @@ def test_weather_stored_before_history_is_kept() -> None:
     assert _weather_history('{"captured_at": "x"}') == [{"captured_at": "x"}]
     assert _weather_history(None) == []
     assert _weather_history("kaputt") == []
+
+
+def test_weather_follows_the_incident_of_the_own_unit(api, monkeypatch) -> None:
+    from open_bos_stream.api import weather as weather_api
+
+    monkeypatch.setattr(weather_api.weather_service, "report", lambda *args: {})
+    api.login("b-team")
+    created = api.post("/api/incidents", json={
+        "lead_organization_id": api.ids["b"],
+        "address": "Waldweg 1",
+        "latitude": 53.5,
+        "longitude": 9.6,
+    })
+    key = f"incident:{created.json()['incident']['id']}"
+
+    report = api.get("/api/weather").json()
+    assert report["automatic_place"] == key
+    assert report["location"]["latitude"] == 53.5
+    assert api.get("/api/weather?place=default").json()["location"]["key"] == "default"
+    # Unbekannte Orte (z. B. beendeter Einsatz) führen zur automatischen Wahl.
+    assert api.get("/api/weather?place=incident:999").json()["location"]["key"] == key

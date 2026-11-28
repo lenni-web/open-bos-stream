@@ -11,6 +11,24 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ---
 
+## [0.26.13] - 2026-11-28
+
+Das Wetter richtet sich nach Einsatz, Wache oder Gerätestandort.
+
+### Added
+
+- Wetter am passenden Ort: Übersicht und Wetterseite wählen automatisch den
+  laufenden Einsatz der eigenen Wehr, sonst die eigene Wache, sonst den
+  eingestellten Standort. Über „Ort“ lassen sich auch „Mein Standort“ und
+  andere Orte wählen; das Gerät merkt sich die Wahl. Das Niederschlagsradar
+  folgt dem Ort.
+
+### Changed
+
+- Die Entfernung zur Wetterstation wird nicht mehr angezeigt.
+
+---
+
 ## [0.26.12] - 2026-11-28
 
 Die Seite „Organisation“ zeigt die Drohnen je Organisation mit Typ.

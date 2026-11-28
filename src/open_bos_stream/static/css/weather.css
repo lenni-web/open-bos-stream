@@ -46,6 +46,31 @@
     overflow-wrap: anywhere;
 }
 
+.weather-place {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    max-width: 100%;
+    font-size: 0.9rem;
+}
+
+.weather-place[hidden] {
+    display: none;
+}
+
+.weather-place select {
+    min-width: 0;
+    max-width: 260px;
+    min-height: 36px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font: inherit;
+    color: inherit;
+    background: var(--shell-surface-muted, #f7f9fb);
+    border: 1px solid var(--shell-input-border, #d3dae3);
+}
+
 .weather-level {
     display: inline-flex;
     align-items: center;

@@ -16,7 +16,15 @@ const WEATHER_ALERT_SEVERITY = {
     extreme: "Extreme Unwetterwarnung",
 };
 
+// Gewählter Wetter-Ort dieses Geräts: "auto", "device" oder ein Schlüssel
+// aus der Ortsliste des Servers.
+const WEATHER_PLACE_KEY = "obs-weather-place";
+
 let weatherTimer = null;
+let weatherRequest = 0;
+let weatherDevicePosition = null;
+let weatherPlaceChoice = null;
+let weatherPlaceNote = "";
 
 function weatherNumber(value, digits = 1) {
     if (value === null || value === undefined || Number.isNaN(Number(value))) {
@@ -182,13 +190,12 @@ function renderWeatherCard(card, report) {
     const location = report.location ?? {};
     const station = current.station
         ? ` · Messung ${current.station}` +
-          (current.station_distance_km !== null && current.station_distance_km !== undefined
-              ? ` (${weatherNumber(current.station_distance_km)} km)`
-              : "") +
           (current.time ? `, ${weatherClock(current.time)} Uhr` : "")
         : "";
     weatherPart(card, "location").textContent =
-        `${location.name ?? "Standort"}${station}`;
+        `${location.name ?? "Standort"}${station}` +
+        (weatherPlaceNote ? ` · ${weatherPlaceNote}` : "");
+    renderWeatherPlaces(card, report);
 
     weatherPart(card, "level").dataset.level = level;
     weatherPart(card, "level-text").textContent =
@@ -342,13 +349,133 @@ function weatherCards() {
     return [...document.querySelectorAll("[data-weather-card]")];
 }
 
+// ----------------------------------------------------------
+// Ortswahl
+// ----------------------------------------------------------
+
+function readWeatherPlace() {
+    if (weatherPlaceChoice === null) {
+        try {
+            weatherPlaceChoice = localStorage.getItem(WEATHER_PLACE_KEY);
+        } catch {
+            // Ohne Speicher gilt die Wahl nur bis zum Neuladen.
+        }
+        weatherPlaceChoice ||= "auto";
+    }
+    return weatherPlaceChoice;
+}
+
+function storeWeatherPlace(choice) {
+    weatherPlaceChoice = choice;
+    try {
+        localStorage.setItem(WEATHER_PLACE_KEY, choice);
+    } catch {
+        // Siehe oben.
+    }
+}
+
+function requestDevicePosition() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error("unsupported"));
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            result => resolve(result.coords),
+            reject,
+            {enableHighAccuracy: false, maximumAge: 5 * 60 * 1000, timeout: 15000}
+        );
+    });
+}
+
+// Beim Laden nie ungefragt nach dem Standort fragen: Nur wenn die Freigabe
+// schon erteilt ist, wird er ohne Antippen abgerufen.
+async function devicePositionAllowed() {
+    try {
+        const status = await navigator.permissions.query({name: "geolocation"});
+        return status.state === "granted";
+    } catch {
+        return false;
+    }
+}
+
+async function weatherQuery() {
+    const choice = readWeatherPlace();
+    weatherPlaceNote = "";
+    if (choice !== "device") {
+        return choice === "auto" ? "" : `?${new URLSearchParams({place: choice})}`;
+    }
+    if (weatherDevicePosition || await devicePositionAllowed()) {
+        try {
+            weatherDevicePosition = await requestDevicePosition();
+        } catch (error) {
+            console.debug("Standort:", error);
+        }
+    }
+    if (!weatherDevicePosition) {
+        weatherPlaceNote = "Gerätestandort nicht verfügbar";
+        return "";
+    }
+    // Auf rund 1 km gerundet – genauer rechnet der Server ohnehin nicht.
+    return `?${new URLSearchParams({
+        lat: weatherDevicePosition.latitude.toFixed(2),
+        lon: weatherDevicePosition.longitude.toFixed(2),
+        choices: "true",
+    })}`;
+}
+
+function renderWeatherPlaces(card, report) {
+    const select = weatherPart(card, "place");
+    if (!select || !report.places) {
+        return;
+    }
+    const automatic = report.places.find(item => item.key === report.automatic_place);
+    const options = [
+        ["auto", `Automatisch${automatic ? ` (${automatic.name})` : ""}`],
+        ["device", "Mein Standort"],
+        ...report.places.map(item => [item.key, item.name]),
+    ];
+    select.replaceChildren(...options.map(([value, text]) => new Option(text, value)));
+    const choice = readWeatherPlace();
+    // Verschwundene Orte (beendeter Einsatz) zeigen wieder „Automatisch“.
+    select.value = options.some(([value]) => value === choice) ? choice : "auto";
+    weatherPart(card, "place-label").hidden = false;
+    if (!select.dataset.bound) {
+        select.dataset.bound = "true";
+        select.addEventListener("change", () => chooseWeatherPlace(select.value));
+    }
+}
+
+async function chooseWeatherPlace(choice) {
+    storeWeatherPlace(choice);
+    if (choice === "device") {
+        weatherCards().forEach(card => {
+            weatherPart(card, "location").textContent = "Standort wird ermittelt …";
+        });
+        try {
+            // Direkt nach dem Antippen: Hier darf der Browser nachfragen.
+            weatherDevicePosition = await requestDevicePosition();
+        } catch (error) {
+            console.debug("Standort:", error);
+            weatherDevicePosition = null;
+        }
+    }
+    // Ein neuer Ort kann einige Sekunden dauern, bis der DWD geantwortet hat.
+    weatherCards().forEach(card => {
+        weatherPart(card, "location").textContent = "Wetter wird geladen …";
+    });
+    await loadWeatherCard();
+}
+
 async function loadWeatherCard() {
     const cards = weatherCards();
     if (!cards.length) {
         return;
     }
+    const request = ++weatherRequest;
     try {
-        const response = await fetch("/api/weather", {cache: "no-store"});
+        const query = await weatherQuery();
+        const response = await fetch(`/api/weather${query}`, {cache: "no-store"});
         if (response.status === 404) {
             // Wettermodul ausgeschaltet.
             cards.forEach(card => {
@@ -361,6 +488,15 @@ async function loadWeatherCard() {
             throw new Error(`HTTP ${response.status}`);
         }
         const report = await response.json();
+        if (request !== weatherRequest) {
+            return;
+        }
+        if (report.location?.origin === "query") {
+            report.location.name = "Mein Standort";
+        }
+        if (typeof setWeatherRadarLocation === "function") {
+            setWeatherRadarLocation(report.location);
+        }
         document.getElementById("nav-weather")?.removeAttribute("hidden");
         cards.forEach(card => renderWeatherCard(card, report));
         document.querySelectorAll("[data-weather-forecast-card]").forEach(card => {

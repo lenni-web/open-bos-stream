@@ -236,8 +236,49 @@ function addRadarFrames(data) {
     updateRadarProgress();
 }
 
+// Markierung und Kartenausschnitt folgen dem gewählten Wetter-Ort.
+function setWeatherRadarLocation(location) {
+    if (location?.latitude === undefined) {
+        return;
+    }
+    const previous = weatherRadar.location;
+    weatherRadar.location = location;
+    placeRadarMarker();
+    if (
+        weatherRadar.map &&
+        previous &&
+        (previous.latitude !== location.latitude || previous.longitude !== location.longitude)
+    ) {
+        weatherRadar.map.jumpTo({center: [location.longitude, location.latitude]});
+    }
+}
+
+function placeRadarMarker() {
+    const location = weatherRadar.location;
+    if (!weatherRadar.map || !location) {
+        return;
+    }
+    if (!weatherRadar.marker) {
+        const element = document.createElement("div");
+        element.className = "weather-radar-marker";
+        weatherRadar.marker = new maplibregl.Marker({element})
+            .setLngLat([location.longitude, location.latitude])
+            .addTo(weatherRadar.map);
+    }
+    weatherRadar.marker.setLngLat([location.longitude, location.latitude]);
+    weatherRadar.marker.getElement().title = location.name ?? "Wetter-Standort";
+}
+
 async function loadRadarFrames() {
-    const response = await fetch("/api/weather/radar/frames", {cache: "no-store"});
+    const location = weatherRadar.location;
+    // Der Server lädt die Radarbilder rund um diesen Ort vor.
+    const query = location
+        ? `?${new URLSearchParams({
+            lat: location.latitude.toFixed(2),
+            lon: location.longitude.toFixed(2),
+        })}`
+        : "";
+    const response = await fetch(`/api/weather/radar/frames${query}`, {cache: "no-store"});
     if (response.status === 404) {
         throw new Error("Das Wettermodul ist ausgeschaltet.");
     }
@@ -334,7 +375,7 @@ async function createRadarMap() {
         };
     }
 
-    const location = data.location ?? {};
+    const location = weatherRadar.location ?? data.location ?? {};
     const map = new maplibregl.Map({
         container,
         style,
@@ -374,14 +415,15 @@ async function createRadarMap() {
     await new Promise(resolve => map.once("load", resolve));
     collapseMapAttribution(map);
 
-    if (location.latitude !== undefined) {
-        const marker = document.createElement("div");
-        marker.className = "weather-radar-marker";
-        marker.title = location.name ?? "Wetter-Standort";
-        new maplibregl.Marker({element: marker})
-            .setLngLat([location.longitude, location.latitude])
-            .addTo(map);
+    // Inzwischen kann ein anderer Ort gewählt worden sein.
+    if (!weatherRadar.location && location.latitude !== undefined) {
+        weatherRadar.location = location;
     }
+    const current = weatherRadar.location;
+    if (current) {
+        map.jumpTo({center: [current.longitude, current.latitude]});
+    }
+    placeRadarMarker();
 
     addRadarFrames(data);
 }

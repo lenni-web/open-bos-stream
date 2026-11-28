@@ -3,6 +3,7 @@ from starlette.concurrency import run_in_threadpool
 
 from open_bos_stream.auth.roles import ADMIN, GUEST, SERVER_ADMIN
 from open_bos_stream.core.container import (
+    auth_service,
     config as runtime_config,
     config_apply_service,
     server_event_log,
@@ -11,6 +12,7 @@ from open_bos_stream.core.models import WeatherConfig
 from open_bos_stream.map.service import DEFAULT_CENTER
 from datetime import datetime, timezone
 
+from open_bos_stream.weather.places import weather_places
 from open_bos_stream.weather.radar import (
     RadarService,
     RadarUnavailableError,
@@ -60,17 +62,38 @@ def default_location(settings: WeatherConfig) -> dict:
     }
 
 
+def _places(user: dict | None, settings: WeatherConfig) -> tuple[list[dict], str]:
+    auth_service.ready()
+    return weather_places(
+        user,
+        auth_service.org,
+        auth_service.incidents,
+        default_location(settings),
+    )
+
+
 @router.get("", dependencies=[GUEST])
 async def weather(
+    request: Request,
     lat: float | None = None,
     lon: float | None = None,
+    place: str | None = None,
+    choices: bool = False,
 ) -> dict:
+    """Wetter für Koordinaten oder für einen Ort des Kontos.
+
+    Ohne ``lat``/``lon`` gilt der Ort ``place``; fehlt er oder gibt es ihn
+    nicht mehr (z. B. beendeter Einsatz), wählt der Server automatisch.
+    """
+
     settings = _require_enabled()
     if (lat is None) != (lon is None):
         raise HTTPException(
             status_code=400,
             detail="Breite und Länge gemeinsam angeben.",
         )
+    places: list[dict] = []
+    automatic = None
     if lat is not None:
         if not (-90 <= lat <= 90 and -180 <= lon <= 180):
             raise HTTPException(status_code=400, detail="Ungültige Koordinate.")
@@ -80,8 +103,16 @@ async def weather(
             "name": "Kartenausschnitt",
             "origin": "query",
         }
+        if choices:
+            places, automatic = await run_in_threadpool(
+                _places, getattr(request.state, "user", None), settings
+            )
     else:
-        location = default_location(settings)
+        places, automatic = await run_in_threadpool(
+            _places, getattr(request.state, "user", None), settings
+        )
+        by_key = {item["key"]: item for item in places}
+        location = by_key.get(place) or by_key[automatic]
 
     report = await run_in_threadpool(
         weather_service.report,
@@ -90,6 +121,11 @@ async def weather(
         location["longitude"],
     )
     report["location"] = location
+    if places:
+        report["places"] = [
+            {"key": item["key"], "name": item["name"]} for item in places
+        ]
+        report["automatic_place"] = automatic
     report["limits"] = settings.model_dump(
         include={
             "wind_limit_ms",
@@ -135,10 +171,12 @@ async def radar_tile(offset: int, z: int, x: int, y: int) -> Response:
 
 
 @router.get("/radar/frames", dependencies=[GUEST])
-def radar_frames() -> dict:
+def radar_frames(lat: float | None = None, lon: float | None = None) -> dict:
     settings = _require_enabled()
     frames = timeline_frames(datetime.now(timezone.utc))
     location = default_location(settings)
+    if lat is not None and lon is not None and -90 <= lat <= 90 and -180 <= lon <= 180:
+        location = {"latitude": lat, "longitude": lon, "name": "Wetter-Standort", "origin": "query"}
     # Zeitleiste rund um den Standort im Hintergrund vorladen: Der DWD
     # braucht mehrere Sekunden je Bild; danach kommen sie aus dem Speicher.
     radar_service.warm(location["latitude"], location["longitude"], frames)
