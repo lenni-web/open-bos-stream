@@ -57,6 +57,8 @@ funktional weiterentwickelt.
 
 # Letzte Releases
 
+- **0.26.12** (2026-11-28): Organisationsseite listet je Organisation die
+  Drohnen mit Name und Typ
 - **0.26.11** (2026-11-28): Organisationsseite neu gestaltet, Mitglieder je
   Organisation aufklappbar, Suche nach Organisation oder Person
 - **0.26.10** (2026-11-28): Empfangsprofile je Haken freigeben oder
