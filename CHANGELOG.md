@@ -9,6 +9,18 @@ Dieses Projekt orientiert sich an den Empfehlungen von
 
 ## [Unreleased]
 
+### Added
+
+- Seite „Organisation“: Je Organisation sind die zugeordneten Konten mit
+  Rollen aufklappbar (für deren Admins). Ein Tipp auf eine Person öffnet das
+  Konto unter „Benutzer“.
+- Suche nach Organisation oder Person und „Alle aufklappen“.
+
+### Changed
+
+- Seite „Organisation“ neu gestaltet: Karten je Organisation mit Symbol,
+  Kennzahlen darüber, auf dem Smartphone schmalere Einrückung.
+
 ---
 
 ## [0.26.10] - 2026-11-28

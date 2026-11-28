@@ -1904,6 +1904,7 @@ body {
 
 .org-tree,
 .org-memberships {
+    grid-template-columns: minmax(0, 1fr);
     display: grid;
     gap: 6px;
     margin: 0;
@@ -1911,22 +1912,11 @@ body {
     list-style: none;
 }
 
-.org-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 6px 12px;
-    padding: 8px 10px;
-    border: 1px solid var(--bos-gray);
-    border-left: 3px solid var(--bos-blue);
-    border-radius: var(--shell-radius-small);
-}
-
 /* Baum: Untereinheiten eingerückt und mit Linien verbunden. */
 .org-tree li {
     position: relative;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 6px;
 }
 
@@ -1953,32 +1943,257 @@ body {
 
 .org-tree .org-tree > li:last-child::before {
     bottom: auto;
-    height: 30px;
+    height: 39px;
 }
 
 .org-tree .org-tree > li::after {
-    top: 23px;
+    top: 32px;
     width: 18px;
     border-top-width: 2px;
 }
 
-.org-tree [data-org-slot]:empty {
+.org-tree [data-org-slot]:empty,
+.org-tree li[hidden],
+.org-members[hidden],
+.org-tree .org-members li[hidden] {
     display: none;
 }
 
-.org-row.is-archived {
-    opacity: 0.6;
-    border-left-color: var(--bos-gray);
+.org-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
 }
 
-.org-row-main {
+.org-stats > div {
     display: grid;
+    gap: 2px;
+    padding: 12px 14px;
+    border: 1px solid var(--bos-gray);
+    border-radius: var(--bos-radius);
+    background: var(--bos-surface);
+    box-shadow: var(--bos-shadow);
+}
+
+.org-stats strong {
+    font-size: 1.5rem;
+    line-height: 1.1;
+}
+
+.org-stats span {
+    overflow: hidden;
+    color: var(--bos-muted);
+    font-size: 0.76rem;
+    text-overflow: ellipsis;
+}
+
+.org-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.org-toolbar .bos-input {
+    flex: 1 1 220px;
+    width: auto;
     min-width: 0;
 }
 
-.org-row-main small {
+.org-card {
+    --org-accent: var(--bos-red);
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--bos-gray);
+    border-radius: var(--bos-radius);
+    background: var(--bos-surface);
+    box-shadow: var(--bos-shadow);
+}
+
+.org-card[data-level="landkreis"] {
+    --org-accent: var(--bos-blue);
+}
+
+.org-card[data-level="gemeinde"] {
+    --org-accent: var(--bos-green);
+}
+
+.org-card.is-archived {
+    --org-accent: var(--bos-muted);
+    opacity: 0.65;
+}
+
+.org-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+}
+
+.org-card-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--shell-surface-muted);
+    color: var(--org-accent);
+}
+
+.org-card-title {
+    display: grid;
+    flex: 1 1 160px;
+    min-width: 0;
+}
+
+.org-card-title strong {
+    overflow-wrap: anywhere;
+}
+
+.org-card-title small {
     color: var(--bos-muted);
     font-size: 0.78rem;
+}
+
+.org-card-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.org-members-count {
+    color: var(--bos-muted);
+    font-size: 0.8rem;
+}
+
+.org-members-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 4px 10px 4px 6px;
+    border: 1px solid var(--bos-gray);
+    border-radius: 999px;
+    background: var(--shell-surface-muted);
+    color: var(--bos-dark);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.org-members-toggle:hover {
+    border-color: var(--bos-muted);
+}
+
+.org-chevron {
+    display: inline-flex;
+    transition: transform 0.15s;
+}
+
+.org-members-toggle[aria-expanded="true"] .org-chevron {
+    transform: rotate(180deg);
+}
+
+.org-avatars {
+    display: inline-flex;
+}
+
+.org-avatar {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--bos-surface);
+    border-radius: 50%;
+    background: var(--bos-gray);
+    color: var(--bos-dark);
+    font-size: 0.66rem;
+    font-weight: 700;
+}
+
+.org-avatar[data-rank="3"],
+.org-avatar[data-rank="4"] {
+    background: var(--bos-red);
+    color: #fff;
+}
+
+.org-avatar[data-rank="2"] {
+    background: var(--bos-blue);
+    color: #fff;
+}
+
+.org-avatars .org-avatar + .org-avatar {
+    margin-left: -8px;
+}
+
+.org-members {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 10px 0 0;
+    border-top: 1px solid var(--bos-gray);
+    list-style: none;
+}
+
+.org-tree .org-members li {
+    display: grid;
+}
+
+.org-member {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid transparent;
+    border-radius: var(--shell-radius-small);
+    background: var(--shell-surface-muted);
+    color: var(--bos-dark);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.org-member:hover {
+    border-color: var(--bos-muted);
+}
+
+.org-member.is-inactive {
+    opacity: 0.6;
+}
+
+.org-member .org-avatar {
+    width: 34px;
+    height: 34px;
+    border: 0;
+}
+
+.org-member-text {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.org-member-text strong {
+    font-size: 0.86rem;
+}
+
+.org-member-text small {
+    color: var(--bos-muted);
+    font-size: 0.74rem;
+}
+
+.org-member-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
 }
 
 .org-row-actions,
@@ -2086,6 +2301,30 @@ body {
 
 .org-memberships .bos-input {
     width: auto;
+}
+
+@media (max-width: 600px) {
+    .org-stats > div {
+        padding: 10px 8px;
+    }
+
+    .org-stats span {
+        font-size: 0.68rem;
+    }
+
+    .org-tree .org-tree {
+        margin-left: 4px;
+        padding-left: 12px;
+    }
+
+    .org-tree .org-tree > li::before,
+    .org-tree .org-tree > li::after {
+        left: -12px;
+    }
+
+    .org-tree .org-tree > li::after {
+        width: 12px;
+    }
 }
 
 /* ----------------------------------------------------------

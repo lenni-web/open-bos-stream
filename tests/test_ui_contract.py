@@ -759,6 +759,18 @@ def test_organisation_management_replaces_flat_user_list() -> None:
     assert "window.currentPermissions?.superadmin" in users
 
 
+def test_organisation_cards_list_assigned_accounts() -> None:
+    script = (ROOT / "static" / "js" / "organizations.js").read_text(encoding="utf-8")
+    styles = (ROOT / "static" / "css" / "shell.css").read_text(encoding="utf-8")
+    # Mitglieder je Organisation, aufklappbar und nur für deren Admins.
+    assert "organizationMembers(org.id)" in script
+    assert "org.can_admin ? organizationMembers" in script
+    assert 'aria-controls="org-members-${org.id}"' in script
+    assert "openMemberAccount(${user.id})" in script
+    for selector in (".org-card", ".org-members[hidden]", ".org-member", ".org-avatar"):
+        assert selector in styles
+
+
 def test_viewer_view_hides_technical_details() -> None:
     index = (ROOT / "templates" / "index.html").read_text(encoding="utf-8")
     header = (

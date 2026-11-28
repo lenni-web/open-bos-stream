@@ -8,6 +8,9 @@ const orgState = {
     users: [],
     editingOrg: null,
     openUser: null,
+    // Aufgeklappte Mitgliederlisten und Suche bleiben beim Neuzeichnen erhalten.
+    openMembers: new Set(),
+    search: "",
 };
 
 function orgElement() {
@@ -131,27 +134,136 @@ function formatDate(value) {
 // Darstellung
 // ----------------------------------------------------------
 
+const ORG_KIND_ICONS = {
+    landkreis: '<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Zm0 0v14m6-12v14"/>',
+    gemeinde: '<path d="M12 3 3 8l9 5 9-5-9-5ZM3 13l9 5 9-5"/>',
+    default: '<path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/>',
+};
+
+// Stadt-, Gemeinde- und Samtgemeindefeuerwehr teilen sich eine Ebene.
+function orgKindGroup(kind) {
+    return kind.endsWith("gemeindefeuerwehr") || kind === "stadtfeuerwehr" ? "gemeinde" : kind;
+}
+
+function orgIcon(paths, size = 18) {
+    return `<svg class="ui-icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true">${paths}</svg>`;
+}
+
+// Konten mit einer Rolle direkt in dieser Organisation, höchste Rolle zuerst.
+function organizationMembers(id) {
+    return orgState.users
+        .map(user => ({
+            user,
+            roles: user.memberships.filter(item => item.organization_id === id).map(item => item.role),
+        }))
+        .filter(member => member.roles.length)
+        .sort((a, b) => memberRank(b) - memberRank(a)
+            || userSortName(a.user).localeCompare(userSortName(b.user), "de"));
+}
+
+function memberRank(member) {
+    return Math.max(0, ...member.roles.map(role => USER_ROLE_RANK[role] ?? 0));
+}
+
+function userInitials(user) {
+    const letters = user.first_name && user.last_name
+        ? user.first_name[0] + user.last_name[0]
+        : (user.display_name || user.username).slice(0, 2);
+    return letters.toLocaleUpperCase("de");
+}
+
+function userAvatar(member) {
+    return `<span class="org-avatar" data-rank="${memberRank(member)}"
+        aria-hidden="true">${escapeHTML(userInitials(member.user))}</span>`;
+}
+
+function renderMember(member) {
+    const {user, roles} = member;
+    const state = userQualificationState(user);
+    const notes = [user.nickname ? `„${user.nickname}“` : "", user.username].filter(Boolean).join(" · ");
+    return `
+        <li>
+            <button class="org-member${user.active ? "" : " is-inactive"}" type="button"
+                data-search="${escapeHTML(memberSearchText(user))}"
+                title="Konto unter „Benutzer“ öffnen" onclick="openMemberAccount(${user.id})">
+                ${userAvatar(member)}
+                <span class="org-member-text">
+                    <strong>${escapeHTML(user.display_name || user.username)}</strong>
+                    <small>${escapeHTML(notes)}</small>
+                    <span class="org-member-badges">
+                        ${roles.map(roleBadge).join("")}
+                        ${user.active ? "" : '<span class="org-chip is-muted">gesperrt</span>'}
+                        ${state === "expired" ? '<span class="org-chip is-expired">Nachweis abgelaufen</span>' : ""}
+                        ${state === "soon" ? '<span class="org-chip is-soon">Nachweis läuft ab</span>' : ""}
+                    </span>
+                </span>
+            </button>
+        </li>`;
+}
+
+function memberSearchText(user) {
+    return [user.display_name, user.first_name, user.last_name, user.nickname, user.username]
+        .join(" ").toLocaleLowerCase("de");
+}
+
+// Mitglieder sehen nur die Admins der Organisation vollständig; sonst
+// bleibt es bei der Anzahl.
+function renderMemberToggle(org, members) {
+    if (!org.can_admin || !members.length) {
+        return `<span class="org-members-count">${plural(org.member_count, "Mitglied", "Mitglieder")}</span>`;
+    }
+    const open = orgState.openMembers.has(org.id);
+    const rest = members.length - 5;
+    return `
+        <button class="org-members-toggle" type="button" aria-expanded="${open}"
+            aria-controls="org-members-${org.id}" onclick="toggleMembers(${org.id})">
+            <span class="org-avatars">${members.slice(0, 5).map(userAvatar).join("")}
+                ${rest > 0 ? `<span class="org-avatar is-more">+${rest}</span>` : ""}</span>
+            <span>${plural(members.length, "Mitglied", "Mitglieder")}</span>
+            <span class="org-chevron">${orgIcon('<path d="m6 9 6 6 6-6"/>', 16)}</span>
+        </button>`;
+}
+
+function plural(count, one, many) {
+    return `${count} ${count === 1 ? one : many}`;
+}
+
 function renderOrganizationRow(org) {
     const parent = orgState.organizations.find(item => item.id === org.parent_id);
     // Ältere Einordnungen, die nicht zur Art passen, sichtbar machen.
     const misplaced = parent && !fitsUnder(org.kind, parent);
+    const members = org.can_admin ? organizationMembers(org.id) : [];
     return `
-        <div class="org-row${org.archived ? " is-archived" : ""}">
-            <div class="org-row-main">
-                <strong>${escapeHTML(org.name)}</strong>
-                <small>${escapeHTML(org.kind_label)}${org.short_name ? ` · ${escapeHTML(org.short_name)}` : ""}
-                    · ${org.member_count} Konten · ${org.source_count} Drohnen
-                    ${org.archived ? " · archiviert" : ""}
-                    ${misplaced ? " · Einordnung prüfen" : ""}</small>
+        <div class="org-card${org.archived ? " is-archived" : ""}" data-level="${escapeHTML(orgKindGroup(org.kind))}"
+            data-search="${escapeHTML(`${org.name} ${org.short_name ?? ""}`.toLocaleLowerCase("de"))}">
+            <div class="org-card-head">
+                <span class="org-card-icon">${orgIcon(ORG_KIND_ICONS[orgKindGroup(org.kind)] ?? ORG_KIND_ICONS.default, 20)}</span>
+                <div class="org-card-title">
+                    <strong>${escapeHTML(org.name)}</strong>
+                    <small>${escapeHTML(org.kind_label)}${org.short_name ? ` · ${escapeHTML(org.short_name)}` : ""}</small>
+                </div>
+                <div class="org-row-actions">
+                    ${org.can_manage_children && !org.archived && childKinds(org).length ? `
+                        <button class="bos-button bos-button-small" type="button"
+                            onclick="startOrganizationForm(null, ${org.id})">＋ Untereinheit</button>` : ""}
+                    ${org.can_admin || org.can_edit ? `
+                        <button class="bos-button bos-button-small" type="button"
+                            onclick="startOrganizationForm(${org.id})">Bearbeiten</button>` : ""}
+                </div>
             </div>
-            <div class="org-row-actions">
-                ${org.can_manage_children && !org.archived && childKinds(org).length ? `
-                    <button class="bos-button bos-button-small" type="button"
-                        onclick="startOrganizationForm(null, ${org.id})">＋ Untereinheit</button>` : ""}
-                ${org.can_admin || org.can_edit ? `
-                    <button class="bos-button bos-button-small" type="button"
-                        onclick="startOrganizationForm(${org.id})">Bearbeiten</button>` : ""}
+            <div class="org-card-foot">
+                ${renderMemberToggle(org, members)}
+                ${org.source_count ? `<span class="org-chip">${plural(org.source_count, "Drohne", "Drohnen")}</span>` : ""}
+                ${org.archived ? '<span class="org-chip is-muted">archiviert</span>' : ""}
+                ${misplaced ? '<span class="org-chip is-soon">Einordnung prüfen</span>' : ""}
             </div>
+            ${members.length ? `
+                <ul class="org-members" id="org-members-${org.id}" data-org-members="${org.id}"
+                    ${orgState.openMembers.has(org.id) ? "" : "hidden"}>
+                    ${members.map(renderMember).join("")}
+                </ul>` : ""}
         </div>
         <div data-org-slot="${org.id}"></div>
     `;
@@ -170,12 +282,107 @@ function renderOrganizationBranch(parentId) {
 }
 
 function renderOrganizations() {
+    const active = orgState.organizations.filter(org => !org.archived).length;
+    const drones = orgState.organizations.reduce((sum, org) => sum + org.source_count, 0);
+    const accounts = orgState.users.filter(user => user.memberships.length).length;
+    const stat = (count, label) => `<div><strong>${count}</strong><span>${label}</span></div>`;
     return `
-        <div class="org-block">
-            <h3>Organisationen</h3>
-            <ul class="org-tree">${renderOrganizationBranch(null)}</ul>
+        <div class="org-stats">
+            ${stat(active, "Organisationen")}
+            ${stat(accounts, "Mitglieder")}
+            ${stat(drones, "Drohnen")}
         </div>
+        <div class="org-toolbar">
+            <input class="bos-input" type="search" value="${escapeHTML(orgState.search)}"
+                placeholder="Organisation oder Person suchen" aria-label="Organisation oder Person suchen"
+                oninput="searchOrganizations(this.value)">
+            <button class="bos-button bos-button-small" type="button" data-members-all
+                onclick="toggleAllMembers()">Alle aufklappen</button>
+        </div>
+        <p class="service-inline-status" data-org-empty hidden>Nichts gefunden.</p>
+        <ul class="org-tree">${renderOrganizationBranch(null)}</ul>
     `;
+}
+
+// ----------------------------------------------------------
+// Mitglieder aufklappen und suchen
+// Nur Sichtbarkeit ändern: ein offenes Formular bleibt erhalten.
+// ----------------------------------------------------------
+
+function applyMemberVisibility() {
+    const root = orgElement();
+    if (!root) {
+        return;
+    }
+    const query = orgState.search.trim().toLocaleLowerCase("de");
+    const matches = element => element.dataset.search.includes(query);
+    const visit = (item, parentMatches) => {
+        const card = item.querySelector(":scope > .org-card");
+        const list = card.querySelector(".org-members");
+        const ownMatch = Boolean(query) && matches(card);
+        let hits = 0;
+        for (const member of list?.querySelectorAll(".org-member") ?? []) {
+            const hit = !query || ownMatch || matches(member);
+            member.parentElement.hidden = !hit;
+            hits += query && !ownMatch && hit ? 1 : 0;
+        }
+        const showAll = parentMatches || ownMatch;
+        let childVisible = false;
+        for (const child of item.querySelectorAll(":scope > .org-tree > li")) {
+            childVisible = visit(child, showAll) || childVisible;
+        }
+        const visible = !query || showAll || hits > 0 || childVisible;
+        item.hidden = !visible;
+        if (list) {
+            const id = Number(list.dataset.orgMembers);
+            const open = orgState.openMembers.has(id) || hits > 0;
+            list.hidden = !open;
+            card.querySelector(".org-members-toggle").setAttribute("aria-expanded", String(open));
+        }
+        return visible;
+    };
+    let any = false;
+    for (const item of root.querySelectorAll(":scope > .org-tree > li")) {
+        any = visit(item, false) || any;
+    }
+    const empty = root.querySelector("[data-org-empty]");
+    if (empty) {
+        empty.hidden = any;
+    }
+    const all = root.querySelector("[data-members-all]");
+    if (all) {
+        const ids = [...root.querySelectorAll("[data-org-members]")].map(list => Number(list.dataset.orgMembers));
+        all.hidden = !ids.length;
+        all.textContent = ids.every(id => orgState.openMembers.has(id)) ? "Alle zuklappen" : "Alle aufklappen";
+    }
+}
+
+function toggleMembers(id) {
+    if (!orgState.openMembers.delete(id)) {
+        orgState.openMembers.add(id);
+    }
+    applyMemberVisibility();
+}
+
+function toggleAllMembers() {
+    const ids = [...orgElement().querySelectorAll("[data-org-members]")]
+        .map(list => Number(list.dataset.orgMembers));
+    const open = !ids.every(id => orgState.openMembers.has(id));
+    orgState.openMembers = new Set(open ? ids : []);
+    applyMemberVisibility();
+}
+
+function searchOrganizations(value) {
+    orgState.search = value;
+    applyMemberVisibility();
+}
+
+// Konto auf der Seite „Benutzer“ geöffnet zeigen.
+function openMemberAccount(id) {
+    showCreatedUser(id);
+    renderUserManagement();
+    showPage("users");
+    document.querySelector(`[data-user-row="${id}"]`)?.scrollIntoView({block: "center"});
 }
 
 // Mögliche übergeordnete Organisationen für die gewählte Art.
@@ -454,6 +661,7 @@ function renderOrganizationManagement() {
             <p class="service-inline-status" role="status" data-org-status></p>
             ${renderOrganizations()}
         `;
+        applyMemberVisibility();
         renderOrganizationForm();
     }
     renderUserManagement();
