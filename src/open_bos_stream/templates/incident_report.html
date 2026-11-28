@@ -128,13 +128,24 @@
         <tr><th>Alarmierte Einheiten</th><td>{{ incident.alerted_units or "–" }}</td></tr>
         <tr><th>Einsatznummer Leitstelle</th><td>{{ incident.dispatch_number or "–" }}</td></tr>
         <tr><th>Führende Wehr</th><td>{{ incident.lead_name }}</td></tr>
-        <tr><th>Beteiligte Wehren</th><td>
-            {% for entry in incident.involved %}{{ entry.name }} (ab {{ local(entry.added_at, false) }} Uhr){% if not loop.last %}, {% endif %}{% else %}–{% endfor %}
-        </td></tr>
     </table>
     {% if incident.alarm_text %}
     <p class="text">{{ incident.alarm_text }}</p>
     {% endif %}
+
+    <h2>Beteiligte Wehren</h2>
+    {% if detail.organization_history %}
+    <table>
+        <tr><th>Wehr</th><th>von</th><th>bis</th></tr>
+        {% for entry in detail.organization_history %}
+        <tr>
+            <td>{{ entry.name }}{% if entry.became_lead %} <span class="muted">(danach führend)</span>{% endif %}</td>
+            <td>{{ local(entry.added_at) }}</td>
+            <td>{{ local(entry.removed_at) if entry.removed_at else ("im Einsatz" if incident.status == "running" else "Einsatzende") }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}<p class="muted">Keine weiteren Wehren beteiligt.</p>{% endif %}
 
     <h2>Personen im Einsatz</h2>
     {% if detail.participants %}

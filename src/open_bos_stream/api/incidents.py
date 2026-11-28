@@ -122,17 +122,32 @@ def _detail(user: dict, incident_id: int) -> dict:
             "name": current.name if current else entry["source_name"],
             "drone_type": current.drone_type if current else "",
             "exists": current is not None,
+            "can_remove": service.can_remove_unit(
+                user, incident, current.organization_id if current else None
+            ),
         })
     assigned = set(service.active_source_ids(incident_id))
     detail = {
         "incident": incident | {
             "lead_name": names.get(incident["lead_organization_id"], "?"),
             "involved": [
-                entry | {"name": names.get(entry["organization_id"], "?")}
+                entry | {
+                    "name": names.get(entry["organization_id"], "?"),
+                    "can_remove": service.can_remove_unit(user, incident, None),
+                }
                 for entry in incident["involved"]
             ],
         },
         "participants": service.participants(incident_id),
+        "organization_history": [
+            entry | {
+                "name": names.get(entry["organization_id"], "?"),
+                # Beendet, weil diese Wehr die Führung übernommen hat.
+                "became_lead": bool(entry["removed_at"])
+                and entry["organization_id"] == incident["lead_organization_id"],
+            }
+            for entry in service.organization_history(incident_id)
+        ],
         "sources": sources,
         "log": service.log(incident_id),
         "checklists": [
@@ -455,7 +470,11 @@ async def add_source(incident_id: int, payload: SourceIn, request: Request) -> d
 @router.delete("/{incident_id}/sources/{source_id}")
 async def remove_source(incident_id: int, source_id: str, request: Request) -> dict:
     user = _user(request)
-    await _call(_service().remove_source, user, incident_id, source_id)
+    source = _source(source_id)
+    await _call(
+        _service().remove_source, user, incident_id, source_id,
+        organization_id=source.organization_id if source else None,
+    )
     return await _call(_detail, user, incident_id)
 
 

@@ -247,20 +247,24 @@ incidents = Table(
 incident_organizations = Table(
     "incident_organizations",
     metadata,
+    Column("id", Integer, primary_key=True),
     Column(
         "incident_id",
         Integer,
         ForeignKey("incidents.id", ondelete="CASCADE"),
-        primary_key=True,
+        nullable=False,
     ),
     Column(
         "organization_id",
         Integer,
         ForeignKey("organizations.id", ondelete="RESTRICT"),
-        primary_key=True,
+        nullable=False,
     ),
     Column("added_at", String(32), nullable=False),
     Column("added_by", String(80), nullable=False, default=""),
+    # Leer: noch beteiligt. Beendete Zeiträume bleiben zur Dokumentation.
+    Column("removed_at", String(32), nullable=True),
+    Column("removed_by", String(80), nullable=False, default=""),
 )
 
 incident_participants = Table(

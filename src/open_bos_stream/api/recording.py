@@ -21,13 +21,14 @@ from open_bos_stream.core.container import (
 from open_bos_stream.recording.playback import PlaybackPreparationError
 from open_bos_stream.auth.media_access import (
     media_organization,
+    require_capture_access,
     require_media_access,
     visible_media,
 )
-from open_bos_stream.auth.roles import OPERATOR, SUPERADMIN
+from open_bos_stream.auth.roles import OPERATOR
 
-# Aufnahmesteuerung bleibt Superadmins vorbehalten; das Archiv sehen
-# Drohnenteams für die Drohnen ihrer Wehr (auth/media_access.py).
+# Drohnenteams steuern die Aufnahme und sehen das Archiv für die Drohnen
+# ihrer Wehr (auth/media_access.py).
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
@@ -51,6 +52,7 @@ def _status(source_id: str):
 
 
 async def _control(action, source_id: str, request: Request) -> dict:
+    require_capture_access(request.state.user, source_id, config)
     try:
         # Das Öffnen des Hauptstreams kann einige Sekunden dauern und darf
         # die übrigen Anfragen nicht blockieren.
@@ -65,12 +67,12 @@ async def _control(action, source_id: str, request: Request) -> dict:
     return {"success": True, "status": _status(source_id)}
 
 
-@router.post("/sources/{source_id}/start", dependencies=[SUPERADMIN])
+@router.post("/sources/{source_id}/start", dependencies=[OPERATOR])
 async def start(source_id: str, request: Request):
     return await _control(recording_service.start, source_id, request)
 
 
-@router.post("/sources/{source_id}/stop", dependencies=[SUPERADMIN])
+@router.post("/sources/{source_id}/stop", dependencies=[OPERATOR])
 async def stop(source_id: str, request: Request):
     return await _control(recording_service.stop, source_id, request)
 

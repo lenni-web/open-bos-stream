@@ -503,7 +503,7 @@ function renderIncidentSources(detail) {
                     <li>
                         <span><strong>${escapeHTML(item.name)}</strong>
                             <small class="is-muted">seit ${escapeHTML(incidentTime(item.added_at, false))} Uhr</small></span>
-                        ${can.edit ? `<button class="bos-button bos-button-small" type="button"
+                        ${item.can_remove ? `<button class="bos-button bos-button-small" type="button"
                             onclick="removeIncidentSource('${escapeHTML(item.source_id)}')">Aus Einsatz nehmen</button>` : ""}
                     </li>`).join("")}
             </ul>` : '<p class="incident-empty">Keine Drohne zugeordnet.</p>'}
@@ -606,6 +606,7 @@ function renderIncidentOrganizations(detail) {
     const can = detail.can;
     const used = new Set(incident.organization_ids);
     const options = (detail.organizations || []).filter(org => !used.has(org.id));
+    const earlier = (detail.organization_history || []).filter(item => item.removed_at);
     return `
         <section class="bos-card incident-section">
             <h3>Beteiligte Wehren</h3>
@@ -616,10 +617,12 @@ function renderIncidentOrganizations(detail) {
                     <li>
                         <span>${escapeHTML(entry.name)}
                             <small class="is-muted">seit ${escapeHTML(incidentTime(entry.added_at, false))} Uhr</small></span>
-                        ${can.edit ? `<button class="bos-button bos-button-small" type="button"
+                        ${entry.can_remove ? `<button class="bos-button bos-button-small" type="button"
                             onclick="removeIncidentOrganization(${Number(entry.organization_id)})">Entfernen</button>` : ""}
                     </li>`).join("")}
             </ul>
+            ${earlier.length ? `<p class="incident-hint">Vorher beteiligt: ${earlier.map(item =>
+                `${escapeHTML(item.name)} (${escapeHTML(incidentTime(item.added_at, false))}–${escapeHTML(incidentTime(item.removed_at, false))}${item.became_lead ? ", dann führend" : ""})`).join(", ")}</p>` : ""}
             ${can.edit && options.length ? `
                 <div class="org-inline-add">
                     <select id="incident-add-org" class="bos-input">

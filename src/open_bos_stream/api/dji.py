@@ -247,6 +247,7 @@ def _incident_drones(user: dict, incident_id: int) -> dict:
     live = {item["serial"]: item for item in service.devices(user)}
     for entry in assignments:
         entry["state"] = (live.get(entry["serial"]) or {}).get("state") or {"online": False}
+        entry["can_release"] = service.can_release(user, incident, entry["serial"])
     available = []
     if can_edit and incident["status"] == "running":
         active = {entry["serial"] for entry in assignments if entry["active"]}

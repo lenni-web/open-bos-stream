@@ -15,13 +15,14 @@ from open_bos_stream.core.container import (
 )
 from open_bos_stream.auth.media_access import (
     media_organization,
+    require_capture_access,
     require_media_access,
     visible_media,
 )
-from open_bos_stream.auth.roles import OPERATOR, SUPERADMIN
+from open_bos_stream.auth.roles import OPERATOR
 
-# Snapshot-Steuerung bleibt Superadmins vorbehalten; das Archiv sehen
-# Drohnenteams für die Drohnen ihrer Wehr (auth/media_access.py).
+# Drohnenteams lösen Snapshots aus und sehen das Archiv für die Drohnen
+# ihrer Wehr (auth/media_access.py).
 router = APIRouter(
     prefix="/snapshot",
     tags=["Snapshot"],
@@ -32,10 +33,11 @@ class ProtectionRequest(BaseModel):
     protected: bool
 
 
-@router.post("/sources/{source_id}", dependencies=[SUPERADMIN])
+@router.post("/sources/{source_id}", dependencies=[OPERATOR])
 async def create(source_id: str, request: Request):
     """Neuen Snapshot einer Drohne erstellen."""
 
+    require_capture_access(request.state.user, source_id, config)
     try:
         filename = await run_in_threadpool(snapshot_service.create, source_id)
     except (RuntimeError, TimeoutError) as exc:
@@ -51,6 +53,7 @@ async def create(source_id: str, request: Request):
         "info",
         f"📸 Snapshot erstellt · {filename.name}",
         actor=request.state.user["username"],
+        organization_id=media_organization(filename.name, config),
     )
     return {
         "success": True,

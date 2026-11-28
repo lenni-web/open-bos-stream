@@ -1,12 +1,8 @@
 // ==========================================================
-// Snapshot und manuelle Aufnahme je Drohnenkachel (Superadmin)
+// Snapshot und manuelle Aufnahme je Drohnenkachel (Drohnenteam)
 // ==========================================================
 
 let mediaStorageState = null;
-
-function canCaptureMedia() {
-    return window.currentUser?.role === "superadmin";
-}
 
 function updateMediaStorageHint(storage) {
     mediaStorageState = storage ?? null;
@@ -29,6 +25,8 @@ function updateSourceCaptureButtons(card, input) {
     if (!snapshot || !record) {
         return;
     }
+    // Das Recht gilt je Drohne und kommt mit dem Status.
+    card.querySelector(".multi-source-capture").hidden = !input.can_capture;
     const active = Boolean(input.recording?.active);
     const automatic = Boolean(input.recording?.automatic);
     const blocked = Boolean(mediaStorageState?.blocked);

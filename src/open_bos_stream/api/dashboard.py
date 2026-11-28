@@ -18,6 +18,7 @@ from open_bos_stream.stream.probe import ProbeBusyError
 from open_bos_stream.auth.guest_access import (
     is_restricted,
     require_source_access,
+    can_operate_source,
     visible_source_ids,
 )
 from open_bos_stream.auth.roles import ADMIN, GUEST, VIEWER, SERVER_ADMIN
@@ -37,6 +38,7 @@ async def status(request: Request, events_after: int | None = None):
         # Kopie: der Status wird zwischen Anfragen zwischengespeichert.
         data = filter_status_sources(data, visible)
     data = with_organization_names(data)
+    data = with_capture_rights(data, user)
     if user.get("role") == "superadmin":
         # Das Ereignisprotokoll ist nur für Superadmins. Der Browser fragt
         # nur Einträge nach seinem letzten Stand ab.
@@ -45,6 +47,25 @@ async def status(request: Request, events_after: int | None = None):
             "server_events": server_event_log.since(events_after, None),
         }
     return data
+
+
+def with_capture_rights(data: dict, user: dict) -> dict:
+    """Je Quelle: Darf dieses Konto Aufnahme und Snapshot auslösen?"""
+
+    if ROLE_LEVEL.get(user.get("role"), -1) < ROLE_LEVEL["operator"]:
+        return data
+    configured = {item.id: item for item in runtime_config.sources}
+    return {
+        **data,
+        "sources": [
+            {
+                **item,
+                "can_capture": (source := configured.get(item.get("source_id", item.get("id")))) is not None
+                and can_operate_source(user, source),
+            }
+            for item in data.get("sources") or []
+        ],
+    }
 
 
 def with_organization_names(data: dict) -> dict:

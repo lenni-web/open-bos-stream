@@ -20,7 +20,7 @@ function renderIncidentTelemetry(detail) {
                 <li>
                     <span><strong>${escapeHTML(item.name)}</strong>
                         <small class="is-muted">${item.state.online ? "wird aufgezeichnet" : "derzeit keine Daten"}</small></span>
-                    ${data.can_edit ? `<button class="bos-button bos-button-small" type="button"
+                    ${item.can_release ? `<button class="bos-button bos-button-small" type="button"
                         data-serial="${escapeHTML(item.serial)}"
                         onclick="setIncidentDrone(this.dataset.serial, false)">Aufzeichnung beenden</button>` : ""}
                 </li>`).join("")}</ul>` : ""}

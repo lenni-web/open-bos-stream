@@ -63,6 +63,19 @@ def require_media_access(user: dict | None, filename: str, config, *, level: str
         )
 
 
+def require_capture_access(user: dict | None, source_id: str, config) -> None:
+    """Aufnahme und Snapshot auslösen: Drohnenteam der Wehr der Drohne."""
+
+    source = next((item for item in config.sources if item.id == source_id), None)
+    if not is_guest(user) and user and (not is_restricted(user) or user.get("server_admin")):
+        return
+    if source is None or not can_operate_source(user, source):
+        raise HTTPException(
+            status_code=403,
+            detail="Aufnahmen und Snapshots löst das Drohnenteam der Wehr dieser Drohne aus.",
+        )
+
+
 def visible_media(user: dict | None, items: list[dict], config) -> list[dict]:
     """Dateiliste mit Quelle, Wehr und Rechten für die Oberfläche."""
 

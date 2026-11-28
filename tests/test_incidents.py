@@ -437,3 +437,136 @@ def test_weather_follows_the_incident_of_the_own_unit(api, monkeypatch) -> None:
     assert api.get("/api/weather?place=default").json()["location"]["key"] == "default"
     # Unbekannte Orte (z. B. beendeter Einsatz) führen zur automatischen Wahl.
     assert api.get("/api/weather?place=incident:999").json()["location"]["key"] == key
+
+
+def test_only_the_lead_removes_other_wehren_and_their_drones(setup) -> None:
+    incident = create(setup)
+    lead = session(setup.auth, "b-team")
+    setup.incidents.add_organization(lead, incident["id"], setup.ids["a"])
+    setup.incidents.add_source(lead, incident["id"], source("b1", setup.ids["b"]))
+    involved = session(setup.auth, "a-admin")
+
+    with pytest.raises(IncidentAccessError):
+        setup.incidents.remove_source(involved, incident["id"], "b1", organization_id=setup.ids["b"])
+    # Drohne ohne Wehr (z. B. inzwischen gelöscht): nur die führende Wehr.
+    with pytest.raises(IncidentAccessError):
+        setup.incidents.remove_source(involved, incident["id"], "b1")
+    assert not setup.incidents.can_remove_unit(involved, setup.incidents.get(incident["id"]), setup.ids["b"])
+
+    setup.incidents.add_source(involved, incident["id"], source("a1", setup.ids["a"]))
+    setup.incidents.remove_source(involved, incident["id"], "a1", organization_id=setup.ids["a"])
+    setup.incidents.remove_source(lead, incident["id"], "b1", organization_id=setup.ids["b"])
+    with pytest.raises(IncidentAccessError):
+        setup.incidents.remove_organization(involved, incident["id"], setup.ids["a"])
+    left = setup.incidents.remove_organization(lead, incident["id"], setup.ids["a"])
+    assert not setup.incidents.can_view(involved, left)
+
+
+def test_involved_wehr_cannot_remove_itself(api) -> None:
+    api.login("b-team")
+    incident = api.post("/api/incidents", json={"lead_organization_id": api.ids["b"]}).json()["incident"]
+    url = f"/api/incidents/{incident['id']}/organizations"
+    assert api.post(url, json={"organization_id": api.ids["a"]}).status_code == 200
+
+    api.login("a-admin")
+    detail = api.get(f"/api/incidents/{incident['id']}").json()
+    assert [entry["can_remove"] for entry in detail["incident"]["involved"]] == [False]
+    assert api.delete(f"{url}/{api.ids['a']}").status_code == 403
+
+    api.login("b-team")
+    assert api.delete(f"{url}/{api.ids['a']}").status_code == 200
+
+
+def test_drone_team_captures_only_own_drones(setup) -> None:
+    from fastapi import HTTPException
+
+    from open_bos_stream.auth.media_access import require_capture_access
+
+    config = SimpleNamespace(sources=[source("a1", setup.ids["a"]), source("b1", setup.ids["b"]), source("frei", None)])
+    team = session(setup.auth, "b-team")
+    require_capture_access(team, "b1", config)
+    for username, source_id in (("b-team", "a1"), ("b-team", "frei"), ("b-team", "fehlt"), ("b-zuschauer", "b1")):
+        with pytest.raises(HTTPException):
+            require_capture_access(session(setup.auth, username), source_id, config)
+    for source_id in ("a1", "frei"):
+        require_capture_access(session(setup.auth, "kreis"), source_id, config)
+
+
+def test_status_marks_drones_the_account_may_capture(setup, monkeypatch) -> None:
+    from open_bos_stream.api import dashboard
+
+    monkeypatch.setattr(
+        dashboard.runtime_config, "sources",
+        [source("a1", setup.ids["a"]), source("b1", setup.ids["b"])],
+    )
+    data = {"sources": [{"id": "a1"}, {"id": "b1"}]}
+    marked = dashboard.with_capture_rights(data, session(setup.auth, "b-team"))
+    assert [item["can_capture"] for item in marked["sources"]] == [False, True]
+    assert dashboard.with_capture_rights(data, session(setup.auth, "b-zuschauer")) is data
+
+
+def test_involvement_of_wehren_is_documented_with_periods(setup) -> None:
+    incident = create(setup)
+    lead = session(setup.auth, "b-team")
+    a = setup.ids["a"]
+    setup.incidents.add_organization(lead, incident["id"], a)
+    removed = setup.incidents.remove_organization(lead, incident["id"], a)
+    assert removed["organization_ids"] == [setup.ids["b"]]
+    assert not setup.incidents.can_view(session(setup.auth, "a-admin"), removed)
+
+    # Erneut beteiligt: neuer Zeitraum, der alte bleibt stehen.
+    again = setup.incidents.add_organization(lead, incident["id"], a)
+    assert [entry["organization_id"] for entry in again["involved"]] == [a]
+    history = setup.incidents.organization_history(incident["id"])
+    assert [bool(entry["removed_at"]) for entry in history] == [True, False]
+    assert history[0]["removed_by"]
+
+
+def test_report_lists_former_wehren(api) -> None:
+    api.login("b-team")
+    incident = api.post("/api/incidents", json={"lead_organization_id": api.ids["b"]}).json()["incident"]
+    base = f"/api/incidents/{incident['id']}"
+    api.post(f"{base}/organizations", json={"organization_id": api.ids["a"]})
+    detail = api.delete(f"{base}/organizations/{api.ids['a']}").json()
+    assert detail["incident"]["involved"] == []
+    entry, = detail["organization_history"]
+    assert entry["removed_at"] and not entry["became_lead"]
+    report = api.get(f"{base}/report").text
+    assert "Beteiligte Wehren" in report and entry["name"] in report
+
+
+def test_migration_keeps_involved_wehren(tmp_path: Path) -> None:
+    from alembic import command
+    from alembic.config import Config
+    from sqlalchemy import text
+
+    from open_bos_stream.db.database import MIGRATIONS, Database
+
+    database = Database(tmp_path / "alt.db")
+    config = Config()
+    config.set_main_option("script_location", str(MIGRATIONS))
+
+    def run(action, revision: str) -> None:
+        with database.engine.begin() as connection:
+            config.attributes["connection"] = connection
+            action(config, revision)
+
+    def rows() -> list:
+        with database.engine.connect() as connection:
+            return [tuple(row) for row in connection.execute(text(
+                "SELECT incident_id, organization_id, added_at FROM incident_organizations"
+            ))]
+
+    run(command.upgrade, "0008_multiple_roles")
+    with database.engine.begin() as connection:
+        # Nur die Beteiligung zählt hier; Einsatz und Wehr dürfen fehlen.
+        connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+        connection.exec_driver_sql(
+            "INSERT INTO incident_organizations (incident_id, organization_id, added_at, added_by) "
+            "VALUES (1, 2, '2026-11-26T14:32', 'x')"
+        )
+    expected = [(1, 2, "2026-11-26T14:32")]
+    run(command.upgrade, "head")
+    assert rows() == expected
+    run(command.downgrade, "0008_multiple_roles")
+    assert rows() == expected

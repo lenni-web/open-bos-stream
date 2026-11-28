@@ -548,8 +548,8 @@ function multiSourceCard(input) {
         <footer class="multi-source-meta">
             <span data-value="format">—</span>
             <span data-value="viewers">0 Viewer</span>
-            ${window.currentUser?.role === "superadmin" ? `
-            <span class="multi-source-capture">
+            ${window.currentPermissions?.operate ? `
+            <span class="multi-source-capture" hidden>
                 <button
                     class="multi-source-snapshot bos-button bos-button-small"
                     type="button">

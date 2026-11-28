@@ -323,6 +323,7 @@
     margin-left: auto;
 }
 
+.multi-source-capture[hidden],
 .multi-source-record[hidden] {
     display: none;
 }
@@ -333,11 +334,11 @@
     }
 
     .multi-source-capture button,
-    .multi-source-capture ~ .multi-source-fullscreen {
+    .multi-source-capture:not([hidden]) ~ .multi-source-fullscreen {
         flex: 1 1 0;
     }
 
-    .multi-source-capture ~ .multi-source-fullscreen {
+    .multi-source-capture:not([hidden]) ~ .multi-source-fullscreen {
         flex-basis: 100%;
     }
 }

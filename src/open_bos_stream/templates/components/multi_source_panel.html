@@ -2,7 +2,7 @@
     id="multi-source-panel"
     class="bos-card multi-source-panel"
     hidden>
-    {% if user.role == "superadmin" %}
+    {% if can is defined and can.operate %}
     <p id="media-storage-hint" class="media-storage-hint" role="status" hidden></p>
     {% endif %}
     <div class="multi-source-header">

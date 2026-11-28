@@ -544,7 +544,9 @@ def test_superadmin_media_source_controls_are_present() -> None:
     assert "Beliebig viele Drohnen" in settings
     assert 'id="cfg-recording-mode-status"' in settings
     assert "Snapshot und Aufnahme" in settings
-    assert '{% if user.role == "superadmin" %}' in panel
+    # Drohnenteams sehen den Speicherhinweis; die Knöpfe richten sich je Drohne
+    # nach den Rechten aus dem Status.
+    assert "{% if can is defined and can.operate %}" in panel
     assert 'id="media-capture-bar"' not in panel
     assert 'id="media-storage-hint"' in panel
     assert "function renderMediaCaptureConfig()" in config

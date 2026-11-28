@@ -273,9 +273,9 @@ def test_route_roles_are_enforced_over_http(monkeypatch) -> None:
 
     assert status("GET", "/recording/files", None) == 401
     assert status("GET", "/recording/files", "viewer") == 403
-    # Archiv für Drohnenteams (gefiltert nach Wehr), Steuerung nur Superadmin.
+    # Archiv und Steuerung für Drohnenteams (je Drohne nach Wehr geprüft).
     assert status("GET", "/recording/files", "operator") == 200
-    assert status("POST", "/recording/sources/x/start", "admin") == 403
+    assert status("POST", "/recording/sources/x/start", "viewer") == 403
     assert status("POST", "/recording/sources/x/start", "superadmin") == 200
     assert status("PUT", "/config/storage", "admin") == 403
     assert status("PUT", "/config/", "admin") == 403
@@ -319,9 +319,9 @@ def test_route_roles_are_enforced_over_http(monkeypatch) -> None:
         ("GET", "/recording/files", "operator"),
         ("GET", "/snapshot/files", "operator"),
         ("GET", "/media/files", "operator"),
-        ("POST", "/recording/sources/{source_id}/start", "superadmin"),
-        ("POST", "/recording/sources/{source_id}/stop", "superadmin"),
-        ("POST", "/snapshot/sources/{source_id}", "superadmin"),
+        ("POST", "/recording/sources/{source_id}/start", "operator"),
+        ("POST", "/recording/sources/{source_id}/stop", "operator"),
+        ("POST", "/snapshot/sources/{source_id}", "operator"),
         ("GET", "/stream-output/status", "superadmin"),
         ("GET", "/display/status", "superadmin"),
         ("GET", "/web-access/status", "superadmin"),

@@ -937,7 +937,7 @@ Transcoding-Profil oder der Kamera-Substream geprüft werden.
   Flugwetter, Ereignisprotokoll und Weiterleitungen. Ein Klick auf eine Quelle
   öffnet die Livebilder.
 - **Livebilder:** alle Videos der eigenen Organisation mit Vollbild,
-  „Gastlink teilen“ sowie Snapshot und Aufnahme (Superadmin). Die Videos
+  „Gastlink teilen“ sowie Snapshot und Aufnahme (Drohnenteam, eigene Drohnen). Die Videos
   laufen nur, solange diese Seite geöffnet ist; Übersicht, Karte und Wetter
   verbrauchen dadurch keine Videodaten, was vor allem bei Mobilfunk zählt.
 - **Benutzermenü:** Name und Rolle, Darstellung, „Als App installieren“ und
@@ -1092,15 +1092,15 @@ snapshots/snapshot_quelle-1_20260801_201530.jpg
 recordings/recording_quelle-1_20260801_201530.mp4
 ```
 
-Die Dateien erscheinen automatisch in der vorhandenen Mediathek. Die
-Bedienung, Medienseite sowie Snapshot- und Aufnahme-API bleiben ausschließlich
-für Superadmins verfügbar. Ist die ausgewählte Quelle offline, bleiben die
-Schaltflächen deaktiviert.
+Die Dateien erscheinen automatisch in der vorhandenen Mediathek. Auslösen und
+ansehen kann das Drohnenteam für die Drohnen seiner Wehr, löschen der
+Wehr-Admin. Ist die ausgewählte Quelle offline, bleiben die Schaltflächen
+deaktiviert.
 
 Aufnahmen lassen sich manuell und automatisch steuern:
 
-- **Manuell:** Ein Superadmin startet und stoppt die Aufnahme der gewählten
-  Medienquelle im Medienbalken.
+- **Manuell:** Das Drohnenteam startet und stoppt die Aufnahme seiner Drohnen
+  auf der Seite „Livebilder“.
 - **Automatisch pro Quelle:** Unter „Automatisch aufnehmen“ werden die
   Quellen angehakt, die selbstständig aufnehmen sollen (höchstens vier). Die
   Anwendung überwacht jede dieser Quellen serverseitig: Sobald ihr Signal

@@ -146,7 +146,9 @@ class IncidentService:
             return result
         rows = connection.execute(
             select(incident_organizations).where(
-                incident_organizations.c.incident_id.in_(incident_ids)
+                incident_organizations.c.incident_id.in_(incident_ids),
+                # Nur aktuell Beteiligte: davon hängen die Rechte ab.
+                incident_organizations.c.removed_at.is_(None),
             ).order_by(incident_organizations.c.added_at)
         ).all()
         for row in rows:
@@ -167,6 +169,17 @@ class IncidentService:
         item["weather"] = history[0] if history else None
         item["weather_history"] = history
         return item
+
+    def organization_history(self, incident_id: int) -> list[dict]:
+        """Alle Zeiträume beteiligter Wehren, auch beendete."""
+
+        with self._engine.connect() as connection:
+            rows = connection.execute(
+                select(incident_organizations)
+                .where(incident_organizations.c.incident_id == incident_id)
+                .order_by(incident_organizations.c.added_at, incident_organizations.c.id)
+            ).all()
+        return [dict(row._mapping) for row in rows]
 
     def get(self, incident_id: int) -> dict | None:
         with self._engine.connect() as connection:
@@ -223,6 +236,20 @@ class IncidentService:
         if _unrestricted(user) or user.get("server_admin"):
             return True
         return incident["lead_organization_id"] in set(user.get("org_admin") or [])
+
+    def can_remove_unit(self, user: dict | None, incident: dict, organization_id: int | None) -> bool:
+        """Drohne einer Wehr (organization_id) aus dem Einsatz nehmen.
+
+        Die führende Wehr darf alle entfernen, beteiligte Wehren nur ihre
+        eigenen Drohnen. Ohne organization_id: nur die führende Wehr.
+        """
+
+        if not self.can_edit(user, incident):
+            return False
+        if _unrestricted(user) or user.get("server_admin"):
+            return True
+        operate = set(user.get("org_operate") or [])
+        return incident["lead_organization_id"] in operate or organization_id in operate
 
     def visible(self, user: dict, *, status: str | None = None) -> list[dict]:
         return [item for item in self.list(status=status) if self.can_view(user, item)]
@@ -446,12 +473,7 @@ class IncidentService:
             if new_lead is not None:
                 # Bisherige Führung bleibt als beteiligte Wehr erhalten.
                 self._add_org(connection, incident_id, incident["lead_organization_id"], actor)
-                connection.execute(
-                    delete(incident_organizations).where(
-                        incident_organizations.c.incident_id == incident_id,
-                        incident_organizations.c.organization_id == new_lead,
-                    )
-                )
+                self._end_org(connection, incident_id, new_lead, actor)
                 values["lead_organization_id"] = new_lead
                 notes.append(f"Führung an {new_lead_name} übergeben")
             changed = [
@@ -567,6 +589,7 @@ class IncidentService:
             select(incident_organizations.c.organization_id).where(
                 incident_organizations.c.incident_id == incident_id,
                 incident_organizations.c.organization_id == organization_id,
+                incident_organizations.c.removed_at.is_(None),
             )
         ).first()
         if exists:
@@ -580,6 +603,17 @@ class IncidentService:
             )
         )
         return True
+
+    def _end_org(self, connection, incident_id: int, organization_id: int, actor: str) -> bool:
+        return bool(connection.execute(
+            update(incident_organizations)
+            .where(
+                incident_organizations.c.incident_id == incident_id,
+                incident_organizations.c.organization_id == organization_id,
+                incident_organizations.c.removed_at.is_(None),
+            )
+            .values(removed_at=iso(local_now()), removed_by=actor[:80])
+        ).rowcount)
 
     def add_organization(self, user: dict, incident_id: int, organization_id: int) -> dict:
         incident = self.require(user, incident_id, edit=True)
@@ -598,16 +632,15 @@ class IncidentService:
 
     def remove_organization(self, user: dict, incident_id: int, organization_id: int) -> dict:
         incident = self.require(user, incident_id, edit=True)
+        # Auch nicht sich selbst: Die Beteiligung gehört zur Dokumentation.
+        if not self.can_remove_unit(user, incident, None):
+            raise IncidentAccessError(
+                "Beteiligte Wehren entfernt nur die führende Wehr."
+            )
         actor = user.get("display_name") or user["username"]
         name = self._org_name(organization_id)
         with self._lock, self._engine.begin() as connection:
-            removed = connection.execute(
-                delete(incident_organizations).where(
-                    incident_organizations.c.incident_id == incident_id,
-                    incident_organizations.c.organization_id == organization_id,
-                )
-            ).rowcount
-            if removed:
+            if self._end_org(connection, incident_id, organization_id, actor):
                 self._log(connection, incident_id, actor, "org", f"{name} nicht mehr beteiligt")
                 self._touch(connection, incident_id)
         return self.get(incident["id"])
@@ -782,8 +815,16 @@ class IncidentService:
             self._touch(connection, incident_id)
         return self.get(incident_id)
 
-    def remove_source(self, user: dict, incident_id: int, source_id: str) -> dict:
-        self.require(user, incident_id, edit=True)
+    def remove_source(
+        self, user: dict, incident_id: int, source_id: str, *, organization_id: int | None = None,
+    ) -> dict:
+        """organization_id: Wehr der Drohne (None: nur die führende Wehr)."""
+
+        incident = self.require(user, incident_id, edit=True)
+        if not self.can_remove_unit(user, incident, organization_id):
+            raise IncidentAccessError(
+                "Drohnen anderer Wehren nimmt nur die führende Wehr aus dem Einsatz."
+            )
         actor = user.get("display_name") or user["username"]
         with self._lock, self._engine.begin() as connection:
             row = connection.execute(

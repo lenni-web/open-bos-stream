@@ -321,8 +321,18 @@ class DroneService:
                     raise IncidentError("Diese Drohne ist bereits in einem laufenden Einsatz.")
             self._add(incident, device, user.get("display_name") or user["username"])
 
+    def can_release(self, user: dict, incident: dict, serial: str) -> bool:
+        device = self.device(serial)
+        return self.incidents.can_remove_unit(
+            user, incident, device["organization_id"] if device else None
+        )
+
     def release(self, user: dict, incident_id: int, serial: str) -> None:
-        self.incidents.require(user, incident_id, edit=True)
+        incident = self.incidents.require(user, incident_id, edit=True)
+        if not self.can_release(user, incident, serial):
+            raise IncidentAccessError(
+                "Drohnen anderer Wehren nimmt nur die führende Wehr aus dem Einsatz."
+            )
         with self._lock:
             with self._engine.begin() as connection:
                 row = connection.execute(
